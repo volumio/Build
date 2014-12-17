@@ -35,6 +35,6 @@ echo volumio > /etc/hostname
 
 # cleanup
 apt-get clean
-rm /etc/resolv.conf
-rm -rf /tmp/*
-rm /configscript.sh /usr/bin/qemu-arm-static
+
+rm -rf tmp/*
+rm configscript.sh 
