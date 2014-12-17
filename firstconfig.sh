@@ -32,6 +32,7 @@ chmod 600 /etc/network/interfaces
 
 echo volumio > /etc/hostname
 
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 # cleanup
 apt-get clean
