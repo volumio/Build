@@ -4,6 +4,8 @@
 #
 echo "Executing Multistrap"
 echo "Building Base Jessie System"
+mkdir build
+mkdir build/root
 multistrap -a armhf -f conf/minimal.conf
 cp /usr/bin/qemu-arm-static build/root/usr/bin/
 cp firstconfig.sh build/root
