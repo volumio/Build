@@ -32,6 +32,8 @@ echo volumio > /etc/hostname
 
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
+ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/getty.target.wants/console-kit-daemon.service'
+
 # cleanup
 apt-get clean
 
