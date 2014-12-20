@@ -7,24 +7,23 @@ export LC_ALL=C LANGUAGE=C LANG=C
 /var/lib/dpkg/info/dash.preinst install
 dpkg --configure -a
 
+
+#Adding Main user Volumio
 groupadd volumio
-useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev -s /bin/bash -p '$6$ZZZZZZZZ$WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW' volumio
-
-
-
+useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev -s /bin/bash -p '$6$NmS08H8I$ujkaSrFD0PH1X/8dNotF0KFnQhpJ8hHrGmlpl9Key6FBnVQ4diL4Bmgmc3tCyAyt.PPzK5ChURbZn.XL3rCv51' volumio
 echo "volumio ALL=(ALL) ALL" >> /etc/sudoers
+
+#Setting Root Password
+echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
 
 
 cat > /etc/network/interfaces << EOF
-# interfaces(5) file used by ifup(8) and ifdown(8)
 auto lo
 iface lo inet loopback
 
-allow-hotplug eth0
+auto eth0
 iface eth0 inet dhcp
-
-allow-hotplug wlan0
 
 EOF
 chmod 600 /etc/network/interfaces
