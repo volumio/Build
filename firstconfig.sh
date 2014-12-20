@@ -13,8 +13,7 @@ useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,au
 
 
 echo "volumio ALL=(ALL) ALL" >> /etc/sudoers
-chown -R volumio: /home/volumio/.ssh
-chmod -R go= /home/volumio/.ssh
+
 
 
 cat > /etc/network/interfaces << EOF
