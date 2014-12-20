@@ -14,6 +14,11 @@ mount /proc build/root/proc -t proc
 mount /sys build/root/sys -t sysfs
 chroot build/root /bin/bash -x <<'EOF'
 su -
-./firstconfig.sh
+./firstconfig.sh 
+EOF
 
+echo "Unmounting Temp devices"
+umount -l build/root/dev 
+umount -l build/root/proc 
+umount -l build/root/sys 
 
