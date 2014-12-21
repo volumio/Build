@@ -75,9 +75,12 @@ umount -l build/root/dev
 umount -l build/root/proc 
 umount -l build/root/sys 
 sh scripts/configure.sh
+<<<<<<< HEAD
 
 else 
 echo 'Writing UDOO Image File'
 sh scripts/udooimage.sh -v 1.5 -d UDOO
 
  
+=======
+>>>>>>> 10100150ff69b0cf3ff4e6ee88bd32a7faefca18
