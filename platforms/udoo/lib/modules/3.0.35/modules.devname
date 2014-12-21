@@ -1,0 +1,3 @@
+# Device nodes to trigger on-demand module loading.
+dm_mod mapper/control c10:236
+snd_seq snd/seq c116:1
