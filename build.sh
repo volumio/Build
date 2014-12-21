@@ -22,4 +22,4 @@ echo "Unmounting Temp devices"
 umount -l build/root/dev 
 umount -l build/root/proc 
 umount -l build/root/sys 
-
+sh scripts/configure.sh
