@@ -8,7 +8,7 @@ mkdir build
 mkdir build/root
 multistrap -a armhf -f conf/minimal.conf
 cp /usr/bin/qemu-arm-static build/root/usr/bin/
-cp firstconfig.sh build/root
+cp scripts/firstconfig.sh build/root
 mount /dev build/root/dev -o bind
 mount /proc build/root/proc -t proc
 mount /sys build/root/sys -t sysfs
