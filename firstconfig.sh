@@ -36,6 +36,5 @@ ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/
 
 # cleanup
 apt-get clean
-
 rm -rf tmp/*
-rm configscript.sh 
+
