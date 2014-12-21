@@ -16,7 +16,8 @@ chroot build/root /bin/bash -x <<'EOF'
 su -
 ./firstconfig.sh 
 EOF
-
+echo "Base System Installed"
+rm build/root/firstconfig.sh
 echo "Unmounting Temp devices"
 umount -l build/root/dev 
 umount -l build/root/proc 
