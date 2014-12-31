@@ -82,5 +82,4 @@ echo 'Writing UDOO Image File'
 sh scripts/udooimage.sh -v 1.5 -d UDOO
 
  
-=======
->>>>>>> 10100150ff69b0cf3ff4e6ee88bd32a7faefca18
+
