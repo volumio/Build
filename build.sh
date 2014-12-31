@@ -82,4 +82,4 @@ echo 'Writing UDOO Image File'
 sh scripts/udooimage.sh -v 1.5 -d UDOO
 
  
-
+fi
