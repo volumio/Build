@@ -75,7 +75,7 @@ umount -l build/root/dev
 umount -l build/root/proc 
 umount -l build/root/sys 
 sh scripts/configure.sh
-<<<<<<< HEAD
+
 
 else 
 echo 'Writing UDOO Image File'
