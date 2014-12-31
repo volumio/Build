@@ -34,7 +34,7 @@ do
      esac
 done
 
-IMG_FILE="Volumio${VERSION}${DEVICE}.img"
+IMG_FILE="Volumio.img"
  
 echo "Creating Image Bed"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1000
@@ -47,7 +47,7 @@ sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
  
 echo "Creating filesystems"
-sudo mkfs.ext4 -O ^has_journal -E stride=2,stripe-width=1024 -b 4096 "${LOOP_DEV}" -L system
+sudo mkfs.ext4 -O ^has_journal -E stride=2,stripe-width=1024 -b 4096 "${LOOP_DEV}" -L volumio
 sync
  
 echo "Burning bootloader"
@@ -57,23 +57,25 @@ sync
 
  
 echo "Copying Volumio RootFs"
-sudo mount -t ext4 "${LOOP_PART_SYS}" /mnt
-sudo rm -rf /mnt/*
-sudo cp -r build/root/* /mnt
+sudo mkdir /mnt
+sudo mkdir /mnt/volumio
+sudo mount -t ext4 "${LOOP_DEV}" /mnt/volumio
+sudo rm -rf /mnt/volumio/*
+sudo cp -r build/root/* /mnt/volumio
 fi
 sync
 
 echo "Copying Kernel"
-sudo cp -r platforms/udoo/boot /mnt/boot
+sudo cp -r platforms/udoo/boot /mnt/volumio/boot
  
 echo "Copying Modules and Firmwares"
-sudo cp -r platforms/udoo/lib/modules /mnt/lib/modules
-sudo cp -r platforms/udoo/firmware /mnt/lib/firmware
+sudo cp -r platforms/udoo/lib/modules /mnt/volumio/lib/modules
+sudo cp -r platforms/udoo/firmware /mnt/volumio/lib/firmware
 sync
   
-ls -al /mnt
+ls -al /mnt/volumio/
  
-sudo umount /mnt
+sudo umount /mnt/volumio/
  
 echo
 echo Umount
