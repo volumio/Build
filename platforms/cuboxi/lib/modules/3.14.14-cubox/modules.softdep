@@ -1,0 +1,3 @@
+# Soft dependencies extracted from modules themselves.
+# Copy, with a .conf extension, to /etc/modprobe.d to use it with modprobe.
+softdep sctp_probe pre: sctp
