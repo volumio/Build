@@ -76,7 +76,7 @@ fi
 sync
 
 echo "Copying Kernel"
-sudo cp -r platforms/udoo/boot /mnt/volumio/boot
+sudo cp -r platforms/udoo/boot /mnt/volumio/
  
 echo "Copying Modules and Firmwares"
 sudo cp -r platforms/udoo/lib/modules /mnt/volumio/lib/modules
