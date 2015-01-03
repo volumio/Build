@@ -27,15 +27,23 @@ echo "Creating filesystems"
 sudo mkfs.vfat "${BOOT_PART}" -n boot
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${SYS_PART}" -L volumio
 sync
- 
-
-
- 
+  
 echo "Copying Volumio RootFs"
+if [ -d /mnt ]
+then 
+echo "/mnt/folder exist"
+else
 sudo mkdir /mnt
+fi
+if [ -d /mnt/volumio ]
+then 
+echo "Volumio Temp Directory Exists - Cleaning it"
+rm -rf /mnt/volumio/*
+else
+echo "Creating Volumio Temp Directory"
 sudo mkdir /mnt/volumio
+fi
 sudo mount -t ext4 "${SYS_PART}" /mnt/volumio
-sudo rm -rf /mnt/volumio/*
 sudo mkdir /mnt/volumio/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/boot
 sudo cp -r build/root/* /mnt/volumio
@@ -53,7 +61,7 @@ su -
 EOF
 
 echo "Base System Installed"
-#rm /mnt/volumio/raspberryconfig.sh
+rm /mnt/volumio/raspberryconfig.sh
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/dev 
 umount -l /mnt/volumio/proc 
@@ -62,15 +70,13 @@ umount -l /mnt/volumio/sys
 
 
 echo "Copying Firmwares"
-sudo cp -r platforms/udoo/lib/modules /mnt/volumio/lib/modules
-sudo cp -r platforms/udoo/firmware /mnt/volumio/lib/firmware
+
 sync
   
 ls -al /mnt/volumio/
  
-sudo umount /mnt/volumio/
- 
-echo
-echo Umount
-echo
+echo "Unmounting Temp Devices"
+sudo umount -l /mnt/volumio/
+dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
+
