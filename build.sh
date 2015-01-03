@@ -79,7 +79,7 @@ sh scripts/configure.sh
 
 else 
 echo 'Writing UDOO Image File'
-sh scripts/cuboxiimage.sh -v 1.5 -d CUBOXI
+sh scripts/raspberryimage.sh -v 1.5 -d CUBOXI
 
  
 fi

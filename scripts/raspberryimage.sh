@@ -49,7 +49,7 @@ mount /proc /mnt/volumio/proc -t proc
 mount /sys /mnt/volumio/sys -t sysfs
 chroot /mnt/volumio /bin/bash -x <<'EOF'
 su -
-./raspberryconfig.sh
+/raspberryconfig.sh
 EOF
 
 echo "Base System Installed"
