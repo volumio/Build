@@ -34,9 +34,10 @@ echo "Installing Kernel from Rpi-Update"
 apt-get update
 apt-get -y install git-core binutils ca-certificates curl
 sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
-#wget --continue http://raw.github.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update
-#chmod +x /usr/bin/rpi-update
 touch /boot/start.elf
 mkdir /lib/modules
 mkdir /lib/firmware
-rpi-update
+SKIP_BACKUP=1 rpi-update e38850519c56b835dbd1c81e04d9307e154c36ed
+
+echo "Cleaning APT Cache"
+apt-get clean
