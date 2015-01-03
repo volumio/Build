@@ -26,9 +26,7 @@ sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${LOOP_PART}" -L volumio
 sync
  
 echo "Burning bootloader"
-sudo dd if=platforms/cuboxi/uboot/u-boot.img of=${LOOP_DEV} bs=1K seek=42
-echo "Burning SPL"
-sudo dd if=platforms/cuboxi/uboot/SPL of=${LOOP_DEV} bs=1K seek=1
+sudo dd if=platforms/cuboxi/uboot/u-boot.img of=${LOOP_DEV} bs=512 seek=1
 sync
 
  
@@ -38,7 +36,7 @@ sudo mkdir /mnt/volumio
 sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
 sudo rm -rf /mnt/volumio/*
 sudo cp -r build/root/* /mnt/volumio
-fi
+
 sync
 
 echo "Copying Kernel"
