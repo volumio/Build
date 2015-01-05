@@ -2,16 +2,6 @@
 
 # This script will be run in chroot under qemu.
 
-echo "Configuring Raspbian Repo"
-
-wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
-
-echo "deb http://archive.raspbian.org/raspbian jessie main contrib non-free
-deb-src http://archive.raspbian.org/raspbian jessie main contrib non-free
-
-" > /etc/apt/sources.list
-
-
 echo "Creating Fstab File"
 
 touch /etc/fstab
