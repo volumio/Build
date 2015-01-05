@@ -1,3 +1,2 @@
-deb http://http.debian.net/debian jessie main non-free
-deb-src http://http.debian.net/debian wheezy main non-free
-
+deb http://archive.raspbian.org/raspbian jessie main contrib non-free
+deb-src http://archive.raspbian.org/raspbian jessie main contrib non-free

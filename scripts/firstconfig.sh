@@ -34,6 +34,9 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/getty.target.wants/console-kit-daemon.service'
 
+echo ' Adding Raspbian Repo Key'
+wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
+
 # cleanup
 apt-get clean
 rm -rf tmp/*
