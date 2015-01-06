@@ -1,0 +1,16 @@
+Description: source $MPDCONF from /etc/default/mpd
+Author: Florian Schlichting <fsfs@debian.org>
+Forwarded: not-needed
+
+--- a/systemd/mpd.service.in
++++ b/systemd/mpd.service.in
+@@ -3,7 +3,8 @@
+ After=network.target sound.target
+ 
+ [Service]
+-ExecStart=@prefix@/bin/mpd --no-daemon
++EnvironmentFile=/etc/default/mpd
++ExecStart=@prefix@/bin/mpd --no-daemon $MPDCONF
+ 
+ # allow MPD to use real-time priority 50
+ LimitRTPRIO=50

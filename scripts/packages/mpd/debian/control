@@ -1,0 +1,116 @@
+Source: mpd-volumio
+Section: sound
+Priority: optional
+Maintainer: mpd maintainers <pkg-mpd-maintainers@lists.alioth.debian.org>
+Uploaders: Florian Schlichting <fsfs@debian.org>
+Build-Depends: debhelper (>= 9),
+               dh-autoreconf,
+               dh-systemd,
+               dpkg-dev (>= 1.16.1~),
+               libadplug-dev,
+               libao-dev,
+               libasound2-dev  [linux-any],
+               libaudiofile-dev (>= 0.3),
+               libavahi-client-dev,
+               libavahi-glib-dev,
+               libavcodec-dev,
+               libavformat-dev,
+               libboost-dev,
+               libbz2-dev,
+               libcdio-paranoia-dev,
+               libcppunit-dev,
+               libcurl4-gnutls-dev | libcurl-dev,
+               libexpat1-dev,
+               libfaad-dev,
+               libflac-dev,
+               libfluidsynth-dev,
+               libglib2.0-dev,
+               libgme-dev,
+               libicu-dev,
+               libid3tag0-dev,
+               libiso9660-dev,
+               libjack-jackd2-dev,
+               libmad0-dev,
+               libmikmod-dev,
+               libmms-dev,
+               libmodplug-dev,
+               libmp3lame-dev,
+               libmpcdec-dev,
+               libmpdclient-dev,
+               libmpg123-dev,
+               libnfs-dev,
+               libogg-dev,
+               libopenal-dev,
+               libopus-dev,
+               libpulse-dev,
+               libresid-builder-dev,
+               libroar-dev (>= 0.4),
+               libsamplerate0-dev,
+               libshine-dev [arm armel armeb],
+               libshout3-dev,
+               libsidplay2-dev,
+               libsidutils-dev,
+               libsmbclient-dev,
+               libsndfile1-dev,
+               libsoxr-dev,
+               libsqlite3-dev,
+               libsystemd-daemon-dev [linux-any],
+               libupnp-dev,
+               libvorbis-dev [!arm !armel !armeb],
+               libvorbisidec-dev [arm armel armeb],
+               libwavpack-dev,
+               libwildmidi-dev,
+               libwrap0-dev,
+               libyajl-dev,
+               libzzip-dev,
+               xmlto
+Standards-Version: 3.9.6
+Homepage: http://www.musicpd.org/
+Vcs-Browser: http://anonscm.debian.org/gitweb?p=pkg-mpd/pkg-mpd.git
+Vcs-Git: git://anonscm.debian.org/pkg-mpd/pkg-mpd.git
+
+Package: mpd-volumio
+Architecture: any
+Depends: adduser, lsb-base, ${misc:Depends}, ${shlibs:Depends}
+Suggests: avahi-daemon, icecast2, mpd-client, pulseaudio
+Breaks: avahi-daemon (<< 0.6.31-3)
+Description: Music Player Daemon
+ Music Player Daemon (MPD) is a server that allows remote access for
+ playing audio files (Ogg-Vorbis, FLAC, MP3, Wave, and AIFF), streams
+ (Ogg-Vorbis, MP3) and managing playlists.  Gapless playback, buffered
+ output, and crossfading support is also included.  The design focus is
+ on integrating a computer into a stereo system that provides control
+ for music playback over a TCP/IP network.  The goals are to be easy to
+ install and use, to have minimal resource requirements (it has been
+ reported to run fine on a Pentium 75), and to remain stable and
+ flexible.
+ .
+ The daemon is controlled through a client which need not run on the
+ same computer mpd runs on.  The separate client and server design
+ allows users to choose a user interface that best suites their tastes
+ independently of the underlying daemon (this package) which actually
+ plays music.
+
+Package: mpd-volumio-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: mpd (= ${binary:Version}), ${misc:Depends}
+Description: Music Player Daemon debugging symbols
+ Music Player Daemon (MPD) is a server that allows remote access for
+ playing audio files (Ogg-Vorbis, FLAC, MP3, Wave, and AIFF), streams
+ (Ogg-Vorbis, MP3) and managing playlists.  Gapless playback, buffered
+ output, and crossfading support is also included.  The design focus is
+ on integrating a computer into a stereo system that provides control
+ for music playback over a TCP/IP network.  The goals are to be easy to
+ install and use, to have minimal resource requirements (it has been
+ reported to run fine on a Pentium 75), and to remain stable and
+ flexible.
+ .
+ The daemon is controlled through a client which need not run on the
+ same computer mpd runs on.  The separate client and server design
+ allows users to choose a user interface that best suites their tastes
+ independently of the underlying daemon (this package) which actually
+ plays music.
+ .
+ This package contains the debugging symbols.

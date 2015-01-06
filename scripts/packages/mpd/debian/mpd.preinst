@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# don't fail if this doesn't work
+#set -e
+
+ACTION="$1"
+VERSION="$2"
+
+# transition away from START_MPD=false (obsolete after jessie)
+if [ "$ACTION" = "upgrade" ]; then
+    [ -r /etc/default/mpd ] && . /etc/default/mpd
+    if grep -q START_MPD /etc/default/mpd && [ "x$START_MPD" != "xtrue" ]; then
+        update-rc.d mpd disable > /dev/null
+        # attempt to reset /etc/default/mpd to unmodified state
+        sed -i -e's/^START_MPD=.*$/START_MPD=true/' /etc/default/mpd
+    fi
+fi
+
+#DEBHELPER#
