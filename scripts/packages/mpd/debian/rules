@@ -63,9 +63,9 @@ ENABLE_FILEFORMATS=--enable-aac \
 		   --disable-gme \
 		   --enable-sndfile \
 		   --disable-mikmod \
-		   --enable-modplug \
-		   --disable-mad \
-		   --disable-mp4v2 \
+		   --disable-modplug \
+		   --enable-mad \
+		   --enable-mp4v2 \
 		   --enable-mpg123 \
 		   --enable-mpc \
 		   --enable-opus \
@@ -92,7 +92,7 @@ ENABLE_METADATA=--enable-id3
 # Note: ALSA is in WITH_SYSTEMD
 ENABLE_PLAYBACKS=--enable-fifo \
 		 --disable-recorder-output \
-		 --disable-httpd-output \
+		 --enable-httpd-output \
 		 --disable-jack \
 		 --disable-ao \
 		 --disable-oss \
