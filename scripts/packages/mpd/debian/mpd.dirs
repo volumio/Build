@@ -1,0 +1,4 @@
+var/log/mpd
+var/lib/mpd
+var/lib/mpd/playlists
+var/lib/mpd/music

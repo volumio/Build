@@ -1,0 +1,7 @@
+Document: mpd
+Title: MPD user manual
+Section: Sound
+
+Format: HTML
+Index: /usr/share/doc/mpd/user-manual.html
+Files: /usr/share/doc/mpd/*.html

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+umask 0022
+ACTION="$1"
+VERSION="$2"
+
+if [ "$ACTION" = "configure" ]; then
+    # add the mpd user
+    if ! getent passwd mpd >/dev/null; then
+        adduser --quiet --ingroup audio --system --no-create-home \
+            --home /var/lib/mpd mpd
+    fi
+
+    # set ownership and permissions on directories
+    for i in /var/log/mpd /var/lib/mpd /var/lib/mpd/playlists; do
+        if ! dpkg-statoverride --list --quiet "$i" >/dev/null; then
+            dpkg-statoverride --force --quiet --update \
+                --add mpd audio 0755 "$i"
+        fi
+    done
+
+    # set ownership and permissions on mpd.conf
+    if ! dpkg-statoverride --list --quiet /etc/mpd.conf >/dev/null; then
+        dpkg-statoverride --force --quiet --update \
+            --add mpd audio 0640 /etc/mpd.conf
+    fi
+fi
+
+#DEBHELPER#

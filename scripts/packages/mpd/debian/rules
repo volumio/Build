@@ -1,0 +1,155 @@
+#!/usr/bin/make -f
+include /usr/share/dpkg/architecture.mk
+
+WITH_TREMOR=--without-tremor --enable-vorbis --disable-shine-encoder
+ifeq ($(DEB_HOST_ARCH), arm)
+WITH_TREMOR=--with-tremor --disable-vorbis --enable-shine-encoder
+endif
+ifeq ($(DEB_HOST_ARCH), armel)
+WITH_TREMOR=--with-tremor --disable-vorbis --enable-shine-encoder
+endif
+ifeq ($(DEB_HOST_ARCH), armeb)
+WITH_TREMOR=--with-tremor --disable-vorbis --enable-shine-encoder
+endif
+
+# work around ld assertion fail ../../bfd/elf-strtab.c:254/:272 on mips/mipsel
+RUN_TESTS=--enable-test
+ifeq ($(DEB_HOST_ARCH), mips)
+    RUN_TESTS=--disable-test
+endif
+ifeq ($(DEB_HOST_ARCH), mipsel)
+    RUN_TESTS=--disable-test
+endif
+
+# no systemd and no alsa on non-linux arches
+ifeq ($(DEB_HOST_ARCH_OS), linux)
+WITH_SYSTEMD=--enable-systemd-daemon --with-systemdsystemunitdir=/lib/systemd/system --enable-alsa
+CP_SYSTEMD_UNIT=mkdir -p debian/mpd/lib/systemd && cp -a debian/tmp/lib/systemd/system debian/mpd/lib/systemd/
+else
+WITH_SYSTEMD=--disable-systemd-daemon --disable-alsa
+CP_SYSTEMD_UNIT=echo "no systemd, not copying systemd .service file"
+endif
+
+
+###############################################################
+## Define Debian feature set (in configure summary order)
+
+# Archive support
+ENABLE_ARCHIVES=--disable-bzip2 \
+	        --disable-iso9660 \
+		--disable-zlib \
+		--disable-zzip
+
+# Autodiscovery support
+ENABLE_AUTODISCOVERY=--enable-neighbor-plugins \
+		     --enable-nfs \
+		     --enable-smbclient \
+		     --enable-upnp \
+		     --with-zeroconf=avahi
+
+# Client support
+ENABLE_CLIENTS=--disable-ipv6 \
+	       --enable-tcp \
+	       --disable-un
+
+# File format support
+# Note: OggTremor / OggVorbis are in WITH_TREMOR
+ENABLE_FILEFORMATS=--enable-aac \
+		   --enable-adplug \
+		   --disable-sidplay \
+		   --enable-ffmpeg \
+		   --enable-flac \
+		   --disable-fluidsynth \
+		   --disable-gme \
+		   --enable-sndfile \
+		   --disable-mikmod \
+		   --enable-modplug \
+		   --disable-mad \
+		   --disable-mp4v2 \
+		   --enable-mpg123 \
+		   --enable-mpc \
+		   --enable-opus \
+		   --enable-audiofile \
+		   --enable-wavpack \
+		   --disable-wildmidi
+
+# Other features
+ENABLE_OTHER=--with-boost \
+	     --enable-database \
+	     --enable-expat \
+	     --enable-glib \
+	     --enable-icu \
+	     --enable-lsr \
+	     --enable-libmpdclient \
+	     --enable-inotify \
+	     --enable-soxr \
+	     --enable-sqlite
+
+# Metadata support
+ENABLE_METADATA=--enable-id3
+
+# Playback support
+# Note: ALSA is in WITH_SYSTEMD
+ENABLE_PLAYBACKS=--enable-fifo \
+		 --disable-recorder-output \
+		 --disable-httpd-output \
+		 --disable-jack \
+		 --disable-ao \
+		 --disable-oss \
+		 --disable-openal \
+		 --disable-pipe-output \
+		 --enable-pulse \
+		 --enable-roar \
+		 --enable-shout
+
+# Streaming encoder support
+# Note: FLAC and Opus enabled under file formats
+ENABLE_ENCODERS= --enable-lame-encoder \
+		--enable-vorbis-encoder \
+		--enable-wave-encoder
+
+# Streaming support
+ENABLE_STREAMING=--enable-cdio-paranoia \
+		 --enable-curl \
+		 --enable-soundcloud \
+		 --enable-mms
+
+###############################################################
+
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+LDFLAGS += -Wl,--as-needed
+
+%:
+	dh $@ --with autoreconf --with=systemd
+
+override_dh_auto_configure:
+	./configure $(WITH_TREMOR) $(WITH_SYSTEMD) \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		$(RUN_TESTS) \
+		$(ENABLE_ARCHIVES) \
+		$(ENABLE_AUTODISCOVERY) \
+		$(ENABLE_CLIENTS) \
+		$(ENABLE_FILEFORMATS) \
+		$(ENABLE_OTHER) \
+		$(ENABLE_METADATA) \
+		$(ENABLE_PLAYBACKS) \
+		$(ENABLE_ENCODERS) \
+		$(ENABLE_STREAMING)
+
+override_dh_auto_build:
+	dh_auto_build
+	# from the available documentation, generate just the user manual, as one html file
+	/usr/bin/xmlto --stringparam chunker.output.encoding=utf-8 html-nochunks $(CURDIR)/doc/user.xml
+	mv user.html user-manual.html
+
+override_dh_strip:
+	dh_strip  --dbg-package=mpd-dbg
+
+override_dh_installchangelogs:
+	dh_installchangelogs NEWS
+
+override_dh_install:
+	dh_install
+	$(CP_SYSTEMD_UNIT)

@@ -1,0 +1,33 @@
+Music Player Daemon (MPD) for Debian
+------------------------------------
+
+After installation, you will need to populate the MPD database. Update
+mpd.conf to point to your music directory, or move/symlink your music into the
+directory configured for mpd. Then, request a database update, preferably
+through a client such as running "mpc update", or by restarting the mpd
+daemon.
+
+The recommended way to run a "personal" mpd, as your own user while logged into
+a graphical user session from which a pulseaudio daemon has been started (as is
+the default in Debian nowadays), is to disable the default system service
+using the command (as root) "update-rc.d mpd disable". mpd is then
+started through the XDG autostart mechanism upon logging into your desktop
+environment, provided it can find a valid config file (such as ~/.mpdconf).
+Starting from the provided mpdconf.example, you'll likely want to uncomment and
+adjust all options in the "Files and directories" section, set bind_to_address
+(see below) as well as enable the non-optional pulse configuration.
+
+In the default /etc/mpd.conf, bind_to_address is set to "localhost" in
+order to prevent other (possibly untrusted) hosts from accessing MPD.
+If you wish to allow other hosts to access MPD, you must change this
+value to an appropriate interface, or comment it out to enable listening
+on all network interfaces.
+
+When using ALSA with dmix, you may run into problems sharing the sound card
+between the "mpd" user and your own account. A workaround is to use ALSA's
+"ipc_key_add_uid" and "ipc_perm" directives. See the ALSA documentation for
+instructions on how to add this to your configuration.
+
+Similarly, if you plan to use a JACK output, you might need to make mpd and
+jackd run under the same user, since a typical JACK setup doesn't permit
+several users to access the sound daemon.
