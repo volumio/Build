@@ -1,9 +1,20 @@
 #!/bin/sh
 
+while getopts ":v:" opt; do
+  case $opt in
+    v)
+      VERSION=$OPTARG
+      ;;
+  esac
+done
+BUILDDATE=$(date -I)
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}PI.img"
 
-IMG_FILE="Volumio.img"
  
 echo "Creating Image Bed"
+echo "Image file: ${IMG_FILE}"
+
+
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1048
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  

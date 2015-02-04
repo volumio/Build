@@ -1,42 +1,20 @@
 #!/bin/sh
-usage()
-{
-cat << EOF
-usage: $0 options
 
-OPTIONS:
-   -v      Volumio Version
-   -d      Platform: UDOO etc
-EOF
-}
-
-TEST=
-SERVER=
-PASSWD=
-VERBOSE=
-while getopts “ht:r:p:v” OPTION
-do
-     case $OPTION in
-         h)
-             usage
-             exit 1
-             ;;
-         v)
-             VERSION=$OPTARG
-             ;;
-         d)
-             DEVICE=$OPTARG
-             ;;
-         ?)
-             usage
-             exit
-             ;;
-     esac
+while getopts ":v:" opt; do
+  case $opt in
+    v)
+      VERSION=$OPTARG
+      ;;
+  esac
 done
+BUILDDATE=$(date -I)
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}UDOO.img"
 
-IMG_FILE="Volumio.img"
  
 echo "Creating Image Bed"
+echo "Image file: ${IMG_FILE}"
+
+
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1048
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
