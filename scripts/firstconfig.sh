@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script will be run in chroot under qemu.
+# This script will be rurooroon in chroot under qemu.
 
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
@@ -9,15 +9,16 @@ dpkg --configure -a
 
 
 #Adding Main user Volumio
+echo "Adding Volumio User"
 groupadd volumio
-useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev -s /bin/bash -p '$6$NmS08H8I$ujkaSrFD0PH1X/8dNotF0KFnQhpJ8hHrGmlpl9Key6FBnVQ4diL4Bmgmc3tCyAyt.PPzK5ChURbZn.XL3rCv51' volumio
+useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev -s /bin/bash -p '$6$tRtTtICB$Ki6z.DGyFRopSDJmLUcf3o2P2K8vr5QxRx5yk3lorDrWUhH64GKotIeYSNKefcniSVNcGHlFxZOqLM6xiDa.M.' volumio
 echo "volumio ALL=(ALL) ALL" >> /etc/sudoers
 
 #Setting Root Password
 echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
 
-
+echo "Configuring Default Network"
 cat > /etc/network/interfaces << EOF
 auto lo
 iface lo inet loopback
@@ -40,4 +41,29 @@ wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 # cleanup
 apt-get clean
 rm -rf tmp/*
+
+echo "Installing Node Environment"
+#huge kudos to node-arm for such effort
+wget http://node-arm.herokuapp.com/node_latest_armhf.deb
+dpkg -i /node_latest_armhf.deb 
+rm /node_latest_armhf.deb 
+
+echo "Creating Volumio Folder Structure"
+# Media Mount Folders
+mkdir /mnt
+mkdir /mnt/NAS
+mkdir /mnt/USB
+chmod -R 777 /mnt
+# Symlinking Mount Folders to Mpd's Folder
+ln -s /mnt/NAS /var/lib/mpd/music
+ln -s /mnt/USB /var/lib/mpd/music
+
+echo "Prepping MPD environment"
+chown -R mpd /var/lib/mpd
+touch /var/lib/mpd/tag_cache
+chown mpd /var/lib/mpd/tag_cache
+
+#Adding Volumio Parent Service to Startup
+systemctl enable volumio.service
+
 

@@ -1,0 +1,13 @@
+[Service]
+ExecStart=/usr/local/bin/node /volumio/bin/www
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=tmm-watchdog
+User=tmm
+Group=tmm
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+
