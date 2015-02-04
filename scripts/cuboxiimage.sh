@@ -47,16 +47,16 @@ sudo mkdir /mnt
 sudo mkdir /mnt/volumio
 sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
 sudo rm -rf /mnt/volumio/*
-sudo cp -r build/root/* /mnt/volumio
+sudo cp -pdR build/root/* /mnt/volumio
 
 sync
 
 echo "Copying Kernel"
-sudo cp -r platforms/cuboxi/boot /mnt/volumio/
+sudo cp -pdR platforms/cuboxi/boot /mnt/volumio/
  
 echo "Copying Modules and Firmwares"
-sudo cp -r platforms/cuboxi/lib/modules /mnt/volumio/lib/modules
-sudo cp -r platforms/cuboxi/firmware /mnt/volumio/lib/firmware
+sudo cp -pdR platforms/cuboxi/lib/modules /mnt/volumio/lib/modules
+sudo cp -pdR platforms/cuboxi/firmware /mnt/volumio/lib/firmware
 sync
   
 ls -al /mnt/volumio/
