@@ -60,9 +60,10 @@ ln -s /mnt/NAS /var/lib/mpd/music
 ln -s /mnt/USB /var/lib/mpd/music
 
 echo "Prepping MPD environment"
-chown -R mpd /var/lib/mpd
 touch /var/lib/mpd/tag_cache
-chown mpd /var/lib/mpd/tag_cache
+chmod 777 /var/lib/mpd/tag_cache
+mkdir /var/lib/mpd/playlists
+chmod 777 /var/lib/mpd/playlists
 
 echo "Adding Volumio Parent Service to Startup"
 systemctl enable volumio.service
