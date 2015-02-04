@@ -22,7 +22,7 @@ cp volumio/etc/ssh/sshd_config build/root/etc/ssh/sshd_config
 cp volumio/etc/mpd.conf build/root/etc/mpd.conf
 #Log via JournalD in RAM
 cp volumio/etc/systemd/journald.conf build/root/etc/systemd/journald.conf
-#Volumio Init Service
+#Volumio SystemD Services
 cp -r volumio/lib build/root/
 
 echo 'Done Copying Custom Volumio System Files'
