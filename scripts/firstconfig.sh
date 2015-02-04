@@ -17,6 +17,8 @@ echo "volumio ALL=(ALL) ALL" >> /etc/sudoers
 #Setting Root Password
 echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
+#Fixing sudo 
+chmod 4755 /usr/bin/sudo
 
 echo "Configuring Default Network"
 cat > /etc/network/interfaces << EOF
