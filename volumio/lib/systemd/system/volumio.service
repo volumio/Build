@@ -3,9 +3,9 @@ ExecStart=/usr/local/bin/node /volumio/bin/www
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=tmm-watchdog
-User=tmm
-Group=tmm
+SyslogIdentifier=volumio
+User=volumio
+Group=volumio
 Environment=NODE_ENV=production
 
 [Install]
