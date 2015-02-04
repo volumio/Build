@@ -49,16 +49,16 @@ sudo mkdir /mnt
 sudo mkdir /mnt/volumio
 sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
 sudo rm -rf /mnt/volumio/*
-sudo cp -r build/root/* /mnt/volumio
+sudo cp -pdR build/root/* /mnt/volumio
 fi
 sync
 
 echo "Copying Kernel"
-sudo cp -r platforms/udoo/boot /mnt/volumio/
+sudo cp -pdR platforms/udoo/boot /mnt/volumio/
  
 echo "Copying Modules and Firmwares"
-sudo cp -r platforms/udoo/lib/modules /mnt/volumio/lib/modules
-sudo cp -r platforms/udoo/firmware /mnt/volumio/lib/firmware
+sudo cp -pdR platforms/udoo/lib/modules /mnt/volumio/lib/modules
+sudo cp -pdR platforms/udoo/firmware /mnt/volumio/lib/firmware
 sync
   
 ls -al /mnt/volumio/
