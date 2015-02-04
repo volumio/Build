@@ -78,8 +78,21 @@ sh scripts/configure.sh
 
 
 else 
+
+if [ "$DEVICE" = pi ]; then
+echo 'Writing Rasoberry Pi Image File'
+sh scripts/raspberryimage.sh -v $VERSION; 
+fi
+if [ "$DEVICE" = udoo ]; then
 echo 'Writing UDOO Image File'
-sh scripts/raspberryimage.sh -v 1.5 -d CUBOXI
+sh scripts/udooimage.sh -v $VERSION ;
+fi
+if  [ "$DEVICE" = cuboxi ]; then
+echo 'Writing Cubox-i Image File'
+sh scripts/cuboxiimage.sh -v $VERSION; 
+fi
+fi
+
 
  
-fi
+
