@@ -50,7 +50,6 @@ rm /node_latest_armhf.deb
 
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
-mkdir /mnt
 mkdir /mnt/NAS
 mkdir /mnt/USB
 chmod -R 777 /mnt
@@ -63,7 +62,7 @@ chown -R mpd /var/lib/mpd
 touch /var/lib/mpd/tag_cache
 chown mpd /var/lib/mpd/tag_cache
 
-#Adding Volumio Parent Service to Startup
+echo "Adding Volumio Parent Service to Startup"
 systemctl enable volumio.service
 
 
