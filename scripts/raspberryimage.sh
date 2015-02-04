@@ -57,7 +57,7 @@ fi
 sudo mount -t ext4 "${SYS_PART}" /mnt/volumio
 sudo mkdir /mnt/volumio/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/boot
-sudo cp -r build/root/* /mnt/volumio
+sudo cp -pdR build/root/* /mnt/volumio
 sync
 
 echo "Entering Chroot Environment"
