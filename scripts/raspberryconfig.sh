@@ -31,7 +31,8 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 mkdir /lib/firmware
-SKIP_BACKUP=1 rpi-update e38850519c56b835dbd1c81e04d9307e154c36ed
+# Kernel Commit https://github.com/Hexxeh/rpi-firmware/commit/38aa676b044f8de46aedb4bd972538a7ad6a3ce1
+SKIP_BACKUP=1 rpi-update 38aa676b044f8de46aedb4bd972538a7ad6a3ce1
 
 echo "Cleaning APT Cache"
 apt-get clean
