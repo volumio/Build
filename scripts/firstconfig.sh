@@ -78,3 +78,5 @@ echo "Prepping Node Volumio folder"
 mkdir /volumio
 chown -R volumio:volumio /volumio
 
+echo "Cloning Volumio"
+git clone https://github.com/volumio/Volumio2.git /volumio
