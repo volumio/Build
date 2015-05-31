@@ -47,6 +47,11 @@ wget http://node-arm.herokuapp.com/node_latest_armhf.deb
 dpkg -i /node_latest_armhf.deb 
 rm /node_latest_armhf.deb 
 
+echo "Installing Spop and libspotify"
+wget http://repo.volumio.org/Packages/spop.tar.gz
+tar xvf /spop.tar.gz
+rm /spop.tar.gz
+
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
