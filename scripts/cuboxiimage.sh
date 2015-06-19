@@ -47,7 +47,7 @@ sudo mkdir /mnt
 sudo mkdir /mnt/volumio
 sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
 sudo rm -rf /mnt/volumio/*
-sudo cp -pdR build/root/* /mnt/volumio
+sudo cp -pdR build/arm/root/* /mnt/volumio
 
 sync
 
@@ -64,6 +64,6 @@ ls -al /mnt/volumio/
 sudo umount /mnt/volumio/
  
 echo
-echo Umount
+echo 'umount'
 echo
 sudo losetup -d ${LOOP_DEV}
