@@ -3,9 +3,6 @@
 #
 #
 
-#Initialize variables to default values.
-BUILD=false
-
 #Set fonts for Help.
 NORM=`tput sgr0`
 BOLD=`tput bold`
@@ -16,7 +13,7 @@ function HELP {
   echo -e \\n"Help documentation for Volumio Image Builder"\\n
   echo -e "Basic usage: ./build.sh -b -d all -v 2.0"\\n
   echo "Switches:"
-  echo "-b      --Build system with Multistrap, optional but required upon first usage"
+  echo "-b      --Build system with Multistrap, use arm or x86 to select architecture"
   echo "-d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab"
   echo "-v      --Version"
   echo -e "Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b -d pi -v 2.0 "\\n
@@ -29,10 +26,10 @@ if [ $NUMARGS -eq 0 ]; then
   HELP
 fi
 
-while getopts :v:d:be FLAG; do
+while getopts b:v:d:e FLAG; do
   case $FLAG in
     b)  
-      BUILD=true
+      BUILD=$OPTARG
       ;;
     d) 
       DEVICE=$OPTARG
@@ -52,10 +49,9 @@ done
 
 shift $((OPTIND-1)) 
 
-if [ "$BUILD" = true ]; then
-echo "Building $VERSION base system"
-echo "Executing Multistrap"
-echo "Building Base Jessie System"
+
+if [ "$BUILD" = arm ]; then
+echo "Building ARM Base System"
 mkdir build
 mkdir build/root
 multistrap -a armhf -f conf/minimal.conf
@@ -75,9 +71,10 @@ umount -l build/root/dev
 umount -l build/root/proc 
 umount -l build/root/sys 
 sh scripts/configure.sh
+elif [ "$BUILD" = x86 ]; then
+echo 'Building X86 Base System' 
+fi
 
-
-else 
 
 if [ "$DEVICE" = pi ]; then
 echo 'Writing Rasoberry Pi Image File'
@@ -91,8 +88,4 @@ if  [ "$DEVICE" = cuboxi ]; then
 echo 'Writing Cubox-i Image File'
 sh scripts/cuboxiimage.sh -v $VERSION; 
 fi
-fi
-
-
- 
 
