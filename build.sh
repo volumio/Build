@@ -53,24 +53,25 @@ shift $((OPTIND-1))
 if [ "$BUILD" = arm ]; then
 echo "Building ARM Base System"
 mkdir build
-mkdir build/root
+mkdir build/$BUILD
+mkdir build/$BUILD/root
 multistrap -a armhf -f conf/minimal.conf
-cp /usr/bin/qemu-arm-static build/root/usr/bin/
-cp scripts/firstconfig.sh build/root
-mount /dev build/root/dev -o bind
-mount /proc build/root/proc -t proc
-mount /sys build/root/sys -t sysfs
-chroot build/root /bin/bash -x <<'EOF'
+cp /usr/bin/qemu-arm-static build/$BUILD/root/usr/bin/
+cp scripts/firstconfig.sh build/$BUILD/root
+mount /dev build/$BUILD/root/dev -o bind
+mount /proc build/$BUILD/root/proc -t proc
+mount /sys build/$BUILD/root/sys -t sysfs
+chroot build/$BUILD/root /bin/bash -x <<'EOF'
 su -
-./firstconfig.sh 
+./firstconfig.sh  -b $BUILD
 EOF
 echo "Base System Installed"
-rm build/root/firstconfig.sh
+rm build/$BUILD/root/firstconfig.sh
 echo "Unmounting Temp devices"
-umount -l build/root/dev 
-umount -l build/root/proc 
-umount -l build/root/sys 
-sh scripts/configure.sh
+umount -l build/$BUILD/root/dev 
+umount -l build/$BUILD/root/proc 
+umount -l build/$BUILD/root/sys 
+sh scripts/configure.sh -b $BUILD
 elif [ "$BUILD" = x86 ]; then
 echo 'Building X86 Base System' 
 fi
