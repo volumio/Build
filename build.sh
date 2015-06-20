@@ -63,7 +63,7 @@ mount /proc build/$BUILD/root/proc -t proc
 mount /sys build/$BUILD/root/sys -t sysfs
 chroot build/$BUILD/root /bin/bash -x <<'EOF'
 su -
-./firstconfig.sh  -b $BUILD
+./firstconfig.sh
 EOF
 echo "Base System Installed"
 rm build/$BUILD/root/firstconfig.sh

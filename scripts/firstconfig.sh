@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# This script will be rurooroon in chroot under qemu.
-while getopts ":b:" opt; do
-  case $opt in
-    b)
-      BUILD=$OPTARG
-      ;;
-  esac
-done
-
+# This script will be run in chroot under qemu.
 
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
@@ -42,8 +34,9 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/getty.target.wants/console-kit-daemon.service'
 
-if [ "$BUILD" = arm ]; then
-#####TO BE FIXED
+
+if [ $(uname -m) = armv7l ]; then
+echo "Arm Environment detected"
 echo ' Adding Raspbian Repo Key'
 wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
@@ -61,8 +54,8 @@ echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/spop.tar.gz
 tar xvf /spop.tar.gz
 rm /spop.tar.gz
-elif [ "$BUILD" = x86 ]; then
-echo 'Building X86 Base System' 
+elif [ $(uname -m) = i686 ]; then
+echo 'X86 Environment Detected' 
 fi
 
 echo "Creating Volumio Folder Structure"
