@@ -8,6 +8,7 @@ NORM=`tput sgr0`
 BOLD=`tput bold`
 REV=`tput smso`
 
+ARCH=none
 #Help function
 function HELP {
   echo -e \\n"Help documentation for Volumio Image Builder"\\n
@@ -51,12 +52,19 @@ shift $((OPTIND-1))
 
 
 if [ "$BUILD" = arm ]; then
+ARCH="armhf"
 echo "Building ARM Base System"
+elif [ "$BUILD" = x86 ]; then
+echo 'Building X86 Base System' 
+ARCH="i386"
+fi
 mkdir build
 mkdir build/$BUILD
 mkdir build/$BUILD/root
-multistrap -a armhf -f recipes/arm.conf
-cp /usr/bin/qemu-arm-static build/$BUILD/root/usr/bin/
+multistrap -a $ARCH -f recipes/$BUILD.conf
+if [ "$BUILD" = arm ]; then
+cp /usr/bin/qemu-arm-static build/arm/root/usr/bin/
+fi
 cp scripts/firstconfig.sh build/$BUILD/root
 mount /dev build/$BUILD/root/dev -o bind
 mount /proc build/$BUILD/root/proc -t proc
@@ -72,9 +80,6 @@ umount -l build/$BUILD/root/dev
 umount -l build/$BUILD/root/proc 
 umount -l build/$BUILD/root/sys 
 sh scripts/configure.sh -b $BUILD
-elif [ "$BUILD" = x86 ]; then
-echo 'Building X86 Base System' 
-fi
 
 
 if [ "$DEVICE" = pi ]; then

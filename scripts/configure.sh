@@ -19,7 +19,7 @@ echo 'ARM'
 cp volumio/etc/apt/sources.list build/$BUILD/root/etc/apt/sources.list
 elif [ "$BUILD" = x86 ]; then
 echo 'X86' 
-cp volumio/etc/apt/sources.listx86 build/$BUILD/root/etc/apt/sources.list
+cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
 fi
 #Dhcp conf file
 cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
