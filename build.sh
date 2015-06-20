@@ -55,7 +55,7 @@ echo "Building ARM Base System"
 mkdir build
 mkdir build/$BUILD
 mkdir build/$BUILD/root
-multistrap -a armhf -f conf/minimal.conf
+multistrap -a armhf -f recipes/arm.conf
 cp /usr/bin/qemu-arm-static build/$BUILD/root/usr/bin/
 cp scripts/firstconfig.sh build/$BUILD/root
 mount /dev build/$BUILD/root/dev -o bind
