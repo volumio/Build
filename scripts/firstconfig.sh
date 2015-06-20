@@ -54,8 +54,23 @@ echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/spop.tar.gz
 tar xvf /spop.tar.gz
 rm /spop.tar.gz
+
 elif [ $(uname -m) = i686 ]; then
 echo 'X86 Environment Detected' 
+
+# cleanup
+apt-get clean
+rm -rf tmp/*
+
+echo "Installing Node Environment"
+wget https://deb.nodesource.com/node_0.12/pool/main/n/nodejs/nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+
+echo "Installing Spop and libspotify"
+
+
+
 fi
 
 echo "Creating Volumio Folder Structure"
