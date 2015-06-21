@@ -38,17 +38,29 @@ sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${LOOP_PART}" -L volumio
 sync
  
 echo "Copying Volumio RootFs"
+if [ -d /mnt ]
+then 
+echo "/mnt/folder exist"
+else
 sudo mkdir /mnt
-sudo mkdir /mnt/volumio
-sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
-sudo rm -rf /mnt/volumio/*
-sudo cp -pdR build/x86/root/* /mnt/volumio
 fi
+if [ -d /mnt/volumio ]
+then 
+echo "Volumio Temp Directory Exists - Cleaning it"
+rm -rf /mnt/volumio/*
+else
+echo "Creating Volumio Temp Directory"
+sudo mkdir /mnt/volumio
+fi
+
+sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
+sudo cp -pdR build/x86/root/* /mnt/volumio
 sync
 
 echo "Installing Bootloader"
-
-
+grub-install --recheck --debug --boot-directory=/mnt/volumio/boot "${LOOP_DEV}"
+grub-mkconfig -o /mnt/volumio/boot/grub/grub.cfg
+sync
 ls -al /mnt/volumio/
  
 sudo umount /mnt/volumio/
