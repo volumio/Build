@@ -99,3 +99,8 @@ echo 'Writing Cubox-i Image File'
 sh scripts/cuboxiimage.sh -v $VERSION; 
 fi
 
+if  [ "$DEVICE" = x86 ]; then
+echo 'Writing x86 Image File'
+sh scripts/x86.sh -v $VERSION; 
+fi
+
