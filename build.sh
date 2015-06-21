@@ -69,10 +69,14 @@ cp scripts/firstconfig.sh build/$BUILD/root
 mount /dev build/$BUILD/root/dev -o bind
 mount /proc build/$BUILD/root/proc -t proc
 mount /sys build/$BUILD/root/sys -t sysfs
-chroot build/$BUILD/root /bin/bash -x <<'EOF'
+if [ "$BUILD" = arm ]; then
+chroot build/arm/root /bin/bash -x <<'EOF'
 su -
 ./firstconfig.sh
 EOF
+elif [ "$BUILD" = x86 ]; then
+chroot build/x86/root /firstconfig.sh
+fi
 echo "Base System Installed"
 rm build/$BUILD/root/firstconfig.sh
 echo "Unmounting Temp devices"
