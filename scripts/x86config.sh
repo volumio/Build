@@ -3,4 +3,4 @@
 # This script will be run in chroot.
 echo "Installing grub bootloader"
 update-grub
-/usr/sbin/grub-install --recheck --no-floppy /dev/sda
+grub-install --boot-directory=$TMPDIR/boot /dev/loop0
