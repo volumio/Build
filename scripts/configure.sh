@@ -15,11 +15,16 @@ done
 echo 'Copying Custom Volumio System Files'
 #Apt conf file
 if [ "$BUILD" = arm ]; then
-echo 'ARM'
+echo 'Copying ARM related configuration files'
 cp volumio/etc/apt/sources.list build/$BUILD/root/etc/apt/sources.list
 elif [ "$BUILD" = x86 ]; then
-echo 'X86' 
+echo 'Copying X86 related Configuration files' 
+#APT sources file
 cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
+#Grub2 conf file
+cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
+#FSTAB File
+cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
 fi
 #Dhcp conf file
 cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
