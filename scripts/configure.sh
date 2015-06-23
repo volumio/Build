@@ -26,6 +26,8 @@ cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
 #FSTAB File
 cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
 fi
+#Hosts file 
+cp -p volumio/etc/hosts build/$BUILD/root/etc/hosts
 #Dhcp conf file
 cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
 #Samba conf file
