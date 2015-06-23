@@ -1,6 +1,15 @@
 #!/bin/bash
 
 # This script will be run in chroot.
+
+echo "Applying Grub Configuration"
+grub-mkconfig -o /boot/grub/grub.cfg
+
 echo "Installing grub bootloader"
 update-grub
-grub-install --boot-directory=$TMPDIR/boot /dev/loop0
+grub-install --boot-directory=/boot /dev/loop0
+
+echo "Fixing Grub Boot device"
+rpl -ivRd -x'.cfg' 'root=/dev/mapper/loop0p1' 'root=/dev/sda1' /boot/grub 
+
+echo "Bootloader configuration complete"

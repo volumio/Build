@@ -14,11 +14,11 @@ IMG_FILE="Volumio${VERSION}-${BUILDDATE}x86.img"
  
 echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1048
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2048
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 10 1048
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1 2048
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -63,7 +63,6 @@ mount /dev /mnt/volumio/dev -o bind
 mount /proc /mnt/volumio/proc -t proc
 mount /sys /mnt/volumio/sys -t sysfs
 chroot /mnt/volumio /bin/bash -x <<'EOF'
-su -
 /x86config.sh
 EOF
 rm /mnt/volumio/x86config.sh
@@ -75,4 +74,7 @@ sudo umount -l /mnt/volumio/
 dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 
-
+echo "X86 Image file created"
+echo "Building VMDK Virtual Image File"
+qemu-img convert ${IMG_FILE} -O vmdk Volumio.dev.vmdk
+echo "VMDK Virtual Imake File generated"
