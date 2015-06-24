@@ -85,7 +85,6 @@ ln -s /mnt/USB /var/lib/mpd/music
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
-mkdir /var/lib/mpd/playlists
 chmod 777 /var/lib/mpd/playlists
 
 echo "Adding Volumio Parent Service to Startup"
@@ -101,3 +100,7 @@ chown -R volumio:volumio /volumio
 
 echo "Cloning Volumio"
 git clone https://github.com/volumio/Volumio2.git /volumio
+
+echo "Installing Volumio Modules"
+cd /volumio
+npm install --unsafe-perm
