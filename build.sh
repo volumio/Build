@@ -50,7 +50,7 @@ done
 
 shift $((OPTIND-1)) 
 
-
+if [ -n "$BUILD" ]; then
 if [ "$BUILD" = arm ]; then
 ARCH="armhf"
 echo "Building ARM Base System"
@@ -84,7 +84,7 @@ umount -l build/$BUILD/root/dev
 umount -l build/$BUILD/root/proc 
 umount -l build/$BUILD/root/sys 
 sh scripts/configure.sh -b $BUILD
-
+fi
 
 if [ "$DEVICE" = pi ]; then
 echo 'Writing Rasoberry Pi Image File'
