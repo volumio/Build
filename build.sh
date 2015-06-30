@@ -98,12 +98,10 @@ if  [ "$DEVICE" = cuboxi ]; then
 echo 'Writing Cubox-i Image File'
 sh scripts/cuboxiimage.sh -v $VERSION; 
 fi
-
 if  [ "$DEVICE" = x86 ]; then
 echo 'Writing x86 Image File'
 sh scripts/x86.sh -v $VERSION; 
 fi
-
 if [ "$DEVICE" = odroidc1 ]; then
 echo 'Writing Odroid-C1 Image File'
 sh scripts/odroidc1image.sh -v $VERSION ;
