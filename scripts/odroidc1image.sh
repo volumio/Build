@@ -28,8 +28,6 @@ sudo kpartx -a "${LOOP_DEV}"
  
 BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
-echo $BOOT_PART
-echo $SYS_PART
 if [ ! -b "$BOOT_PART" ]
 then
 	echo "$BOOT_PART doesn't exist"
