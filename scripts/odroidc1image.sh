@@ -17,7 +17,9 @@ echo "Image file: ${IMG_FILE}"
 
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=4000
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
- 
+
+# todo: verify partioning
+# works, but does not follow HK's recommendation 
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
 sudo parted -s "${LOOP_DEV}" mkpart primary ext4 65 2113
@@ -28,15 +30,15 @@ sudo kpartx -a "${LOOP_DEV}"
  
 BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
-if [ ! -b "$BOOT_PART" ]
+if [ ! -b "${BOOT_PART}" ]
 then
-	echo "$BOOT_PART doesn't exist"
+	echo "${BOOT_PART} doesn't exist"
 #	exit 1
 fi
 
-if [ ! -b "$SYS_PART" ]
+if [ ! -b "${SYS_PART}" ]
 then
-	echo "$SYS_PART doesn't exist"
+	echo "${SYS_PART} doesn't exist"
 #	exit 1
 fi
 
