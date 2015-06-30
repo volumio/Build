@@ -68,7 +68,9 @@ dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 
 echo "Installing Spop and libspotify"
-
+wget http://repo.volumio.org/Packages/spopx86.tar.gz
+tar xvf /spopx86.tar.gz
+rm /spopx86.tar.gz
 
 
 fi
