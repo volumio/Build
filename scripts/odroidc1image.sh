@@ -1,4 +1,4 @@
-Enter file contents here#!/bin/sh
+#!/bin/sh
 
 while getopts ":v:" opt; do
   case $opt in
