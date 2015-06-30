@@ -81,10 +81,10 @@ sync
 
 echo "Entering Chroot Environment"
 
-#cp scripts/odroidc1config.sh /mnt/volumio
-#mount /dev /mnt/volumio/dev -o bind
-#mount /proc /mnt/volumio/proc -t proc
-#mount /sys /mnt/volumio/sys -t sysfs
+@cp scripts/odroidc1config.sh /mnt/volumio
+mount /dev /mnt/volumio/dev -o bind
+mount /proc /mnt/volumio/proc -t proc
+mount /sys /mnt/volumio/sys -t sysfs
 #chroot /mnt/volumio /bin/bash -x <<'EOF'
 #su -
 #/odroidc1config.sh
@@ -93,9 +93,9 @@ echo "Entering Chroot Environment"
 echo "Base System Installed"
 rm /mnt/volumio/odroidconfig.sh
 echo "Unmounting Temp devices"
-#umount -l /mnt/volumio/dev 
-#umount -l /mnt/volumio/proc 
-#umount -l /mnt/volumio/sys 
+umount -l /mnt/volumio/dev 
+umount -l /mnt/volumio/proc 
+umount -l /mnt/volumio/sys 
 
 echo "Copying Firmwares"
 
@@ -107,5 +107,5 @@ echo "Unmounting Temp Devices"
 sudo umount -l /mnt/volumio/boot
 sudo umount -l /mnt/volumio/
 sudo dmsetup remove_all
-#sudo losetup -d ${LOOP_DEV}
+sudo losetup -d ${LOOP_DEV}
 
