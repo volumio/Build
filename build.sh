@@ -65,20 +65,20 @@ multistrap -a $ARCH -f recipes/$BUILD.conf
 if [ "$BUILD" = arm ]; then
 cp /usr/bin/qemu-arm-static build/arm/root/usr/bin/
 fi
-cp scripts/firstconfig.sh build/$BUILD/root
+cp scripts/volumioconfig.sh build/$BUILD/root
 mount /dev build/$BUILD/root/dev -o bind
 mount /proc build/$BUILD/root/proc -t proc
 mount /sys build/$BUILD/root/sys -t sysfs
 if [ "$BUILD" = arm ]; then
 chroot build/arm/root /bin/bash -x <<'EOF'
 su -
-./firstconfig.sh
+./volumioconfig.sh
 EOF
 elif [ "$BUILD" = x86 ]; then
 chroot build/x86/root /firstconfig.sh
 fi
 echo "Base System Installed"
-rm build/$BUILD/root/firstconfig.sh
+rm build/$BUILD/root/volumioconfig.sh
 echo "Unmounting Temp devices"
 umount -l build/$BUILD/root/dev 
 umount -l build/$BUILD/root/proc 
