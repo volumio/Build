@@ -54,9 +54,28 @@ dpkg -i /node_latest_armhf.deb
 rm /node_latest_armhf.deb 
 
 echo "Installing Spop and libspotify"
-wget http://repo.volumio.org/Packages/spop.tar.gz
+wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
 tar xvf /spop.tar.gz
 rm /spop.tar.gz
+
+echo "Installing custom MPD version"
+wget http://repo.volumio.org/Packages/Mpd/mpd_0.19.9-2_armhf.deb
+dpkg -i mpd_0.19.9-2_armhf.deb
+rm /mpd_0.19.9-2_armhf.deb
+
+echo "Installing Upmpdcli"
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_armhf.deb
+dpkg -i upmpdcli_0.11.0-2_armhf.deb
+dpkg -i libupnpp0_0.9.0-1_armhf.deb
+rm /upmpdcli_0.11.0-2_armhf.deb
+rm /libupnpp0_0.9.0-1_armhf.deb
+
+echo "Installing LINN Songcast module"
+wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
+dpkg -i sc2mpd_0.11.0-1_armhf.deb
+rm /sc2mpd_0.11.0-1_armhf.deb
+
 
 elif [ $(uname -m) = i686 ]; then
 echo 'X86 Environment Detected' 
@@ -71,9 +90,22 @@ dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 
 echo "Installing Spop and libspotify"
-wget http://repo.volumio.org/Packages/spopx86.tar.gz
+wget http://repo.volumio.org/Packages/Spop/spopx86.tar.gz
 tar xvf /spopx86.tar.gz
 rm /spopx86.tar.gz
+
+echo "Installing Upmpdcli"
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_i386.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_i386.deb
+dpkg -i upmpdcli_0.11.0-2_i386.deb
+dpkg -i libupnpp0_0.9.0-1_i386.deb
+rm /upmpdcli_0.11.0-2_i386.deb
+rm /libupnpp0_0.9.0-1_i386.deb
+
+echo "Installing LINN Songcast module"
+wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_i386.deb
+dpkg -i sc2mpd_0.11.0-1_i386.deb
+rm /sc2mpd_0.11.0-1_i386.deb
 
 
 fi
