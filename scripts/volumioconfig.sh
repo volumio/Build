@@ -66,16 +66,25 @@ rm /mpd_0.19.9-2_armhf.deb
 echo "Installing Upmpdcli"
 wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_armhf.deb
 wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_armhf.deb
-dpkg -i upmpdcli_0.11.0-2_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-2_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_armhf.deb
+dpkg -i libupnpp2_0.11.0-1_armhf.deb
 dpkg -i libupnpp0_0.9.0-1_armhf.deb
+dpkg -i libupnp6_1.6.19.jfd1-2_armhf.deb
+dpkg -i upmpdcli_0.11.0-2_armhf.deb
 rm /upmpdcli_0.11.0-2_armhf.deb
 rm /libupnpp0_0.9.0-1_armhf.deb
+rm /libupnp6_1.6.19.jfd1-2_armhf.deb
+rm /libupnpp2_0.11.0-1_armhf.deb
+
 
 echo "Installing LINN Songcast module"
 wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libmicrohttpd10_0.9.37%2Bdfsg-1%2Bb1_armhf.deb
+dpkg -i libmicrohttpd10_0.9.37+dfsg-1+b1_armhf.deb
 dpkg -i sc2mpd_0.11.0-1_armhf.deb
 rm /sc2mpd_0.11.0-1_armhf.deb
-
+rm /libmicrohttpd10_0.9.37+dfsg-1+b1_armhf.deb
 
 elif [ $(uname -m) = i686 ]; then
 echo 'X86 Environment Detected' 
@@ -97,16 +106,25 @@ rm /spopx86.tar.gz
 echo "Installing Upmpdcli"
 wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_i386.deb
 wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_i386.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-1_i386.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_i386.deb
+dpkg -i libupnpp2_0.11.0-1_i386.deb
+dpkg -i libupnp6_1.6.19.jfd1-1_i386.deb
 dpkg -i upmpdcli_0.11.0-2_i386.deb
 dpkg -i libupnpp0_0.9.0-1_i386.deb
 rm /upmpdcli_0.11.0-2_i386.deb
 rm /libupnpp0_0.9.0-1_i386.deb
+rm /libupnp6_1.6.19.jfd1-1_i386.deb
+rm /libupnpp2_0.11.0-1_i386.deb
+
 
 echo "Installing LINN Songcast module"
 wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_i386.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
+dpkg -i libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
 dpkg -i sc2mpd_0.11.0-1_i386.deb
 rm /sc2mpd_0.11.0-1_i386.deb
-
+rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
 
 fi
 
