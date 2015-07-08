@@ -58,7 +58,15 @@ elif [ "$BUILD" = x86 ]; then
 echo 'Building X86 Base System' 
 ARCH="i386"
 fi
-mkdir build
+if [ -d build ]
+then 
+echo "Build folder exist, cleaning it"
+rm -rf build/*
+else
+echo "Creating build folder"
+sudo mkdir build
+fi
+
 mkdir build/$BUILD
 mkdir build/$BUILD/root
 multistrap -a $ARCH -f recipes/$BUILD.conf
