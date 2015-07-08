@@ -80,11 +80,8 @@ rm /libupnpp2_0.11.0-1_armhf.deb
 
 echo "Installing LINN Songcast module"
 wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libmicrohttpd10_0.9.37%2Bdfsg-1%2Bb1_armhf.deb
-dpkg -i libmicrohttpd10_0.9.37+dfsg-1+b1_armhf.deb
 dpkg -i sc2mpd_0.11.0-1_armhf.deb
 rm /sc2mpd_0.11.0-1_armhf.deb
-rm /libmicrohttpd10_0.9.37+dfsg-1+b1_armhf.deb
 
 elif [ $(uname -m) = i686 ]; then
 echo 'X86 Environment Detected' 
@@ -120,8 +117,6 @@ rm /libupnpp2_0.11.0-1_i386.deb
 
 echo "Installing LINN Songcast module"
 wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_i386.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
-dpkg -i libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
 dpkg -i sc2mpd_0.11.0-1_i386.deb
 rm /sc2mpd_0.11.0-1_i386.deb
 rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
