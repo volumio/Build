@@ -1,0 +1,6 @@
+# Device nodes to trigger on-demand module loading.
+autofs4 autofs c10:235
+fuse fuse c10:229
+btrfs btrfs-control c10:234
+uinput uinput c10:223
+snd_seq snd/seq c116:1
