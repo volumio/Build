@@ -52,6 +52,16 @@ sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
 sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
 sync
 
+echo "Get the Odroid kernel/ platform files from repo"
+if [ -d platforms/odroidc ]
+then 
+echo "Folder already exists - keeping it"
+else
+echo "Creating folder and clone Odroid files from repo"
+sudo mkdir -p platforms/odroidc
+git clone https://github.com/gkkpch/Kernel-OdroidC1.git platforms/odroidc
+fi
+
 echo "Copying the bootloader"
 sudo dd if=platforms/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
 sudo dd if=platforms/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
@@ -113,7 +123,7 @@ echo "tmpfs           /tmp     tmpfs   nodev,nosuid,mode=1777                  0
 echo "Odroid-C device installed" 
   
 ls -al /mnt/volumio/
- 
+
 echo "Unmounting Temp Devices"
 sudo umount -l /mnt/volumio/boot
 sudo umount -l /mnt/volumio/
