@@ -64,15 +64,15 @@ dpkg -i mpd_0.19.9-2_armhf.deb
 rm /mpd_0.19.9-2_armhf.deb
 
 echo "Installing Upmpdcli"
-wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.2-1_armhf.deb
 wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_armhf.deb
 wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-2_armhf.deb
 wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_armhf.deb
 dpkg -i libupnpp2_0.11.0-1_armhf.deb
 dpkg -i libupnpp0_0.9.0-1_armhf.deb
 dpkg -i libupnp6_1.6.19.jfd1-2_armhf.deb
-dpkg -i upmpdcli_0.11.0-2_armhf.deb
-rm /upmpdcli_0.11.0-2_armhf.deb
+dpkg -i upmpdcli_0.11.2-1_armhf.deb
+rm /upmpdcli_0.11.2-1_armhf.deb
 rm /libupnpp0_0.9.0-1_armhf.deb
 rm /libupnp6_1.6.19.jfd1-2_armhf.deb
 rm /libupnpp2_0.11.0-1_armhf.deb
