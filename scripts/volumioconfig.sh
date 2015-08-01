@@ -50,8 +50,8 @@ alias updatey="sudo apt-get --yes"
 ## Read Like humans ##
 alias df='df -H'
 alias du='du -ch'
-alias make me a sandwich='echo "What? Make it yourself"'
-alias sudo make me a sandwich='echo "OKAY"'
+alias makemeasandwich='echo "What? Make it yourself"'
+alias sudomakemeasandwich='echo "OKAY"'
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
