@@ -31,27 +31,27 @@ alias iwconfig='iwconfig wlan0'
 alias come="echo 'se fosse antani'"
 ## Utilities thanks to http://www.cyberciti.biz/tips/bash-aliases-mac-centos-linux-unix.html ##
 ## Colorize the ls output ##
-alias ls='ls --color=auto'
+alias ls="ls --color=auto"
 ## Use a long listing format ##
-alias ll='ls -la'
+alias ll="ls -la"
 ## Show hidden files ##
-alias l.='ls -d .* --color=auto'
+alias l.="ls -d .* --color=auto"
 ## get rid of command not found ##
-alias cd..='cd ..'
+alias cd..="cd .."
 ## a quick way to get out of current directory ##
-alias ..='cd ..'
-alias ...='cd ../../../'
-alias ....='cd ../../../../'
-alias .....='cd ../../../../'
-alias .4='cd ../../../../'
-alias .5='cd ../../../../..'
+alias ..="cd .."
+alias ...="cd ../../../"
+alias ....="cd ../../../../"
+alias .....="cd ../../../../"
+alias .4="cd ../../../../"
+alias .5="cd ../../../../.."
 # install with apt-get
 alias updatey="sudo apt-get --yes"
 ## Read Like humans ##
-alias df='df -H'
-alias du='du -ch'
-alias makemeasandwich='echo "What? Make it yourself"'
-alias sudomakemeasandwich='echo "OKAY"'
+alias df="df -H"
+alias du="du -ch"
+alias makemeasandwich="echo 'What? Make it yourself'"
+alias sudomakemeasandwich="echo 'OKAY'"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
@@ -96,20 +96,24 @@ wget http://node-arm.herokuapp.com/node_latest_armhf.deb
 dpkg -i /node_latest_armhf.deb 
 rm /node_latest_armhf.deb 
 
- "Cloning Volumio"
+echo "Cloning Volumio"
 git clone https://github.com/volumio/Volumio2.git /volumio
 
 echo "Installing Volumio Modules"
 cd /volumio
+
 echo "Downloading compiled modules"
 ##DIRTY FIX, TO BE UPDATED 
 wget http://repo.volumio.org/Volumio2/node_modules-arm.tar.gz
-tar xvf node_modules-arm.tar.gz
+tar xf node_modules-arm.tar.gz
 rm node_modules-arm.tar.gz
+
+echo "Setting proper ownership"
+chown -R volumio:volumio /volumio
 
 echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
-tar xvf /spop.tar.gz
+tar xf /spop.tar.gz
 rm /spop.tar.gz
 
 echo "Installing custom MPD version"
@@ -213,9 +217,6 @@ chown -R volumio:volumio /volumio
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
-
-echo "Creating Audio Group"
-groupadd audio
 
 echo "Adding Users to Audio Group"
 usermod -a -G audio volumio
