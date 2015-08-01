@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/usr/local/bin/node /volumio/bin/www
+ExecStart=/usr/local/bin/node /volumio/index.js
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
