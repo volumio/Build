@@ -96,6 +96,17 @@ wget http://node-arm.herokuapp.com/node_latest_armhf.deb
 dpkg -i /node_latest_armhf.deb 
 rm /node_latest_armhf.deb 
 
+ "Cloning Volumio"
+git clone https://github.com/volumio/Volumio2.git /volumio
+
+echo "Installing Volumio Modules"
+cd /volumio
+echo "Downloading compiled modules"
+##DIRTY FIX, TO BE UPDATED 
+wget http://repo.volumio.org/Volumio2/node_modules-arm.tar.gz
+tar xvf node_modules-arm.tar.gz
+rm node_modules-arm.tar.gz
+
 echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
 tar xvf /spop.tar.gz
@@ -137,6 +148,14 @@ echo "Installing Node Environment"
 wget https://deb.nodesource.com/node_0.12/pool/main/n/nodejs/nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+
+ "Cloning Volumio"
+git clone https://github.com/volumio/Volumio2.git /volumio
+
+echo "Installing Volumio Modules"
+cd /volumio
+npm install --unsafe-perm
+
 
 echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/Spop/spopx86.tar.gz
@@ -190,13 +209,6 @@ systemctl enable mpd.service
 echo "Prepping Node Volumio folder"
 mkdir /volumio
 chown -R volumio:volumio /volumio
-
-echo "Cloning Volumio"
-git clone https://github.com/volumio/Volumio2.git /volumio
-
-echo "Installing Volumio Modules"
-cd /volumio
-npm install --unsafe-perm
 
 #####################
 #Audio Optimizations#-----------------------------------------
