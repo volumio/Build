@@ -19,13 +19,38 @@ echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
 #Global BashRC Aliases"
 echo 'Setting BashRC for custom system calls'
-echo 'alias reboot="sudo /sbin/reboot"
+echo ' ## System Commands ##
+alias reboot="sudo /sbin/reboot"
 alias poweroff="sudo /sbin/poweroff"
 alias halt="sudo /sbin/halt"
 alias shutdown="sudo /sbin/shutdown"
 alias apt-get="sudo /usr/bin/apt-get"
 alisas update-rc.d ="sudo /usr/sbin/update-rc.d"
-alias systemctl="/bin/systemctl"' >> /etc/bash.bashrc
+alias systemctl="/bin/systemctl"
+alias iwconfig='iwconfig wlan0'
+alias come="echo 'se fosse antani'"
+## Utilities thanks to http://www.cyberciti.biz/tips/bash-aliases-mac-centos-linux-unix.html ##
+## Colorize the ls output ##
+alias ls='ls --color=auto'
+## Use a long listing format ##
+alias ll='ls -la'
+## Show hidden files ##
+alias l.='ls -d .* --color=auto'
+## get rid of command not found ##
+alias cd..='cd ..'
+## a quick way to get out of current directory ##
+alias ..='cd ..'
+alias ...='cd ../../../'
+alias ....='cd ../../../../'
+alias .....='cd ../../../../'
+alias .4='cd ../../../../'
+alias .5='cd ../../../../..'
+# install with apt-get
+alias updatey="sudo apt-get --yes"
+## Read Like humans ##
+alias df='df -H'
+alias du='du -ch'
+' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
