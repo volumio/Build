@@ -25,9 +25,9 @@ alias poweroff="sudo /sbin/poweroff"
 alias halt="sudo /sbin/halt"
 alias shutdown="sudo /sbin/shutdown"
 alias apt-get="sudo /usr/bin/apt-get"
-alisas update-rc.d ="sudo /usr/sbin/update-rc.d"
+alias update-rc.d ="sudo /usr/sbin/update-rc.d"
 alias systemctl="/bin/systemctl"
-alias iwconfig='iwconfig wlan0'
+alias iwconfig="iwconfig wlan0"
 alias come="echo 'se fosse antani'"
 ## Utilities thanks to http://www.cyberciti.biz/tips/bash-aliases-mac-centos-linux-unix.html ##
 ## Colorize the ls output ##
