@@ -24,11 +24,13 @@ alias poweroff="sudo /sbin/poweroff"
 alias halt="sudo /sbin/halt"
 alias shutdown="sudo /sbin/shutdown"
 alias apt-get="sudo /usr/bin/apt-get"
+alisas update-rc.d ="sudo /usr/sbin/update-rc.d"
 alias systemctl="/bin/systemctl"' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get" >> /etc/sudoers
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d
+" >> /etc/sudoers
 
 
 echo "Configuring Default Network"
