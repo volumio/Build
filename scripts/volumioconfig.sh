@@ -135,6 +135,8 @@ rm /libupnpp0_0.9.0-1_armhf.deb
 rm /libupnp6_1.6.19.jfd1-2_armhf.deb
 rm /libupnpp2_0.11.0-1_armhf.deb
 
+#Remove autostart of upmpdcli
+update-rc.d upmpdcli remove
 
 echo "Installing LINN Songcast module"
 wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
