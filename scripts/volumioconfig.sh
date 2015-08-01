@@ -17,6 +17,19 @@ echo "volumio ALL=(ALL) ALL" >> /etc/sudoers
 #Setting Root Password
 echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
+#Global BashRC Aliases"
+echo 'Setting BashRC for custom system calls'
+echo 'alias reboot="sudo /sbin/reboot"
+alias poweroff="sudo /sbin/poweroff"
+alias halt="sudo /sbin/halt"
+alias shutdown="sudo /sbin/shutdown"
+alias systemctl="/bin/systemctl"' >> /etc/bash.bashrc
+
+#Sudoers Nopasswd
+echo 'Adding Safe Sudoers NoPassw permissions'
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl" >> /etc/sudoers
+
+
 echo "Configuring Default Network"
 cat > /etc/network/interfaces << EOF
 auto lo
