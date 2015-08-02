@@ -107,6 +107,7 @@ echo "Downloading compiled modules"
 wget http://repo.volumio.org/Volumio2/node_modules-arm.tar.gz
 tar xf node_modules-arm.tar.gz
 rm node_modules-arm.tar.gz
+cd /
 
 echo "Setting proper ownership"
 chown -R volumio:volumio /volumio
