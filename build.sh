@@ -87,6 +87,8 @@ chroot build/x86/root /firstconfig.sh
 fi
 echo "Base System Installed"
 rm build/$BUILD/root/volumioconfig.sh
+###Dirty fix for mpd.conf TODO use volumio repo
+cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
 echo "Unmounting Temp devices"
 umount -l build/$BUILD/root/dev 
 umount -l build/$BUILD/root/proc 
