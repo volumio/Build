@@ -212,7 +212,7 @@ chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
 echo "Adding Volumio Parent Service to Startup"
-sudo systemctl enable volumio.service
+systemctl enable volumio.service
 
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
