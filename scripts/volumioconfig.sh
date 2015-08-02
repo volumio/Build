@@ -106,6 +106,9 @@ echo "Downloading compiled modules"
 wget http://repo.volumio.org/Volumio2/node_modules-arm.tar.gz
 tar xf node_modules-arm.tar.gz
 rm node_modules-arm.tar.gz
+
+echo "Getting Static UI"
+svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
 cd /
 
 echo "Setting proper ownership"
@@ -155,13 +158,16 @@ wget https://deb.nodesource.com/node_0.12/pool/main/n/nodejs/nodejs_0.12.0-1node
 dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 
- "Cloning Volumio"
+echo "Cloning Volumio"
 git clone https://github.com/volumio/Volumio2.git /volumio
 
 echo "Installing Volumio Modules"
 cd /volumio
 npm install --unsafe-perm
 
+echo "Getting Static UI"
+svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
+cd /
 
 echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/Spop/spopx86.tar.gz
@@ -206,7 +212,7 @@ chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
 echo "Adding Volumio Parent Service to Startup"
-systemctl enable volumio.service
+sudo systemctl enable volumio.service
 
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
