@@ -51,6 +51,8 @@ alias df="df -H"
 alias du="du -ch"
 alias makemeasandwich="echo 'What? Make it yourself'"
 alias sudomakemeasandwich="echo 'OKAY'"
+alias snapclient="/usr/sbin/snapclient"
+alias snapserver="/usr/sbin/snapserver"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
@@ -145,6 +147,13 @@ echo "Installing LINN Songcast module"
 wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
 dpkg -i sc2mpd_0.11.0-1_armhf.deb
 rm /sc2mpd_0.11.0-1_armhf.deb
+
+echo "Installing Snapcast for multiroom"
+
+wget http://repo.volumio.org/Volumio2/Binaries/snapserver -P /usr/sbin/
+wget http://repo.volumio.org/Volumio2/Binaries/snapclient -P  /usr/sbin/
+chmod a+x /usr/sbin/snapserver
+chmod a+x /usr/sbin/snapclient
 
 elif [ $(uname -m) = i686 ]; then
 echo 'X86 Environment Detected' 
