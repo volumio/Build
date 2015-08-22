@@ -24,7 +24,7 @@ sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 3548
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
-sudo kpartx -a "${LOOP_DEV}"
+sudo kpartx -a "${LOOP_DEV}" -s
  
 BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
