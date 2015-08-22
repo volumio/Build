@@ -83,7 +83,27 @@ umount -l /mnt/volumio/sys
 echo "Copying Firmwares"
 
 sync
-  
+
+echo "Creating RootFS TAR"
+
+if [ -d /mnt/tar ]
+then 
+echo "Volumio TAR Temp Directory Exists - Cleaning it"
+rm -rf /mnt/tar/*
+else
+echo "Creating Volumio TAR Temp Directory"
+sudo mkdir /mnt/tar
+fi
+
+echo "Copying Volumio ROOTFS to Temp DIR"
+cp -rp /mnt/volumio/* /mnt/tar/
+
+echo "Removing Kernel and modules"
+rm -rf /mnt/tar/boot/*
+rm -rf /mnt/tar/lib/modules/*
+
+echo "Compressing RootFS" 
+tar -czf VolumioRootFS${VERSION}.tar.gz -C /mnt/tar/ .
 ls -al /mnt/volumio/
  
 echo "Unmounting Temp Devices"
