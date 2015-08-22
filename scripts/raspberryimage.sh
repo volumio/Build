@@ -24,7 +24,7 @@ sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 3548
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
-sudo kpartx -a "${LOOP_DEV}"
+sudo kpartx -a "${LOOP_DEV}" -s
  
 BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
@@ -83,7 +83,27 @@ umount -l /mnt/volumio/sys
 echo "Copying Firmwares"
 
 sync
-  
+
+echo "Creating RootFS TAR"
+
+if [ -d /mnt/tar ]
+then 
+echo "Volumio TAR Temp Directory Exists - Cleaning it"
+rm -rf /mnt/tar/*
+else
+echo "Creating Volumio TAR Temp Directory"
+sudo mkdir /mnt/tar
+fi
+
+echo "Copying Volumio ROOTFS to Temp DIR"
+cp -rp /mnt/volumio/* /mnt/tar/
+
+echo "Removing Kernel and modules"
+rm -rf /mnt/tar/boot/*
+rm -rf /mnt/tar/lib/modules/*
+
+echo "Compressing RootFS" 
+tar -czf VolumioRootFS${VERSION}.tar.gz -C /mnt/tar/ .
 ls -al /mnt/volumio/
  
 echo "Unmounting Temp Devices"
