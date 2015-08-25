@@ -53,11 +53,12 @@ alias makemeasandwich="echo 'What? Make it yourself'"
 alias sudomakemeasandwich="echo 'OKAY'"
 alias snapclient="/usr/sbin/snapclient"
 alias snapserver="/usr/sbin/snapserver"
+alias mount="sudo /bin/mount"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/bin/mount
 " >> /etc/sudoers
 
 
