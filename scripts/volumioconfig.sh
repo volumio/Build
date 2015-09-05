@@ -244,8 +244,7 @@ echo '@audio - rtprio 99
 
 echo "Alsa tuning"
 #Nrpacks Options, better safe than sorry
-echo 'options snd-usb-audio nrpacks=1
-options snd-usb-audio index=0' > /etc/modprobe.d/alsa-base.conf
+echo 'options snd-usb-audio nrpacks=1' >> /etc/modprobe.d/alsa-base.conf
 
 echo "Tuning LAN"
 echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
