@@ -16,8 +16,9 @@ function HELP {
   echo "Switches:"
   echo "-b      --Build system with Multistrap, use arm or x86 to select architecture"
   echo "-d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab"
+  echo "-l      --Create docker layer. Docker Repository name as as argument"
   echo "-v      --Version"
-  echo -e "Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b -d pi -v 2.0 "\\n
+  echo -e "Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b -d pi -v 2.0 -l reponame "\\n
   exit 1
 }
 
@@ -27,7 +28,7 @@ if [ $NUMARGS -eq 0 ]; then
   HELP
 fi
 
-while getopts b:v:d:e FLAG; do
+while getopts b:v:d:l:e FLAG; do
   case $FLAG in
     b)  
       BUILD=$OPTARG
@@ -37,6 +38,11 @@ while getopts b:v:d:e FLAG; do
       ;;
     v)
       VERSION=$OPTARG
+      ;;
+    l)
+      #Create docker layer
+      CREATE_DOCKER_LAYER=1
+      DOCKER_REPOSITORY_NAME=$OPTARG
       ;;
     h)  #show help
       HELP
@@ -114,3 +120,9 @@ echo 'Writing x86 Image File'
 sh scripts/x86.sh -v $VERSION; 
 fi
 
+#When the tar is created we can build the docker layer
+if  [ "$CREATE_DOCKER_LAYER" = 1 ]; then
+  echo 'Creating docker layer'
+  DOCKER_UID="$(sudo docker import VolumioRootFS$VERSION.tar.gz $DOCKER_REPOSITORY_NAME)"
+  echo $DOCKER_UID
+fi
