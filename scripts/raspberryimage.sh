@@ -84,6 +84,29 @@ echo "Copying Firmwares"
 
 sync
 
+echo "Creating RootFS Base for SquashFS"
+
+if [ -d /mnt/squash ]
+then
+echo "Volumio SquashFS  Temp Directory Exists - Cleaning it"
+rm -rf /mnt/squash/*
+else
+echo "Creating Volumio SquashFS Temp Directory"
+sudo mkdir /mnt/squash
+fi
+
+echo "Copying Volumio ROOTFS to Temp DIR"
+cp -rp /mnt/volumio/* /mnt/squash/
+
+echo "Removing Kernel"
+rm -rf /mnt/squash/boot/*
+
+echo "Creating SquashFS"
+mksquashfs /mnt/squash/* Volumio.sqsh
+
+
+
+
 echo "Creating RootFS TAR"
 
 if [ -d /mnt/tar ]
