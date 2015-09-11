@@ -35,5 +35,9 @@ mkdir /lib/firmware
 # Kernel Commit https://github.com/Hexxeh/rpi-firmware/commit/38aa676b044f8de46aedb4bd972538a7ad6a3ce1
 SKIP_BACKUP=1 rpi-update 38aa676b044f8de46aedb4bd972538a7ad6a3ce1
 
+echo "Writing cmdline file"
+echo "dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait" > /boot/cmdline.txt
+
+
 echo "Cleaning APT Cache"
 apt-get clean
