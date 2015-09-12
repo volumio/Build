@@ -72,7 +72,7 @@ auto eth0
 iface eth0 inet dhcp
 
 EOF
-chmod 600 /etc/network/interfaces
+chmod 666 /etc/network/interfaces
 
 echo volumio > /etc/hostname
 
