@@ -94,10 +94,10 @@ apt-get clean
 rm -rf tmp/*
 
 echo "Installing Node Environment"
-#huge kudos to node-arm for such effort
-wget http://node-arm.herokuapp.com/node_latest_armhf.deb
-dpkg -i /node_latest_armhf.deb 
-rm /node_latest_armhf.deb 
+#huge kudos to node-arm for such effort	
+wget http://repo.volumio.org/Volumio2/node_0.12.6-1_armhf.deb
+dpkg -i /node_0.12.6-1_armhf.deb
+rm /node_0.12.6-1_armhf.deb
 
 echo "Cloning Volumio"
 git clone https://github.com/volumio/Volumio2.git /volumio
