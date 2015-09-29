@@ -1,0 +1,166 @@
+#!/bin/busybox sh
+
+# Mount the /proc and /sys filesystems.
+[ -d /proc ] || mkdir /proc
+mount -t proc none /proc
+[ -d /sys ] || mkdir /sys
+mount -t sysfs none /sys
+
+#busybox --install -s
+
+mknod /dev/null c 1 3
+mknod /dev/tty c 5 0
+
+# Do your stuff here.
+echo "This script mounts rootfs RO with an overlay RW layer."
+modprobe overlay
+modprobe squashfs
+
+mdev -s
+
+# Parse the kernel command line from grub
+
+CMDLINE="$(cat /proc/cmdline)"
+
+parse_disk() {
+  if [ "$(echo $1|cut -c -5)" = "UUID=" ]; then
+    # $1 is a UUID
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -6)" = "LABEL=" ]; then
+    # $1 is a LABEL
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -5)" = "/dev/" ]; then
+    # $1 is a device name
+    echo $1
+  else
+    # $1 is unrecognized.
+    echo "unknow-disk"
+  fi
+}
+
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+
+  case $key in
+  imgpart)
+    IMGPART=`parse_disk $value`
+    ;;
+  imgfile)
+    IMGFILE=$value
+    ;;
+  esac
+done
+
+if [ -z "${IMGPART}" ]; then
+  echo "Specify the squash image partition after the kernel command ${CMDLINE}"
+  echo "example: kenrel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  exec /bin/sh
+  exit 0
+fi
+
+if [ -z "${IMGFILE}" ]; then
+  echo "Specify the squash image file after the kernel command ${CMDLINE}"
+  echo "example: kenrel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  exec /bin/sh
+  exit 0
+fi
+
+echo IMGPART=${IMGPART}
+echo IMGFILE=${IMGFILE}
+
+if [ ! -b "${IMGPART}" ]; then
+  echo "No partition with ${IMGPART} has been found"
+  exec /bin/sh
+  exit 0
+fi
+
+
+
+
+# ok, parsing done
+[ -d /mnt ] || mkdir /mnt
+# Mount the partitions
+# 1) mount the partition where the squash image resides
+[ -d /mnt/imgpart ] || mkdir /mnt/imgpart
+mount -t ext4 ${IMGPART} /mnt/imgpart
+
+sleep 6
+mdev -s
+
+#Check eventually for USB updates
+echo "Check for USB updates"
+if [ -e /dev/sda1 ]; then
+
+  [ -d /mnt/usb ] || mkdir /mnt/usb
+  mount -t vfat /dev/sda1 /mnt/usb
+
+  #If there is a firmware file inside the usb
+  if [ -e /mnt/usb/volumio.fir ]; then
+    #when the partitions are mounted we can launch the update script
+    volumio-init-updater
+  fi
+
+  umount /dev/sda1
+  rmdir /mnt/usb
+fi
+
+
+#exec /bin/sh
+
+
+# 2) init a loop pointing to the image file
+loop_free=$(losetup -f | sed s#p/#p#)
+losetup $loop_free /mnt/imgpart/${IMGFILE}
+
+# 3) mount the squashfs to /mnt/static
+[ -d /mnt/static ] || mkdir /mnt/static
+mount -t squashfs $loop_free /mnt/static
+
+# Note: if you don't want to use a squashed image, you just
+#       can mount your read only root to /mnt/static
+#       example: mount -o ro /dev/sda2 /mnt/static
+
+if [ ! -b "/dev/mmcblk0p3" ]; then
+  echo "Volumio data partition missing. Create it."
+  #Start value fixed as 1920, look at raspberryimage.sh for it
+  START="$(parted -s /dev/mmcblk0 print free | grep 1920 | grep Free | awk '{print $1}' | grep -o '[0-9]\+')"
+  END="$(parted -s /dev/mmcblk0 print free | grep 1920 | grep Free | awk '{print $2}' | grep -o '[0-9]\+')"
+
+  parted -s /dev/mmcblk0 mkpart primary ext3 ${START} ${END}
+  partprobe /dev/mmcblk0
+
+  #refreshing /dev/ for the new partition
+  mdev -s
+
+  mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+fi
+
+# 4) mount a filesystem for the write access to the static image
+# unclear: memory size? -o size=1024M
+[ -d /mnt/ext ] || mkdir /mnt/ext
+mount -t ext4 /dev/mmcblk0p3 /mnt/ext
+
+[ -d /mnt/ext/dyn ] || mkdir /mnt/ext/dyn
+[ -d /mnt/ext/work ] || mkdir /mnt/ext/work
+[ -d /mnt/ext/union ] || mkdir /mnt/ext/union
+
+# 5) mount the writable overlay to the static image
+mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
+
+# Clean up.
+[ -d /mnt/ext/union/static ] || mkdir /mnt/ext/union/static
+[ -d /mnt/ext/union/imgpart ] || mkdir /mnt/ext/union/imgpart
+mount --move /mnt/static /mnt/ext/union/static
+mount --move /mnt/imgpart /mnt/ext/union/imgpart
+
+umount /proc
+umount /sys
+
+# Boot the real thing.
+exec switch_root /mnt/ext/union /sbin/init
+
+echo "Failed to switch_root, dropping to a shell"
+exec /bin/sh 
