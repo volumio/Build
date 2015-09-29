@@ -20,14 +20,14 @@ LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 0 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 3548
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 1920
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
 sudo kpartx -a "${LOOP_DEV}" -s
  
 BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
-SYS_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
+IMG_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
 if [ ! -b "$BOOT_PART" ]
 then
 	echo "$BOOT_PART doesn't exist"
@@ -36,47 +36,58 @@ fi
 
 echo "Creating filesystems"
 sudo mkfs.vfat "${BOOT_PART}" -n boot
-sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${SYS_PART}" -L volumio
+sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumio
 sync
   
 echo "Copying Volumio RootFs"
-if [ -d /mnt ]
-then 
-echo "/mnt/folder exist"
+if [ -d /mnt ]; then 
+	echo "/mnt/folder exist"
 else
-sudo mkdir /mnt
+	sudo mkdir /mnt
 fi
-if [ -d /mnt/volumio ]
-then 
-echo "Volumio Temp Directory Exists - Cleaning it"
-rm -rf /mnt/volumio/*
+
+if [ -d /mnt/volumio ]; then 
+	echo "Volumio Temp Directory Exists - Cleaning it"
+	rm -rf /mnt/volumio/*
 else
-echo "Creating Volumio Temp Directory"
-sudo mkdir /mnt/volumio
+	echo "Creating Volumio Temp Directory"
+	sudo mkdir /mnt/volumio
 fi
-sudo mount -t ext4 "${SYS_PART}" /mnt/volumio
-sudo mkdir /mnt/volumio/boot
-sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/boot
-sudo cp -pdR build/arm/root/* /mnt/volumio
+
+#Create mount point for the images partition
+sudo mkdir /mnt/volumio/images
+sudo mount -t ext4 "${IMG_PART}" /mnt/volumio/images
+sudo mkdir /mnt/volumio/rootfs
+sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+#sudo mkdir /mnt/volumio/boot
+sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+
 sync
 
 echo "Entering Chroot Environment"
 
-cp scripts/raspberryconfig.sh /mnt/volumio
-mount /dev /mnt/volumio/dev -o bind
-mount /proc /mnt/volumio/proc -t proc
-mount /sys /mnt/volumio/sys -t sysfs
-chroot /mnt/volumio /bin/bash -x <<'EOF'
+cp scripts/raspberryconfig.sh /mnt/volumio/rootfs
+
+cp scripts/initramfs/init /mnt/volumio/rootfs/root
+cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+
+#copy the scripts for updating from usb
+wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater 
+
+mount /dev /mnt/volumio/rootfs/dev -o bind
+mount /proc /mnt/volumio/rootfs/proc -t proc
+mount /sys /mnt/volumio/rootfs/sys -t sysfs
+chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /raspberryconfig.sh
 EOF
 
 echo "Base System Installed"
-rm /mnt/volumio/raspberryconfig.sh
+rm /mnt/volumio/rootfs/raspberryconfig.sh /mnt/volumio/rootfs/root/init
 echo "Unmounting Temp devices"
-umount -l /mnt/volumio/dev 
-umount -l /mnt/volumio/proc 
-umount -l /mnt/volumio/sys 
+umount -l /mnt/volumio/rootfs/dev 
+umount -l /mnt/volumio/rootfs/proc 
+umount -l /mnt/volumio/rootfs/sys 
 
 
 
@@ -86,17 +97,16 @@ sync
 
 echo "Creating RootFS Base for SquashFS"
 
-if [ -d /mnt/squash ]
-then
-echo "Volumio SquashFS  Temp Directory Exists - Cleaning it"
-rm -rf /mnt/squash/*
+if [ -d /mnt/squash ]; then
+	echo "Volumio SquashFS  Temp Directory Exists - Cleaning it"
+	rm -rf /mnt/squash/*
 else
-echo "Creating Volumio SquashFS Temp Directory"
-sudo mkdir /mnt/squash
+	echo "Creating Volumio SquashFS Temp Directory"
+	sudo mkdir /mnt/squash
 fi
 
 echo "Copying Volumio ROOTFS to Temp DIR"
-cp -rp /mnt/volumio/* /mnt/squash/
+cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
 echo "Removing Kernel"
 rm -rf /mnt/squash/boot/*
@@ -104,33 +114,19 @@ rm -rf /mnt/squash/boot/*
 echo "Creating SquashFS"
 mksquashfs /mnt/squash/* Volumio.sqsh
 
+echo "Squash file system created"
+echo "Cleaning squash environment"
+rm -rf /mnt/squash
 
+#copy the squash image inside the images partition
+cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 
-
-echo "Creating RootFS TAR"
-
-if [ -d /mnt/tar ]
-then 
-echo "Volumio TAR Temp Directory Exists - Cleaning it"
-rm -rf /mnt/tar/*
-else
-echo "Creating Volumio TAR Temp Directory"
-sudo mkdir /mnt/tar
-fi
-
-echo "Copying Volumio ROOTFS to Temp DIR"
-cp -rp /mnt/volumio/* /mnt/tar/
-
-echo "Removing Kernel and modules"
-rm -rf /mnt/tar/boot/*
-rm -rf /mnt/tar/lib/modules/*
-
-echo "Compressing RootFS" 
-tar -czf VolumioRootFS${VERSION}.tar.gz -C /mnt/tar/ .
-ls -al /mnt/volumio/
- 
 echo "Unmounting Temp Devices"
-sudo umount -l /mnt/volumio/
+sudo umount -l /mnt/volumio/images
+sudo umount -l /mnt/volumio/rootfs/boot
+
+echo "Cleaning build environment"
+rm -rf /mnt/volumio /mnt/boot
+
 dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
-
