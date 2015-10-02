@@ -45,10 +45,6 @@ echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 
-echo "Adding hifiberry driver"
-touch /boot/config.txt
-echo "dtoverlay=hifiberry-dac" >  /boot/config.txt
-
 echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
