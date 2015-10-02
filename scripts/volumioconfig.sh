@@ -99,24 +99,21 @@ wget http://repo.volumio.org/Volumio2/node_0.12.6-1_armhf.deb
 dpkg -i /node_0.12.6-1_armhf.deb
 rm /node_0.12.6-1_armhf.deb
 
-echo "Cloning Volumio"
-git clone https://github.com/volumio/Volumio2.git /volumio
-
 echo "Installing Volumio Modules"
 cd /volumio
-
-echo "Downloading compiled modules"
-##DIRTY FIX, TO BE UPDATED 
-wget http://repo.volumio.org/Volumio2/node_modules-arm.tar.gz
-tar xf node_modules-arm.tar.gz
-rm node_modules-arm.tar.gz
-
-echo "Getting Static UI"
+wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
+tar xf node_modules_arm.tar.gz
+rm node_modules_arm.tar.gz
+echo "Installing Static UI"
 svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
 cd /
 
 echo "Setting proper ownership"
 chown -R volumio:volumio /volumio
+
+echo "Creating Data Path"
+mkdir /data
+chown -R volumio:volumio /data
 
 echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
@@ -245,7 +242,7 @@ echo '@audio - rtprio 99
 
 echo "Alsa tuning"
 #Nrpacks Options, better safe than sorry
-echo 'options snd-usb-audio nrpacks=1' >> /etc/modprobe.d/alsa-base.conf
+#echo 'options snd-usb-audio nrpacks=1' >> /etc/modprobe.d/alsa-base.conf
 
 echo "Tuning LAN"
 echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
