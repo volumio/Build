@@ -15,12 +15,12 @@ echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
 
 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=3548
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=1221
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 0 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 1920
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 1220
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
