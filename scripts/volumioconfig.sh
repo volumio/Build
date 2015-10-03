@@ -244,6 +244,11 @@ echo "Alsa tuning"
 #Nrpacks Options, better safe than sorry
 #echo 'options snd-usb-audio nrpacks=1' >> /etc/modprobe.d/alsa-base.conf
 
+echo "Creating Alsa state file"
+touch /var/lib/alsa/asound.state
+echo '#' > /var/lib/alsa/asound.state
+chmod 777 /var/lib/alsa/asound.state
+
 echo "Tuning LAN"
 echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
 
