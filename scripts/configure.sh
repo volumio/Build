@@ -26,7 +26,7 @@ cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
 #FSTAB File
 cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
 fi
-#Edimax Power Saving Fix
+#Edimax Power Saving Fix + Alsa modprobe
 cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/
 #Hosts file 
 cp -p volumio/etc/hosts build/$BUILD/root/etc/hosts
