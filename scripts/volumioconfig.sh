@@ -223,9 +223,22 @@ echo "Adding Volumio Parent Service to Startup"
 #systemctl enable volumio.service
 ln -s /lib/systemd/system/volumio.service /etc/systemd/system/multi-user.target.wants/volumio.service
 
+echo "Adding Volumio Remote Updater Service to Startup"
+#systemctl enable volumio-remote-updater.service
+ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/multi-user.target.wants/volumio-remote-updater.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
+
+echo "Adding information in os-release"
+echo '
+VOLUMIO_VERSION="${VERSION}"
+VOLUMIO_VARIANT="volumio"
+VOLUMIO_HARDWARE="pi"
+VOLUMIO_TEST="FALSE"
+VOLUMIO_BUILD_DATE="$(date)"
+' >> /etc/os-release
 
 
 #####################

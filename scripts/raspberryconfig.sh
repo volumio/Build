@@ -40,6 +40,8 @@ echo y | SKIP_BACKUP=1 rpi-update a51e2e072f2c349b40887dbdb8029f9a78c01987
 # echo "Writing cmdline file"
 # echo "dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait" > /boot/cmdline.txt
 
+echo "Adding volumio-remote-updater"
+wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater
 
 echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
