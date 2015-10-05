@@ -22,6 +22,20 @@ function HELP {
   exit 1
 }
 
+#$1 = ${BUILD} $2 = ${VERSION} $3 = ${DEVICE}"
+function check_os_release {
+  ARCH_BUILD=$1
+  HAS_VERSION=$(grep -c VOLUMIO_VERSION build/${ARCH_BUILD}/root/etc/os-release)
+  VERSION=$2
+  DEVICE=$3
+
+  if [ "$HAS_VERSION" -eq "0" ]; then
+    echo "VOLUMIO_VERSION=\"${VERSION}\"" >> build/${ARCH_BUILD}/root/etc/os-release
+    echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> build/${ARCH_BUILD}/root/etc/os-release
+  fi
+}
+
+
 #Check the number of arguments. If none are passed, print help and exit.
 NUMARGS=$#
 if [ $NUMARGS -eq 0 ]; then
@@ -110,9 +124,8 @@ CUR_DATE=$(date)
 echo "Writing system information"
 echo "VOLUMIO_VARIANT=\"volumio\"
 VOLUMIO_TEST=\"FALSE\"
-VOLUMIO_BUILD_DATE=\"$(CUR_DATE)\"
+VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
 " >> build/${BUILD}/root/etc/os-release
-chmod 777 build/${BUILD}/root/etc/os-release
 
 echo "Unmounting Temp devices"
 umount -l build/$BUILD/root/dev 
@@ -122,11 +135,8 @@ sh scripts/configure.sh -b $BUILD
 fi
 
 if [ "$DEVICE" = pi ]; then
-echo 'Writing Rasoberry Pi Image File'
-echo "VOLUMIO_HARDWARE=\"${DEVICE}\"
-VOLUMIO_VERSION=\"${VERSION}\"
-" >> build/arm/root/etc/os-release
-
+  echo 'Writing Rasoberry Pi Image File'
+  check_os_release "arm" $VERSION $DEVICE
   sh scripts/raspberryimage.sh -v $VERSION; 
 fi
 if [ "$DEVICE" = udoo ]; then
@@ -139,12 +149,9 @@ if [ "$DEVICE" = cuboxi ]; then
 fi
 
 if [ "$DEVICE" = x86 ]; then
-echo 'Writing x86 Image File'
-echo "VOLUMIO_HARDWARE=\"${DEVICE}\"
-VOLUMIO_VERSION=\"${VERSION}\"
-" >> build/arm/root/etc/os-release
-
-sh scripts/x86.sh -v $VERSION; 
+  echo 'Writing x86 Image File'
+  check_os_release "x86" $VERSION $DEVICE
+  sh scripts/x86.sh -v $VERSION; 
 fi
 
 #When the tar is created we can build the docker layer
