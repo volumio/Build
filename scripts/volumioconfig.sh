@@ -231,15 +231,6 @@ echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
 
-echo "Adding information in os-release"
-echo '
-VOLUMIO_VERSION="${VERSION}"
-VOLUMIO_VARIANT="volumio"
-VOLUMIO_HARDWARE="pi"
-VOLUMIO_TEST="FALSE"
-VOLUMIO_BUILD_DATE="$(date)"
-' >> /etc/os-release
-
 
 #####################
 #Audio Optimizations#-----------------------------------------

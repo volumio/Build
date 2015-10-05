@@ -94,10 +94,26 @@ EOF
 elif [ "$BUILD" = x86 ]; then
 chroot build/x86/root /firstconfig.sh
 fi
+
+echo "Adding information in os-release"
+echo '
+
+' >> build/${BUILD}/root/etc/os-release
+
 echo "Base System Installed"
 rm build/$BUILD/root/volumioconfig.sh
 ###Dirty fix for mpd.conf TODO use volumio repo
 cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
+
+CUR_DATE=$(date)
+#Write some Version informations
+echo "Writing system information"
+echo "VOLUMIO_VARIANT=\"volumio\"
+VOLUMIO_TEST=\"FALSE\"
+VOLUMIO_BUILD_DATE=\"$(CUR_DATE)\"
+" >> build/${BUILD}/root/etc/os-release
+chmod 777 build/${BUILD}/root/etc/os-release
+
 echo "Unmounting Temp devices"
 umount -l build/$BUILD/root/dev 
 umount -l build/$BUILD/root/proc 
@@ -107,19 +123,27 @@ fi
 
 if [ "$DEVICE" = pi ]; then
 echo 'Writing Rasoberry Pi Image File'
-sh scripts/raspberryimage.sh -v $VERSION; 
+echo "VOLUMIO_HARDWARE=\"${DEVICE}\"
+VOLUMIO_VERSION=\"${VERSION}\"
+" >> build/arm/root/etc/os-release
+
+  sh scripts/raspberryimage.sh -v $VERSION; 
 fi
 if [ "$DEVICE" = udoo ]; then
-echo 'Writing UDOO Image File'
-sh scripts/udooimage.sh -v $VERSION ;
+  echo 'Writing UDOO Image File'
+  sh scripts/udooimage.sh -v $VERSION ;
 fi
-if  [ "$DEVICE" = cuboxi ]; then
-echo 'Writing Cubox-i Image File'
-sh scripts/cuboxiimage.sh -v $VERSION; 
+if [ "$DEVICE" = cuboxi ]; then
+  echo 'Writing Cubox-i Image File'
+  sh scripts/cuboxiimage.sh -v $VERSION; 
 fi
 
-if  [ "$DEVICE" = x86 ]; then
+if [ "$DEVICE" = x86 ]; then
 echo 'Writing x86 Image File'
+echo "VOLUMIO_HARDWARE=\"${DEVICE}\"
+VOLUMIO_VERSION=\"${VERSION}\"
+" >> build/arm/root/etc/os-release
+
 sh scripts/x86.sh -v $VERSION; 
 fi
 
