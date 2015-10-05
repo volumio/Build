@@ -125,6 +125,11 @@ wget http://repo.volumio.org/Packages/Mpd/mpd_0.19.9-2_armhf.deb
 dpkg -i mpd_0.19.9-2_armhf.deb
 rm /mpd_0.19.9-2_armhf.deb
 
+echo "Installing Shairport for Airplay emulation"
+wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
+tar xf shairport-sync_arm.tar.gz
+rm /shairport-sync_arm.tar.gz
+
 echo "Installing Upmpdcli"
 wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.2-1_armhf.deb
 wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_armhf.deb
