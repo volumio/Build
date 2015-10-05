@@ -85,6 +85,7 @@ fi
 # Mount the partitions
 # 1) mount the partition where the squash image resides
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
+chown -R volumio:volumio /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
 sleep 6

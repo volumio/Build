@@ -41,7 +41,11 @@ echo y | SKIP_BACKUP=1 rpi-update a51e2e072f2c349b40887dbdb8029f9a78c01987
 # echo "dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait" > /boot/cmdline.txt
 
 echo "Adding volumio-remote-updater"
-wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater
+wget -P /usr/local/bin/ http://updates.volumio.org/jx
+#wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater.jx
+wget -P /usr/local/sbin/ http://updates.volumio.org/volumio-remote-updater.jx
+chmod +x /usr/local/sbin/volumio-remote-updater.jx /usr/local/bin/jx
+
 
 echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
@@ -50,7 +54,6 @@ apt-get clean
 echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
-cat /etc/initramfs-tools/modules
 
 #compile the volumio-init-updater
 echo "Compiling volumio initramfs updater"
