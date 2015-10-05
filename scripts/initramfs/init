@@ -85,7 +85,6 @@ fi
 # Mount the partitions
 # 1) mount the partition where the squash image resides
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
-chown -R volumio:volumio /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
 sleep 6
@@ -156,6 +155,8 @@ mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/w
 [ -d /mnt/ext/union/imgpart ] || mkdir /mnt/ext/union/imgpart
 mount --move /mnt/static /mnt/ext/union/static
 mount --move /mnt/imgpart /mnt/ext/union/imgpart
+
+chmod -R 777 /mnt/ext/union/imgpart
 
 umount /proc
 umount /sys

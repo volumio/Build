@@ -115,6 +115,15 @@ echo "Creating Data Path"
 mkdir /data
 chown -R volumio:volumio /data
 
+echo "Creating ImgPart Path"
+mkdir /imgpart
+chown -R volumio:volumio /imgpart
+
+echo "Changing os-release permissions"
+chown volumio:volumio /etc/os-release
+chmod 777 /etc/os-release
+
+
 echo "Installing Spop and libspotify"
 wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
 tar xf /spop.tar.gz
