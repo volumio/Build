@@ -1,6 +1,9 @@
 #!/bin/busybox sh
 
-# Mount the /proc and /sys filesystems.
+# Default PATH differs between shells, and is not automatically exported
+# by klibc dash.  Make it consistent.
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
 [ -d /proc ] || mkdir /proc
 mount -t proc none /proc
 [ -d /sys ] || mkdir /sys
@@ -10,13 +13,23 @@ mount -t sysfs none /sys
 
 mknod /dev/null c 1 3
 mknod /dev/tty c 5 0
+mknod /dev/console c 5 1
+
+mdev -s
+
+HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
+
+#redirect console to kernel messages for Odroid
+if [ $HWDEVICE == ODROIDC ]; then
+	exec >/dev/kmsg 2>&1 </dev/console
+fi
+
+echo "Booting Volumio for" $HWDEVICE
 
 # Do your stuff here.
 echo "This script mounts rootfs RO with an overlay RW layer."
-modprobe overlay
 modprobe squashfs
-
-mdev -s
+modprobe nls_cp437
 
 # Parse the kernel command line from grub
 
@@ -34,7 +47,7 @@ parse_disk() {
     echo $1
   else
     # $1 is unrecognized.
-    echo "unknow-disk"
+    echo "unknown-disk"
   fi
 }
 
@@ -56,15 +69,15 @@ done
 
 if [ -z "${IMGPART}" ]; then
   echo "Specify the squash image partition after the kernel command ${CMDLINE}"
-  echo "example: kenrel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
-  exec /bin/sh
+  echo "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  exec sh
   exit 0
 fi
 
 if [ -z "${IMGFILE}" ]; then
   echo "Specify the squash image file after the kernel command ${CMDLINE}"
-  echo "example: kenrel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
-  exec /bin/sh
+  echo "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  exec sh
   exit 0
 fi
 
@@ -73,12 +86,9 @@ echo IMGFILE=${IMGFILE}
 
 if [ ! -b "${IMGPART}" ]; then
   echo "No partition with ${IMGPART} has been found"
-  exec /bin/sh
+  exec sh
   exit 0
 fi
-
-
-
 
 # ok, parsing done
 [ -d /mnt ] || mkdir /mnt
@@ -93,10 +103,8 @@ mdev -s
 #Check eventually for USB updates
 echo "Check for USB updates"
 if [ -e /dev/sda1 ]; then
-
   [ -d /mnt/usb ] || mkdir /mnt/usb
   mount -t vfat /dev/sda1 /mnt/usb
-
   #If there is a firmware file inside the usb
   if [ -e /mnt/usb/volumio.fir ]; then
     #when the partitions are mounted we can launch the update script
@@ -108,12 +116,10 @@ if [ -e /dev/sda1 ]; then
 fi
 
 
-#exec /bin/sh
-
-
 # 2) init a loop pointing to the image file
 loop_free=$(losetup -f | sed s#p/#p#)
 losetup $loop_free /mnt/imgpart/${IMGFILE}
+
 
 # 3) mount the squashfs to /mnt/static
 [ -d /mnt/static ] || mkdir /mnt/static
@@ -125,34 +131,51 @@ mount -t squashfs $loop_free /mnt/static
 
 if [ ! -b "/dev/mmcblk0p3" ]; then
   echo "Volumio data partition missing. Create it."
-  #Start value fixed as 1920, look at raspberryimage.sh for it
-  START="$(parted -s /dev/mmcblk0 print free | grep 1920 | grep Free | awk '{print $1}' | grep -o '[0-9]\+')"
-  END="$(parted -s /dev/mmcblk0 print free | grep 1920 | grep Free | awk '{print $2}' | grep -o '[0-9]\+')"
+  if [ $HWDEVICE == ODROIDC ]; then
+    #Start value fixed as 2113, look at odroidcimage.sh for it
+    SVALUE=2113
+  else
+    #Start value fixed as 1920, look at raspberryimage.sh for it
+    SVALUE=1920
+  fi
 
-  parted -s /dev/mmcblk0 mkpart primary ext3 ${START} ${END}
+  START="$(parted -s /dev/mmcblk0 print free | grep ${SVALUE} | grep Free | awk '{print $1}' | grep -o '[0-9]\+')"
+  END="$(parted -s /dev/mmcblk0 print free | grep ${SVALUE} | grep Free | awk '{print $2}' | grep -o '[0-9]\+')"
+
+  parted -s /dev/mmcblk0 mkpart primary ext4 ${START} ${END}
   partprobe /dev/mmcblk0
 
   #refreshing /dev/ for the new partition
   mdev -s
 
   mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+  
 fi
 
 # 4) mount a filesystem for the write access to the static image
 # unclear: memory size? -o size=1024M
-[ -d /mnt/ext ] || mkdir /mnt/ext
+[ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
 mount -t ext4 /dev/mmcblk0p3 /mnt/ext
 
-[ -d /mnt/ext/dyn ] || mkdir /mnt/ext/dyn
-[ -d /mnt/ext/work ] || mkdir /mnt/ext/work
-[ -d /mnt/ext/union ] || mkdir /mnt/ext/union
+[ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn 
+[ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union
+
+# Odroidc does not support workdir as overlayfs version is below V22
+if [ ! $HWDEVICE == ODROIDC ]; then
+  [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
+fi
 
 # 5) mount the writable overlay to the static image
-mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
+if [ $HWDEVICE == ODROIDC ]; then
+  # no workdir
+  mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn 
+else
+  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
+fi
 
 # Clean up.
-[ -d /mnt/ext/union/static ] || mkdir /mnt/ext/union/static
-[ -d /mnt/ext/union/imgpart ] || mkdir /mnt/ext/union/imgpart
+[ -d /mnt/ext/union/static ] || mkdir -m 777 /mnt/ext/union/static
+[ -d /mnt/ext/union/imgpart ] || mkdir -m 777 /mnt/ext/union/imgpart
 mount --move /mnt/static /mnt/ext/union/static
 mount --move /mnt/imgpart /mnt/ext/union/imgpart
 
@@ -161,8 +184,9 @@ chmod -R 777 /mnt/ext/union/imgpart
 umount /proc
 umount /sys
 
-# Boot the real thing.
+echo "Finish initramfs, continue booting Volumio"
 exec switch_root /mnt/ext/union /sbin/init
 
 echo "Failed to switch_root, dropping to a shell"
-exec /bin/sh 
+exec sh 
+
