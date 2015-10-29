@@ -345,12 +345,14 @@ o_version=$(echo ${versions} | awk '{print $2}')
 
 
 
+
 #Create DESTDIR
 [ -n "${TMPDIR}" ] && [ ! -w "${TMPDIR}" ] && unset TMPDIR
 DESTDIR_REAL="$(mktemp -d ${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX)" || exit 1
 chmod 755 "${DESTDIR_REAL}"
 DESTDIR_OTHER="$(mktemp -d ${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX)" || exit 1
 chmod 755 "${DESTDIR_OTHER}"
+
 
 
 # __TMPCPIOGZ="$(mktemp ${TMPDIR:-/var/tmp}/mkinitramfs-OL_XXXXXX)" || exit 1
@@ -363,12 +365,14 @@ version=${v_version}
 echo "Version: ${v_version}"
 build_initramfs
 
-DESTDIR=${DESTDIR_OTHER}
-version=${o_version}
-echo "Version: ${o_version}"
-build_initramfs
+if [ ! ${o_version} = "" ]; then
+  DESTDIR=${DESTDIR_OTHER}
+  version=${o_version}
+  echo "Version: ${o_version}"
+  build_initramfs
+  cp -rf "${DESTDIR_OTHER}/lib/modules/${o_version}" "${DESTDIR_REAL}/lib/modules/${o_version}"
+fi
 
-cp -rf "${DESTDIR_OTHER}/lib/modules/${o_version}" "${DESTDIR_REAL}/lib/modules/${o_version}"
 
 DESTDIR=${DESTDIR_REAL}
 #adding parted to the initramfs
@@ -391,7 +395,7 @@ cp /usr/local/sbin/volumio-init-updater "${DESTDIR}/sbin"
 
 
 #Manage the destdir folder removing the auto-generated scripts
-rm -rf "${DESTDIR}/scripts"
+#TODO[Gé] rm -rf "${DESTDIR}/scripts"
 cp /root/init "${DESTDIR}"
 
 #Creation of the initrd image
