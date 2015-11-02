@@ -104,6 +104,7 @@ rm /node_0.12.6-1_armhf.deb
 echo "Installing Volumio Modules"
 cd /volumio
 wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
+node_modules_arm.tar.gz
 tar xf node_modules_arm.tar.gz
 rm node_modules_arm.tar.gz
 
