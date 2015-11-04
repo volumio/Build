@@ -1,7 +1,8 @@
 #!/bin/bash
 #Volumio Image Builder
 #
-#
+# Dependencies:
+# parted squashfs-tools parted multistrap qemu-arm-static sudo qemu qemu-kvm-extras kpartx 
 
 #Set fonts for Help.
 NORM=`tput sgr0`
