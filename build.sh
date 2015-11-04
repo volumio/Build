@@ -2,7 +2,7 @@
 #Volumio Image Builder
 #
 # Dependencies:
-# parted squashfs-tools parted multistrap qemu binfmt-support qemu-user-static kpartx 
+# parted squashfs-tools dosfstools multistrap qemu binfmt-support qemu-user-static kpartx 
 
 #Set fonts for Help.
 NORM=`tput sgr0`
