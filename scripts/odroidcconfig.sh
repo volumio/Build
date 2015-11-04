@@ -59,4 +59,11 @@ mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 echo "Creating uImage from 'volumio.initrd'"
 mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 
+echo "Removing unnecessary /boot files"
+rm /boot/volumio.inird
+rm /boot/cmdline.txt
+rm /boot/config.txt
+
+
+
 
