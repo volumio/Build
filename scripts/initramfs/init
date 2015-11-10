@@ -119,9 +119,14 @@ losetup $loop_free /mnt/imgpart/${IMGFILE}
 [ -d /mnt/static ] || mkdir /mnt/static
 mount -t squashfs $loop_free /mnt/static
 
-# Note: if you don't want to use a squashed image, you just
-#       can mount your read only root to /mnt/static
-#       example: mount -o ro /dev/sda2 /mnt/static
+
+#if there is factory file then format data partition
+if [ -e "/boot/factory_reset" ]; then
+  mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+  echo "Factory reset executed"
+  rm /boot/factory_reset
+fi
+
 
 if [ ! -b "/dev/mmcblk0p3" ]; then
   echo "Volumio data partition missing. Create it."
