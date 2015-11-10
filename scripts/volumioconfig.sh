@@ -56,11 +56,12 @@ alias snapserver="/usr/sbin/snapserver"
 alias mount="sudo /bin/mount"
 alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
+alias service="/usr/sbin/service"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/bin/mount,/bin/systemctl./usr/bin/killall
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/bin/mount,/bin/systemctl./usr/bin/killall,/usr/sbin/service
 " >> /etc/sudoers
 
 
