@@ -136,7 +136,7 @@ sh scripts/configure.sh -b $BUILD
 fi
 
 if [ "$DEVICE" = pi ]; then
-  echo 'Writing Rasoberry Pi Image File'
+  echo 'Writing Raspberry Pi Image File'
   check_os_release "arm" $VERSION $DEVICE
   sh scripts/raspberryimage.sh -v $VERSION; 
 fi
