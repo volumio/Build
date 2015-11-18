@@ -61,7 +61,7 @@ alias service="/usr/sbin/service"
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/bin/mount,/bin/systemctl./usr/bin/killall,/usr/sbin/service
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/bin/mount,/bin/systemctl./usr/bin/killall,/usr/sbin/service,/bin/journalctl
 " >> /etc/sudoers
 
 
