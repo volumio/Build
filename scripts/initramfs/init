@@ -107,6 +107,7 @@ if [ -e /dev/sda1 ]; then
   mount -t vfat /dev/sda1 /mnt/usb
   #If there is a firmware file inside the usb
   if [ -e /mnt/usb/volumio.fir ]; then
+	echo "Firmware found, this will take several minutes, please wait...."
     #when the partitions are mounted we can launch the update script
     volumio-init-updater
   fi

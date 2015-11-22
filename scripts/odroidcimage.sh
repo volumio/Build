@@ -147,8 +147,8 @@ umount -l /mnt/volumio/rootfs/sys
 
 echo "Copying LIRC configuration files for HK stock remote"
 sudo cp platforms/odroidc/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms/odroidc/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms/odroidc/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+sudo cp platforms/odroidc/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+sudo cp platforms/odroidc/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
 echo "==> Odroid-C device installed"  
 ls -al /mnt/volumio/rootfs
