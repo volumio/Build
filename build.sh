@@ -19,7 +19,7 @@ function HELP {
   echo "-d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab"
   echo "-l      --Create docker layer. Docker Repository name as as argument"
   echo "-v      --Version"
-  echo -e "Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b -d pi -v 2.0 -l reponame "\\n
+  echo -e "Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b arm -d pi -v 2.0 -l reponame "\\n
   exit 1
 }
 
