@@ -28,6 +28,11 @@ echo "Installing additonal packages"
 apt-get update
 apt-get -y install busybox parted u-boot-tools liblircclient0 lirc 
 
+#on-going: get firmware for e.g. wireless modules
+# Refer to: http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/
+echo "Installing additional firmware"
+apt-get -y install firmware-realtek firmware-ralink firmware-atheros
+
 echo "Adding volumio-remote-updater"
 wget -P /usr/local/bin/ http://updates.volumio.org/jx
 #wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater.jx
