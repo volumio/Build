@@ -53,5 +53,9 @@ cp -rp volumio/etc/netplug build/$BUILD/root/etc/
 # IpTables Rules
 cp volumio/etc/iptables.rules build/$BUILD/root/etc/iptables.rules
 cp -r volumio/etc/network/* build/$BUILD/root/etc/network
+# Wpa Supplicant
+mkdir build/$BUILD/root/etc/wpa_supplicant/
+echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
+chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 echo 'Done Copying Custom Volumio System Files'
 
