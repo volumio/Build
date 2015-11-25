@@ -37,6 +37,12 @@ mkdir /lib/firmware
 # Kernel 4.0.6 for i2s compatibility  
 echo y | SKIP_BACKUP=1 rpi-update a51e2e072f2c349b40887dbdb8029f9a78c01987
 
+echo "Adding raspi-config"
+wget -P /raspi-config_20151019_all.deb /http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
+apt-get install libnewt0.52 whiptail parted triggerhappy lua5.1
+dpkg -i raspi-config_20151019_all.deb
+rm /raspi-config_20151019_all.deb
+
 # echo "Writing cmdline file"
 # echo "dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait" > /boot/cmdline.txt
 
