@@ -74,11 +74,6 @@ done
 
 shift $((OPTIND-1)) 
 
-if [ -n "$PATCH" ]; then
-echo "Building with Patch"
-else
-$PATCH='volumio'
-fi
 
 if [ -n "$BUILD" ]; then
 if [ "$BUILD" = arm ]; then
@@ -143,6 +138,14 @@ umount -l build/$BUILD/root/proc
 umount -l build/$BUILD/root/sys 
 sh scripts/configure.sh -b $BUILD
 fi
+if [ -n "$PATCH" ]; then
+echo "Copying Patch to Rootfs"
+cp -rp $PATCH  build/$BUILD/root/
+else
+$PATCH='volumio'
+fi
+
+
 
 if [ "$DEVICE" = pi ]; then
   echo 'Writing Raspberry Pi Image File'
