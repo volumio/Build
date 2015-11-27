@@ -1,5 +1,17 @@
 #!/bin/bash
 
+while getopts ":v:p:" opt; do
+  case $opt in
+    v)
+      VERSION=$OPTARG
+      ;;
+    p)
+      PATCH=$OPTARG
+      ;;
+
+  esac
+done
+
 # This script will be run in chroot under qemu.
 
 echo "Creating Fstab File"
@@ -65,6 +77,22 @@ echo "overlay" >> /etc/initramfs-tools/modules
 echo "Compiling volumio initramfs updater"
 cd /root/
 mv volumio-init-updater /usr/local/sbin
+
+#On The Fly Patch
+if [ $PATCH = "volumio" ]; then
+echo "No Patch To Apply"
+else
+echo "Applying Patch"
+cd $PATCH
+if [ -a "patch.sh" ]; then
+./patch.sh
+else 
+echo "Cannot Find Patch File, aborting"
+fi
+cd /
+rm -rf $PATCH
+fi
+
 
 echo "Creating initramfs"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
