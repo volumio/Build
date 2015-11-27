@@ -43,7 +43,7 @@ if [ $NUMARGS -eq 0 ]; then
   HELP
 fi
 
-while getopts b:v:d:l:e FLAG; do
+while getopts b:v:d:l:p:e FLAG; do
   case $FLAG in
     b)  
       BUILD=$OPTARG
@@ -59,6 +59,9 @@ while getopts b:v:d:l:e FLAG; do
       CREATE_DOCKER_LAYER=1
       DOCKER_REPOSITORY_NAME=$OPTARG
       ;;
+    p)
+      PATCH=$OPTARG
+      ;;
     h)  #show help
       HELP
       ;;
@@ -70,6 +73,12 @@ while getopts b:v:d:l:e FLAG; do
 done
 
 shift $((OPTIND-1)) 
+
+if [ -n "$PATCH" ]; then
+echo "Building with Patch"
+else
+$PATCH='volumio'
+fi
 
 if [ -n "$BUILD" ]; then
 if [ "$BUILD" = arm ]; then
@@ -138,7 +147,7 @@ fi
 if [ "$DEVICE" = pi ]; then
   echo 'Writing Raspberry Pi Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/raspberryimage.sh -v $VERSION; 
+  sh scripts/raspberryimage.sh -v $VERSION -p $PATCH; 
 fi
 if [ "$DEVICE" = udoo ]; then
   echo 'Writing UDOO Image File'

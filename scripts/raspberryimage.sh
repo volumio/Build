@@ -1,10 +1,14 @@
 #!/bin/sh
 
-while getopts ":v:" opt; do
+while getopts ":v:p:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
       ;;
+p)
+      PATCH=$OPTARG
+      ;;
+
   esac
 done
 BUILDDATE=$(date -I)
@@ -79,7 +83,7 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/raspberryconfig.sh
+/raspberryconfig.sh -p $PATCH
 EOF
 
 echo "Base System Installed"
