@@ -79,11 +79,11 @@ cd /root/
 mv volumio-init-updater /usr/local/sbin
 
 #On The Fly Patch
-if [ $PATCH = "volumio" ]; then
+if [ $PATCH == "volumio" ]; then
 echo "No Patch To Apply"
 else
 echo "Applying Patch"
-cd $PATCH
+cd /$PATCH
 if [ -a "patch.sh" ]; then
 ./patch.sh
 else 
