@@ -5,12 +5,13 @@ while getopts ":v:p:" opt; do
     v)
       VERSION=$OPTARG
       ;;
-p)
+    p)
       PATCH=$OPTARG
       ;;
 
   esac
 done
+
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}PI.img"
 
@@ -81,9 +82,10 @@ wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volum
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
+echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/raspberryconfig.sh -p $PATCH
+/raspberryconfig.sh -p 
 EOF
 
 echo "Base System Installed"

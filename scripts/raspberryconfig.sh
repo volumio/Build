@@ -1,16 +1,14 @@
 #!/bin/bash
 
-while getopts ":v:p:" opt; do
+while getopts ":v:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
       ;;
-    p)
-      PATCH=$OPTARG
-      ;;
-
   esac
 done
+
+PATCH=$(cat /patch)
 
 # This script will be run in chroot under qemu.
 
@@ -79,19 +77,22 @@ cd /root/
 mv volumio-init-updater /usr/local/sbin
 
 #On The Fly Patch
-if [ $PATCH == "volumio" ]; then
+if [ $PATCH = "volumio" ]; then
 echo "No Patch To Apply"
 else
-echo "Applying Patch"
-cd /$PATCH
-if [ -a "patch.sh" ]; then
-./patch.sh
+echo "Applying Patch ${PATCH}"
+PATCHPATH=/${PATCH}
+cd $PATCHPATH
+#Check the existence of patch script
+if [ -f "patch.sh" ]; then
+sh patch.sh
 else 
 echo "Cannot Find Patch File, aborting"
 fi
 cd /
-rm -rf $PATCH
+rm -rf ${PATCH}
 fi
+rm /patch
 
 
 echo "Creating initramfs"
