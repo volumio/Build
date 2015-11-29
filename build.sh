@@ -104,7 +104,7 @@ mount /proc build/$BUILD/root/proc -t proc
 mount /sys build/$BUILD/root/sys -t sysfs
 echo 'Cloning Volumio'
 mkdir build/$BUILD/root/volumio
-git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+git clone --recursive https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
 if [ "$BUILD" = arm ]; then
 chroot build/arm/root /bin/bash -x <<'EOF'
 su -
