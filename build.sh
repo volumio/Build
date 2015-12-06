@@ -146,7 +146,6 @@ $PATCH='volumio'
 fi
 
 
-
 if [ "$DEVICE" = pi ]; then
   echo 'Writing Raspberry Pi Image File'
   check_os_release "arm" $VERSION $DEVICE
@@ -163,7 +162,12 @@ fi
 if  [ "$DEVICE" = odroidc ]; then
   echo 'Writing OdroidCx Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidcimage.sh -v $VERSION; 
+  sh scripts/odroidcimage.sh -v $VERSION -p $PATCH; 
+fi
+if  [ "$DEVICE" = odroidxu4 ]; then
+  echo 'Writing OdroidCx Image File'
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH; 
 fi
 
 if [ "$DEVICE" = x86 ]; then

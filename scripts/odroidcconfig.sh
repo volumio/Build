@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+PATCH=$(cat /patch)
+
 # This script will be run in chroot under qemu.
 
 echo "Creating \"fstab\""
@@ -49,9 +52,29 @@ echo "Copying volumio initramfs updater"
 cd /root/
 mv volumio-init-updater /usr/local/sbin
 
+
 echo "Changing to 'modules=dep'"
-echo "(otherwise Odroid won't boot due to uInird 4MB limit)"
+echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+
+#On The Fly Patch
+if [ $PATCH == "volumio" ]; then
+  echo "No Patch To Apply"
+else
+  echo "Applying Patch ${PATCH}"
+  PATCHPATH=/${PATCH}
+  cd $PATCHPATH
+  #Check the existence of patch script
+  if [ -f "patch.sh" ]; then
+    sh patch.sh
+  else 
+    echo "Cannot Find Patch File, aborting"
+  fi
+  cd /
+  rm -rf ${PATCH}
+fi
+rm /patch
+
 
 echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
