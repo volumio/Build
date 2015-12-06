@@ -5,8 +5,13 @@ while getopts ":v:" opt; do
     v)
       VERSION=$OPTARG
       ;;
+	p)
+	  PATCH=$OPTARG
+	  ;;
+
   esac
 done
+
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-OdroidC.img"
 
@@ -53,19 +58,19 @@ sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
 sync
 
 echo "Preparing for the Odroid kernel/ platform files"
-if [ -d platforms/odroidc ]
+if [ -d platforms-O ]
 then 
-	echo "Folder already exists - keeping it"
+	echo "Platform-O folder already exists - keeping it"
 else
 	echo "Creating temporary folder and clone Odroid files from repo"
-	sudo mkdir -p platforms/odroidc
-	git clone https://github.com/gkkpch/Kernel-OdroidC1.git platforms/odroidc
+	mkdir platforms-O
+	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
 fi
 
 echo "Copying the bootloader"
-sudo dd if=platforms/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
-sudo dd if=platforms/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
-sudo dd if=platforms/odroidc/uboot/u-boot.bin of=${LOOP_DEV} seek=64
+sudo dd if=platforms-O/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
+sudo dd if=platforms-O/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
+sudo dd if=platforms-O/odroidc/uboot/u-boot.bin of=${LOOP_DEV} seek=64
 sync
 
 # change the UUID from boot and rootfs partion
@@ -100,25 +105,25 @@ sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying OdroidC boot files"
-sudo cp platforms/odroidc/boot/boot.ini /mnt/volumio/rootfs/boot
-sudo cp platforms/odroidc/boot/meson8b_odroidc.dtb /mnt/volumio/rootfs/boot
-sudo cp platforms/odroidc/boot/uImage /mnt/volumio/rootfs/boot
-#sudo cp platforms/odroidc/boot/uInitrd /mnt/volumio/rootfs/boot
+sudo cp platforms-O/odroidc/boot/boot.ini /mnt/volumio/rootfs/boot
+sudo cp platforms-O/odroidc/boot/meson8b_odroidc.dtb /mnt/volumio/rootfs/boot
+sudo cp platforms-O/odroidc/boot/uImage /mnt/volumio/rootfs/boot
+#sudo cp platforms-O/odroidc/boot/uInitrd /mnt/volumio/rootfs/boot
 
 echo "Copying OdroidC modules and firmware"
-sudo cp -pdR platforms/odroidc/lib/modules /mnt/volumio/rootfs/lib/
-sudo cp -pdR platforms/odroidc/lib/firmware /mnt/volumio/rootfs/lib/
+sudo cp -pdR platforms-O/odroidc/lib/modules /mnt/volumio/rootfs/lib/
+sudo cp -pdR platforms-O/odroidc/lib/firmware /mnt/volumio/rootfs/lib/
+
 
 echo "Copying OdroidC inittab"
-sudo cp platforms/odroidc/etc/inittab /mnt/volumio/rootfs/etc/
+sudo cp platforms-O/odroidc/etc/inittab /mnt/volumio/rootfs/etc/
 
 echo "We don't deal in pies, so show neutral :)"
+#TODO: odroids should be able to run generic debian
 sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
 
-echo "Adding Hardkernel (Odroidc) defaults to initramfs-tools"
-sudo cp -pdR platforms/odroidc/usr/share/initramfs-tools /mnt/volumio/rootfs/usr/share
-
 sync
+
 
 echo "Preparing to run chroot for more OdroidC configuration"
 cp scripts/odroidcconfig.sh /mnt/volumio/rootfs
@@ -131,10 +136,10 @@ wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volum
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
-
+echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/odroidcconfig.sh
+/odroidcconfig.sh -p
 EOF
 
 #cleanup
@@ -146,9 +151,9 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys 
 
 echo "Copying LIRC configuration files for HK stock remote"
-sudo cp platforms/odroidc/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms/odroidc/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms/odroidc/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+sudo cp platforms-O/odroidc/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+sudo cp platforms-O/odroidc/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+sudo cp platforms-O/odroidc/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
 echo "==> Odroid-C device installed"  
 ls -al /mnt/volumio/rootfs
