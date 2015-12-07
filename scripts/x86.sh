@@ -62,10 +62,16 @@ cp scripts/x86config.sh /mnt/volumio
 mount /dev /mnt/volumio/dev -o bind
 mount /proc /mnt/volumio/proc -t proc
 mount /sys /mnt/volumio/sys -t sysfs
+
+echo "LOOP_PART=${LOOP_PART}
+LOOP_DEV=${LOOP_DEV}
+" >> /mnt/volumio/init.sh
+chmod +x /mnt/volumio/init.sh
+
 chroot /mnt/volumio /bin/bash -x <<'EOF'
 /x86config.sh
 EOF
-rm /mnt/volumio/x86config.sh
+rm /mnt/volumio/x86config.sh /mnt/volumio/init.sh
 sync
 
 ls -al /mnt/volumio/
