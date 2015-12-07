@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # This script will be run in chroot.
+echo "Create grub config folder"
+mkdir -p /boot/grub
 
 echo "Applying Grub Configuration"
 grub-mkconfig -o /boot/grub/grub.cfg

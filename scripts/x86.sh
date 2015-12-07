@@ -22,7 +22,7 @@ sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1 2048
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
-sudo kpartx -a "${LOOP_DEV}"
+sudo kpartx -s -a "${LOOP_DEV}"
  
 LOOP_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 
