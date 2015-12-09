@@ -111,7 +111,7 @@ su -
 ./volumioconfig.sh
 EOF
 elif [ "$BUILD" = x86 ]; then
-chroot build/x86/root /firstconfig.sh
+chroot build/x86/root /volumioconfig.sh
 fi
 
 echo "Adding information in os-release"
