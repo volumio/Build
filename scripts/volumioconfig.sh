@@ -77,6 +77,8 @@ EOF
 chmod 666 /etc/network/interfaces
 
 echo volumio > /etc/hostname
+chmod 777 /etc/hostname
+chmod 777 /etc/hosts
 
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
