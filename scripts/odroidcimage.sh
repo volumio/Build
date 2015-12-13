@@ -139,7 +139,7 @@ mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/odroidcconfig.sh -p
+/odroidcconfig.sh
 EOF
 
 #cleanup
