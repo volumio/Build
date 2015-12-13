@@ -15,16 +15,16 @@ done
 echo 'Copying Custom Volumio System Files'
 #Apt conf file
 if [ "$BUILD" = arm ]; then
-echo 'Copying ARM related configuration files'
-cp volumio/etc/apt/sources.list build/$BUILD/root/etc/apt/sources.list
+  echo 'Copying ARM related configuration files'
+  cp volumio/etc/apt/sources.list build/$BUILD/root/etc/apt/sources.list
 elif [ "$BUILD" = x86 ]; then
-echo 'Copying X86 related Configuration files' 
-#APT sources file
-cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
+  echo 'Copying X86 related Configuration files' 
+  #APT sources file
+  cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
 #Grub2 conf file
-cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
+  cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
 #FSTAB File
-cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
+  cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
 fi
 #Edimax Power Saving Fix + Alsa modprobe
 cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/
