@@ -140,7 +140,7 @@ VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
 fi
 
 if [ -n "$PATCH" ]; then
-  echo "Copying Patch to Rootfs" architecory
+  echo "Copying Patch to Rootfs" 
   cp -rp $PATCH  build/$BUILD/root/
 else
   $PATCH='volumio'
