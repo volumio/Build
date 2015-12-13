@@ -39,17 +39,17 @@ sync
 echo "Copying Volumio RootFs"
 if [ -d /mnt ]
 then 
-echo "/mnt/folder exist"
+    echo "/mnt/folder exist"
 else
-sudo mkdir /mnt
+    sudo mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then 
-echo "Volumio Temp Directory Exists - Cleaning it"
-rm -rf /mnt/volumio/*
+    echo "Volumio Temp Directory Exists - Cleaning it"
+    rm -rf /mnt/volumio/*
 else
-echo "Creating Volumio Temp Directory"
-sudo mkdir /mnt/volumio
+    echo "Creating Volumio Temp Directory"
+    sudo mkdir /mnt/volumio
 fi
 sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
 sudo rm -rf /mnt/volumio/*
@@ -59,11 +59,15 @@ sync
 echo "Entering Chroot Environment"
 
 cp scripts/x86config.sh /mnt/volumio
+cp volumio/splash/volumio.png /mnt/volumio/boot
+
 mount /dev /mnt/volumio/dev -o bind
 mount /proc /mnt/volumio/proc -t proc
 mount /sys /mnt/volumio/sys -t sysfs
 
-echo "LOOP_PART=${LOOP_PART}
+UUID=$(blkid ${LOOP_PART} | awk -F'["]' '{print $4}')
+echo "UUID=${UUID}
+LOOP_PART=${LOOP_PART}
 LOOP_DEV=${LOOP_DEV}
 " >> /mnt/volumio/init.sh
 chmod +x /mnt/volumio/init.sh

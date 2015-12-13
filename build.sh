@@ -76,73 +76,74 @@ shift $((OPTIND-1))
 
 
 if [ -n "$BUILD" ]; then
-if [ "$BUILD" = arm ]; then
-ARCH="armhf"
-echo "Building ARM Base System"
-elif [ "$BUILD" = x86 ]; then
-echo 'Building X86 Base System' 
-ARCH="i386"
-fi
-if [ -d build ]
-then 
-echo "Build folder exist, cleaning it"
-rm -rf build/*
-else
-echo "Creating build folder"
-sudo mkdir build
-fi
+  if [ "$BUILD" = arm ]; then
+    ARCH="armhf"
+    echo "Building ARM Base System"
+  elif [ "$BUILD" = x86 ]; then
+    echo 'Building X86 Base System' 
+    ARCH="i386"
+  fi
+  if [ -d build ]
+    then 
+    echo "Build folder exist, cleaning it"
+    rm -rf build/*
+  else
+    echo "Creating build folder"
+    sudo mkdir build
+  fi
 
-mkdir build/$BUILD
-mkdir build/$BUILD/root
-multistrap -a $ARCH -f recipes/$BUILD.conf
-if [ "$BUILD" = arm ]; then
-cp /usr/bin/qemu-arm-static build/arm/root/usr/bin/
-fi
-cp scripts/volumioconfig.sh build/$BUILD/root
-mount /dev build/$BUILD/root/dev -o bind
-mount /proc build/$BUILD/root/proc -t proc
-mount /sys build/$BUILD/root/sys -t sysfs
-echo 'Cloning Volumio'
-mkdir build/$BUILD/root/volumio
-git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
-if [ "$BUILD" = arm ]; then
-chroot build/arm/root /bin/bash -x <<'EOF'
+  mkdir build/$BUILD
+  mkdir build/$BUILD/root
+  multistrap -a $ARCH -f recipes/$BUILD.conf
+  if [ "$BUILD" = arm ]; then
+    cp /usr/bin/qemu-arm-static build/arm/root/usr/bin/
+  fi
+  cp scripts/volumioconfig.sh build/$BUILD/root
+  mount /dev build/$BUILD/root/dev -o bind
+  mount /proc build/$BUILD/root/proc -t proc
+  mount /sys build/$BUILD/root/sys -t sysfs
+  echo 'Cloning Volumio'
+  mkdir build/$BUILD/root/volumio
+  git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  if [ "$BUILD" = arm ]; then
+  chroot build/arm/root /bin/bash -x <<'EOF'
 su -
 ./volumioconfig.sh
 EOF
-elif [ "$BUILD" = x86 ]; then
-chroot build/x86/root /firstconfig.sh
-fi
+  elif [ "$BUILD" = x86 ]; then
+    chroot build/x86/root /volumioconfig.sh
+  fi
 
-echo "Adding information in os-release"
-echo '
+  echo "Adding information in os-release"
+  echo '
 
 ' >> build/${BUILD}/root/etc/os-release
 
-echo "Base System Installed"
-rm build/$BUILD/root/volumioconfig.sh
-###Dirty fix for mpd.conf TODO use volumio repo
-cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
+  echo "Base System Installed"
+  rm build/$BUILD/root/volumioconfig.sh
+  ###Dirty fix for mpd.conf TODO use volumio repo
+  cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
 
-CUR_DATE=$(date)
-#Write some Version informations
-echo "Writing system information"
-echo "VOLUMIO_VARIANT=\"volumio\"
+  CUR_DATE=$(date)
+  #Write some Version informations
+  echo "Writing system information"
+  echo "VOLUMIO_VARIANT=\"volumio\"
 VOLUMIO_TEST=\"FALSE\"
 VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
 " >> build/${BUILD}/root/etc/os-release
 
-echo "Unmounting Temp devices"
-umount -l build/$BUILD/root/dev 
-umount -l build/$BUILD/root/proc 
-umount -l build/$BUILD/root/sys 
-sh scripts/configure.sh -b $BUILD
+  echo "Unmounting Temp devices"
+  umount -l build/$BUILD/root/dev 
+  umount -l build/$BUILD/root/proc 
+  umount -l build/$BUILD/root/sys 
+  sh scripts/configure.sh -b $BUILD
 fi
+
 if [ -n "$PATCH" ]; then
-echo "Copying Patch to Rootfs"
-cp -rp $PATCH  build/$BUILD/root/
+  echo "Copying Patch to Rootfs" architecory
+  cp -rp $PATCH  build/$BUILD/root/
 else
-$PATCH='volumio'
+  $PATCH='volumio'
 fi
 
 
@@ -173,7 +174,7 @@ fi
 if [ "$DEVICE" = x86 ]; then
   echo 'Writing x86 Image File'
   check_os_release "x86" $VERSION $DEVICE
-  sh scripts/x86.sh -v $VERSION; 
+  sh scripts/x86.sh -v $VERSION -p $PATCH; 
 fi
 
 #When the tar is created we can build the docker layer
