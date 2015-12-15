@@ -88,143 +88,159 @@ ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/
 #Volumio System#---------------------------------------------------
 ################
 if [ $(uname -m) = armv7l ]; then
-echo "Arm Environment detected"
-echo ' Adding Raspbian Repo Key'
-wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
+  echo "Arm Environment detected"
+  echo ' Adding Raspbian Repo Key'
+  wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
 # cleanup
-apt-get clean
-rm -rf tmp/*
+  apt-get clean
+  rm -rf tmp/*
 
-echo "Installing Node Environment"
+  echo "Installing Node Environment"
 #huge kudos to node-arm for such effort	
-wget http://repo.volumio.org/Volumio2/node_0.12.6-1_armhf.deb
-dpkg -i /node_0.12.6-1_armhf.deb
-rm /node_0.12.6-1_armhf.deb
+  wget http://repo.volumio.org/Volumio2/node_0.12.6-1_armhf.deb
+  dpkg -i /node_0.12.6-1_armhf.deb
+  rm /node_0.12.6-1_armhf.deb
 
-echo "Installing Volumio Modules"
-cd /volumio
-wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
-tar xf node_modules_arm.tar.gz
-rm node_modules_arm.tar.gz
+  echo "Installing Volumio Modules"
+  cd /volumio
+  wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
+  tar xf node_modules_arm.tar.gz
+  rm node_modules_arm.tar.gz
 
-echo "Installing Static UI"
+  echo "Installing Static UI"
 #svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
 #cd /
 # TO DO: FInd a better way to do this 
-cd /
-wget http://repo.volumio.org/Volumio2/volumio-ui.tar.gz
-tar xf volumio-ui.tar.gz 
-rm /volumio-ui.tar.gz
+  cd /
+  wget http://repo.volumio.org/Volumio2/volumio-ui.tar.gz
+  tar xf volumio-ui.tar.gz 
+  rm /volumio-ui.tar.gz
 
-echo "Setting proper ownership"
-chown -R volumio:volumio /volumio
+  echo "Setting proper ownership"
+  chown -R volumio:volumio /volumio
 
-echo "Creating Data Path"
-mkdir /data
-chown -R volumio:volumio /data
+  echo "Creating Data Path"
+  mkdir /data
+  chown -R volumio:volumio /data
 
-echo "Creating ImgPart Path"
-mkdir /imgpart
-chown -R volumio:volumio /imgpart
+  echo "Creating ImgPart Path"
+  mkdir /imgpart
+  chown -R volumio:volumio /imgpart
 
-echo "Changing os-release permissions"
-chown volumio:volumio /etc/os-release
-chmod 777 /etc/os-release
+  echo "Changing os-release permissions"
+  chown volumio:volumio /etc/os-release
+  chmod 777 /etc/os-release
 
 
-echo "Installing Spop and libspotify"
-wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
-tar xf /spop.tar.gz
-rm /spop.tar.gz
+  echo "Installing Spop and libspotify"
+  wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
+  tar xf /spop.tar.gz
+  rm /spop.tar.gz
 
-echo "Installing custom MPD version"
-wget http://repo.volumio.org/Packages/Mpd/mpd_0.19.9-2_armhf.deb
-dpkg -i mpd_0.19.9-2_armhf.deb
-rm /mpd_0.19.9-2_armhf.deb
+  echo "Installing custom MPD version"
+  wget http://repo.volumio.org/Packages/Mpd/mpd_0.19.9-2_armhf.deb
+  dpkg -i mpd_0.19.9-2_armhf.deb
+  rm /mpd_0.19.9-2_armhf.deb
 
-echo "Installing Shairport for Airplay emulation"
-wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
-tar xf shairport-sync_arm.tar.gz
-rm /shairport-sync_arm.tar.gz
+  echo "Installing Shairport for Airplay emulation"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
+  tar xf shairport-sync_arm.tar.gz
+  rm /shairport-sync_arm.tar.gz
 
-echo "Installing Upmpdcli"
-wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.2-1_armhf.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_armhf.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-2_armhf.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_armhf.deb
-dpkg -i libupnpp2_0.11.0-1_armhf.deb
-dpkg -i libupnpp0_0.9.0-1_armhf.deb
-dpkg -i libupnp6_1.6.19.jfd1-2_armhf.deb
-dpkg -i upmpdcli_0.11.2-1_armhf.deb
-rm /upmpdcli_0.11.2-1_armhf.deb
-rm /libupnpp0_0.9.0-1_armhf.deb
-rm /libupnp6_1.6.19.jfd1-2_armhf.deb
-rm /libupnpp2_0.11.0-1_armhf.deb
+  echo "Installing Upmpdcli"
+  wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.2-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-2_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_armhf.deb
+  dpkg -i libupnpp2_0.11.0-1_armhf.deb
+  dpkg -i libupnpp0_0.9.0-1_armhf.deb
+  dpkg -i libupnp6_1.6.19.jfd1-2_armhf.deb
+  dpkg -i upmpdcli_0.11.2-1_armhf.deb
+  rm /upmpdcli_0.11.2-1_armhf.deb
+  rm /libupnpp0_0.9.0-1_armhf.deb
+  rm /libupnp6_1.6.19.jfd1-2_armhf.deb
+  rm /libupnpp2_0.11.0-1_armhf.deb
 
 #Remove autostart of upmpdcli
-update-rc.d upmpdcli remove
+  update-rc.d upmpdcli remove
 
-echo "Installing LINN Songcast module"
-wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
-dpkg -i sc2mpd_0.11.0-1_armhf.deb
-rm /sc2mpd_0.11.0-1_armhf.deb
+  echo "Installing LINN Songcast module"
+  wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
+  dpkg -i sc2mpd_0.11.0-1_armhf.deb
+  rm /sc2mpd_0.11.0-1_armhf.deb
 
-echo "Installing Snapcast for multiroom"
+  echo "Installing Snapcast for multiroom"
 
-wget http://repo.volumio.org/Volumio2/Binaries/snapserver -P /usr/sbin/
-wget http://repo.volumio.org/Volumio2/Binaries/snapclient -P  /usr/sbin/
-chmod a+x /usr/sbin/snapserver
-chmod a+x /usr/sbin/snapclient
+  wget http://repo.volumio.org/Volumio2/Binaries/snapserver -P /usr/sbin/
+  wget http://repo.volumio.org/Volumio2/Binaries/snapclient -P  /usr/sbin/
+  chmod a+x /usr/sbin/snapserver
+  chmod a+x /usr/sbin/snapclient
 
-elif [ $(uname -m) = i686 ]; then
-echo 'X86 Environment Detected' 
+elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
+  echo 'X86 Environment Detected' 
 
 # cleanup
-apt-get clean
-rm -rf tmp/*
+  apt-get clean
+  rm -rf tmp/*
 
-echo "Installing Node Environment"
-wget https://deb.nodesource.com/node_0.12/pool/main/n/nodejs/nodejs_0.12.0-1nodesource1~jessie1_i386.deb
-dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
-rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+  echo "Installing Node Environment"
+  wget https://deb.nodesource.com/node_0.12/pool/main/n/nodejs/nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+  dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+  rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 
-echo "Cloning Volumio"
-git clone https://github.com/volumio/Volumio2.git /volumio
+  #echo "Cloning Volumio" 
+  #git clone https://github.com/volumio/Volumio2.git /volumio
 
-echo "Installing Volumio Modules"
-cd /volumio
-npm install --unsafe-perm
+  echo "Installing Volumio Modules"
+  cd /volumio
+  npm install --unsafe-perm
 
-echo "Getting Static UI"
-svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
-cd /
+  echo "Getting Static UI"
+#svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
+#cd /
+# TO DO: FInd a better way to do this 
+  cd /
+  wget http://repo.volumio.org/Volumio2/volumio-ui.tar.gz
+  tar xf volumio-ui.tar.gz 
+  rm /volumio-ui.tar.gz
 
-echo "Installing Spop and libspotify"
-wget http://repo.volumio.org/Packages/Spop/spopx86.tar.gz
-tar xvf /spopx86.tar.gz
-rm /spopx86.tar.gz
+  echo "Setting proper ownership"
+  chown -R volumio:volumio /volumio
 
-echo "Installing Upmpdcli"
-wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_i386.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_i386.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-1_i386.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_i386.deb
-dpkg -i libupnpp2_0.11.0-1_i386.deb
-dpkg -i libupnp6_1.6.19.jfd1-1_i386.deb
-dpkg -i upmpdcli_0.11.0-2_i386.deb
-dpkg -i libupnpp0_0.9.0-1_i386.deb
-rm /upmpdcli_0.11.0-2_i386.deb
-rm /libupnpp0_0.9.0-1_i386.deb
-rm /libupnp6_1.6.19.jfd1-1_i386.deb
-rm /libupnpp2_0.11.0-1_i386.deb
+  echo "Creating Data Path"
+  mkdir /data
+  chown -R volumio:volumio /data
+
+  echo "Changing os-release permissions"
+  chown volumio:volumio /etc/os-release
+  chmod 777 /etc/os-release
+
+  echo "Installing Spop and libspotify"
+  wget http://repo.volumio.org/Packages/Spop/spopx86.tar.gz
+  tar xvf /spopx86.tar.gz
+  rm /spopx86.tar.gz
+
+  echo "Installing Upmpdcli"
+  wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_i386.deb
+  dpkg -i libupnpp2_0.11.0-1_i386.deb
+  dpkg -i libupnp6_1.6.19.jfd1-1_i386.deb
+  dpkg -i upmpdcli_0.11.0-2_i386.deb
+  dpkg -i libupnpp0_0.9.0-1_i386.deb
+  rm /upmpdcli_0.11.0-2_i386.deb
+  rm /libupnpp0_0.9.0-1_i386.deb
+  rm /libupnp6_1.6.19.jfd1-1_i386.deb
+  rm /libupnpp2_0.11.0-1_i386.deb
 
 
-echo "Installing LINN Songcast module"
-wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_i386.deb
-dpkg -i sc2mpd_0.11.0-1_i386.deb
-rm /sc2mpd_0.11.0-1_i386.deb
-rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
+  echo "Installing LINN Songcast module"
+  wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_i386.deb
+  dpkg -i sc2mpd_0.11.0-1_i386.deb
+  rm /sc2mpd_0.11.0-1_i386.deb
+  rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
 
 fi
 
