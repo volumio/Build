@@ -22,7 +22,7 @@ sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1 2048
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
-sudo kpartx -a "${LOOP_DEV}"
+sudo kpartx -s -a "${LOOP_DEV}"
  
 LOOP_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 
@@ -39,17 +39,17 @@ sync
 echo "Copying Volumio RootFs"
 if [ -d /mnt ]
 then 
-echo "/mnt/folder exist"
+    echo "/mnt/folder exist"
 else
-sudo mkdir /mnt
+    sudo mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then 
-echo "Volumio Temp Directory Exists - Cleaning it"
-rm -rf /mnt/volumio/*
+    echo "Volumio Temp Directory Exists - Cleaning it"
+    rm -rf /mnt/volumio/*
 else
-echo "Creating Volumio Temp Directory"
-sudo mkdir /mnt/volumio
+    echo "Creating Volumio Temp Directory"
+    sudo mkdir /mnt/volumio
 fi
 sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
 sudo rm -rf /mnt/volumio/*
@@ -59,13 +59,23 @@ sync
 echo "Entering Chroot Environment"
 
 cp scripts/x86config.sh /mnt/volumio
+cp volumio/splash/volumio.png /mnt/volumio/boot
+
 mount /dev /mnt/volumio/dev -o bind
 mount /proc /mnt/volumio/proc -t proc
 mount /sys /mnt/volumio/sys -t sysfs
+
+UUID=$(blkid ${LOOP_PART} | awk -F'["]' '{print $4}')
+echo "UUID=${UUID}
+LOOP_PART=${LOOP_PART}
+LOOP_DEV=${LOOP_DEV}
+" >> /mnt/volumio/init.sh
+chmod +x /mnt/volumio/init.sh
+
 chroot /mnt/volumio /bin/bash -x <<'EOF'
 /x86config.sh
 EOF
-rm /mnt/volumio/x86config.sh
+rm /mnt/volumio/x86config.sh /mnt/volumio/init.sh
 sync
 
 ls -al /mnt/volumio/
