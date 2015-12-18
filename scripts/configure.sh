@@ -22,7 +22,12 @@ elif [ "$BUILD" = x86 ]; then
   #APT sources file
   cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
 #Grub2 conf file
-  cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
+#  cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
+#  cp volumio/splash/volumio.png build/$BUILD/root/boot
+#Lilo conf file
+  cp volumio/etc/lilo.conf build/$BUILD/root/etc
+#cp volumio/splash/volumio.bmp build/$BUILD/root/boot
+  cp volumio/etc/message.volumio build/$BUILD/root/boot
 #FSTAB File
   cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
 fi
