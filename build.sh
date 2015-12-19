@@ -143,7 +143,7 @@ if [ -n "$PATCH" ]; then
   echo "Copying Patch to Rootfs" 
   cp -rp $PATCH  build/$BUILD/root/
 else
-  $PATCH='volumio'
+  PATCH='volumio'
 fi
 
 
