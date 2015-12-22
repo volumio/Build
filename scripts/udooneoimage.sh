@@ -142,7 +142,7 @@ sync
 
 echo "Unmounting Temp Devices"
 sudo umount -l /mnt/volumio/rootfs
-sudo umount -l /mnt/volumio/rootfs/boot
+#sudo umount -l /mnt/volumio/rootfs/boot
 
 
 echo "Cleaning build environment"

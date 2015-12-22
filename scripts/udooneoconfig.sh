@@ -16,9 +16,9 @@ echo "Creating Fstab File"
 
 touch /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000,noauto,nofail        0       1
 /dev/mmcblk0p2  /               ext4    defaults,noatime               0  0
-/dev/mmcblk0p3  /data           ext4    defaults,noatime               0  0
+/dev/mmcblk0p3  /data           ext4    defaults,noatime,noauto,nofail               0  0
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
 tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
@@ -35,6 +35,10 @@ echo "deb http://repository.udoo.org udoobuntu main" >> /etc/apt/sources.list
 echo "Installing Kernel"
 apt-get update
 apt-get -y install linux-3.14.56-udooneo
+
+echo "Applying Custom DTS"
+rm -rf /boot/dts
+mv /boot/dtsnew /boot/dts
 
 echo "Installing Firmware and Modules"
 apt-get -y install firmware-udooneo-wl1831 udev-udooneo-rules udooneo-bluetooth 
