@@ -59,6 +59,7 @@ sync
 echo "Entering Chroot Environment"
 
 cp scripts/x86config.sh /mnt/volumio
+cp volumio/splash/volumio.png /mnt/volumio/boot
 
 mount /dev /mnt/volumio/dev -o bind
 mount /proc /mnt/volumio/proc -t proc
