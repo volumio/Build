@@ -117,6 +117,8 @@ cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 echo "Removing Kernel"
 rm -rf /mnt/squash/boot/*
 
+echo "Deleting Volumio.sqsh from an earlier session"
+rm Volumio.sqsh
 echo "Creating SquashFS"
 mksquashfs /mnt/squash/* Volumio.sqsh
 
