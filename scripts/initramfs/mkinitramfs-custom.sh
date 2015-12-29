@@ -389,13 +389,17 @@ cp /lib/arm-linux-gnueabihf/libext2fs.so.2 "${DESTDIR}/lib/arm-linux-gnueabihf"
 cp /lib/arm-linux-gnueabihf/libcom_err.so.2 "${DESTDIR}/lib/arm-linux-gnueabihf"
 cp /lib/arm-linux-gnueabihf/libe2p.so.2 "${DESTDIR}/lib/arm-linux-gnueabihf"
 
+echo "adding e2fsck and resize2fs to initramfs"
+cp /sbin/e2fsck "${DESTDIR}/sbin"
+cp /sbin/resize2fs "${DESTDIR}/sbin"
+
 echo "Adding volumio-init-updater to initramfs"
 chmod +x /usr/local/sbin/volumio-init-updater
 cp /usr/local/sbin/volumio-init-updater "${DESTDIR}/sbin"
 
 
 #Manage the destdir folder removing the auto-generated scripts
-#TODO[Gé] rm -rf "${DESTDIR}/scripts"
+rm -rf "${DESTDIR}/scripts"
 cp /root/init "${DESTDIR}"
 
 #Creation of the initrd image
@@ -410,3 +414,6 @@ fi
 echo "Writing cmdline file"
 touch /boot/cmdline.txt
 echo "imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh" >> /boot/cmdline.txt
+echo "Signalling the init script to re-size the volumio data partition"
+touch /boot/resize-volumio-datapart
+

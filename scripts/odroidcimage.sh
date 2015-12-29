@@ -31,6 +31,7 @@ LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
 sudo parted -s "${LOOP_DEV}" mkpart primary ext4 65 2113
+sudo parted -s "${LOOP_DEV}" mkpart primary ext4 2113 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -38,8 +39,10 @@ sudo kpartx -s -a "${LOOP_DEV}"
 
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
+DATA_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
 echo "Using: " ${BOOT_PART}
 echo "Using: " ${SYS_PART}
+echo "Using: " ${DATA_PART}
 if [ ! -b "${BOOT_PART}" ]
 then
 	echo "${BOOT_PART} doesn't exist"
@@ -55,6 +58,7 @@ fi
 echo "Creating boot and rootfs filesystems"
 sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
 sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
+sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for the Odroid kernel/ platform files"
