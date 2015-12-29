@@ -1,8 +1,11 @@
 #!/bin/bash
-#Volumio Image Builder
+# Volumio Image Builder
+# Copyright Michelangelo Guarise - Volumio.org
+#
+# TODO: Add gé credits
 #
 # Dependencies:
-# parted squashfs-tools dosfstools multistrap qemu binfmt-support qemu-user-static kpartx 
+# parted squashfs-tools dosfstools multistrap qemu binfmt-support qemu-user-static kpartx
 
 #Set fonts for Help.
 NORM=`tput sgr0`
@@ -18,7 +21,8 @@ function HELP {
   echo "-b      --Build system with Multistrap, use arm or x86 to select architecture"
   echo "-d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab"
   echo "-l      --Create docker layer. Docker Repository name as as argument"
-  echo "-v      --Version"
+  echo "-v      --Version, must be a dot separated number. Example 1.102"
+  echo "-p      --Patch, optionally patch the builder"
   echo -e "Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b arm -d pi -v 2.0 -l reponame "\\n
   exit 1
 }
@@ -45,10 +49,10 @@ fi
 
 while getopts b:v:d:l:p:e FLAG; do
   case $FLAG in
-    b)  
+    b)
       BUILD=$OPTARG
       ;;
-    d) 
+    d)
       DEVICE=$OPTARG
       ;;
     v)
@@ -72,7 +76,7 @@ while getopts b:v:d:l:p:e FLAG; do
   esac
 done
 
-shift $((OPTIND-1)) 
+shift $((OPTIND-1))
 
 
 if [ -n "$BUILD" ]; then
@@ -80,13 +84,13 @@ if [ -n "$BUILD" ]; then
     ARCH="armhf"
     echo "Building ARM Base System"
   elif [ "$BUILD" = x86 ]; then
-    echo 'Building X86 Base System' 
+    echo 'Building X86 Base System'
     ARCH="i386"
   fi
-  if [ -d build ]
-    then 
+  if [ -d build/$BUILD ]
+    then
     echo "Build folder exist, cleaning it"
-    rm -rf build/*
+    rm -rf build/$BUILD/*
   else
     echo "Creating build folder"
     sudo mkdir build
@@ -133,14 +137,14 @@ VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
 " >> build/${BUILD}/root/etc/os-release
 
   echo "Unmounting Temp devices"
-  umount -l build/$BUILD/root/dev 
-  umount -l build/$BUILD/root/proc 
-  umount -l build/$BUILD/root/sys 
+  umount -l build/$BUILD/root/dev
+  umount -l build/$BUILD/root/proc
+  umount -l build/$BUILD/root/sys
   sh scripts/configure.sh -b $BUILD
 fi
 
 if [ -n "$PATCH" ]; then
-  echo "Copying Patch to Rootfs" 
+  echo "Copying Patch to Rootfs"
   cp -rp $PATCH  build/$BUILD/root/
 else
   PATCH='volumio'
@@ -150,7 +154,7 @@ fi
 if [ "$DEVICE" = pi ]; then
   echo 'Writing Raspberry Pi Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/raspberryimage.sh -v $VERSION -p $PATCH; 
+  sh scripts/raspberryimage.sh -v $VERSION -p $PATCH;
 fi
 if [ "$DEVICE" = udoo ]; then
   echo 'Writing UDOO Image File'
@@ -158,28 +162,28 @@ if [ "$DEVICE" = udoo ]; then
 fi
 if [ "$DEVICE" = cuboxi ]; then
   echo 'Writing Cubox-i Image File'
-  sh scripts/cuboxiimage.sh -v $VERSION; 
+  sh scripts/cuboxiimage.sh -v $VERSION;
 fi
 if  [ "$DEVICE" = odroidc ]; then
   echo 'Writing OdroidCx Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidcimage.sh -v $VERSION -p $PATCH; 
+  sh scripts/odroidcimage.sh -v $VERSION -p $PATCH;
 fi
 if  [ "$DEVICE" = odroidxu4 ]; then
   echo 'Writing OdroidCx Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH; 
+  sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH;
 fi
 if  [ "$DEVICE" = udooneo ]; then
   echo 'Writing UDOO NEO Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/udooneoimage.sh -v $VERSION -p $PATCH; 
+  sh scripts/udooneoimage.sh -v $VERSION -p $PATCH;
 fi
 
 if [ "$DEVICE" = x86 ]; then
   echo 'Writing x86 Image File'
   check_os_release "x86" $VERSION $DEVICE
-  sh scripts/x86.sh -v $VERSION -p $PATCH; 
+  sh scripts/x86.sh -v $VERSION -p $PATCH;
 fi
 
 #When the tar is created we can build the docker layer
