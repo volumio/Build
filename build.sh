@@ -99,7 +99,7 @@ if [ -n "$BUILD" ]; then
   mkdir build/$BUILD
   mkdir build/$BUILD/root
   multistrap -a $ARCH -f recipes/$BUILD.conf
-  if [ "$BUILD" = arm ]; then
+  if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
     cp /usr/bin/qemu-arm-static build/arm/root/usr/bin/
   fi
   cp scripts/volumioconfig.sh build/$BUILD/root
@@ -109,12 +109,12 @@ if [ -n "$BUILD" ]; then
   echo 'Cloning Volumio'
   mkdir build/$BUILD/root/volumio
   git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
-  if [ "$BUILD" = arm ]; then
+  if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
   chroot build/arm/root /bin/bash -x <<'EOF'
 su -
 ./volumioconfig.sh
 EOF
-  elif [ "$BUILD" = x86 ]; then
+  elif [ "$BUILD" = x86 ] || [ "$BUILD" = x86-dev ]; then
     chroot build/x86/root /volumioconfig.sh
   fi
 

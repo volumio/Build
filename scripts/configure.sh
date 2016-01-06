@@ -18,7 +18,7 @@ if [ "$BUILD" = arm ]; then
   echo 'Copying ARM related configuration files'
   cp volumio/etc/apt/sources.list build/$BUILD/root/etc/apt/sources.list
 elif [ "$BUILD" = x86 ]; then
-  echo 'Copying X86 related Configuration files' 
+  echo 'Copying X86 related Configuration files'
   #APT sources file
   cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
 #Grub2 conf file
@@ -29,7 +29,7 @@ elif [ "$BUILD" = x86 ]; then
 fi
 #Edimax Power Saving Fix + Alsa modprobe
 cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/
-#Hosts file 
+#Hosts file
 cp -p volumio/etc/hosts build/$BUILD/root/etc/hosts
 #Dhcp conf file
 cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
@@ -55,8 +55,6 @@ cp -rp volumio/etc/netplug build/$BUILD/root/etc/
 cp volumio/etc/iptables.rules build/$BUILD/root/etc/iptables.rules
 cp -r volumio/etc/network/* build/$BUILD/root/etc/network
 # Wpa Supplicant
-mkdir build/$BUILD/root/etc/wpa_supplicant/
 echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 echo 'Done Copying Custom Volumio System Files'
-
