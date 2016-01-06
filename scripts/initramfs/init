@@ -147,7 +147,7 @@ rm -r /boot
 [ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
 mount -t ext4 /dev/mmcblk0p3 /mnt/ext
 
-[ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn 
+[ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn
 [ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union
 
 # Odroidc does not support workdir as overlayfs version is below V22
@@ -158,9 +158,9 @@ fi
 # 5) mount the writable overlay to the static image
 if [ $HWDEVICE == ODROIDC ]; then
   # no workdir
-  mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn 
+  mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
 else
-  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
+  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
 fi
 
 # Clean up.
@@ -178,5 +178,4 @@ echo "Finish initramfs, continue booting Volumio"
 exec switch_root /mnt/ext/union /sbin/init
 
 echo "Failed to switch_root, dropping to a shell"
-exec sh 
-
+exec sh

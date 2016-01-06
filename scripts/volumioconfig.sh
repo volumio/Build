@@ -97,7 +97,7 @@ if [ $(uname -m) = armv7l ]; then
   rm -rf tmp/*
 
   echo "Installing Node Environment"
-#huge kudos to node-arm for such effort	
+#huge kudos to node-arm for such effort
   wget http://repo.volumio.org/Volumio2/node_0.12.6-1_armhf.deb
   dpkg -i /node_0.12.6-1_armhf.deb
   rm /node_0.12.6-1_armhf.deb
@@ -111,10 +111,10 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Static UI"
 #svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
 #cd /
-# TO DO: FInd a better way to do this 
+# TO DO: FInd a better way to do this
   cd /
   wget http://repo.volumio.org/Volumio2/volumio-ui.tar.gz
-  tar xf volumio-ui.tar.gz 
+  tar xf volumio-ui.tar.gz
   rm /volumio-ui.tar.gz
 
   echo "Setting proper ownership"
@@ -178,7 +178,7 @@ if [ $(uname -m) = armv7l ]; then
   chmod a+x /usr/sbin/snapclient
 
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
-  echo 'X86 Environment Detected' 
+  echo 'X86 Environment Detected'
 
 # cleanup
   apt-get clean
@@ -189,7 +189,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
   rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 
-  #echo "Cloning Volumio" 
+  #echo "Cloning Volumio"
   #git clone https://github.com/volumio/Volumio2.git /volumio
 
   echo "Installing Volumio Modules"
@@ -199,10 +199,10 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Getting Static UI"
 #svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
 #cd /
-# TO DO: FInd a better way to do this 
+# TO DO: FInd a better way to do this
   cd /
   wget http://repo.volumio.org/Volumio2/volumio-ui.tar.gz
-  tar xf volumio-ui.tar.gz 
+  tar xf volumio-ui.tar.gz
   rm /volumio-ui.tar.gz
 
   echo "Setting proper ownership"
@@ -258,6 +258,10 @@ touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
+echo "Adding volumio-remote-updater"
+wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater
+chmod a+x /usr/local/sbin/volumio-remote-updater
+
 echo "Adding Volumio Parent Service to Startup"
 #systemctl enable volumio.service
 ln -s /lib/systemd/system/volumio.service /etc/systemd/system/multi-user.target.wants/volumio.service
@@ -294,4 +298,3 @@ chmod 777 /var/lib/alsa/asound.state
 
 echo "Tuning LAN"
 echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
-
