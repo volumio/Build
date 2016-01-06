@@ -30,22 +30,28 @@ echo "
 snd_bcm2835
 " >> /etc/modules
 
+
+echo "Installing R-pi specific binaries"
+apt-get update
+apt-get -y install binutils
+# Commenting raspi-config, not sure it is really needed
+#apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
+
 echo "Installing Kernel from Rpi-Update"
 sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
 touch /boot/start.elf
 mkdir /lib/modules
-mkdir /lib/firmware
 
 # Kernel 4.0.6 for i2s compatibility
 echo y | SKIP_BACKUP=1 rpi-update a51e2e072f2c349b40887dbdb8029f9a78c01987
 
-echo "Adding raspi-config"
-apt-get update
-apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
-wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
-dpkg -i /raspi/raspi-config_20151019_all.deb
-rm -Rf /raspi
+#echo "Adding raspi-config"
+#wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
+#dpkg -i /raspi/raspi-config_20151019_all.deb
+#rm -Rf /raspi
 
+echo "Removing unneeded binaries"
+apt-get -y remove binutils
 
 echo "Writing config.txt file"
 echo "initramfs volumio.initrd gpu_mem=16" >> /boot/config.txt
