@@ -403,17 +403,6 @@ rm -rf "${DESTDIR}/scripts"
 cp /root/init "${DESTDIR}"
 
 #Creation of the initrd image
+echo "Creating initrd image"
 cd ${DESTDIR}
 find . -print0 | cpio -ov -0 --format=newc | gzip -9 > /boot/volumio.initrd
-
-echo "initramfs volumio.initrd" >> /boot/config.txt
-
-if [ -e /boot/cmdline.txt ]; then
-	mv /boot/cmdline.txt /boot/cmdline.txt.bak
-fi
-echo "Writing cmdline file"
-touch /boot/cmdline.txt
-echo "imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh" >> /boot/cmdline.txt
-echo "Signalling the init script to re-size the volumio data partition"
-touch /boot/resize-volumio-datapart
-
