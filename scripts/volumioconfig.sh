@@ -172,8 +172,8 @@ if [ $(uname -m) = armv7l ]; then
 
   echo "Installing Snapcast for multiroom"
 
-  wget http://repo.volumio.org/Volumio2/Binaries/snapserver -P /usr/sbin/
-  wget http://repo.volumio.org/Volumio2/Binaries/snapclient -P  /usr/sbin/
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
   chmod a+x /usr/sbin/snapserver
   chmod a+x /usr/sbin/snapclient
 
