@@ -264,7 +264,7 @@ chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
 echo "Adding volumio-remote-updater"
-wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater
+wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater
 chmod a+x /usr/local/sbin/volumio-remote-updater
 
 echo "Adding Volumio Parent Service to Startup"
