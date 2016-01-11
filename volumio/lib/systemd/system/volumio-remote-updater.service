@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/usr/local/bin/jx /usr/local/sbin/volumio-remote-updater.jx
+ExecStart=/usr/local/sbin/volumio-remote-updater
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
