@@ -176,6 +176,11 @@ if [ $(uname -m) = armv7l ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
   chmod a+x /usr/sbin/snapserver
   chmod a+x /usr/sbin/snapclient
+  
+  echo "Zsync"
+  rm /usr/bin/zsync
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
+  chmod a+x /usr/bin/zsync
 
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
   echo 'X86 Environment Detected'
