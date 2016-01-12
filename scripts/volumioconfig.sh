@@ -293,8 +293,7 @@ echo '@audio - rtprio 99
 @audio - memlock unlimited' >> /etc/security/limits.conf
 
 echo "Alsa tuning"
-#Nrpacks Options, better safe than sorry
-#echo 'options snd-usb-audio nrpacks=1' >> /etc/modprobe.d/alsa-base.conf
+
 
 echo "Creating Alsa state file"
 touch /var/lib/alsa/asound.state
