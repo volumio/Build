@@ -30,6 +30,13 @@ echo "
 snd_bcm2835
 " >> /etc/modules
 
+echo "Alsa Raspberry PI Card Ordering"
+echo "
+options snd-usb-audio nrpacks=1
+# USB DACs will have device number 5 in whole Volumio device range
+options snd-usb-audio index=5
+options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
+
 
 echo "Installing R-pi specific binaries"
 apt-get update
