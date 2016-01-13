@@ -106,9 +106,14 @@ if [ -n "$BUILD" ]; then
   mount /dev build/$BUILD/root/dev -o bind
   mount /proc build/$BUILD/root/proc -t proc
   mount /sys build/$BUILD/root/sys -t sysfs
-  echo 'Cloning Volumio'
+
+  echo 'Cloning Volumio Node Backend'
   mkdir build/$BUILD/root/volumio
   git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+
+  echo 'Cloning Volumio UI'
+  git clone -b dist --single-branch https://github.com/volumio/Volumio2-UI.git build/$BUILD/root/volumio/http/www
+  
   if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
   chroot build/arm/root /bin/bash -x <<'EOF'
 su -
