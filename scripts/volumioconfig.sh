@@ -122,7 +122,9 @@ if [ $(uname -m) = armv7l ]; then
   echo "Changing os-release permissions"
   chown volumio:volumio /etc/os-release
   chmod 777 /etc/os-release
-
+  
+  echo "Installing Custom Packages"
+  cd /
 
   echo "Installing Spop and libspotify"
   wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
@@ -200,6 +202,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Changing os-release permissions"
   chown volumio:volumio /etc/os-release
   chmod 777 /etc/os-release
+  
+  echo "Installing Custom Packages"
+  cd /
 
   echo "Installing Spop and libspotify"
   wget http://repo.volumio.org/Packages/Spop/spopx86.tar.gz
