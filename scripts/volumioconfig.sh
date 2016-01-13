@@ -108,15 +108,6 @@ if [ $(uname -m) = armv7l ]; then
   tar xf node_modules_arm.tar.gz
   rm node_modules_arm.tar.gz
 
-  echo "Installing Static UI"
-#svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
-#cd /
-# TO DO: FInd a better way to do this
-  cd /
-  wget http://repo.volumio.org/Volumio2/volumio-ui.tar.gz
-  tar xf volumio-ui.tar.gz
-  rm /volumio-ui.tar.gz
-
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
 
@@ -176,7 +167,7 @@ if [ $(uname -m) = armv7l ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
   chmod a+x /usr/sbin/snapserver
   chmod a+x /usr/sbin/snapclient
-  
+
   echo "Zsync"
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
@@ -194,21 +185,10 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
   rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
 
-  #echo "Cloning Volumio"
-  #git clone https://github.com/volumio/Volumio2.git /volumio
-
   echo "Installing Volumio Modules"
   cd /volumio
   npm install --unsafe-perm
 
-  echo "Getting Static UI"
-#svn checkout https://github.com/volumio/Volumio2-UI/trunk/dist http/www
-#cd /
-# TO DO: FInd a better way to do this
-  cd /
-  wget http://repo.volumio.org/Volumio2/volumio-ui.tar.gz
-  tar xf volumio-ui.tar.gz
-  rm /volumio-ui.tar.gz
 
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
