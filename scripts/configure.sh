@@ -11,7 +11,6 @@ while getopts ":b:" opt; do
   esac
 done
 
-
 echo 'Copying Custom Volumio System Files'
 #Apt conf file
 if [ "$BUILD" = arm ]; then
@@ -59,6 +58,7 @@ echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 
 #Shairport
-chmod volumio:volumio -R /etc/shairport*
+cp volumio/etc/shairport* build/$BUILD/root/etc/
+chown volumio:volumio -R /etc/shairport*
 
 echo 'Done Copying Custom Volumio System Files'
