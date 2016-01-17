@@ -57,7 +57,7 @@ cp -r volumio/etc/network/* build/$BUILD/root/etc/network
 echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 #Shairport
-cp volumio/etc/shairport* build/$BUILD/root/etc/
-chmod -R 777 /etc/shairport
+cp volumio/etc/shairport-sync.conf build/$BUILD/root/etc/shairport-sync.conf
+chmod 777 /etc/shairport-sync.conf
 
 echo 'Done Copying Custom Volumio System Files'
