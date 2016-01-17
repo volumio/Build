@@ -56,7 +56,8 @@ alias snapserver="/usr/sbin/snapserver"
 alias mount="sudo /bin/mount"
 alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
-alias service="/usr/sbin/service"
+alias service="sudo /usr/sbin/service"
+alias ifconfig="sudo /sbin/ifconfig"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
