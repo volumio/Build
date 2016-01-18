@@ -1,0 +1,10 @@
+[Unit]
+Description=Restart Volumio Network
+
+[Service]
+ExecStart=/bin/echo Start
+ExecStop=/bin/echo Stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
