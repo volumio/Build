@@ -1,0 +1,237 @@
+#!/bin/busybox sh
+#
+#
+# Unlike arm devices, an x86 device is much more diverse when it comes to storage devices.
+# For this reason, locating all relevant partitions is based on search by UUID.
+# An exception is the detecting of additional USB devices, possibly holding a new 
+# version of the squashfs 'volumio' rootfs
+# 
+#
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+parse_disk() {
+  if [ "$(echo $1|cut -c -5)" = "UUID=" ]; then
+    # $1 is a UUID
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -6)" = "LABEL=" ]; then
+    # $1 is a LABEL
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -5)" = "/dev/" ]; then
+    # $1 is a device name
+    echo $1
+  else
+    # $1 is unrecognized.
+    echo "unknown-disk"
+    exec sh
+	exit 0
+  fi
+}
+
+echo "Preparing Volumio Boot Process for X86"
+#  -- checking if a firmware update is available on the
+#     first partition of any additional USB device
+#  -- resizing a newly flashed Volumio device
+#     (sentinel in /boot partition)
+#  -- creating the overlay fs
+#     (rootfs RO and volumio_data (RW)
+
+echo "Loading the necessary modules..." 
+modprobe overlay 
+modprobe squashfs
+modprobe nls_cp437
+modprobe nls_utf8
+modprobe usb_common
+modprobe usbcore
+modprobe ehci_hcd
+modprobe uhci_hcd
+modprobe ehci_pci
+modprobe xhci_pci
+modprobe hid
+modprobe usbhid
+modprobe hid_cherry
+modprobe hid_generic
+modprobe loop
+
+echo "Mounting the basic files systems..."
+[ -d /proc ] || mkdir /proc
+mount -t proc none /proc
+[ -d /sys ] || mkdir /sys
+mount -t sysfs none /sys
+
+mknod /dev/null c 1 3
+mknod /dev/tty c 5 0
+
+echo "Now probing usb  and pci storage..."
+modprobe usb_storage
+modprobe sd_mod
+modprobe ata_piix
+
+echo "Waiting for storage devices to become ready"
+sleep 5
+mdev -s
+
+# Parse the kernel command line from grub
+CMDLINE="$(cat /proc/cmdline)"
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+
+  case $key in
+  imgpart)
+    IMGPART=`parse_disk $value`
+    ;;
+  bootpart)
+    BOOTPART=`parse_disk $value`
+    ;;
+  imgfile)
+    IMGFILE=$value
+    ;;
+  esac
+done
+
+if [ -z "${BOOTPART}" ]; then
+  echo "Specify the squash image partition on the kernel command ${CMDLINE}"
+  echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
+  echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
+  echo "         kernel... imgpart=LABEL=volumio bootpart=LABEL=BOOT imgfile=/volumio_current.sqs or" 
+  exec sh
+  exit 0
+fi
+
+if [ -z "${IMGPART}" ]; then
+  echo "Specify the squash image partition on the kernel command ${CMDLINE}"
+  echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
+  echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
+  echo "         kernel... imgpart=LABEL=volumio bootpart=LABEL=BOOT imgfile=/volumio_current.sqs or" 
+  exec sh
+  exit 0
+fi
+
+if [ -z "${IMGFILE}" ]; then
+  echo "Specify the squash image file after the kernel command ${CMDLINE}"
+  echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
+  echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
+  echo "         kernel... imgpart=LABEL=volumio bootpart=LABEL=BOOT imgfile=/volumio_current.sqs or" 
+  exec sh
+  exit 0
+fi
+
+echo IMGPART=${IMGPART}
+echo IMGFILE=${IMGFILE}
+echo BOOTPART=${BOOTPART}
+
+if [ ! -b "${IMGPART}" ]; then
+  echo "No partition with ${IMGPART} has been found"
+  exec sh
+  exit 0
+fi
+
+# ok, parsing done
+[ -d /mnt ] || mkdir /mnt
+# Mount the partitions
+# 1) mount the partition where the squash image resides
+[ -d /mnt/imgpart ] || mkdir /mnt/imgpart
+mount -t ext4 ${IMGPART} /mnt/imgpart
+
+mdev -s
+
+echo "Initrd initialisation finished..."
+
+#
+# Step 1: Re-size the data partition (if sentinel file present)
+# =============================================================
+#
+mkdir boot
+mount -t vfat ${BOOTPART} /boot
+BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
+if [ -e "/boot/resize-volumio-datapart" ]; then
+  echo "Re-sizing Volumio data partition"
+  END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
+  parted -s ${BOOT_DEVICE} resizepart 3 ${END}
+  e2fsck -f ${BOOT_DEVICE}3
+  resize2fs ${BOOT_DEVICE}3
+  echo "Volumio data partition succesfully resized"
+  parted -s ${BOOT_DEVICE} unit MB print
+  rm /boot/resize-volumio-datapart
+fi
+umount /boot
+rm -r /boot
+
+#
+# Step 2: Check for Volumio rootfs update
+# =======================================
+#
+echo "Detecting additional removable devices"
+mkdir /mnt/usb
+usb_done=/dev/
+for devlink in /dev/sd*
+  do 
+	# only checking the first partition of an additional device!
+	usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g') 
+	if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
+      mount -t auto $(echo ${usb_dev}1) /mnt/usb
+      echo "Checking " $usb_dev"1 for a volumio rootfs update" 
+      if [ -e /mnt/usb/volumio.fir ]; then
+        echo "New rootfs firmware found"
+        echo "Updating will take several minutes, please wait...."
+		volumio-init-updater
+	    umount /mnt/usb
+	    break
+      fi
+	  umount /mnt/usb
+    fi
+	usb_done=${usb_dev}
+  done
+rmdir /mnt/usb
+
+#
+# Step 3: mount the squashfs (RO) on /mnt/static
+# ==============================================
+#
+loop_free=$(losetup -f | sed s#p/#p#)
+#wait for the device to become ready
+sleep 2
+mdev -s
+
+losetup $loop_free /mnt/imgpart/${IMGFILE}
+
+mkdir /mnt/static
+mount -t squashfs $loop_free /mnt/static
+
+#
+# Step 4: mount the dynamic (RW) datapart on /mnt/ext
+# ===================================================
+#
+[ -d /mnt/ext ] || mkdir /mnt/ext
+mount -t ext4 ${BOOT_DEVICE}3 /mnt/ext
+[ -d /mnt/ext/dyn ] || mkdir /mnt/ext/dyn
+[ -d /mnt/ext/union ] || mkdir /mnt/ext/union
+[ -d /mnt/ext/work ] || mkdir /mnt/ext/work
+
+# Step 5: Create the overlay from RO and RW partitions
+# ====================================================
+
+mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
+
+# Clean up.
+[ -d /mnt/ext/union/static ] || mkdir /mnt/ext/union/static
+[ -d /mnt/ext/union/imgpart ] || mkdir /mnt/ext/union/imgpart
+mount --move /mnt/static /mnt/ext/union/static
+mount --move /mnt/imgpart /mnt/ext/union/imgpart
+
+chmod -R 777 /mnt/ext/union/imgpart
+
+echo "Finishing initramfs, switching rootfs and starting the boot process..."
+umount /proc
+umount /sys
+
+exec switch_root /mnt/ext/union /sbin/init
+
+echo "Failed to switch_root, dropping to a shell"
+exec sh 
+
+
+
