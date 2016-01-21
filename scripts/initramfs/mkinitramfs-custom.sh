@@ -360,6 +360,12 @@ chmod 755 "${DESTDIR_OTHER}"
 
 DPKG_ARCH=`dpkg --print-architecture`
 
+if [ ${DPKG_ARCH} = "armhf" ]; then
+	LIB_GNUE="/lib/arm-linux-gnueabihf"
+elif [ ${DPKG_ARCH} = "i386" ]; then
+	LIB_GNUE="/lib/i386-linux-gnu"
+fi 
+
 DESTDIR=${DESTDIR_REAL}
 version=${v_version}
 echo "Version: ${v_version}"
@@ -373,30 +379,31 @@ if [ ! ${o_version} = "" ]; then
   cp -rf "${DESTDIR_OTHER}/lib/modules/${o_version}" "${DESTDIR_REAL}/lib/modules/${o_version}"
 fi
 
-
 DESTDIR=${DESTDIR_REAL}
-#adding parted to the initramfs
-echo "Adding parted to initramfs"
+
+echo "Adding findfs/ parted/ mkfs.ext4/ e2fsck to initramfs"
 cp /sbin/parted "${DESTDIR}/sbin"
 cp /sbin/partprobe "${DESTDIR}/sbin"
-cp /lib/arm-linux-gnueabihf/libparted.so.2 "${DESTDIR}/lib/arm-linux-gnueabihf"
-cp /lib/arm-linux-gnueabihf/libreadline.so.6 "${DESTDIR}/lib/arm-linux-gnueabihf"
-cp /lib/arm-linux-gnueabihf/libtinfo.so.5 "${DESTDIR}/lib/arm-linux-gnueabihf"
-
-echo "Adding mkfs.ext4 to initramfs"
 cp /sbin/mkfs.ext4 "${DESTDIR}/sbin"
-cp /lib/arm-linux-gnueabihf/libext2fs.so.2 "${DESTDIR}/lib/arm-linux-gnueabihf"
-cp /lib/arm-linux-gnueabihf/libcom_err.so.2 "${DESTDIR}/lib/arm-linux-gnueabihf"
-cp /lib/arm-linux-gnueabihf/libe2p.so.2 "${DESTDIR}/lib/arm-linux-gnueabihf"
-
-echo "adding e2fsck and resize2fs to initramfs"
 cp /sbin/e2fsck "${DESTDIR}/sbin"
 cp /sbin/resize2fs "${DESTDIR}/sbin"
+if [ ${DPKG_ARCH} = "i386" ]; then
+  cp /sbin/findfs "${DESTDIR}/sbin"
+fi
+
+echo "Adding their dependencies"
+cp "${LIB_GNUE}/libparted.so.2" "${DESTDIR}${LIB_GNUE}"
+cp "${LIB_GNUE}/libreadline.so.6" "${DESTDIR}${LIB_GNUE}"
+cp "${LIB_GNUE}/libtinfo.so.5" "${DESTDIR}${LIB_GNUE}"	
+cp "${LIB_GNUE}/libext2fs.so.2" "${DESTDIR}${LIB_GNUE}"
+cp "${LIB_GNUE}/libcom_err.so.2" "${DESTDIR}${LIB_GNUE}"
+cp "${LIB_GNUE}/libe2p.so.2" "${DESTDIR}${LIB_GNUE}"
+
+
 
 echo "Adding volumio-init-updater to initramfs"
 chmod +x /usr/local/sbin/volumio-init-updater
 cp /usr/local/sbin/volumio-init-updater "${DESTDIR}/sbin"
-
 
 #Manage the destdir folder removing the auto-generated scripts
 rm -rf "${DESTDIR}/scripts"
