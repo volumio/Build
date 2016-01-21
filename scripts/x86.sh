@@ -71,9 +71,12 @@ sudo mkdir /mnt/volumio/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 cp scripts/x86config.sh /mnt/volumio/rootfs
-
-cp platforms-X/linux-image-*.deb /mnt/volumio/rootfs
-cp platforms-X/linux-firmware-*.deb /mnt/volumio/rootfs
+if [ ! -d platform-x86 ]; then
+  echo "Platform files (packages) not available yet, getting them from the repo"
+  git clone http://github.com/volumio/platform-x86 
+fi
+cp platform-x86/packages/linux-image-*.deb /mnt/volumio/rootfs
+cp platform-x86/packages/linux-firmware-*.deb /mnt/volumio/rootfs
 cp volumio/splash/volumio.png /mnt/volumio/rootfs/boot
 
 cp scripts/initramfs/init-x86 /mnt/volumio/rootfs/root/init
