@@ -50,6 +50,7 @@ cp volumio/etc/systemd/journald.conf build/$BUILD/root/etc/systemd/journald.conf
 cp -r volumio/lib build/$BUILD/root/
 # Netplug
 cp -rp volumio/etc/netplug build/$BUILD/root/etc/
+chmod +x build/$BUILD/root/etc/netplug/netplug
 # IpTables Rules
 cp volumio/etc/iptables.rules build/$BUILD/root/etc/iptables.rules
 cp -r volumio/etc/network/* build/$BUILD/root/etc/network
