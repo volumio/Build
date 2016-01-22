@@ -22,7 +22,7 @@ then
 else
 	echo "Creating Image File"
 	echo "Image file: ${IMG_FILE}"
-	dd if=/dev/zero of=${IMG_FILE} bs=1M count=4000
+	dd if=/dev/zero of=${IMG_FILE} bs=1M count=2000
 fi
 
 echo "Creating Image Bed"
@@ -30,8 +30,8 @@ LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 65 2113
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 2113 100%
+sudo parted -s "${LOOP_DEV}" mkpart primary ext4 65 1500
+sudo parted -s "${LOOP_DEV}" mkpart primary ext4 1500 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -46,12 +46,6 @@ echo "Using: " ${DATA_PART}
 if [ ! -b "${BOOT_PART}" ]
 then
 	echo "${BOOT_PART} doesn't exist"
-	exit 1
-fi
-
-if [ ! -b "${SYS_PART}" ]
-then
-	echo "${SYS_PART} doesn't exist"
 	exit 1
 fi
 
@@ -78,11 +72,8 @@ sudo dd if=platforms-O/odroidc/uboot/u-boot.bin of=${LOOP_DEV} seek=64
 sync
 
 # change the UUID from boot and rootfs partion
-#tune2fs ${BOOT_PART} -U CF56-1F80
-#tune2fs ${SYS_PART} -U f87b8078-de6f-431d-b737-f122b015621c
 # switch off journaling on ext4 (prevents excessiv wear on the card)
 tune2fs -O ^has_journal ${SYS_PART}
-
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
@@ -112,7 +103,6 @@ echo "Copying OdroidC boot files"
 sudo cp platforms-O/odroidc/boot/boot.ini /mnt/volumio/rootfs/boot
 sudo cp platforms-O/odroidc/boot/meson8b_odroidc.dtb /mnt/volumio/rootfs/boot
 sudo cp platforms-O/odroidc/boot/uImage /mnt/volumio/rootfs/boot
-#sudo cp platforms-O/odroidc/boot/uInitrd /mnt/volumio/rootfs/boot
 
 echo "Copying OdroidC modules and firmware"
 sudo cp -pdR platforms-O/odroidc/lib/modules /mnt/volumio/rootfs/lib/
@@ -127,7 +117,6 @@ echo "We don't deal in pies, so show neutral :)"
 sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
 
 sync
-
 
 echo "Preparing to run chroot for more OdroidC configuration"
 cp scripts/odroidcconfig.sh /mnt/volumio/rootfs
@@ -160,7 +149,6 @@ sudo cp platforms-O/odroidc/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
 sudo cp platforms-O/odroidc/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
 echo "==> Odroid-C device installed"  
-ls -al /mnt/volumio/rootfs
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
