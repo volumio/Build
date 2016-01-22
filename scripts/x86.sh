@@ -13,13 +13,13 @@ IMG_FILE="Volumio${VERSION}-${BUILDDATE}x86.img"
 
 echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=4000
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2000
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 512
 sudo parted -s "${LOOP_DEV}" mkpart primary ext3 512 1300
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1300 4000
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1300 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"

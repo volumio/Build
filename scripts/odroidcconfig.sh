@@ -15,6 +15,7 @@ tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
 echo "Prevent services starting during install, running under chroot" 
@@ -30,12 +31,6 @@ wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remot
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install busybox parted u-boot-tools liblircclient0 lirc 
-
-echo "Adding volumio-remote-updater"
-wget -P /usr/local/bin/ http://updates.volumio.org/jx
-#wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater.jx
-wget -P /usr/local/sbin/ http://updates.volumio.org/volumio-remote-updater.jx
-chmod +x /usr/local/sbin/volumio-remote-updater.jx /usr/local/bin/jx
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
