@@ -44,6 +44,7 @@ cp volumio/etc/motd build/$BUILD/root/etc/motd
 cp volumio/etc/ssh/sshd_config build/$BUILD/root/etc/ssh/sshd_config
 #Mpd
 cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
+chmod 777 build/$BUILD/root/etc/mpd.conf
 #Log via JournalD in RAM
 cp volumio/etc/systemd/journald.conf build/$BUILD/root/etc/systemd/journald.conf
 #Volumio SystemD Services
