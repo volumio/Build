@@ -264,6 +264,9 @@ echo "Adding Volumio Remote Updater Service to Startup"
 #systemctl enable volumio-remote-updater.service
 ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/multi-user.target.wants/volumio-remote-updater.service
 
+echo "Adding netplug Service to Startup"
+ln -s /lib/systemd/system/netplug.service /etc/systemd/system/multi-user.target.wants/netplug.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
