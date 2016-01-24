@@ -188,6 +188,10 @@ if [ $(uname -m) = armv7l ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
 
+  echo "Adding volumio-remote-updater"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/ 
+  chmod a+x /usr/local/sbin/volumio-remote-updater
+
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
   echo 'X86 Environment Detected'
 
@@ -254,6 +258,11 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /sc2mpd_0.11.0-1_i386.deb
   rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
 
+  echo "Adding volumio-remote-updater"
+  #TODO: wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater -P /usr/local/sbin/ 
+  #chmod a+x /usr/local/sbin/volumio-remote-updater
+
+
 fi
 
 echo "Creating Volumio Folder Structure"
@@ -269,10 +278,6 @@ echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
-
-echo "Adding volumio-remote-updater"
-wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater
-chmod a+x /usr/local/sbin/volumio-remote-updater
 
 echo "Adding Volumio Parent Service to Startup"
 #systemctl enable volumio.service

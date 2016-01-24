@@ -25,12 +25,9 @@ exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
-echo "Adding volumio-remote-updater"
-wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/volumio-remote-updater
-
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install busybox parted u-boot-tools liblircclient0 lirc 
+apt-get -y install u-boot-tools liblircclient0 lirc 
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -79,8 +76,6 @@ mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio
 
 echo "Removing unnecessary /boot files"
 rm /boot/volumio.initrd
-rm /boot/cmdline.txt
-rm /boot/config.txt
 
 
 
