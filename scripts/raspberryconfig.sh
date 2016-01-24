@@ -61,7 +61,7 @@ echo "Removing unneeded binaries"
 apt-get -y remove binutils
 
 echo "Writing config.txt file"
-echo "initramfs volumio.initrd gpu_mem=16" >> /boot/config.txt
+echo "initramfs volumio.initrd gpu_mem=16 force_turbo=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
