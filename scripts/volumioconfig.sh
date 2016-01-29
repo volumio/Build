@@ -100,11 +100,20 @@ if [ $(uname -m) = armv7l ]; then
   apt-get clean
   rm -rf tmp/*
 
-  echo "Installing Node Environment"
-#huge kudos to node-arm for such effort
-  wget http://repo.volumio.org/Volumio2/node_0.12.6-1_armhf.deb
-  dpkg -i /node_0.12.6-1_armhf.deb
-  rm /node_0.12.6-1_armhf.deb
+  echo "Installing ARM Node Environment"
+  # version 5.5. 0
+  cd /
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/node-v5.5.0-linux-armv6l.tar.xz
+  tar xf node-v5.5.0-linux-armv6l.tar.xz
+  rm /node-v5.5.0-linux-armv6l.tar.xz
+  cd /node-v5.5.0-linux-armv6l
+  cp -rp bin/ include/ lib/ share/ /
+  cd /
+  rm -rf /node-v5.5.0-linux-armv6l
+
+  # Symlinking to legacy paths
+  ln -s /bin/node /usr/local/bin/node
+  ln -s /bin/npm /usr/local/bin/npm
 
   echo "Installing Volumio Modules"
   cd /volumio
@@ -126,7 +135,7 @@ if [ $(uname -m) = armv7l ]; then
   echo "Changing os-release permissions"
   chown volumio:volumio /etc/os-release
   chmod 777 /etc/os-release
-  
+
   echo "Installing Custom Packages"
   cd /
 
@@ -190,10 +199,19 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   apt-get clean
   rm -rf tmp/*
 
-  echo "Installing Node Environment"
-  wget https://deb.nodesource.com/node_0.12/pool/main/n/nodejs/nodejs_0.12.0-1nodesource1~jessie1_i386.deb
-  dpkg -i /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
-  rm /nodejs_0.12.0-1nodesource1~jessie1_i386.deb
+  echo "Installing X86 Node Environment"
+  cd /
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/node-v5.5.0-linux-x86.tar.xz
+  tar xf node-v5.5.0-linux-x86.tar.xz
+  rm /node-v5.5.0-linux-x86.tar.xz
+  cd /node-v5.5.0-linux-x86
+  cp -rp bin/ include/ lib/ share/ /
+  cd /
+  rm -rf /node-v5.5.0-linux-x86
+
+  # Symlinking to legacy paths
+  ln -s /bin/node /usr/local/bin/node
+  ln -s /bin/npm /usr/local/bin/npm
 
   echo "Installing Volumio Modules"
   cd /volumio
@@ -210,7 +228,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Changing os-release permissions"
   chown volumio:volumio /etc/os-release
   chmod 777 /etc/os-release
-  
+
   echo "Installing Custom Packages"
   cd /
 
