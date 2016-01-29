@@ -16,22 +16,17 @@ BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-OdroidC.img"
 
  
-if [ -f ${IMG_FILE} ]
-then
-	echo "Image file: ${IMG_FILE} exists, re-using"
-else
-	echo "Creating Image File"
-	echo "Image file: ${IMG_FILE}"
-	dd if=/dev/zero of=${IMG_FILE} bs=1M count=2000
-fi
+echo "Creating Image File"
+echo "Image file: ${IMG_FILE}"
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 65 1500
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 1500 100%
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -70,10 +65,6 @@ sudo dd if=platforms-O/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 coun
 sudo dd if=platforms-O/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
 sudo dd if=platforms-O/odroidc/uboot/u-boot.bin of=${LOOP_DEV} seek=64
 sync
-
-# change the UUID from boot and rootfs partion
-# switch off journaling on ext4 (prevents excessiv wear on the card)
-tune2fs -O ^has_journal ${SYS_PART}
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
@@ -122,6 +113,8 @@ echo "Preparing to run chroot for more OdroidC configuration"
 cp scripts/odroidcconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+#copy the scripts for updating from usb
+wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
