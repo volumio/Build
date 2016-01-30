@@ -67,6 +67,10 @@ else
 fi
 rm /patch
 
+#First Boot operations
+
+echo "Signalling the init script to re-size the volumio data partition"
+touch /boot/resize-volumio-datapart
 
 echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
