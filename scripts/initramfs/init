@@ -133,7 +133,7 @@ if [ -e "/boot/resize-volumio-datapart" ]; then
 echo "Re-sizing Volumio data partition"
   END="$(parted -s /dev/mmcblk0 unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s /dev/mmcblk0 resizepart 3 ${END}
-  e2fsck -f /dev/mmcblk0p3
+  e2fsck -fy /dev/mmcblk0p3
   resize2fs /dev/mmcblk0p3
   echo "Volumio data partition succesfully resized"
   parted -s /dev/mmcblk0 unit MB print
