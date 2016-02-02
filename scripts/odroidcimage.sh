@@ -51,13 +51,18 @@ sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for the Odroid kernel/ platform files"
-if [ -d platforms-O ]
+if [ -d platforms-O/odroidc ]
 then 
-	echo "Platform-O folder already exists - keeping it"
+	echo "Platform folder already exists - keeping it"
+    # if you really want to re-clone from the repo, then delete the odroidc folder
+    # that will refresh all the odroid platforms, see below
 else
-	echo "Creating temporary folder and clone Odroid files from repo"
-	mkdir platforms-O
+	echo "Clone all Odroid files from repo"
 	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
+	echo "Unpack the C1/C1+/C2 platform files"
+    cd platforms-O
+    tar xvfJ odroidc.tar.xz 
+    cd ..
 fi
 
 echo "Copying the bootloader"

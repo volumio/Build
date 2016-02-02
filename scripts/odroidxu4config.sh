@@ -7,17 +7,18 @@ PATCH=$(cat /patch)
 # ***************
 # Create fstab
 # ***************
-echo "Creating fstab"
-echo "# Odroid fstab
- 
-/dev/mmcblk0p2  /        ext4    errors=remount-ro,rw,noatime,nodiratime  0 1
-/dev/mmcblk0p1  /boot    vfat    defaults,ro,owner,flush,umask=000        0 0
-tmpfs           /var/log tmpfs   defaults,noatime,mode=0755				  0 0
-tmpfs			/var/log/volumio tmpfs size=20M,nodev,mode=0777           0 0
-tmpfs			/var/log/mpd tmpfs size=20M,nodev,mode=0777           0 0
-tmpfs           /tmp     tmpfs   nodev,nosuid,mode=1777                   0 0
-" > /mnt/volumio/etc/fstab
-
+echo "Creating \"fstab\""
+echo "# OdroidXU fstab" > /etc/fstab
+echo "" >> /etc/fstab
+echo "proc            /proc           proc    defaults        0       0
+/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
+tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0 0
+tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /dev/shm                tmpfs   defaults        0 0
+" > /etc/fstab
 
 echo "Prevent services starting during install, running under chroot" 
 echo "(avoids unnecessary errors)"
@@ -28,30 +29,36 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
+apt-get -y install u-boot-tools
 
-#on-going: get firmware for e.g. wireless modules
-# Refer to: http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/
-echo "Installing additional firmware"
-apt-get -y install firmware-realtek firmware-ralink firmware-atheros
-
-echo "Adding volumio-remote-updater"
-wget -P /usr/local/bin/ http://updates.volumio.org/jx
-
-wget -P /usr/local/sbin/ http://updates.volumio.org/volumio-remote-updater.jx
-chmod +x /usr/local/sbin/volumio-remote-updater.jx /usr/local/bin/jx
-
-echo "Cleaning APT Cache and remove policy file"
+echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
+
+echo "Adding custom module squashfs"
+echo "overlay" >> /etc/initramfs-tools/modules
+echo "squashfs" >> /etc/initramfs-tools/modules
+echo "Adding custom module nls_cp437" 
+echo "(needed to mount usb /dev/sda1 during initramfs"
+echo "nls_cp437" >> /etc/initramfs-tools/modules
+
+echo "Copying volumio initramfs updater"
+cd /root/
+mv volumio-init-updater /usr/local/sbin
+
+echo "Changing to 'modules=dep'"
+echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
+sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
 echo "Tweaking: disable energy sensor error message"
 echo "blacklist ina231_sensor" >> /etc/modprobe.d/blacklist-odroid.conf
 echo "Tweaking: optimize fan-control"
 echo "DRIVER==\"odroid-fan\", ACTION==\"add\", ATTR{fan_speeds}=\"1 20 50 95\", ATTR{temp_levels}=\"50 70 80\"" > /etc/udev/rules.d/60-odroid_fan.rules
-echo "Enabling Fan Control Servcie"
+echo "Enabling Fan Control Service"
 mv /opt/fan-control/odroid-xu3-fan-control.service /lib/systemd/system
-systemctl enable odroid-xu3-fan-control.service
+#systemctl enable odroid-xu3-fan-control.service
+ln -s /lib/systemd/system/odroid-xu3-fan-control.service /etc/systemd/system/multi-user.target.wants/odroid-xu3-fan-control.service
 
 #On The Fly Patch
 if [ $PATCH == "volumio" ]; then
@@ -70,4 +77,18 @@ else
   rm -rf ${PATCH}
 fi
 rm /patch
+
+#First Boot operations
+
+echo "Signalling the init script to re-size the volumio data partition"
+touch /boot/resize-volumio-datapart
+
+echo "Creating initramfs 'volumio.initrd'"
+mkinitramfs-custom.sh -o /tmp/initramfs-tmp
+
+echo "Creating uImage from 'volumio.initrd'"
+mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+
+echo "Removing unnecessary /boot files"
+rm /boot/volumio.initrd
 
