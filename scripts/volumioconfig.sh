@@ -155,26 +155,23 @@ if [ $(uname -m) = armv7l ]; then
   rm /shairport-sync_arm.tar.gz
 
   echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.2-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-2_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_armhf.deb
-  dpkg -i libupnpp2_0.11.0-1_armhf.deb
-  dpkg -i libupnpp0_0.9.0-1_armhf.deb
-  dpkg -i libupnp6_1.6.19.jfd1-2_armhf.deb
-  dpkg -i upmpdcli_0.11.2-1_armhf.deb
-  rm /upmpdcli_0.11.2-1_armhf.deb
-  rm /libupnpp0_0.9.0-1_armhf.deb
-  rm /libupnp6_1.6.19.jfd1-2_armhf.deb
-  rm /libupnpp2_0.11.0-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.0-1_armhf.deb
+ wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
+ wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_13a1.6.19.jfd2-1_armhf.deb
+ dpkg -i libupnpp2_0.14.1-1_armhf.deb
+ dpkg -i libupnp6_13a1.6.19.jfd2-1_armhf.deb
+ dpkg -i upmpdcli_1.1.0-1_armhf.deb
+ rm /upmpdcli_1.1.0-1_armhf.deb
+ rm /libupnp6_13a1.6.19.jfd2-1_armhf.deb
+ rm /libupnpp2_0.14.1-1_armhf.deb
 
-#Remove autostart of upmpdcli
+  #Remove autostart of upmpdcli
   update-rc.d upmpdcli remove
 
-  echo "Installing LINN Songcast module"
-  wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
-  dpkg -i sc2mpd_0.11.0-1_armhf.deb
-  rm /sc2mpd_0.11.0-1_armhf.deb
+  #echo "Installing LINN Songcast module"
+  #wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
+  #dpkg -i sc2mpd_0.11.0-1_armhf.deb
+  #rm /sc2mpd_0.11.0-1_armhf.deb
 
   echo "Installing Snapcast for multiroom"
 
