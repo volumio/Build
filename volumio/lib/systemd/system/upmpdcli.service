@@ -1,0 +1,16 @@
+[Unit]
+Description=UPnP Renderer front-end to MPD
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/upmpdcli -c /volumio/app/plugins/audio_interfaces/upnp/upmpdcli.conf
+Restart=never
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=volumio
+User=volumio
+Group=volumio
+
+[Install]
+WantedBy=multi-user.target
