@@ -67,13 +67,15 @@ echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sb
 
 echo "Configuring Default Network"
 cat > /etc/network/interfaces << EOF
+
+auto wlan0
 auto lo
 iface lo inet loopback
 
 allow-hotplug eth0
 iface eth0 inet dhcp
 
-auto wlan0
+allow-hotplug wlan0
 iface wlan0 inet dhcp
  wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 EOF
