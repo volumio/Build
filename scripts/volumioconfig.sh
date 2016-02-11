@@ -314,3 +314,9 @@ chmod 777 /var/lib/alsa/asound.state
 
 echo "Tuning LAN"
 echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
+
+echo "Disabling IPV6"
+echo "#disable ipv6" | tee -a /etc/sysctl.conf 
+echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf 
+echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf 
+echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
