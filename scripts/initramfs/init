@@ -20,15 +20,25 @@ mdev -s
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
 
 #redirect console to kernel messages for Odroid
-if [ $HWDEVICE == ODROIDC ]; then
-	exec >/dev/kmsg 2>&1 </dev/console
+if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == ODROID-C2 ]; then
+   OVERLAY=NOWRKDIR
+   exec >/dev/kmsg 2>&1 </dev/console
+else
+   OVERLAY=WITHWRKDIR
 fi
 
 echo "Booting Volumio for" $HWDEVICE
+echo "	This script mounts rootfs RO with an overlay RW layer."
 
 # Do your stuff here.
-echo "This script mounts rootfs RO with an overlay RW layer."
-modprobe overlay
+
+if [ $OVERLAY == WITHWRKDIR ]; then
+   # For overlayfs version V22 or higher (modulename 'overlay')
+   modprobe overlay
+else
+   # For overlayfs version V20/V21 (modulename ='overlayfs')
+   modprobe overlayfs
+fi
 modprobe squashfs
 modprobe nls_cp437
 
@@ -142,7 +152,7 @@ fi
 umount /boot
 rm -r /boot
 
-# 4) mount a filesystem for the write access to the static image
+# 4) mount a filesystem for write access to the static image
 # unclear: memory size? -o size=1024M
 [ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
 mount -t ext4 /dev/mmcblk0p3 /mnt/ext
@@ -150,20 +160,16 @@ mount -t ext4 /dev/mmcblk0p3 /mnt/ext
 [ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn
 [ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union
 
-# Odroidc does not support workdir as overlayfs version is below V22
-if [ ! $HWDEVICE == ODROIDC ]; then
-  [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
-fi
-
 # 5) mount the writable overlay to the static image
-if [ $HWDEVICE == ODROIDC ]; then
-  # no workdir
-  mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
+if [ $OVERLAY == WITHWRKDIR ]; then
+  [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
+  echo "With Option:" $OVERLAY
+  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
 else
-  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
+  echo "Without Option:" $OVERLAY
+  mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
 fi
 
-# Clean up.
 [ -d /mnt/ext/union/static ] || mkdir -m 777 /mnt/ext/union/static
 [ -d /mnt/ext/union/imgpart ] || mkdir -m 777 /mnt/ext/union/imgpart
 mount --move /mnt/static /mnt/ext/union/static

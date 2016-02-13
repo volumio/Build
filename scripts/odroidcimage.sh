@@ -1,21 +1,41 @@
-#!/bin/sh
+#!/bin/bash
 
-while getopts ":v:" opt; do
+#Help function
+function HELP {
+  echo -e "Basic usage: ./scripts/odroidcimage.sh -v 2.0 -m Cn"\\n
+  echo "Switches:"
+  echo "-m      --Model, usage: C1 (Odroid C1/C1+), C2 (Odroid C2)"
+  echo "-v      --Version, must be a dot separated number. Example 2.102"
+  exit 1
+}
+
+while getopts v:m: opt; do
   case $opt in
     v)
       VERSION=$OPTARG
       ;;
-	p)
-	  PATCH=$OPTARG
-	  ;;
-
+	m)
+	  MODEL=$OPTARG
+      ;;
   esac
 done
 
-BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-OdroidC.img"
+#Check the number of arguments. If none are passed, print help and exit.
+NUMARGS=$#
+if [ $NUMARGS -eq 0 ]; then
+  HELP
+fi
 
- 
+if [ ! $MODEL == C1 ] && [ ! $MODEL == C2 ]; then
+  echo "Wrong Odroid Model number (must be C1 or C2)"
+  exit 1
+fi 
+
+
+BUILDDATE=$(date -I)
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-Odroid${MODEL}.img"
+
+
 echo "Creating Image File"
 echo "Image file: ${IMG_FILE}"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
@@ -51,24 +71,45 @@ sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for the Odroid kernel/ platform files"
-if [ -d platforms-O/odroidc ]
+if [ -d platforms-O ]
 then 
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the odroidc folder
     # that will refresh all the odroid platforms, see below
+	cd platforms-O
+	if [ $MODEL == C1 ]; then	
+	   if [ ! -d odroidc1 ]; then
+	      tar xvfJ odroidc1.tar.xz 
+	   fi
+	else
+	   if [ ! -d odroidc2 ]; then
+	      tar xvfJ odroidc2.tar.xz 
+	   fi
+	fi
+	cd ..
 else
 	echo "Clone all Odroid files from repo"
 	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
 	echo "Unpack the C1/C1+/C2 platform files"
     cd platforms-O
-    tar xvfJ odroidc.tar.xz 
+	if [ $MODEL == C1 ]; then	
+    	tar xvfJ odroidc1.tar.xz 
+	else
+		tar xvfJ odroidc2.tar.xz
+	fi
     cd ..
 fi
 
 echo "Copying the bootloader"
-sudo dd if=platforms-O/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
-sudo dd if=platforms-O/odroidc/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
-sudo dd if=platforms-O/odroidc/uboot/u-boot.bin of=${LOOP_DEV} seek=64
+if [ $MODEL == C1 ]; then
+   sudo dd if=platforms-O/odroidc1/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
+   sudo dd if=platforms-O/odroidc1/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
+   sudo dd if=platforms-O/odroidc1/uboot/u-boot.bin of=${LOOP_DEV} seek=64
+else
+   sudo dd if=platforms-O/odroidc2/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
+   sudo dd if=platforms-O/odroidc2/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
+   sudo dd if=platforms-O/odroidc2/uboot/u-boot.bin of=${LOOP_DEV} conv=fsync bs=512 seek=97
+fi
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -87,34 +128,46 @@ else
 	sudo mkdir /mnt/volumio
 fi
 
-echo "Copying Volumio RootFs"
 echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
 sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 sudo mkdir /mnt/volumio/rootfs
-sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+sudo mkdir /mnt/volumio/rootfs/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
-echo "Copying OdroidC boot files"
-sudo cp platforms-O/odroidc/boot/boot.ini /mnt/volumio/rootfs/boot
-sudo cp platforms-O/odroidc/boot/meson8b_odroidc.dtb /mnt/volumio/rootfs/boot
-sudo cp platforms-O/odroidc/boot/uImage /mnt/volumio/rootfs/boot
+if [ $MODEL == C1 ]; then
+   echo "Copying Volumio RootFs"
+   sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+   echo "Copying OdroidC1 boot files"
+   sudo cp platforms-O/odroidc1/boot/boot.ini /mnt/volumio/rootfs/boot
+   sudo cp platforms-O/odroidc1/boot/meson8b_odroidc.dtb /mnt/volumio/rootfs/boot
+   sudo cp platforms-O/odroidc1/boot/uImage /mnt/volumio/rootfs/boot
+   echo "Copying OdroidC1 modules and firmware"
+   sudo cp -pdR platforms-O/odroidc1/lib/modules /mnt/volumio/rootfs/lib/
+   sudo cp -pdR platforms-O/odroidc1/lib/firmware /mnt/volumio/rootfs/lib/
+   echo "Copying OdroidC1 inittab"
+   sudo cp platforms-O/odroidc1/etc/inittab /mnt/volumio/rootfs/etc/
+else
+#TODO: real arm64 rootfs
+   echo "Copying Volumio RootFs"
+   sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+   echo "Copying OdroidC2 boot files"
+   sudo cp platforms-O/odroidc2/boot/boot.ini /mnt/volumio/rootfs/boot
+   sudo cp platforms-O/odroidc2/boot/meson64_odroidc2.dtb /mnt/volumio/rootfs/boot
+   sudo cp platforms-O/odroidc2/boot/Image /mnt/volumio/rootfs/boot
+   echo "Copying OdroidC2 modules and firmware"
+   sudo cp -pdR platforms-O/odroidc2/lib/modules /mnt/volumio/rootfs/lib/
+   sudo cp -pdR platforms-O/odroidc2/lib/firmware /mnt/volumio/rootfs/lib/
+   echo "Copying OdroidC2 inittab"
+   sudo cp platforms-O/odroidc2/etc/inittab /mnt/volumio/rootfs/etc/
+fi
 
-echo "Copying OdroidC modules and firmware"
-sudo cp -pdR platforms-O/odroidc/lib/modules /mnt/volumio/rootfs/lib/
-sudo cp -pdR platforms-O/odroidc/lib/firmware /mnt/volumio/rootfs/lib/
-
-
-echo "Copying OdroidC inittab"
-sudo cp platforms-O/odroidc/etc/inittab /mnt/volumio/rootfs/etc/
-
-echo "We don't deal in pies, so show neutral :)"
 #TODO: odroids should be able to run generic debian
 sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
 
 sync
 
-echo "Preparing to run chroot for more OdroidC configuration"
+echo "Preparing to run chroot for more Odroid-${MODEL} configuration"
 cp scripts/odroidcconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
@@ -124,7 +177,8 @@ wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volum
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
-echo $PATCH > /mnt/volumio/rootfs/patch
+touch /mnt/volumio/rootfs/${MODEL}.flag
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /odroidcconfig.sh
@@ -139,15 +193,21 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys 
 
 echo "Copying LIRC configuration files for HK stock remote"
-sudo cp platforms-O/odroidc/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms-O/odroidc/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms-O/odroidc/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+if [ $MODEL == C1 ]; then
+   sudo cp platforms-O/odroidc1/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+   sudo cp platforms-O/odroidc1/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+   sudo cp platforms-O/odroidc1/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+else
+   sudo cp platforms-O/odroidc2/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+   sudo cp platforms-O/odroidc2/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+   sudo cp platforms-O/odroidc2/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+fi
 
-echo "==> Odroid-C device installed"  
+echo "==> Odroid-${MODEL} device installed"  
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platforms/odroidc
+#sudo rm -r platforms-O
 sync
 
 echo "Preparing rootfs base for SquashFS"
