@@ -171,13 +171,13 @@ if [ "$DEVICE" = cuboxi ]; then
 fi
 if  [ "$DEVICE" = odroidc1 ]; then
   echo 'Writing Odroid-C1/C1+ Image File'
-  check_os_release "armhf" $VERSION $DEVICE
-  sh scripts/odroidcimage.sh -v $VERSION -m C1 -p $PATCH;
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/odroidc1image.sh -v $VERSION -p $PATCH;
 fi
 if  [ "$DEVICE" = odroidc2 ]; then
   echo 'Writing Odroid-C2 Image File'
-  check_os_release "armhf" $VERSION $DEVICE
-  sh scripts/odroidcimage.sh -v $VERSION -m C2 -p $PATCH;
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/odroidc2image.sh -v $VERSION -p $PATCH;
 fi
 if  [ "$DEVICE" = odroidxu4 ]; then
   echo 'Writing Odroid-XU4 Image File'
