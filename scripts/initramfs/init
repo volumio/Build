@@ -108,6 +108,13 @@ fi
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
+	#check for recovery image, if not found create it
+if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
+  echo "Creating factory image"
+  cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
+  echo "Factory image created"
+fi
+
 sleep 6
 mdev -s
 
@@ -123,6 +130,15 @@ if [ -e /dev/sda1 ]; then
     volumio-init-updater
   fi
 
+if [ -e /mnt/usb/factory_reset ]; then
+    echo "Factory Reset on USB"
+    mkdir /mnt/factory
+    mount -t vfat /dev/mmcblk0p1 /mnt/factory
+    echo " " > /mnt/factory/factory_reset
+    umount /mnt/factory
+    rm /mnt/factory
+  fi
+
   umount /dev/sda1
   rmdir /mnt/usb
 fi
@@ -136,6 +152,22 @@ losetup $loop_free /mnt/imgpart/${IMGFILE}
 # 3) mount the squashfs to /mnt/static
 [ -d /mnt/static ] || mkdir /mnt/static
 mount -t squashfs $loop_free /mnt/static
+
+
+#if there is factory file then format data partition
+mkdir /mnt/factory
+mount -t vfat /dev/mmcblk0p1 /mnt/factory
+if [ -e "/mnt/factory/factory_reset" ]; then
+  echo "Executing factory reset"
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+
+  echo "Factory reset executed: part I"
+  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
+  echo "Factory reset executed: part II - end"
+fi
+umount /mnt/factory
+rm /mnt/factory
+
 
 mkdir boot
 mount -t vfat /dev/mmcblk0p1 /boot
