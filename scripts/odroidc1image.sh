@@ -13,7 +13,7 @@ while getopts ":v:p:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}odroidc1.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidc1.img"
 
 
 echo "Creating Image File"
