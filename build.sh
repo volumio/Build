@@ -19,7 +19,7 @@ function HELP {
   echo -e "Basic usage: ./build.sh -b -d all -v 2.0"\\n
   echo "Switches:"
   echo "-b      --Build system with Multistrap, use arm or x86 to select architecture"
-  echo "-d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab"
+  echo "-d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab, odroidc1, odroidc2, odroidxu4"
   echo "-l      --Create docker layer. Docker Repository name as as argument"
   echo "-v      --Version, must be a dot separated number. Example 1.102"
   echo "-p      --Patch, optionally patch the builder"
@@ -169,13 +169,18 @@ if [ "$DEVICE" = cuboxi ]; then
   echo 'Writing Cubox-i Image File'
   sh scripts/cuboxiimage.sh -v $VERSION;
 fi
-if  [ "$DEVICE" = odroidc ]; then
-  echo 'Writing OdroidCx Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidcimage.sh -v $VERSION -p $PATCH;
+if  [ "$DEVICE" = odroidc1 ]; then
+  echo 'Writing Odroid-C1/C1+ Image File'
+  check_os_release "armhf" $VERSION $DEVICE
+  sh scripts/odroidcimage.sh -v $VERSION -m C1 -p $PATCH;
+fi
+if  [ "$DEVICE" = odroidc2 ]; then
+  echo 'Writing Odroid-C2 Image File'
+  check_os_release "armhf" $VERSION $DEVICE
+  sh scripts/odroidcimage.sh -v $VERSION -m C2 -p $PATCH;
 fi
 if  [ "$DEVICE" = odroidxu4 ]; then
-  echo 'Writing OdroidCx Image File'
+  echo 'Writing Odroid-XU4 Image File'
   check_os_release "arm" $VERSION $DEVICE
   sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH;
 fi
