@@ -165,6 +165,12 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
   echo "Factory reset executed: part II - end"
 fi
+if [ -e "/mnt/factory/user_data" ]; then
+  echo "Deleting User Data"
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+  
+  echo "User Data successfully deleted "
+fi
 umount /mnt/factory
 rm /mnt/factory
 
