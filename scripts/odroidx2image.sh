@@ -14,7 +14,6 @@ done
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidx2.img"
 
- 
 if [ -f ${IMG_FILE} ]
 then
   echo "Image file: ${IMG_FILE} exists, re-using"
