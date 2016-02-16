@@ -168,6 +168,7 @@ fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+  rm /mnt/factory/user_data
   
   echo "User Data successfully deleted "
 fi
