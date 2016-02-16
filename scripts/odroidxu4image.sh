@@ -12,7 +12,7 @@ while getopts ":v:" opt; do
   esac
 done
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-OdroidXU4.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidxu4.img"
 
 echo "Creating Image File"
 echo "Image file: ${IMG_FILE}"
