@@ -272,7 +272,7 @@ chmod -R 777 /mnt
 chmod -R 777 /media
 # Symlinking Mount Folders to Mpd's Folder
 ln -s /mnt/NAS /var/lib/mpd/music
-ln -s /media /var/lib/mpd/music
+ln -s /media /var/lib/mpd/music/USB
 
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
