@@ -34,8 +34,10 @@ cp -p volumio/etc/hosts build/$BUILD/root/etc/hosts
 cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
 #Samba conf file
 cp volumio/etc/samba/smb.conf build/$BUILD/root/etc/samba/smb.conf
-#Udev confs file (NET and USB)
+#Udev confs file (NET)
 cp -r volumio/etc/udev build/$BUILD/root/etc/
+#Udisks-glue for USB
+cp -r volumio/etc/udisks-glue.conf build/$BUILD/root/etc/udisks-glue.conf
 #Inittab file
 cp volumio/etc/inittab build/$BUILD/root/etc/inittab
 #MOTD
