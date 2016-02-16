@@ -12,7 +12,7 @@ while getopts ":v:" opt; do
   esac
 done
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-OdroidX2.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidx2.img"
 
  
 if [ -f ${IMG_FILE} ]
