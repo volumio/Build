@@ -188,7 +188,7 @@ if [ $(uname -m) = armv7l ]; then
   chmod a+x /usr/bin/zsync
 
   echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/ 
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
   chmod a+x /usr/local/sbin/volumio-remote-updater
 
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
@@ -258,7 +258,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
 
   echo "Adding volumio-remote-updater"
-  #TODO: wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater -P /usr/local/sbin/ 
+  #TODO: wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater -P /usr/local/sbin/
   #chmod a+x /usr/local/sbin/volumio-remote-updater
 
 
@@ -267,11 +267,12 @@ fi
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
-mkdir /mnt/USB
+mkdir /media
 chmod -R 777 /mnt
+chmod -R 777 /media
 # Symlinking Mount Folders to Mpd's Folder
 ln -s /mnt/NAS /var/lib/mpd/music
-ln -s /mnt/USB /var/lib/mpd/music
+ln -s /media /var/lib/mpd/music
 
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
@@ -288,6 +289,9 @@ ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/mul
 
 echo "Adding netplug Service to Startup"
 ln -s /lib/systemd/system/netplug.service /etc/systemd/system/multi-user.target.wants/netplug.service
+
+echo "Adding Udisks-glue service to Startup"
+ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.target.wants/udisks-glue.service
 
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
@@ -318,7 +322,7 @@ echo "Tuning LAN"
 echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
 
 echo "Disabling IPV6"
-echo "#disable ipv6" | tee -a /etc/sysctl.conf 
-echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf 
-echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf 
+echo "#disable ipv6" | tee -a /etc/sysctl.conf
+echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
+echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
