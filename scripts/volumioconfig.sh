@@ -272,7 +272,7 @@ chmod -R 777 /mnt
 chmod -R 777 /media
 # Symlinking Mount Folders to Mpd's Folder
 ln -s /mnt/NAS /var/lib/mpd/music
-ln -s /media /var/lib/mpd/music
+ln -s /media /var/lib/mpd/music/USB
 
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
@@ -286,9 +286,6 @@ ln -s /lib/systemd/system/volumio.service /etc/systemd/system/multi-user.target.
 echo "Adding Volumio Remote Updater Service to Startup"
 #systemctl enable volumio-remote-updater.service
 ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/multi-user.target.wants/volumio-remote-updater.service
-
-echo "Adding netplug Service to Startup"
-ln -s /lib/systemd/system/netplug.service /etc/systemd/system/multi-user.target.wants/netplug.service
 
 echo "Adding Udisks-glue service to Startup"
 ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.target.wants/udisks-glue.service
