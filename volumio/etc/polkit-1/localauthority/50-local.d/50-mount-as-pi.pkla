@@ -1,0 +1,4 @@
+[Media mounting by volumio]
+Identity=unix-user:volumio
+Action=org.freedesktop.udisks.filesystem-mount
+ResultAny=yes
