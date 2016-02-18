@@ -56,17 +56,22 @@ sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
 sync
 
 echo "Get the Odroid kernel/ platform files from repo"
-if [ -d platforms-O/odroidx2 ]
+if [ -d platforms-O ]
 then 
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the odroidx2 folder
+    # if you really want to re-clone from the repo, then delete the platforms-O folder
     # that will refresh all the odroid platforms, see below
+	cd platforms-O
+	if [ ! -d odroidx2 ]; then
+	   tar xfJ odroidx2.tar.xz 
+	fi
+	cd ..
 else
 	echo "Clone all Odroid files from repo"
 	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
 	echo "Unpack the X2 platform files"
     cd platforms-O
-    tar xvfJ odroidx2.tar.xz 
+    tar xfJ odroidx2.tar.xz 
     cd ..
 fi
 
