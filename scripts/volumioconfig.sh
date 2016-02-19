@@ -268,11 +268,13 @@ echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
 mkdir /media
+ln -s /media /mnt/USB
 chmod -R 777 /mnt
 chmod -R 777 /media
 # Symlinking Mount Folders to Mpd's Folder
 ln -s /mnt/NAS /var/lib/mpd/music
-ln -s /media /var/lib/mpd/music/USB
+ln -s /mnt/USB /var/lib/mpd/music
+
 
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
