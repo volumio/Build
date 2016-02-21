@@ -108,9 +108,9 @@ fi
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
-	#check for recovery image, if not found create it
+#check for recovery image, if not found create it
 if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
-  echo "Creating factory image"
+  echo "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
   echo "Factory image created"
 fi
@@ -118,29 +118,27 @@ fi
 sleep 6
 mdev -s
 
-#Check eventually for USB updates
+#Check eventually for USB updates (could be vfat or ext4 partion --> mount auto)
 echo "Check for USB updates"
 if [ -e /dev/sda1 ]; then
   [ -d /mnt/usb ] || mkdir /mnt/usb
-  mount -t vfat /dev/sda1 /mnt/usb
+  mount -t auto /dev/sda1 /mnt/usb
   #If there is a firmware file inside the usb
   if [ -e /mnt/usb/volumio.fir ]; then
-	echo "Firmware found, this will take several minutes, please wait...."
+	echo "Firmware found, updating will take a few minutes, please wait..."
     #when the partitions are mounted we can launch the update script
     volumio-init-updater
   fi
-
-if [ -e /mnt/usb/factory_reset ]; then
+  if [ -e /mnt/usb/factory_reset ]; then
     echo "Factory Reset on USB"
     mkdir /mnt/factory
-    mount -t vfat /dev/mmcblk0p1 /mnt/factory
+    mount -t auto /dev/mmcblk0p1 /mnt/factory
     echo " " > /mnt/factory/factory_reset
     umount /mnt/factory
-    rm /mnt/factory
+    rm -r /mnt/factory
   fi
-
   umount /dev/sda1
-  rmdir /mnt/usb
+  rm -r /mnt/usb
 fi
 
 
@@ -173,7 +171,7 @@ if [ -e "/mnt/factory/user_data" ]; then
   echo "User Data successfully deleted "
 fi
 umount /mnt/factory
-rm /mnt/factory
+rm -r /mnt/factory
 
 
 mkdir boot
