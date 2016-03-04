@@ -49,8 +49,8 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-# Kernel 4.0.6 for i2s compatibility
-echo y | SKIP_BACKUP=1 rpi-update a51e2e072f2c349b40887dbdb8029f9a78c01987
+# Kernel 4.1.18 for Pi3 Support
+echo y | SKIP_BACKUP=1 rpi-update 18971a9d261bd1a0298cd3a11124b31b1e326c3a
 
 #echo "Adding raspi-config"
 #wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
