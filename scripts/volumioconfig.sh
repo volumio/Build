@@ -65,21 +65,21 @@ echo 'Adding Safe Sudoers NoPassw permissions'
 echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod" >> /etc/sudoers
 
 
-echo "Configuring Default Network"
-cat > /etc/network/interfaces << EOF
+#echo "Configuring Default Network"
+#cat > /etc/network/interfaces << EOF
 
-auto wlan0
-auto lo
-iface lo inet loopback
+#auto wlan0
+#auto lo
+#iface lo inet loopback
 
-allow-hotplug eth0
-iface eth0 inet dhcp
+#allow-hotplug eth0
+#iface eth0 inet dhcp
 
-allow-hotplug wlan0
-iface wlan0 inet dhcp
- wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-EOF
-chmod 666 /etc/network/interfaces
+#allow-hotplug wlan0
+#iface wlan0 inet dhcp
+# wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+#EOF
+#chmod 666 /etc/network/interfaces
 
 echo volumio > /etc/hostname
 chmod 777 /etc/hostname
