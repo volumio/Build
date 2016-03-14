@@ -49,8 +49,12 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-# Kernel 4.0.6 for i2s compatibility
-echo y | SKIP_BACKUP=1 rpi-update a51e2e072f2c349b40887dbdb8029f9a78c01987
+# Kernel 4.1.18 for Pi3 Support
+echo y | SKIP_BACKUP=1 rpi-update 6e8b794818e06f50724774df3b1d4c6be0b5708c
+
+echo "Adding PI3 Wireless firmware"
+wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.bin -P /lib/firmware/brcm
+wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.txt -P /lib/firmware/brcm
 
 #echo "Adding raspi-config"
 #wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
