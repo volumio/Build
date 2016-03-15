@@ -17,6 +17,16 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
+  
+if [ -e "/c2.flag" ]; then
+  echo "Adding sound modules"
+  #TODO: only works for C2 at the moment
+  echo "
+snd_soc_pcm5102
+snd_soc_odroid_dac
+" >> /etc/modules
+fi
+
 echo "Prevent services starting during install, running under chroot" 
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
