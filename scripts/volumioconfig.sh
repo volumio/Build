@@ -157,14 +157,14 @@ if [ $(uname -m) = armv7l ]; then
   rm /shairport-sync_arm.tar.gz
 
   echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.0-1_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
- wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_13a1.6.19.jfd2-1_armhf.deb
+ wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
  dpkg -i libupnpp2_0.14.1-1_armhf.deb
- dpkg -i libupnp6_13a1.6.19.jfd2-1_armhf.deb
- dpkg -i upmpdcli_1.1.0-1_armhf.deb
- rm /upmpdcli_1.1.0-1_armhf.deb
- rm /libupnp6_13a1.6.19.jfd2-1_armhf.deb
+ dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
+ dpkg -i upmpdcli_1.1.3-1_armhf.deb
+ rm /upmpdcli_1.1.3-1_armhf.deb
+ rm /libupnp6_1.6.19.jfd3-1_armhf.deb
  rm /libupnpp2_0.14.1-1_armhf.deb
 
   #Remove autostart of upmpdcli
