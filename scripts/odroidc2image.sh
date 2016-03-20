@@ -58,7 +58,7 @@ then
     # that will refresh all the odroid platforms, see below
 	cd platforms-O
 	if [ ! -d odroidc2 ]; then
-	   tar xvfJ odroidc2.tar.xz 
+	   tar xfJ odroidc2.tar.xz 
 	fi
 	cd ..
 else
@@ -66,7 +66,7 @@ else
 	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
 	echo "Unpack the C2 platform files"
     cd platforms-O
-	tar xvfJ odroidc2.tar.xz
+	tar xfJ odroidc2.tar.xz
 	cd ..
 fi
 
