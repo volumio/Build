@@ -184,6 +184,11 @@ if  [ "$DEVICE" = odroidxu4 ]; then
   check_os_release "arm" $VERSION $DEVICE
   sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH;
 fi
+if  [ "$DEVICE" = odroidx2 ]; then
+  echo 'Writing Odroid-X2 Image File'
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/odroidx2image.sh -v $VERSION -p $PATCH;
+fi
 if  [ "$DEVICE" = udooneo ]; then
   echo 'Writing UDOO NEO Image File'
   check_os_release "arm" $VERSION $DEVICE
