@@ -78,6 +78,9 @@ echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 
+echo "Exporting /opt/vc/bin variable"
+export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
+
 echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
