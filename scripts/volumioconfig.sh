@@ -141,10 +141,10 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Custom Packages"
   cd /
 
-  echo "Installing Spop and libspotify"
-  wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
-  tar xf /spop.tar.gz
-  rm /spop.tar.gz
+  #echo "Installing Spop and libspotify"
+  #wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
+  #tar xf /spop.tar.gz
+  #rm /spop.tar.gz
 
   echo "Installing custom MPD version"
   wget http://repo.volumio.org/Packages/Mpd/mpd_0.19.9-2_armhf.deb
