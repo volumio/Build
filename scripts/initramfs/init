@@ -15,6 +15,7 @@ mknod /dev/null c 1 3
 mknod /dev/tty c 5 0
 mknod /dev/console c 5 1
 
+sleep 3
 mdev -s
 
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
@@ -115,8 +116,8 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Factory image created"
 fi
 
-sleep 6
-mdev -s
+#sleep 6
+#mdev -s
 
 #Check eventually for USB updates (could be vfat or ext4 partion --> mount auto)
 echo "Check for USB updates"
