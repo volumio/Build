@@ -34,10 +34,14 @@ function check_os_release {
   VERSION=$2
   DEVICE=$3
 
-  if [ "$HAS_VERSION" -eq "0" ]; then
-    echo "VOLUMIO_VERSION=\"${VERSION}\"" >> build/${ARCH_BUILD}/root/etc/os-release
-    echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> build/${ARCH_BUILD}/root/etc/os-release
+  if [ "$HAS_VERSION" -ne "0" ]; then
+    # os-release already has a VERSION number
+    # cut the last 2 lines in case other devices are being built from the same rootfs
+	head -n -2 build/${ARCH_BUILD}/root/etc/os-release > build/${ARCH_BUILD}/root/etc/tmp-release
+	mv build/${ARCH_BUILD}/root/etc/tmp-release build/${ARCH_BUILD}/root/etc/os-release
   fi
+  echo "VOLUMIO_VERSION=\"${VERSION}\"" >> build/${ARCH_BUILD}/root/etc/os-release
+  echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> build/${ARCH_BUILD}/root/etc/os-release
 }
 
 
