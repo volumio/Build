@@ -4,7 +4,7 @@ After=hotspot.service
 Requires=hotspot.service
 [Service]
 Type=forking
-ExecStart=/usr/sbin/dhcpd -d
+ExecStart=/usr/sbin/dhcpd
 KillMode=mixed
 Restart=no
 StandardOutput=syslog
