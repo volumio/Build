@@ -62,24 +62,24 @@ alias ifconfig="sudo /sbin/ifconfig"
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod" >> /etc/sudoers
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl" >> /etc/sudoers
 
 
-echo "Configuring Default Network"
-cat > /etc/network/interfaces << EOF
+#echo "Configuring Default Network"
+#cat > /etc/network/interfaces << EOF
 
-auto wlan0
-auto lo
-iface lo inet loopback
+#auto wlan0
+#auto lo
+#iface lo inet loopback
 
-allow-hotplug eth0
-iface eth0 inet dhcp
+#allow-hotplug eth0
+#iface eth0 inet dhcp
 
-allow-hotplug wlan0
-iface wlan0 inet dhcp
- wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-EOF
-chmod 666 /etc/network/interfaces
+#allow-hotplug wlan0
+#iface wlan0 inet dhcp
+# wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+#EOF
+#chmod 666 /etc/network/interfaces
 
 echo volumio > /etc/hostname
 chmod 777 /etc/hostname
@@ -105,13 +105,13 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing ARM Node Environment"
   # version 5.5. 0
   cd /
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/node-v5.5.0-linux-armv6l.tar.xz
-  tar xf node-v5.5.0-linux-armv6l.tar.xz
-  rm /node-v5.5.0-linux-armv6l.tar.xz
-  cd /node-v5.5.0-linux-armv6l
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/node-v5.10.0-linux-armv6l.tar.xz
+  tar xf node-v5.10.0-linux-armv6l.tar.xz
+  rm /node-v5.10.0-linux-armv6l.tar.xz
+  cd /node-v5.10.0-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v5.5.0-linux-armv6l
+  rm -rf /node-v5.10.0-linux-armv6l
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
@@ -157,14 +157,14 @@ if [ $(uname -m) = armv7l ]; then
   rm /shairport-sync_arm.tar.gz
 
   echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.0-1_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
- wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_13a1.6.19.jfd2-1_armhf.deb
+ wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
  dpkg -i libupnpp2_0.14.1-1_armhf.deb
- dpkg -i libupnp6_13a1.6.19.jfd2-1_armhf.deb
- dpkg -i upmpdcli_1.1.0-1_armhf.deb
- rm /upmpdcli_1.1.0-1_armhf.deb
- rm /libupnp6_13a1.6.19.jfd2-1_armhf.deb
+ dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
+ dpkg -i upmpdcli_1.1.3-1_armhf.deb
+ rm /upmpdcli_1.1.3-1_armhf.deb
+ rm /libupnp6_1.6.19.jfd3-1_armhf.deb
  rm /libupnpp2_0.14.1-1_armhf.deb
 
   #Remove autostart of upmpdcli
@@ -237,18 +237,15 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /spopx86.tar.gz
 
   echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli_0.11.0-2_i386.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp0_0.9.0-1_i386.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/libupnp6_1.6.19.jfd1-1_i386.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/libupnpp2_0.11.0-1_i386.deb
-  dpkg -i libupnpp2_0.11.0-1_i386.deb
-  dpkg -i libupnp6_1.6.19.jfd1-1_i386.deb
-  dpkg -i upmpdcli_0.11.0-2_i386.deb
-  dpkg -i libupnpp0_0.9.0-1_i386.deb
-  rm /upmpdcli_0.11.0-2_i386.deb
-  rm /libupnpp0_0.9.0-1_i386.deb
-  rm /libupnp6_1.6.19.jfd1-1_i386.deb
-  rm /libupnpp2_0.11.0-1_i386.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
+dpkg -i libupnpp2_0.14.1-1_armhf.deb
+dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
+dpkg -i upmpdcli_1.1.3-1_armhf.deb
+rm /upmpdcli_1.1.3-1_armhf.deb
+rm /libupnp6_1.6.19.jfd3-1_armhf.deb
+rm /libupnpp2_0.14.1-1_armhf.deb
 
 
   echo "Installing LINN Songcast module"
