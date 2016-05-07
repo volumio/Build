@@ -1,7 +1,0 @@
-[Unit]
-Description=Wireless Services
-Wants=dhclient.service
-[Service]
-Type=forking
-ExecStart=/sbin/wpa_supplicant -d -B -Dwext -c/etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
-KillMode=mixed
