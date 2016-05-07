@@ -325,3 +325,11 @@ echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 
 echo "Hotspot"
 ln -s /lib/systemd/system/hotspot.service /etc/systemd/system/multi-user.target.wants/hotspot.service
+
+echo "Fixing hostapd with proper version"
+rm /usr/sbin/hostapd
+wget http://volumio.org/wp-content/uploads/Axiom/hostapd -P /usr/sbin/
+chmod a+x /usr/sbin/hostapd
+echo "WAC Hostapd conf files"
+cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
+chmod -R 777 /etc/hostapd
