@@ -58,6 +58,7 @@ alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
 alias service="sudo /usr/sbin/service"
 alias ifconfig="sudo /sbin/ifconfig"
+alias volumio="/volumio/app/plugins/user_interface/volumio_command_line_client/volumio.sh"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
