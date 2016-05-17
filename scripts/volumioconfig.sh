@@ -254,10 +254,15 @@ rm /libupnpp2_0.14.1-1_armhf.deb
   dpkg -i sc2mpd_0.11.0-1_i386.deb
   rm /sc2mpd_0.11.0-1_i386.deb
   rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
+  
+  echo "Zsync"
+  rm /usr/bin/zsync
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
+  chmod a+x /usr/bin/zsync
 
   echo "Adding volumio-remote-updater"
-  #TODO: wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater -P /usr/local/sbin/
-  #chmod a+x /usr/local/sbin/volumio-remote-updater
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater -P /usr/local/sbin/
+  chmod a+x /usr/local/sbin/volumio-remote-updater
 
 
 fi
