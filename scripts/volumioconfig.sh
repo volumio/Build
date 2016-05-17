@@ -214,7 +214,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing Volumio Modules"
   cd /volumio
-  npm install --unsafe-perm
+  wget http://repo.volumio.org/Volumio2/node_modules_x86-dev.tar.gz
+  tar xf node_modules_x86-dev.tar.gz
+  rm node_modules_x86-dev.tar.gz
 
 
   echo "Setting proper ownership"
