@@ -255,6 +255,10 @@ rm /libupnpp2_0.14.1-1_armhf.deb
   rm /sc2mpd_0.11.0-1_i386.deb
   rm /libmicrohttpd10_0.9.37+dfsg-1+b1_i386.deb
   
+  echo "Volumio Init Updater"
+  wget -P /usr/local/sbin/volumio-init-updater http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
+  chmod a+x /usr/local/sbin/volumio-init-updater
+  
   echo "Zsync"
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
