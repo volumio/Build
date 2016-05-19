@@ -9,17 +9,17 @@ while getopts ":v:" opt; do
   esac
 done
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-x86-64.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-x86.img"
 
 echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=3000
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2000
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
-sudo parted -s "${LOOP_DEV}" mklabel gpt
-sudo parted -s "${LOOP_DEV}" mkpart primary 1049Kb 513M		#efi-boot (esp)			
-sudo parted -s "${LOOP_DEV}" mkpart primary 513 1300		#volumio
-sudo parted -s "${LOOP_DEV}" mkpart primary 1300 100%		#data
+sudo parted -s "${LOOP_DEV}" mklabel msdos
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 512
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 512 1300
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1300 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -36,11 +36,12 @@ then
 fi
 
 echo "Creating filesystems"
-sudo mkfs -t vfat -F 32 -n BOOT "${BOOT_PART}"
+sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumio
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumio_data
 sync
 
+echo "Copying Volumio RootFs"
 if [ -d /mnt ]
 then 
     echo "/mnt folder exist"
@@ -69,7 +70,7 @@ echo "Entering Chroot Environment"
 sudo mkdir /mnt/volumio/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
-cp scripts/x86-64config.sh /mnt/volumio/rootfs
+cp scripts/x86config.sh /mnt/volumio/rootfs
 if [ ! -d platform-x86 ]; then
   echo "Platform files (packages) not available yet, getting them from the repo"
   git clone http://github.com/volumio/platform-x86 
@@ -88,14 +89,8 @@ mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 
-sudo mkdir -p /mnt/volumio/rootfs/boot/efi
-sudo mkdir -p /mnt/volumio/rootfs/boot/efi/EFI/debian
-sudo mkdir -p /mnt/volumio/rootfs/boot/efi/BOOT/
-modprobe efivarfs
-
-UUID_BOOT=$(blkid ${BOOT_PART} | awk -F'["]' '{print $4}')
+UUID_BOOT=$(blkid ${BOOT_PART} | awk -F'["]' '{print $6}')
 UUID_IMG=$(blkid ${IMG_PART} | awk -F'["]' '{print $4}')
-
 echo "UUID_BOOT=${UUID_BOOT}
 UUID_IMG=${UUID_IMG}
 LOOP_DEV=${LOOP_DEV}
@@ -103,10 +98,10 @@ LOOP_DEV=${LOOP_DEV}
 chmod +x /mnt/volumio/rootfs/init.sh
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
-/x86-64config.sh
+/x86config.sh
 EOF
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb /mnt/volumio/rootfs/linux-firmware-*.deb
-rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86-64config.sh  
+rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh  
 sync
 
 echo "Unmounting Temp Devices"
@@ -154,7 +149,7 @@ rm -rf /mnt/volumio /mnt/boot
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
-echo "X86-64 Image file created"
+echo "X86 Image file created"
 #echo "Building VMDK Virtual Image File"
 #qemu-img convert ${IMG_FILE} -O vmdk Volumio.dev.vmdk
 #echo "VMDK Virtual Imake File generated"

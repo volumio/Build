@@ -17,6 +17,7 @@ ln -s /usr/bin/nodejs /usr/local/bin/nodejs
 echo "Blacklisting PC speaker"
 echo "blacklist snd_pcsp" >> /etc/modprobe.d/blacklist.conf
 
+
 # Make grub boot menu transparent
 sed -i "s/menu_color_normal=cyan\/blue/menu_color_normal=white\/black/g" /etc/grub.d/05_debian_theme
 sed -i "s/menu_color_highlight=white\/blue/menu_color_highlight=green\/dark-gray/g" /etc/grub.d/05_debian_theme
@@ -24,31 +25,31 @@ sed -i "s/menu_color_highlight=white\/blue/menu_color_highlight=green\/dark-gray
 sed -i "s/initrd=\"\$i\"/initrd=\"volumio.initrd\"/g" /etc/grub.d/10_linux
 
 #replace both LINUX_ROOT_DEVICE and LINUX_ROOT_DEVICE=UUID= in the template 
-# to a string which we can replace after creating the grub config file
+# to a string which we can replace after instaling grub
 sed -i "s/LINUX_ROOT_DEVICE=\${GRUB_DEVICE}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
 sed -i "s/LINUX_ROOT_DEVICE=UUID=\${GRUB_DEVICE_UUID}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
 
 #echo "Creating grub config folder"
 mkdir -p /boot/grub
 
+#TODO: check if it is not better just to have our own Volumio standard grub.conf
+#(so we can forget all the grub customizing above just do the editing down below
 echo "Applying Grub Configuration"
 grub-mkconfig -o /boot/grub/grub.cfg
 
-chmod +w boot/grub/grub.cfg
+echo "Installing grub bootloader"
+grub-install --boot-directory=/boot $LOOP_DEV
+
 echo $UUID_BOOT
 echo $UUID_IMG
 
-echo "Fixing root and boot as loop devices were used"
+echo "Fixing root and boot device in case loop device was used"
 # Opting for finding partitions by-UUID
 sed -i "s/root=imgpart=%%IMGPART%%/`echo imgpart=UUID="$( echo ${UUID_IMG})"`/g" /boot/grub/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/`echo bootpart=UUID="$( echo ${UUID_BOOT})"`/g" /boot/grub/grub.cfg
 
-echo "Creating and installing UEFI bootloader" 
-grub-mkstandalone --compress=gz -O x86_64-efi -o /boot/efi/EFI/debian/grubx64.efi -d /usr/lib/grub/x86_64-efi --modules="part_gpt part_msdos" --fonts="unicode" --locales="en@quot" --themes="" /boot/grub/grub.cfg 
-echo "Copying to fallback bootloader (as efibootmgr did not work under chroot, not perfect yet"
-cp -P /boot/efi/EFI/debian/grubx64.efi /boot/efi/BOOT/BOOTX64.EFI
-
 echo "Editing fstab to use UUID"
+#TODO: make an fstab template too?
 sed -i "s/%%BOOTPART%%/`echo UUID="$( echo ${UUID_BOOT})"`/g" /etc/fstab
 
 echo "Creating initramfs"
