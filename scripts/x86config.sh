@@ -33,12 +33,9 @@ mkdir -p /boot/grub
 
 echo "Applying Grub Configuration"
 grub-mkconfig -o /boot/grub/grub.cfg
-
 chmod +w boot/grub/grub.cfg
-echo $UUID_BOOT
-echo $UUID_IMG
 
-echo "Fixing root and boot as loop devices were used"
+echo "Inserting root and boot partition UUID (building the boot cmdline used in initramfs"
 # Opting for finding partitions by-UUID
 sed -i "s/root=imgpart=%%IMGPART%%/`echo imgpart=UUID="$( echo ${UUID_IMG})"`/g" /boot/grub/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/`echo bootpart=UUID="$( echo ${UUID_BOOT})"`/g" /boot/grub/grub.cfg
