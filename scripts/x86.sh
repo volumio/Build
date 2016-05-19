@@ -9,7 +9,7 @@ while getopts ":v:" opt; do
   esac
 done
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-x86-64.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-x86.img"
 
 echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
@@ -69,7 +69,7 @@ echo "Entering Chroot Environment"
 sudo mkdir /mnt/volumio/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
-cp scripts/x86-64config.sh /mnt/volumio/rootfs
+cp scripts/x86config.sh /mnt/volumio/rootfs
 if [ ! -d platform-x86 ]; then
   echo "Platform files (packages) not available yet, getting them from the repo"
   git clone http://github.com/volumio/platform-x86 
@@ -103,10 +103,10 @@ LOOP_DEV=${LOOP_DEV}
 chmod +x /mnt/volumio/rootfs/init.sh
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
-/x86-64config.sh
+/x86config.sh
 EOF
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb /mnt/volumio/rootfs/linux-firmware-*.deb
-rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86-64config.sh  
+rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh  
 sync
 
 echo "Unmounting Temp Devices"
