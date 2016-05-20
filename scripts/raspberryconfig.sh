@@ -61,6 +61,25 @@ wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/br
 #dpkg -i /raspi/raspi-config_20151019_all.deb
 #rm -Rf /raspi
 
+echo "Installing WiringPi"
+wget http://repo.volumio.org/Volumio2/Binaries/wiringpi_2.24_armhf.deb
+dpkg -i wiringpi_2.24_armhf.deb
+rm /wiringpi_2.24_armhf.deb
+
+
+echo "adding gpio group and permissions"
+cd /
+wget http://repo.volumio.org/Volumio2/Binaries/gpio-admin.tar.gz
+tar xvf gpio-admin.tar.gz
+rm /gpio-admin.tar.gz
+groupadd -f --system gpio
+chgrp gpio /usr/local/bin/gpio-admin
+chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
+
+echo "adding volumio to gpio group"
+sudo adduser volumio gpio 	
+	
+
 echo "Removing unneeded binaries"
 apt-get -y remove binutils
 
