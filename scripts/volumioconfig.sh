@@ -232,10 +232,6 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Installing Custom Packages"
   cd /
 
-  echo "Installing Spop and libspotify"
-  wget http://repo.volumio.org/Packages/Spop/spopx86.tar.gz
-  tar xvf /spopx86.tar.gz
-  rm /spopx86.tar.gz
 
   echo "Installing Upmpdcli"
 wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.1.3-1_i386.deb
@@ -245,20 +241,18 @@ dpkg -i upmpdcli_1.1.3-1_i386.deb
 rm /upmpdcli_1.1.3-1_i386.deb
 rm /libupnpp2_0.14.1-1_i386.deb
 
-
-
   echo "Installing LINN Songcast module"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
   dpkg -i sc2mpd_1.1.1-1_i386.deb
   rm /sc2mpd_1.1.1-1_i386.deb
 
   echo "Volumio Init Updater"
-  wget -P /usr/local/sbin/volumio-init-updater http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
+  wget -P /usr/local/sbin/volumio-init-updater http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
 
   echo "Zsync"
   rm /usr/bin/zsync
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
 
   echo "Adding volumio-remote-updater"
