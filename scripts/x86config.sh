@@ -35,15 +35,21 @@ echo "Applying Grub Configuration"
 grub-mkconfig -o /boot/grub/grub.cfg
 chmod +w boot/grub/grub.cfg
 
-echo "Inserting root and boot partition UUID (building the boot cmdline used in initramfs"
+echo "Inserting root and boot partition UUID (building the boot cmdline used in initramfs)"
 # Opting for finding partitions by-UUID
 sed -i "s/root=imgpart=%%IMGPART%%/`echo imgpart=UUID="$( echo ${UUID_IMG})"`/g" /boot/grub/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/`echo bootpart=UUID="$( echo ${UUID_BOOT})"`/g" /boot/grub/grub.cfg
 
-echo "Creating and installing UEFI bootloader" 
+echo "Creating and installing UEFI Bootloader" 
 grub-mkstandalone --compress=gz -O x86_64-efi -o /boot/efi/EFI/debian/grubx64.efi -d /usr/lib/grub/x86_64-efi --modules="part_gpt part_msdos" --fonts="unicode" --locales="en@quot" --themes="" /boot/grub/grub.cfg 
-echo "Copying to fallback bootloader (as efibootmgr did not work under chroot, not perfect yet"
+echo "Copying to Fallback Bootloader"
 cp -P /boot/efi/EFI/debian/grubx64.efi /boot/efi/BOOT/BOOTX64.EFI
+
+#TODO: we also need to create an i386-efi bootloader to cover the (rare) 32bit UEFI machines
+echo "TODO: Adding Bootloader for 32bit uefi"
+echo "Adding Legacy Bootloader"
+grub-install --target=i386-pc --boot-directory=/boot $LOOP_DEV
+
 
 echo "Editing fstab to use UUID"
 sed -i "s/%%BOOTPART%%/`echo UUID="$( echo ${UUID_BOOT})"`/g" /etc/fstab

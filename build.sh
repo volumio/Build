@@ -82,6 +82,11 @@ done
 
 shift $((OPTIND-1))
 
+echo "Checking if we are running as root"
+if [ $(id -u) -ne 0 ]; then
+  echo "Please run the build script as root"
+  exit
+fi
 
 if [ -n "$BUILD" ]; then
   if [ "$BUILD" = arm ]; then
