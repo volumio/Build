@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 while getopts ":v:" opt; do
   case $opt in
     v)
@@ -12,22 +13,21 @@ IMG_FILE="Volumio${VERSION}-${BUILDDATE}-x86.img"
 
 echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=3000
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2000
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
-sudo parted -s "${LOOP_DEV}" mklabel gpt
-sudo parted -s "${LOOP_DEV}" mkpart primary 1 2				#legacy_boot
-sudo parted -s "${LOOP_DEV}" mkpart primary 2 543		    #efi_boot		
-sudo parted -s "${LOOP_DEV}" mkpart primary 543 1800		#volumio
-sudo parted -s "${LOOP_DEV}" mkpart primary 1800 100%		#data
-sudo parted -s "${LOOP_DEV}" set 1 bios_grub on
-sudo parted -s "${LOOP_DEV}" set 2 esp on
+sudo parted -s "${LOOP_DEV}" mklabel msdos
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 512
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 512 1300
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1300 100%
+sudo parted -s "${LOOP_DEV}" set 1 boot on
+sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
 sudo kpartx -s -a "${LOOP_DEV}"
-
-BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
-IMG_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
-DATA_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p4`
+ 
+BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
+IMG_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
+DATA_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
 
 if [ ! -b "$BOOT_PART" ]
 then
@@ -36,13 +36,12 @@ then
 fi
 
 echo "Creating filesystems"
-sudo mkfs -t vfat -F 32 -n BOOT "${BOOT_PART}"
+sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumio
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumio_data
-sudo parted -s "${LOOP_DEV}" print
-
 sync
 
+echo "Copying Volumio RootFs"
 if [ -d /mnt ]
 then 
     echo "/mnt folder exist"
@@ -90,13 +89,8 @@ mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 
-sudo mkdir -p /mnt/volumio/rootfs/boot/efi
-sudo mkdir -p /mnt/volumio/rootfs/boot/efi/EFI/debian
-sudo mkdir -p /mnt/volumio/rootfs/boot/efi/BOOT/
-modprobe efivarfs
-
-UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
-UUID_IMG=$(blkid -s UUID -o value ${IMG_PART})
+UUID_BOOT=$(blkid ${BOOT_PART} | awk -F'["]' '{print $6}')
+UUID_IMG=$(blkid ${IMG_PART} | awk -F'["]' '{print $4}')
 echo "UUID_BOOT=${UUID_BOOT}
 UUID_IMG=${UUID_IMG}
 LOOP_DEV=${LOOP_DEV}
