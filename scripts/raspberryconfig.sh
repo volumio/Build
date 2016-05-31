@@ -78,7 +78,9 @@ chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
 
 echo "adding volumio to gpio group"
 sudo adduser volumio gpio 	
-	
+
+echo "Fixing crda domain error"
+apt-get -y install crda wireless-regdb
 
 echo "Removing unneeded binaries"
 apt-get -y remove binutils
