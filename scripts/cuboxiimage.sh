@@ -43,8 +43,19 @@ sync
 
  
 echo "Copying Volumio RootFs"
-sudo mkdir /mnt
-sudo mkdir /mnt/volumio
+if [ -d /mnt ]; then
+	echo "/mnt/folder exist"
+else
+	sudo mkdir /mnt
+fi
+
+if [ -d /mnt/volumio ]; then
+	echo "Volumio Temp Directory Exists - Cleaning it"
+	rm -rf /mnt/volumio/*
+else
+	echo "Creating Volumio Temp Directory"
+	sudo mkdir /mnt/volumio
+fi
 sudo mount -t ext4 "${LOOP_PART}" /mnt/volumio
 sudo rm -rf /mnt/volumio/*
 sudo cp -pdR build/arm/root/* /mnt/volumio
