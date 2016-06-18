@@ -201,13 +201,13 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/node-v5.5.0-linux-x86.tar.xz
-  tar xf node-v5.5.0-linux-x86.tar.xz
-  rm /node-v5.5.0-linux-x86.tar.xz
-  cd /node-v5.5.0-linux-x86
+  wget https://nodejs.org/dist/v6.2.2/node-v6.2.2-linux-x86.tar.xz
+  tar xf node-v6.2.2-linux-x86.tar.xz
+  rm /node-v6.2.2-linux-x86.tar.xz
+  cd /node-v6.2.2-linux-x86
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v5.5.0-linux-x86
+  rm -rf /node-v6.2.2-linux-x86
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
