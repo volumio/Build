@@ -106,13 +106,13 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing ARM Node Environment"
   # version 5.5. 0
   cd /
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/node-v5.10.0-linux-armv6l.tar.xz
-  tar xf node-v5.10.0-linux-armv6l.tar.xz
-  rm /node-v5.10.0-linux-armv6l.tar.xz
-  cd /node-v5.10.0-linux-armv6l
+  wget https://nodejs.org/dist/v6.2.2/node-v6.2.2-linux-armv6l.tar.xz
+  tar xf node-v6.2.2-linux-armv6l.tar.xz
+  rm /node-v6.2.2-linux-armv6l.tar.xz
+  cd /node-v6.2.2-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v5.10.0-linux-armv6l
+  rm -rf /node-v6.2.2-linux-armv6l
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
