@@ -67,6 +67,8 @@ cp volumio/etc/shairport-sync.conf build/$BUILD/root/etc/shairport-sync.conf
 chmod 777 build/$BUILD/root/etc/shairport-sync.conf
 #nsswitch
 cp volumio/etc/nsswitch.conf build/$BUILD/root/etc/nsswitch.conf
+#firststart
+cp volumio/bin/firststart.sh build/$BUILD/root/bin/firststart.sh
 
 echo 'Done Copying Custom Volumio System Files'
 

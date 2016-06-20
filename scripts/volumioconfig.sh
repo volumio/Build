@@ -99,10 +99,6 @@ if [ $(uname -m) = armv7l ]; then
   echo ' Adding Raspbian Repo Key'
   wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
-# cleanup
-  apt-get clean
-  rm -rf tmp/*
-
   echo "Installing ARM Node Environment"
   # version 5.5. 0
   cd /
@@ -192,6 +188,13 @@ wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
   chmod a+x /usr/local/sbin/volumio-remote-updater
 
+  echo "Installing winbind, its done here because else it will freeze networking"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
+  
+  echo "Cleanup"
+  apt-get clean
+  rm -rf tmp/*
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
   echo 'X86 Environment Detected'
 
@@ -290,6 +293,9 @@ ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/mul
 
 echo "Adding Udisks-glue service to Startup"
 ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.target.wants/udisks-glue.service
+
+echo "Adding First start script"
+ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.target.wants/firststart.service
 
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
