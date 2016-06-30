@@ -279,6 +279,7 @@ ln -s /data/INTERNAL /mnt/INTERNAL
 #Permissions
 chmod -R 777 /mnt
 chmod -R 777 /media
+chmod -R 777 /data/INTERNAL
 
 # Symlinking Mount Folders to Mpd's Folder
 ln -s /mnt/NAS /var/lib/mpd/music
