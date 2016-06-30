@@ -270,6 +270,7 @@ echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
 mkdir /media
+mkdir /mnt/INTERNAL
 ln -s /media /mnt/USB
 chmod -R 777 /mnt
 chmod -R 777 /media
