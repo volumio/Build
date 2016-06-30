@@ -270,7 +270,6 @@ echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
 mkdir /media
-mkdir /mnt/INTERNAL
 ln -s /media /mnt/USB
 chmod -R 777 /mnt
 chmod -R 777 /media
@@ -278,6 +277,9 @@ chmod -R 777 /media
 ln -s /mnt/NAS /var/lib/mpd/music
 ln -s /mnt/USB /var/lib/mpd/music
 
+#Internal Storage Folder 
+mkdir /data/INTERNAL
+ln -s /data/INTERNAL /var/lib/mpd/music
 
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
