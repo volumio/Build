@@ -90,6 +90,14 @@ echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
 
+echo "DTOverlay utility"
+
+ln -s /opt/vc/lib/libdtovl.so /usr/lib/libdtovl.so 
+ln -s /opt/vc/bin/dtoverlay /usr/bin/dtoverlay 
+ln -s /opt/vc/bin/dtoverlay-pre /usr/bin/dtoverlay-pre
+ln -s /opt/vc/bin/dtoverlay-post /usr/bin/dtoverlay-post
+
+
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
 echo "No Patch To Apply"
