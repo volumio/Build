@@ -16,17 +16,18 @@ dd if=/dev/zero of=${IMG_FILE} bs=1M count=3000
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel gpt
-sudo parted -s "${LOOP_DEV}" mkpart primary 1 512		    #legacy and uefi boot		
-sudo parted -s "${LOOP_DEV}" mkpart primary 512 1800		#volumio
+sudo parted -s "${LOOP_DEV}" mkpart primary 1 2				#legacy_boot
+sudo parted -s "${LOOP_DEV}" mkpart primary 2 543		    #efi_boot		
+sudo parted -s "${LOOP_DEV}" mkpart primary 543 1800		#volumio
 sudo parted -s "${LOOP_DEV}" mkpart primary 1800 100%		#data
-sudo parted -s "${LOOP_DEV}" set 1 legacy_boot on
-sudo parted -s "${LOOP_DEV}" set 1 esp on
+sudo parted -s "${LOOP_DEV}" set 1 bios_grub on
+sudo parted -s "${LOOP_DEV}" set 2 esp on
 sudo partprobe "${LOOP_DEV}"
 sudo kpartx -s -a "${LOOP_DEV}"
 
-BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
-IMG_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
-DATA_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
+BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
+IMG_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
+DATA_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p4`
 
 if [ ! -b "$BOOT_PART" ]
 then
@@ -35,7 +36,6 @@ then
 fi
 
 echo "Creating filesystems"
-#sudo mkdosfs "${BOOT_PART}"
 sudo mkfs -t vfat -F 32 -n BOOT "${BOOT_PART}"
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumio
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumio_data
@@ -65,10 +65,6 @@ sudo mkdir /mnt/volumio/rootfs
 echo "Copying Volumio RootFs"
 sudo cp -pdR build/x86/root/* /mnt/volumio/rootfs
 
-echo "Copying the Syslinux boot sector"
-#syslinux "${BOOT_PART}"
-dd conv=notrunc bs=440 count=1 if=/mnt/volumio/rootfs/usr/lib/syslinux/mbr/gptmbr.bin of=${LOOP_DEV}
-
 sync
 
 echo "Entering Chroot Environment"
@@ -94,9 +90,9 @@ mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 
-mkdir -p /mnt/volumio/rootfs/boot/efi
-mkdir -p /mnt/volumio/rootfs/boot/efi/EFI/debian
-mkdir -p /mnt/volumio/rootfs/boot/efi/BOOT/
+sudo mkdir -p /mnt/volumio/rootfs/boot/efi
+sudo mkdir -p /mnt/volumio/rootfs/boot/efi/EFI/debian
+sudo mkdir -p /mnt/volumio/rootfs/boot/efi/BOOT/
 modprobe efivarfs
 
 UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
@@ -104,7 +100,6 @@ UUID_IMG=$(blkid -s UUID -o value ${IMG_PART})
 echo "UUID_BOOT=${UUID_BOOT}
 UUID_IMG=${UUID_IMG}
 LOOP_DEV=${LOOP_DEV}
-BOOT_PART=${BOOT_PART}
 " >> /mnt/volumio/rootfs/init.sh
 chmod +x /mnt/volumio/rootfs/init.sh
 
@@ -121,6 +116,7 @@ sudo umount -l /mnt/volumio/rootfs/proc
 sudo umount -l /mnt/volumio/rootfs/sys 
 
 echo "X86 device installed"  
+ls -al /mnt/volumio/rootfs
 
 echo "Preparing rootfs base for SquashFS"
 
@@ -153,14 +149,6 @@ echo "Unmounting Temp Devices"
 sudo umount -l /mnt/volumio/images
 sudo umount -l /mnt/volumio/rootfs/boot
 
-echo "Avoiding fsck errors on boot"
-# as the syslinux boot sector has no backup, no idea why (yet), simply fix that by coyping to the backup)
-fsck.vfat -r "${BOOT_PART}" <<EOF
-1
-1
-y
-EOF
-
 echo "Cleaning build environment"
 rm -rf /mnt/volumio /mnt/boot
 
@@ -168,6 +156,6 @@ sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
 echo "X86 Image file created"
-echo "Building VMDK Virtual Image File"
-qemu-img convert ${IMG_FILE} -O vmdk Volumio-dev.vmdk
-echo "VMDK Virtual Image File generated"
+#echo "Building VMDK Virtual Image File"
+#qemu-img convert ${IMG_FILE} -O vmdk Volumio.dev.vmdk
+#echo "VMDK Virtual Imake File generated"
