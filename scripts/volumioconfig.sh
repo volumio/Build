@@ -63,8 +63,7 @@ alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_clien
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/bin/hostname" >> /etc/sudoers
-
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay" >> /etc/sudoers
 
 #echo "Configuring Default Network"
 #cat > /etc/network/interfaces << EOF
@@ -99,20 +98,16 @@ if [ $(uname -m) = armv7l ]; then
   echo ' Adding Raspbian Repo Key'
   wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
-# cleanup
-  apt-get clean
-  rm -rf tmp/*
-
   echo "Installing ARM Node Environment"
   # version 5.5. 0
   cd /
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/node-v5.10.0-linux-armv6l.tar.xz
-  tar xf node-v5.10.0-linux-armv6l.tar.xz
-  rm /node-v5.10.0-linux-armv6l.tar.xz
-  cd /node-v5.10.0-linux-armv6l
+  wget https://nodejs.org/dist/v6.2.2/node-v6.2.2-linux-armv6l.tar.xz
+  tar xf node-v6.2.2-linux-armv6l.tar.xz
+  rm /node-v6.2.2-linux-armv6l.tar.xz
+  cd /node-v6.2.2-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v5.10.0-linux-armv6l
+  rm -rf /node-v6.2.2-linux-armv6l
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
@@ -120,9 +115,9 @@ if [ $(uname -m) = armv7l ]; then
 
   echo "Installing Volumio Modules"
   cd /volumio
-  wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
-  tar xf node_modules_arm.tar.gz
-  rm node_modules_arm.tar.gz
+  wget http://repo.volumio.org/Volumio2/node_modules_arm-dev.tar.gz
+  tar xf node_modules_arm-dev.tar.gz
+  rm node_modules_arm-dev.tar.gz
 
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
@@ -142,10 +137,10 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Custom Packages"
   cd /
 
-  echo "Installing Spop and libspotify"
-  wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
-  tar xf /spop.tar.gz
-  rm /spop.tar.gz
+  #echo "Installing Spop and libspotify"
+  #wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
+  #tar xf /spop.tar.gz
+  #rm /spop.tar.gz
 
   echo "Installing custom MPD version"
   wget http://repo.volumio.org/Packages/Mpd/mpd_0.19.9-2_armhf.deb
@@ -192,6 +187,13 @@ wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
   chmod a+x /usr/local/sbin/volumio-remote-updater
 
+  echo "Installing winbind, its done here because else it will freeze networking"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
+
+  echo "Cleanup"
+  apt-get clean
+  rm -rf tmp/*
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
   echo 'X86 Environment Detected'
 
@@ -201,13 +203,13 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/node-v5.5.0-linux-x86.tar.xz
-  tar xf node-v5.5.0-linux-x86.tar.xz
-  rm /node-v5.5.0-linux-x86.tar.xz
-  cd /node-v5.5.0-linux-x86
+  wget https://nodejs.org/dist/v6.2.2/node-v6.2.2-linux-x86.tar.xz
+  tar xf node-v6.2.2-linux-x86.tar.xz
+  rm /node-v6.2.2-linux-x86.tar.xz
+  cd /node-v6.2.2-linux-x86
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v5.5.0-linux-x86
+  rm -rf /node-v6.2.2-linux-x86
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
@@ -215,7 +217,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing Volumio Modules"
   cd /volumio
-  npm install --unsafe-perm
+  wget http://repo.volumio.org/Volumio2/node_modules_x86-dev.tar.gz
+  tar xf node_modules_x86-dev.tar.gz
+  rm node_modules_x86-dev.tar.gz
 
 
   echo "Setting proper ownership"
@@ -231,7 +235,6 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing Custom Packages"
   cd /
-
 
   echo "Installing Upmpdcli"
 wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.1.3-1_i386.deb
@@ -267,17 +270,32 @@ echo "Creating Volumio Folder Structure"
 mkdir /mnt/NAS
 mkdir /media
 ln -s /media /mnt/USB
+
+#Internal Storage Folder
+mkdir /data/INTERNAL
+ln -s /data/INTERNAL /mnt/INTERNAL
+
+#Permissions
 chmod -R 777 /mnt
 chmod -R 777 /media
+chmod -R 777 /data/INTERNAL
+
 # Symlinking Mount Folders to Mpd's Folder
 ln -s /mnt/NAS /var/lib/mpd/music
 ln -s /mnt/USB /var/lib/mpd/music
+ln -s /mnt/INTERNAL /var/lib/mpd/music
+
+
+
 
 
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
+
+echo "Setting Permissions for /etc/modules"
+chmod 777 /etc/modules
 
 echo "Adding Volumio Parent Service to Startup"
 #systemctl enable volumio.service
@@ -289,6 +307,9 @@ ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/mul
 
 echo "Adding Udisks-glue service to Startup"
 ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.target.wants/udisks-glue.service
+
+echo "Adding First start script"
+ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.target.wants/firststart.service
 
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove

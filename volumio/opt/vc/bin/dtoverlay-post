@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ "$DISPLAY" == "" ]; then
+	export DISPLAY=":0.0"
+fi
+CMD="lxpanelctl alsastart >/dev/null"
+if [ $EUID -eq 0 ]; then
+        exec su volumio -c "$CMD"
+else
+        exec $CMD
+fi

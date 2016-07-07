@@ -49,8 +49,11 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-# Kernel 4.1.18 for Pi3 Support
-echo y | SKIP_BACKUP=1 rpi-update 6e8b794818e06f50724774df3b1d4c6be0b5708c
+# Kernel 4.4.9 for Pi3 Support
+# see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
+# and https://github.com/Hexxeh/rpi-firmware/issues/118
+
+echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
 
 echo "Adding PI3 Wireless firmware"
 wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.bin -P /lib/firmware/brcm
@@ -89,7 +92,9 @@ echo "Writing config.txt file"
 echo "initramfs volumio.initrd 
 gpu_mem=16 
 force_turbo=1
-max_usb_current=1" >> /boot/config.txt
+max_usb_current=1
+dtparam=audio=on
+disable_splash=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
@@ -105,6 +110,14 @@ export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
 echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
+
+echo "DTOverlay utility"
+
+ln -s /opt/vc/lib/libdtovl.so /usr/lib/libdtovl.so 
+ln -s /opt/vc/bin/dtoverlay /usr/bin/dtoverlay 
+ln -s /opt/vc/bin/dtoverlay-pre /usr/bin/dtoverlay-pre
+ln -s /opt/vc/bin/dtoverlay-post /usr/bin/dtoverlay-post
+
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
