@@ -3,11 +3,12 @@ Build
 Buildscripts for Volumio System
 
 required :
-squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support
+git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support
 
 required for building x86 : qemu-utils
 
 - clone the build repo on your local folder  : git clone https://github.com/volumio/Build build
+- if on Ubuntu, you may need to remove `$forceyes` from line 989 of /usr/sbin/multistrap
 - cd to /build and type
 ./build.sh -b -d all -v 2.0 where switches are :
 
