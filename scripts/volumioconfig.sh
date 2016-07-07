@@ -65,7 +65,6 @@ alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_clien
 echo 'Adding Safe Sudoers NoPassw permissions'
 echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay" >> /etc/sudoers
 
-
 #echo "Configuring Default Network"
 #cat > /etc/network/interfaces << EOF
 
@@ -191,7 +190,7 @@ wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
   echo "Installing winbind, its done here because else it will freeze networking"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
   wget http://repo.volumio.org/Volumio2/Binaries/arm/winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
-  
+
   echo "Cleanup"
   apt-get clean
   rm -rf tmp/*
@@ -272,7 +271,7 @@ mkdir /mnt/NAS
 mkdir /media
 ln -s /media /mnt/USB
 
-#Internal Storage Folder 
+#Internal Storage Folder
 mkdir /data/INTERNAL
 ln -s /data/INTERNAL /mnt/INTERNAL
 
@@ -345,4 +344,3 @@ echo "#disable ipv6" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
-

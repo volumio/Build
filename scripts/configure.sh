@@ -83,4 +83,3 @@ find build/$BUILD/root/bin -type f -exec strip --strip-all {} ';'
 find build/$BUILD/root/usr/bin -type f -exec strip --strip-all {} ';'
 find build/$BUILD/root/usr/sbin -type f -exec strip --strip-all {} ';'
 echo "Size after strip"$( du -sh build/$BUILD/root/ )
-
