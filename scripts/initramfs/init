@@ -95,6 +95,18 @@ fi
 echo IMGPART=${IMGPART}
 echo IMGFILE=${IMGFILE}
 
+# Retry mdev -s 3 times before throwing the towel
+for i in 1 2 3 4 5 6
+  do
+    if [ ! -b "${IMGPART}" ]; then
+      echo  "${IMGPART} not detected,retrying mdev"
+      mdev -s
+    else
+	  blkid ${IMGPART}
+      break
+    fi
+  done
+
 if [ ! -b "${IMGPART}" ]; then
   echo "No partition with ${IMGPART} has been found"
   exec sh
@@ -115,8 +127,6 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Factory image created"
 fi
 
-sleep 6
-mdev -s
 
 #Check eventually for USB updates (could be vfat or ext4 partion --> mount auto)
 echo "Check for USB updates"
@@ -151,6 +161,7 @@ losetup $loop_free /mnt/imgpart/${IMGFILE}
 [ -d /mnt/static ] || mkdir /mnt/static
 mount -t squashfs $loop_free /mnt/static
 
+VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 
 #if there is factory file then format data partition
 mkdir /mnt/factory
@@ -172,7 +183,6 @@ if [ -e "/mnt/factory/user_data" ]; then
 fi
 umount /mnt/factory
 rm -r /mnt/factory
-
 
 mkdir boot
 mount -t vfat /dev/mmcblk0p1 /boot
@@ -217,6 +227,7 @@ chmod -R 777 /mnt/ext/union/imgpart
 umount /proc
 umount /sys
 
+echo ${VOLUMIO_VERSION}
 echo "Finish initramfs, continue booting Volumio"
 exec switch_root /mnt/ext/union /sbin/init
 
