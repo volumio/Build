@@ -85,6 +85,10 @@ wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volum
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
+
+echo "Custom dtoverlay pre and post"
+cp -rp volumio/opt/vc/bin/* /mnt/volumio/rootfs/opt/vc/bin/
+
 echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -

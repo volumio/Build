@@ -67,5 +67,19 @@ cp volumio/etc/shairport-sync.conf build/$BUILD/root/etc/shairport-sync.conf
 chmod 777 build/$BUILD/root/etc/shairport-sync.conf
 #nsswitch
 cp volumio/etc/nsswitch.conf build/$BUILD/root/etc/nsswitch.conf
+#firststart
+cp volumio/bin/firststart.sh build/$BUILD/root/bin/firststart.sh
 
 echo 'Done Copying Custom Volumio System Files'
+
+echo "Stripping binaries and libraries to save space"
+
+echo "Size before strip"$( du -sh build/$BUILD/root/ )
+find build/$BUILD/root/usr/lib -type f -name \*.a  -exec strip --strip-debug {} ';'
+find build/$BUILD/root/usr/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
+find build/$BUILD/root/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
+find build/$BUILD/root/sbin -type f -exec strip --strip-all {} ';'
+find build/$BUILD/root/bin -type f -exec strip --strip-all {} ';'
+find build/$BUILD/root/usr/bin -type f -exec strip --strip-all {} ';'
+find build/$BUILD/root/usr/sbin -type f -exec strip --strip-all {} ';'
+echo "Size after strip"$( du -sh build/$BUILD/root/ )

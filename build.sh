@@ -118,11 +118,14 @@ if [ -n "$BUILD" ]; then
 
   echo 'Cloning Volumio Node Backend'
   mkdir build/$BUILD/root/volumio
-  git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  git clone --depth 1 --branch dev https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
 
   echo 'Cloning Volumio UI'
-  git clone -b dist --single-branch https://github.com/volumio/Volumio2-UI.git build/$BUILD/root/volumio/http/www
-  
+  #git clone -b dist --single-branch https://github.com/volumio/Volumio2-UI.git build/$BUILD/root/volumio/http/www
+  wget http://repo.volumio.org/Volumio2/volumio-ui-dev.tar.gz
+  tar xvf volumio-ui-dev.tar.gz -C build/$BUILD/root/
+  rm volumio-ui-dev.tar.gz
+
   if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
   chroot build/arm/root /bin/bash -x <<'EOF'
 su -
