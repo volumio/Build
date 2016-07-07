@@ -115,9 +115,9 @@ if [ $(uname -m) = armv7l ]; then
 
   echo "Installing Volumio Modules"
   cd /volumio
-  wget http://repo.volumio.org/Volumio2/node_modules_arm-dev.tar.gz
-  tar xf node_modules_arm-dev.tar.gz
-  rm node_modules_arm-dev.tar.gz
+  wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
+  tar xf node_modules_arm.tar.gz
+  rm node_modules_arm.tar.gz
 
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
@@ -217,9 +217,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing Volumio Modules"
   cd /volumio
-  wget http://repo.volumio.org/Volumio2/node_modules_x86-dev.tar.gz
-  tar xf node_modules_x86-dev.tar.gz
-  rm node_modules_x86-dev.tar.gz
+  wget http://repo.volumio.org/Volumio2/node_modules_x86.tar.gz
+  tar xf node_modules_x86.tar.gz
+  rm node_modules_x86.tar.gz
 
 
   echo "Setting proper ownership"
