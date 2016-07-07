@@ -45,6 +45,8 @@ modprobe usb_common
 modprobe usbcore
 modprobe ehci_hcd
 modprobe uhci_hcd
+modprobe ohci_hcd
+modprobe ohci_pci
 modprobe ehci_pci
 modprobe xhci_pci
 modprobe hid
@@ -70,6 +72,9 @@ modprobe ata_piix
 echo "Waiting for storage devices to become ready"
 sleep 5
 mdev -s
+
+#uncomment when console out needs to include kenel and initrd messages (debugging)
+#exec >/dev/kmsg 2>&1 </dev/console
 
 # Parse the kernel command line from grub
 CMDLINE="$(cat /proc/cmdline)"
@@ -136,8 +141,6 @@ fi
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
-mdev -s
-
 echo "Initrd initialisation finished..."
 
 #
@@ -185,6 +188,7 @@ for devlink in /dev/sd*
     fi
 	usb_done=${usb_dev}
   done
+echo "Checking for factory reset on an additional devvice"
 for devlink in /dev/sd*
   do 
 	# only checking the first partition of an additional device!
@@ -194,7 +198,7 @@ for devlink in /dev/sd*
       echo "Checking " $usb_dev"1 for a factory reset" 
       if [ -e /mnt/usb/factory_reset ]; then
         mkdir /mnt/factory
-        mount -t auto ${BOOT_DEVICE}2 /mnt/factory
+        mount -t auto ${BOOT_DEVICE}1 /mnt/factory
         echo " " > /mnt/factory/factory_reset
         echo "Factory reset initiated"
         umount /mnt/factory
@@ -214,11 +218,12 @@ rmdir /mnt/usb
 # ============================================================================
 #
 #
+echo "Checking for factory or user-data reset on boot device"
 mkdir /mnt/factory
-mount -t vfat ${BOOT_DEVICE}2 /mnt/factory
+mount -t vfat ${BOOT_DEVICE}1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   echo "Executing factory reset"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}4 -L volumio_data
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumio_data
 
   echo "Factory reset executed: part I"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
@@ -226,7 +231,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}4 -L volumio_data
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumio_data
   rm /mnt/factory/user_data
   
   echo "User Data successfully deleted "
@@ -238,14 +243,15 @@ rm -r /mnt/factory
 # Step 5: Re-size the data partition (if sentinel file present)
 # =============================================================
 #
+echo "Checking for data partition re-size"
 mkdir boot
 mount -t vfat ${BOOTPART} /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
   echo "Re-sizing Volumio data partition"
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
-  parted -s ${BOOT_DEVICE} resizepart 4 ${END}
-  e2fsck -f ${BOOT_DEVICE}4
-  resize2fs ${BOOT_DEVICE}4
+  parted -s ${BOOT_DEVICE} resizepart 3 ${END}
+  e2fsck -f ${BOOT_DEVICE}3
+  resize2fs ${BOOT_DEVICE}3
   echo "Volumio data partition succesfully resized"
   parted -s ${BOOT_DEVICE} unit MB print
   rm /boot/resize-volumio-datapart
@@ -254,34 +260,7 @@ umount /boot
 rm -r /boot
 
 #
-# Step 6: Check for Volumio rootfs update
-# =======================================
-#
-echo "Detecting additional removable devices"
-mkdir /mnt/usb
-usb_done=/dev/
-for devlink in /dev/sd*
-  do 
-	# only checking the first partition of an additional device!
-	usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g') 
-	if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
-      mount -t auto $(echo ${usb_dev}1) /mnt/usb
-      echo "Checking " $usb_dev"1 for a volumio rootfs update" 
-      if [ -e /mnt/usb/volumio.fir ]; then
-        echo "New rootfs firmware found"
-        echo "Updating will take several minutes, please wait...."
-		volumio-init-updater
-	    umount /mnt/usb
-	    break
-      fi
-	  umount /mnt/usb
-    fi
-	usb_done=${usb_dev}
-  done
-rmdir /mnt/usb
-
-#
-# Step 7: mount the squashfs (RO) on /mnt/static
+# Step 6: mount the squashfs (RO) on /mnt/static
 # ==============================================
 #
 loop_free=$(losetup -f | sed s#p/#p#)
@@ -296,11 +275,11 @@ mount -t squashfs $loop_free /mnt/static
 VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 
 #
-# Step 8: mount the dynamic (RW) datapart on /mnt/ext
+# Step 7: mount the dynamic (RW) datapart on /mnt/ext
 # ===================================================
 #
 [ -d /mnt/ext ] || mkdir /mnt/ext
-mount -t ext4 ${BOOT_DEVICE}4 /mnt/ext
+mount -t ext4 ${BOOT_DEVICE}3 /mnt/ext
 [ -d /mnt/ext/dyn ] || mkdir /mnt/ext/dyn
 [ -d /mnt/ext/union ] || mkdir /mnt/ext/union
 [ -d /mnt/ext/work ] || mkdir /mnt/ext/work
