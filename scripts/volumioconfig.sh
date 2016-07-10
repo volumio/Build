@@ -99,15 +99,15 @@ if [ $(uname -m) = armv7l ]; then
   wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
   echo "Installing ARM Node Environment"
-  # version 5.5. 0
+  # version 6.3.0
   cd /
-  wget https://nodejs.org/dist/v6.2.2/node-v6.2.2-linux-armv6l.tar.xz
-  tar xf node-v6.2.2-linux-armv6l.tar.xz
-  rm /node-v6.2.2-linux-armv6l.tar.xz
-  cd /node-v6.2.2-linux-armv6l
+  wget https://nodejs.org/dist/v6.3.0/node-v6.3.0-linux-armv6l.tar.xz
+  tar xf node-v6.3.0-linux-armv6l.tar.xz
+  rm /node-v6.3.0-linux-armv6l.tar.xz
+  cd /node-v6.3.0-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.2.2-linux-armv6l
+  rm -rf /node-v6.3.0-linux-armv6l
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
@@ -203,13 +203,13 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget https://nodejs.org/dist/v6.2.2/node-v6.2.2-linux-x86.tar.xz
-  tar xf node-v6.2.2-linux-x86.tar.xz
-  rm /node-v6.2.2-linux-x86.tar.xz
-  cd /node-v6.2.2-linux-x86
+  wget https://nodejs.org/dist/v6.3.0/node-v6.3.0-linux-x86.tar.xz
+  tar xf node-v6.3.0-linux-x86.tar.xz
+  rm /node-v6.3.0-linux-x86.tar.xz
+  cd /node-v6.3.0-linux-x86
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.2.2-linux-x86
+  rm -rf /node-v6.3.0-linux-x86
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
