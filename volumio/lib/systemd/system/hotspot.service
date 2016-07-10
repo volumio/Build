@@ -3,7 +3,7 @@ Wants=dhcpd.service
 Wants=dnsmasq.service
 [Service]
 Type=idle
-ExecStart=/usr/sbin/hostapd /etc/hostapd/hostapd.conf
+ExecStart=/bin/hotspot.sh
 KillMode=mixed
 Restart=no
 StandardOutput=syslog
