@@ -1,0 +1,13 @@
+[Unit]
+Wants=dhcpd.service
+Wants=dnsmasq.service
+[Service]
+Type=idle
+ExecStart=/usr/sbin/hostapd /etc/hostapd/hostapd.conf
+KillMode=mixed
+Restart=no
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=hotspot
+[Install]
+WantedBy=multi-user.target
