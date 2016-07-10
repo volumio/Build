@@ -351,7 +351,7 @@ ln -s /lib/systemd/system/hotspot.service /etc/systemd/system/multi-user.target.
 echo "Fixing hostapd with proper version"
 rm /usr/sbin/hostapd
 wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
-chmod a+x /usr/sbin/hostapd
+chmod a+x /usr/sbin/hostapd-edimax
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
