@@ -235,11 +235,6 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing Custom Packages"
   cd /
-  
-  echo "Installing custom MPD version"
-  wget http://repo.volumio.org/Packages/Mpd/mpd_0.19.16-1_i386.deb
-  dpkg -i mpd_0.19.16-1_i386.deb
-  rm /mpd_0.19.16-1_i386.deb
 
   echo "Installing Upmpdcli"
 wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.1.3-1_i386.deb
