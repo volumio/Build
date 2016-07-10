@@ -344,3 +344,35 @@ echo "#disable ipv6" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
+
+echo "Hotspot"
+ln -s /lib/systemd/system/hotspot.service /etc/systemd/system/multi-user.target.wants/hotspot.service
+
+echo "Fixing hostapd with proper version"
+rm /usr/sbin/hostapd
+wget http://volumio.org/wp-content/uploads/Axiom/hostapd -P /usr/sbin/
+chmod a+x /usr/sbin/hostapd
+echo "Hostapd conf files"
+cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
+chmod -R 777 /etc/hostapd
+
+echo "Configuring hostapd"
+cat > /etc/hostapd/hostapd.conf << EOF
+interface=wlan0
+ssid=VolumioDemo
+channel=4
+driver=rtl871xdrv
+hw_mode=g
+EOF
+
+echo "Configuring dhcpd"
+cat > /etc/dhcp/dhcpd.conf << EOF
+ddns-update-style none;
+log-facility local7;
+subnet 192.168.211.0 netmask 255.255.255.0 {
+    range 192.168.211.2 192.168.211.100;
+        option routers 192.168.211.1;
+    option domain-name ".local";
+    option domain-name-servers 192.168.211.1;
+}
+EOF
