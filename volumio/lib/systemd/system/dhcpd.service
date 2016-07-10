@@ -1,0 +1,12 @@
+[Unit]
+BindsTo=hotspot.service
+After=hotspot.service
+Requires=hotspot.service
+[Service]
+Type=forking
+ExecStart=/usr/sbin/dhcpd
+KillMode=mixed
+Restart=no
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=hotspot

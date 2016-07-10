@@ -1,0 +1,12 @@
+[Unit]
+BindsTo=hotspot.service
+After=hotspot.service
+Requires=hotspot.service
+[Service]
+Type=forking
+ExecStart=/usr/sbin/dnsmasq --address=/#/192.168.211.1  -2 --interface=wlan0
+KillMode=mixed
+Restart=no
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=dnsmasq
