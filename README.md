@@ -13,8 +13,17 @@ required for building x86 : qemu-utils
 ./build.sh -b -d all -v 2.0 where switches are :
 
  * -b      --Build system with Multistrap, use arm or x86 to select architecture
- * -d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab
+ * -d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab, x86
  * -l      --Create docker layer. Docker Repository name as as argument
  * -v      --Version
 
-Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b arm -d pi -v 2.0 -l reponame 
+Example: Build a Raspberry PI image from scratch, version 2.0 : 
+
+./build.sh -b arm -d pi -v 2.0 -l reponame 
+
+You do not have to build the architecture and the image at the same time. 
+Example: Build the architecture for x86 first and the image version 2.0 in a second step:
+
+./build.sh -b x86
+./build.sh -d x86 -v 2.0
+
