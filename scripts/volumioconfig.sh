@@ -346,12 +346,13 @@ echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 
 echo "Hotspot"
-ln -s /lib/systemd/system/hotspot.service /etc/systemd/system/multi-user.target.wants/hotspot.service
+#ln -s /lib/systemd/system/hotspot.service /etc/systemd/system/multi-user.target.wants/hotspot.service
 
 echo "Fixing hostapd with proper version"
 rm /usr/sbin/hostapd
 wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
 chmod a+x /usr/sbin/hostapd-edimax
+
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
@@ -359,7 +360,7 @@ chmod -R 777 /etc/hostapd
 echo "Configuring hostapd"
 cat > /etc/hostapd/hostapd.conf << EOF
 interface=wlan0
-ssid=VolumioDemo
+ssid=Volumio
 channel=4
 driver=rtl871xdrv
 hw_mode=g
