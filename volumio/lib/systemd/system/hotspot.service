@@ -4,6 +4,7 @@ Wants=dnsmasq.service
 [Service]
 Type=idle
 ExecStart=/bin/hotspot.sh
+ExecStop=/usr/bin/killall hostapd && /usr/bin/killall dhcpd
 KillMode=mixed
 Restart=no
 StandardOutput=syslog

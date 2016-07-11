@@ -71,7 +71,8 @@ cp volumio/etc/nsswitch.conf build/$BUILD/root/etc/nsswitch.conf
 cp volumio/bin/firststart.sh build/$BUILD/root/bin/firststart.sh
 #hotspot
 cp volumio/bin/hotspot.sh build/$BUILD/root/bin/hotspot.sh
-
+#Wireless
+cp volumio/bin/wireless.js build/$BUILD/root/volumio/app/plugins/system_controller/network/wireless.js
 echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"

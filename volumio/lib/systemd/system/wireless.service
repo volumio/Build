@@ -3,5 +3,9 @@ Description=Wireless Services
 Wants=dhclient.service
 [Service]
 Type=forking
-ExecStart=/sbin/wpa_supplicant -d -B -Dwext -c/etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
+ExecStart=/volumio/app/plugins/system_controller/network/wireless.js start
 KillMode=mixed 
+
+[Install]
+WantedBy=multi-user.target
+
