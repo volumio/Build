@@ -5,10 +5,7 @@ After=syslog.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/upmpdcli -c /volumio/app/plugins/audio_interface/upnp/upmpdcli.conf
-<<<<<<< HEAD
-=======
 Restart=never
->>>>>>> master
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=volumio
