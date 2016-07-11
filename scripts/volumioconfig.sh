@@ -345,10 +345,11 @@ echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 
-echo "Hotspot"
-#ln -s /lib/systemd/system/hotspot.service /etc/systemd/system/multi-user.target.wants/hotspot.service
+echo "Wireless"
+ln -s /lib/systemd/system/wireless.service /etc/systemd/system/multi-user.target.wants/wireless.service
 
 echo "Fixing hostapd with proper version"
+#TODO Move to x86 and ARM
 rm /usr/sbin/hostapd
 wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
 chmod a+x /usr/sbin/hostapd-edimax
