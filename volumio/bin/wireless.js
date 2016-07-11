@@ -12,7 +12,7 @@ var wpasupp = "wpa_supplicant -d -B -Dwext -c/etc/wpa_supplicant/wpa_supplicant.
 var starthostapd = "systemctl start hotspot.service";
 var stophostapd = "systemctl stop hotspot.service";
 var ifconfigHotspot = "ifconfig " + wlan + " 192.168.211.1 up";
-var ifdeconfig = "ip addr flush dev " + wlan + " && ifconfig " + wlan + " down";
+var ifdeconfig = "sudo ip addr flush dev " + wlan + " && sudo ifconfig " + wlan + " down";
 
 function kill(process, callback) {
 	var all = process.split(" ");
