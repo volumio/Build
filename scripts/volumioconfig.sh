@@ -350,7 +350,6 @@ ln -s /lib/systemd/system/wireless.service /etc/systemd/system/multi-user.target
 
 echo "Fixing hostapd with proper version"
 #TODO Move to x86 and ARM
-rm /usr/sbin/hostapd
 wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
 chmod a+x /usr/sbin/hostapd-edimax
 
@@ -360,6 +359,13 @@ chmod -R 777 /etc/hostapd
 
 echo "Configuring hostapd"
 cat > /etc/hostapd/hostapd.conf << EOF
+interface=wlan0
+ssid=Volumio
+channel=4
+hw_mode=g
+EOF
+
+cat > /etc/hostapd/hostapd-edimax.conf << EOF
 interface=wlan0
 ssid=Volumio
 channel=4
