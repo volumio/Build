@@ -15,7 +15,7 @@ fi
 'stop')
 
 echo "Killing Hostapd"
-/usr/bin/sudo/ /usr/bin/killall hostapd
+/usr/bin/sudo /usr/bin/killall hostapd
 
 echo "Killing Dhcpd"
 /usr/bin/sudo /usr/bin/killall dhcpd
