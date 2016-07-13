@@ -10,7 +10,7 @@ required for building x86 : qemu-utils
 - clone the build repo on your local folder  : git clone https://github.com/volumio/Build build
 - if on Ubuntu, you may need to remove `$forceyes` from line 989 of /usr/sbin/multistrap
 - cd to /build and type
-./build.sh -b <architecture> -d <device> -v <version> where switches are :
+./build.sh -b architecture -d device -v version where switches are :
 
  * -b      --Build system with Multistrap, use **arm** or **x86** to select architecture
  * -d      --Create Image for Specific Devices. Usage:  **pi**, **odroidc1/2/xu4/x2**, udoo, cuboxi, bbb, cubietruck, compulab, **x86**
