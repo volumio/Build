@@ -23,9 +23,9 @@ Example: Build a Raspberry PI image from scratch, version 2.0 :
 
 You do not have to build the architecture and the image at the same time. 
 
-Example: Build the architecture for x86 first and the image version RC1 in a second step:
+Example: Build the architecture for x86 first and the image version MyVersion in a second step:
 
  * ./build.sh -b x86
 
- * ./build.sh -d x86 -v RC1
+ * ./build.sh -d x86 -v MyVersion
 
