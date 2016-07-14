@@ -179,10 +179,11 @@ if (process.argv.length < 2) {
 	switch (args) {
 		case "start":
 			console.log("Cleaning previous...");
-			stopAP(function() {
-				console.log("Stopped aP");
-				startFlow();
-			});
+                        stopHotspot(function () {
+                        stopAP(function() {
+                                console.log("Stopped aP");
+                                startFlow();
+                        })});
 			break;
 		case "stop":
 			stopAP(function() {});
