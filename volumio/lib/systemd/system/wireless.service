@@ -1,6 +1,5 @@
 [Unit]
 Description=Wireless Services
-Wants=dhclient.service
 [Service]
 Type=forking
 ExecStart=/volumio/app/plugins/system_controller/network/wireless.js start
