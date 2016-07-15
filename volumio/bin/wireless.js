@@ -1,12 +1,14 @@
 #!/usr/local/bin/node
 
+//Volumio Network Manager - Copyright Michelangelo Guarise - Volumio.org
+
 // Time needed to settle some commands sent to the system like ifconfig
 var settleTime = 3000;
 var fs = require('fs');
 var thus = require('child_process');
 var wlan = "wlan0";
 var dhcpd = "dhcpd";
-var dhclient = "dhclient -v -nw -w " + wlan;
+var dhclient = "sudo dhclient -v -nw -w " + wlan;
 var justdhclient = "dhclient";
 var wpasupp = "wpa_supplicant -d -B -Dwext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
 var starthostapd = "systemctl start hotspot.service";
@@ -179,10 +181,11 @@ if (process.argv.length < 2) {
 	switch (args) {
 		case "start":
 			console.log("Cleaning previous...");
-			stopAP(function() {
-				console.log("Stopped aP");
-				startFlow();
-			});
+                        stopHotspot(function () {
+                        stopAP(function() {
+                                console.log("Stopped aP");
+                                startFlow();
+                        })});
 			break;
 		case "stop":
 			stopAP(function() {});

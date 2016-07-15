@@ -16,6 +16,8 @@ echo 'Copying Custom Volumio System Files'
 if [ "$BUILD" = arm ]; then
   echo 'Copying ARM related configuration files'
   cp volumio/etc/apt/sources.list build/$BUILD/root/etc/apt/sources.list
+  echo 'Setting time for ARM devices with fskehwclock to build time'
+  date -u '+%Y-%m-%d %H:%M:%S' > build/$BUILD/root/etc/fake-hwclock.data
 elif [ "$BUILD" = x86 ]; then
   echo 'Copying X86 related Configuration files'
   #APT sources file
