@@ -25,9 +25,10 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-echo "Adding BCM Module"
+echo "Adding PI Modules"
 echo "
-snd_bcm2835
+i2c-dev
+i2c-bcm2708
 " >> /etc/modules
 
 echo "Alsa Raspberry PI Card Ordering"
@@ -40,7 +41,7 @@ options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
 
 echo "Installing R-pi specific binaries"
 apt-get update
-apt-get -y install binutils
+apt-get -y install binutils i2c-tools
 # Commenting raspi-config, not sure it is really needed
 #apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
 
@@ -80,7 +81,7 @@ chgrp gpio /usr/local/bin/gpio-admin
 chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
 
 echo "adding volumio to gpio group"
-sudo adduser volumio gpio 	
+sudo adduser volumio gpio
 
 echo "Fixing crda domain error"
 apt-get -y install crda wireless-regdb
@@ -89,11 +90,12 @@ echo "Removing unneeded binaries"
 apt-get -y remove binutils
 
 echo "Writing config.txt file"
-echo "initramfs volumio.initrd 
-gpu_mem=16 
+echo "initramfs volumio.initrd
+gpu_mem=16
 force_turbo=1
 max_usb_current=1
 dtparam=audio=on
+dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
 
