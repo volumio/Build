@@ -117,6 +117,11 @@ echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
 
+echo "Customizing pre and post actions for dtoverlay"
+
+echo "echo 'pre'" > /usr/bin/dtoverlay-pre
+echo "echo 'post'" > /usr/bin/dtoverlay-post
+
 echo "DTOverlay utility"
 
 ln -s /opt/vc/lib/libdtovl.so /usr/lib/libdtovl.so 
