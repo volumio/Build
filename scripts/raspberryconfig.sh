@@ -80,9 +80,9 @@ groupadd -f --system gpio
 chgrp gpio /usr/local/bin/gpio-admin
 chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
 
-touch /lib/udev/rules.d/60-python-pifacecommon.rules
+touch /lib/udev/rules.d/91-gpio.rules
 echo 'KERNEL=="spidev*", GROUP="spi", MODE="0660"
-SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c' "'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio; chown -R root:gpio /sys/devices/platform/soc/*.gpio/gpio && chmod -R 770 /sys/devices/platform/soc/*.gpio/gpio'"'"' > /lib/udev/rules.d/60-python-pifacecommon.rules
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c' "'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio; chown -R root:gpio /sys/devices/platform/soc/*.gpio/gpio && chmod -R 770 /sys/devices/platform/soc/*.gpio/gpio'"'"' > /lib/udev/rules.d/91-gpio.rules
 
 echo "adding volumio to gpio group"
 sudo adduser volumio gpio
