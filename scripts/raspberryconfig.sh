@@ -129,6 +129,11 @@ ln -s /opt/vc/bin/dtoverlay /usr/bin/dtoverlay
 ln -s /opt/vc/bin/dtoverlay-pre /usr/bin/dtoverlay-pre
 ln -s /opt/vc/bin/dtoverlay-post /usr/bin/dtoverlay-post
 
+echo "Setting Vcgencmd"
+
+ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
+ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
+ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
