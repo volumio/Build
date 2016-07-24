@@ -25,9 +25,10 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-echo "Adding BCM Module"
+echo "Adding PI Modules"
 echo "
-snd_bcm2835
+i2c-dev
+i2c-bcm2708
 " >> /etc/modules
 
 echo "Alsa Raspberry PI Card Ordering"
@@ -40,7 +41,7 @@ options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
 
 echo "Installing R-pi specific binaries"
 apt-get update
-apt-get -y install binutils
+apt-get -y install binutils i2c-tools
 # Commenting raspi-config, not sure it is really needed
 #apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
 
@@ -79,8 +80,12 @@ groupadd -f --system gpio
 chgrp gpio /usr/local/bin/gpio-admin
 chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
 
+touch /lib/udev/rules.d/91-gpio.rules
+echo 'KERNEL=="spidev*", GROUP="spi", MODE="0660"
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c' "'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio; chown -R root:gpio /sys/devices/platform/soc/*.gpio/gpio && chmod -R 770 /sys/devices/platform/soc/*.gpio/gpio'"'"' > /lib/udev/rules.d/91-gpio.rules
+
 echo "adding volumio to gpio group"
-sudo adduser volumio gpio 	
+sudo adduser volumio gpio
 
 echo "Fixing crda domain error"
 apt-get -y install crda wireless-regdb
@@ -89,11 +94,12 @@ echo "Removing unneeded binaries"
 apt-get -y remove binutils
 
 echo "Writing config.txt file"
-echo "initramfs volumio.initrd 
-gpu_mem=16 
+echo "initramfs volumio.initrd
+gpu_mem=16
 force_turbo=1
 max_usb_current=1
 dtparam=audio=on
+dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
 
@@ -111,6 +117,11 @@ echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
 
+echo "Customizing pre and post actions for dtoverlay"
+
+echo "echo 'pre'" > /usr/bin/dtoverlay-pre
+echo "echo 'post'" > /usr/bin/dtoverlay-post
+
 echo "DTOverlay utility"
 
 ln -s /opt/vc/lib/libdtovl.so /usr/lib/libdtovl.so 
@@ -118,6 +129,11 @@ ln -s /opt/vc/bin/dtoverlay /usr/bin/dtoverlay
 ln -s /opt/vc/bin/dtoverlay-pre /usr/bin/dtoverlay-pre
 ln -s /opt/vc/bin/dtoverlay-post /usr/bin/dtoverlay-post
 
+echo "Setting Vcgencmd"
+
+ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
+ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
+ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
