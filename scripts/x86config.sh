@@ -109,8 +109,24 @@ while true; do
 done" > /opt/volumiokiosk.sh
 chmod +x /opt/volumiokiosk.sh
 
-echo "  Editing rc.local to start the chromium kiosk"
-sed -i "s|\\# By default this script does nothing.|\\nsudo -u volumio startx /etc/X11/Xsession /opt/volumiokiosk.sh|" /etc/rc.local
+#echo "  Editing rc.local to start the chromium kiosk"
+#sed -i "s|\\# By default this script does nothing.|\\nsudo -u volumio startx /etc/X11/Xsession /opt/volumiokiosk.sh|" /etc/rc.local
+echo "[Unit]
+Description=Start Volumio Kiosk
+Wants=volumio.service
+After=volumio.service
+[Service]
+Type=simple
+User=volumio
+Group=audio
+ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh
+# Give a reasonable amount of time for the server to start up/shut down
+TimeoutSec=300
+[Install]
+WantedBy=multi-user.target
+" > /lib/systemd/system/volumio-kiosk.service
+ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
+
 
 echo "  Allowing volumio to start an xsession"
 sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
