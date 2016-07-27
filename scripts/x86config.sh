@@ -34,14 +34,9 @@ echo "DEFAULT volumio
 LABEL volumio
   SAY Legacy Boot Volumio Audiophole Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=%%IMGPART%% bootpart=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash ${DEBUG}
+  APPEND ro imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=volumio_current.sqsh quiet splash ${DEBUG}
   INITRD volumio.initrd
 " > /boot/syslinux.cfg
-
-echo "  Inserting root and boot partition UUID (building the boot cmdline used in initramfs)"
-# Opting for finding partitions by-UUID
-sed -i "s/imgpart=%%IMGPART%%/`echo imgpart=UUID="$( echo ${UUID_IMG})"`/g" /boot/syslinux.cfg
-sed -i "s/bootpart=%%BOOTPART%%/`echo bootpart=UUID="$( echo ${UUID_BOOT})"`/g" /boot/syslinux.cfg
 
 echo "Installing Grub UEFI" 
 echo "  Editing the grub config template"
@@ -53,6 +48,7 @@ sed -i "s/initrd=\"\$i\"/initrd=\"volumio.initrd\"/g" /etc/grub.d/10_linux
 
 #replace both LINUX_ROOT_DEVICE and LINUX_ROOT_DEVICE=UUID= in the template 
 # to a string which we can replace after creating the grub config file
+#TODO: update the default grub file
 sed -i "s/LINUX_ROOT_DEVICE=\${GRUB_DEVICE}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
 sed -i "s/LINUX_ROOT_DEVICE=UUID=\${GRUB_DEVICE_UUID}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
 
@@ -63,18 +59,18 @@ echo "  Applying Grub Configuration"
 grub-mkconfig -o /boot/grub/grub.cfg
 chmod +w boot/grub/grub.cfg
 
-echo "  Inserting root and boot partition UUID (building the boot cmdline used in initramfs)"
-# Opting for finding partitions by-UUID
-sed -i "s/root=imgpart=%%IMGPART%%/`echo imgpart=UUID="$( echo ${UUID_IMG})"`/g" /boot/grub/grub.cfg
-sed -i "s/bootpart=%%BOOTPART%%/`echo bootpart=UUID="$( echo ${UUID_BOOT})"`/g" /boot/grub/grub.cfg
-
-echo "  Installing grub-efi-amd64 to make the 64bit UEFI bootloader"
+echo "  Inserting root and boot partition label (building the boot cmdline used in initramfs)"
+# Opting for finding partitions by-LABEL
+sed -i "s/root=imgpart=%%IMGPART%%/imgpart=LABEL=volumioimg/g" /boot/grub/grub.cfg
+sed -i "s/bootpart=%%BOOTPART%%/bootpart=LABEL=volumioboot/g" /boot/grub/grub.cfg
 
 echo "  Prevent cgmanager starting during install (causing problems)" 
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
+
+echo "  Installing grub-efi-amd64 to make the 64bit UEFI bootloader"
 
 apt-get update
 apt-get -y install grub-efi-amd64-bin
@@ -83,9 +79,12 @@ grub-mkstandalone --compress=gz -O x86_64-efi -o /boot/efi/BOOT/BOOTX64.EFI -d /
 #on the off-chance that we need a 32bit bootloader, we remove amd64 and install ia32 to generate one
 echo "  Uninstalling grub-efi-amd64"
 apt-get -y --purge remove grub-efi-amd64-bin
+
 echo "  Installing grub-efi-ia32 to make the 32bit UEFI bootloader"
 apt-get -y install grub-efi-ia32-bin
 grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI -d /usr/lib/grub/i386-efi --modules="part_gpt part_msdos" --fonts="unicode" --locales="en@quot" --themes="" /boot/grub/grub.cfg 
+#and remove it again
+echo "  Uninstalling grub-efi-ia32-bin"
 apt-get -y --purge remove grub-efi-ia32-bin
 
 echo "Cleaning APT Cache and remove policy file"
@@ -93,8 +92,8 @@ rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
 
-echo "Editing fstab to use UUID"
-sed -i "s/%%BOOTPART%%/`echo UUID="$( echo ${UUID_BOOT})"`/g" /etc/fstab
+echo "Editing fstab to use LABEL"
+sed -i "s/%%BOOTPART%%/LABEL=volumioboot/g" /etc/fstab
 
 echo "Setting up in kiosk-mode"
 echo "  Creating chromium kiosk start script"
@@ -116,20 +115,18 @@ echo "[Unit]
 Description=Start Volumio Kiosk
 Wants=volumio.service
 After=volumio.service
-
 [Service]
 Type=simple
 User=volumio
 Group=audio
 ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh
-
 # Give a reasonable amount of time for the server to start up/shut down
 TimeoutSec=300
-
 [Install]
 WantedBy=multi-user.target
 " > /lib/systemd/system/volumio-kiosk.service
 ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
+
 
 echo "  Allowing volumio to start an xsession"
 sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
