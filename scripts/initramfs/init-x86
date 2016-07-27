@@ -101,7 +101,7 @@ if [ -z "${BOOTPART}" ]; then
   echo "Specify the squash image partition on the kernel command ${CMDLINE}"
   echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
   echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
-  echo "         kernel... imgpart=LABEL=volumio bootpart=LABEL=BOOT imgfile=/volumio_current.sqs or" 
+  echo "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
   exec sh
   exit 0
 fi
@@ -110,7 +110,7 @@ if [ -z "${IMGPART}" ]; then
   echo "Specify the squash image partition on the kernel command ${CMDLINE}"
   echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
   echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
-  echo "         kernel... imgpart=LABEL=volumio bootpart=LABEL=BOOT imgfile=/volumio_current.sqs or" 
+  echo "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
   exec sh
   exit 0
 fi
@@ -119,7 +119,7 @@ if [ -z "${IMGFILE}" ]; then
   echo "Specify the squash image file after the kernel command ${CMDLINE}"
   echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
   echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
-  echo "         kernel... imgpart=LABEL=volumio bootpart=LABEL=BOOT imgfile=/volumio_current.sqs or" 
+  echo "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
   exec sh
   exit 0
 fi
@@ -188,7 +188,7 @@ for devlink in /dev/sd*
     fi
 	usb_done=${usb_dev}
   done
-echo "Checking for factory reset on an additional devvice"
+echo "Checking for factory reset on an additional device"
 for devlink in /dev/sd*
   do 
 	# only checking the first partition of an additional device!

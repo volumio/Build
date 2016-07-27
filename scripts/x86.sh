@@ -36,9 +36,9 @@ fi
 
 echo "Creating filesystems"
 #sudo mkdosfs "${BOOT_PART}"
-sudo mkfs -t vfat -F 32 -n BOOT "${BOOT_PART}"
-sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumio
-sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumio_data
+sudo mkfs -t vfat -F 32 -n volumioboot "${BOOT_PART}"
+sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumioimg
+sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumiodata
 sudo parted -s "${LOOP_DEV}" print
 
 sync
@@ -99,11 +99,7 @@ mkdir -p /mnt/volumio/rootfs/boot/efi/EFI/debian
 mkdir -p /mnt/volumio/rootfs/boot/efi/BOOT/
 modprobe efivarfs
 
-UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
-UUID_IMG=$(blkid -s UUID -o value ${IMG_PART})
-echo "UUID_BOOT=${UUID_BOOT}
-UUID_IMG=${UUID_IMG}
-LOOP_DEV=${LOOP_DEV}
+echo "LOOP_DEV=${LOOP_DEV}
 BOOT_PART=${BOOT_PART}
 " >> /mnt/volumio/rootfs/init.sh
 chmod +x /mnt/volumio/rootfs/init.sh
