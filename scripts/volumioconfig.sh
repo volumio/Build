@@ -260,7 +260,7 @@ echo "Installing Shairport-Sync"
 wget http://repo.volumio.org/Volumio2/Binaries/x86/shairport-sync_2.8.4-1_i386.deb
 wget http://repo.volumio.org/Volumio2/Binaries/x86/libssl1.0.2_1.0.2h-1_i386.deb
 dpkg -i libssl1.0.2_1.0.2h-1_i386.deb
-dpkg -i shairport-sync_2.8.4-1_i386.deb
+echo N | dpkg -i shairport-sync_2.8.4-1_i386.deb
 rm /libssl1.0.2_1.0.2h-1_i386.deb
 rm /shairport-sync_2.8.4-1_i386.deb
 
