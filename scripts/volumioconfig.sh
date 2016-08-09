@@ -191,6 +191,18 @@ wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
   wget http://repo.volumio.org/Volumio2/Binaries/arm/libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
   wget http://repo.volumio.org/Volumio2/Binaries/arm/winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
 
+  echo "Adding special version for edimax dongle"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
+  chmod a+x /usr/sbin/hostapd-edimax
+
+  cat > /etc/hostapd/hostapd-edimax.conf << EOF
+  interface=wlan0
+  ssid=Volumio
+  channel=4
+  driver=rtl871xdrv
+  hw_mode=g
+  EOF
+
   echo "Cleanup"
   apt-get clean
   rm -rf tmp/*
@@ -362,10 +374,7 @@ echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "Wireless"
 ln -s /lib/systemd/system/wireless.service /etc/systemd/system/multi-user.target.wants/wireless.service
 
-echo "Fixing hostapd with proper version"
-#TODO Move to x86 and ARM
-wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
-chmod a+x /usr/sbin/hostapd-edimax
+
 
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
@@ -379,15 +388,7 @@ channel=4
 hw_mode=g
 EOF
 
-cat > /etc/hostapd/hostapd-edimax.conf << EOF
-interface=wlan0
-ssid=Volumio
-channel=4
-driver=rtl871xdrv
-hw_mode=g
-EOF
-
-echo "Configuring dhcpd"
+echo "Configuring dhcpd for hotspot"
 cat > /etc/dhcp/dhcpd.conf << EOF
 ddns-update-style none;
 log-facility local7;
