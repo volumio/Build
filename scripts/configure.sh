@@ -34,6 +34,7 @@ cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/
 cp -p volumio/etc/hosts build/$BUILD/root/etc/hosts
 #Dhcp conf file
 cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
+cp volumio/etc/dhcp/dhcpd.conf build/$BUILD/root/etc/dhcp/dhcpd.conf
 #Samba conf file
 cp volumio/etc/samba/smb.conf build/$BUILD/root/etc/samba/smb.conf
 #Udev confs file (NET)
