@@ -3,8 +3,9 @@
 case "$1" in
 'start')
 DRIVER=`/sbin/ethtool -i wlan0 | grep driver | awk -F": " '{print $2}'`
+ARCH=`/usr/bin/dpkg --print-architecture`
 
-if [ $DRIVER = "rtl8192cu" ] ; then
+if [ $DRIVER = "rtl8192cu" -a $ARCH = "armhf" ] ; then
   echo "Launching Hostapd Edimax"
 /usr/sbin/hostapd-edimax /etc/hostapd/hostapd-edimax.conf
 else
