@@ -145,12 +145,26 @@ echo "Initrd initialisation finished..."
 
 #
 # Step 1: As the image likely has been dd'ed to a bigger disk, 
-#         the GPT backup sits in the wrong sectors, fix it 
-#         before doing anything else.
+#         the GPT backup sits in the wrong sectors. Move it 
+#         to the end of the disk before doing anything else.
 # =============================================================
 #
-BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-parted ${BOOT_DEVICE} print Fix > /dev/null 2>&1
+# only run this at first boot
+
+mkdir boot
+mount -t vfat ${BOOTPART} /boot
+if [ -e "/boot/resize-volumio-datapart" ]; then
+  echo "Compensating for flashing starter image to a bigger disk"
+  BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
+  gdisk ${BOOT_DEVICE} >/dev/null <<EOF
+x
+e
+w
+y
+EOF
+fi
+umount /boot
+rm -r /boot
 
 #
 # Step 2: Check for recovery image, if not found create it
