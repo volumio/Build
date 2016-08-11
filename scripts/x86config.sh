@@ -32,7 +32,7 @@ echo "  Creating syslinux.cfg template for Syslinux Legacy BIOS"
 echo "DEFAULT volumio
 
 LABEL volumio
-  SAY Legacy Boot Volumio Audiophole Music Player (default)
+  SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
   APPEND ro imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=volumio_current.sqsh quiet splash ${DEBUG}
   INITRD volumio.initrd
@@ -158,7 +158,17 @@ mv volumio-init-updater /usr/local/sbin
 echo "  Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
-echo "  Signalling the init script to re-size the volumio data partition"
+echo "  No need to keep the original initrd"
+DELFILE=`ls -l /boot |grep initrd.img | awk '{print $9}'`
+echo "  Found "$DELFILE", deleting"
+rm /boot/${DELFILE}
+echo "  No need for the system map either"
+DELFILE=`ls -l /boot |grep System.map | awk '{print $9}'`
+echo "  Found "$DELFILE", deleting"
+rm /boot/${DELFILE}
+ls -l /boot
+
+echo "  Signalling the init script to move the GPT backup partition table and re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
 
 echo "Bootloader configuration and initrd.img complete"
