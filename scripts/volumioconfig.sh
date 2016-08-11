@@ -153,15 +153,15 @@ if [ $(uname -m) = armv7l ]; then
   rm /shairport-sync_arm.tar.gz
 
   echo "Installing Upmpdcli"
-wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
- wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
- wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
- dpkg -i libupnpp2_0.14.1-1_armhf.deb
- dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
- dpkg -i upmpdcli_1.1.3-1_armhf.deb
- rm /upmpdcli_1.1.3-1_armhf.deb
- rm /libupnp6_1.6.19.jfd3-1_armhf.deb
- rm /libupnpp2_0.14.1-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
+  dpkg -i libupnpp2_0.14.1-1_armhf.deb
+  dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
+  dpkg -i upmpdcli_1.1.3-1_armhf.deb
+  rm /upmpdcli_1.1.3-1_armhf.deb
+  rm /libupnp6_1.6.19.jfd3-1_armhf.deb
+  rm /libupnpp2_0.14.1-1_armhf.deb
 
   #Remove autostart of upmpdcli
   update-rc.d upmpdcli remove
@@ -191,13 +191,24 @@ wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
   wget http://repo.volumio.org/Volumio2/Binaries/arm/libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
   wget http://repo.volumio.org/Volumio2/Binaries/arm/winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
 
+  echo "Adding special version for edimax dongle"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
+  chmod a+x /usr/sbin/hostapd-edimax
+
+  echo "interface=wlan0
+  ssid=Volumio
+  channel=4
+  driver=rtl871xdrv
+  hw_mode=g" >> /etc/hostapd/hostapd-edimax.conf
+  
+
   echo "Cleanup"
   apt-get clean
   rm -rf tmp/*
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
   echo 'X86 Environment Detected'
 
-# cleanup
+  # cleanup
   apt-get clean
   rm -rf tmp/*
 
@@ -237,12 +248,21 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   cd /
 
   echo "Installing Upmpdcli"
-wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.1.3-1_i386.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnpp2_0.14.1-1_i386.deb
-dpkg -i libupnpp2_0.14.1-1_i386.deb
-dpkg -i upmpdcli_1.1.3-1_i386.deb
-rm /upmpdcli_1.1.3-1_i386.deb
-rm /libupnpp2_0.14.1-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.1.3-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnpp2_0.14.1-1_i386.deb
+  dpkg -i libupnpp2_0.14.1-1_i386.deb
+  dpkg -i upmpdcli_1.1.3-1_i386.deb
+  rm /upmpdcli_1.1.3-1_i386.deb
+  rm /libupnpp2_0.14.1-1_i386.deb
+
+  echo "Installing Shairport-Sync"
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/shairport-sync_2.8.4-1_i386.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/libssl1.0.2_1.0.2h-1_i386.deb
+  dpkg -i libssl1.0.2_1.0.2h-1_i386.deb
+  echo N | dpkg -i shairport-sync_2.8.4-1_i386.deb
+  rm /libssl1.0.2_1.0.2h-1_i386.deb
+  rm /shairport-sync_2.8.4-1_i386.deb
+
 
   echo "Installing LINN Songcast module"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
@@ -284,10 +304,6 @@ chmod -R 777 /data/INTERNAL
 ln -s /mnt/NAS /var/lib/mpd/music
 ln -s /mnt/USB /var/lib/mpd/music
 ln -s /mnt/INTERNAL /var/lib/mpd/music
-
-
-
-
 
 echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
@@ -353,39 +369,12 @@ echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "Wireless"
 ln -s /lib/systemd/system/wireless.service /etc/systemd/system/multi-user.target.wants/wireless.service
 
-echo "Fixing hostapd with proper version"
-#TODO Move to x86 and ARM
-wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
-chmod a+x /usr/sbin/hostapd-edimax
+echo "Configuring hostapd"
+echo "interface=wlan0
+ssid=Volumio
+channel=4
+hw_mode=g" >> /etc/hostapd/hostapd.conf
 
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
-
-echo "Configuring hostapd"
-cat > /etc/hostapd/hostapd.conf << EOF
-interface=wlan0
-ssid=Volumio
-channel=4
-hw_mode=g
-EOF
-
-cat > /etc/hostapd/hostapd-edimax.conf << EOF
-interface=wlan0
-ssid=Volumio
-channel=4
-driver=rtl871xdrv
-hw_mode=g
-EOF
-
-echo "Configuring dhcpd"
-cat > /etc/dhcp/dhcpd.conf << EOF
-ddns-update-style none;
-log-facility local7;
-subnet 192.168.211.0 netmask 255.255.255.0 {
-    range 192.168.211.2 192.168.211.100;
-        option routers 192.168.211.1;
-    option domain-name ".local";
-    option domain-name-servers 192.168.211.1;
-}
-EOF
