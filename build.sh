@@ -30,7 +30,9 @@ Switches:
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
-  -p      Patch, optionally patch the builder
+  -p <dir>  Optionally patch the builder. <dir> should contain a tree of
+            files you want to replace within the build tree. Experts only.
+
 Example: Build a Raspberry PI image from scratch, version 2.0 :
          ./build.sh -b arm -d pi -v 2.0 -l reponame
 "
