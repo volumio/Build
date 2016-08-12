@@ -19,7 +19,7 @@ function HELP {
 
 Help documentation for Volumio Image Builder
 
-Basic usage: ./build.sh -b -d all -v 2.0
+Basic usage: ./build.sh -b arm -d all -v 2.0
 
 Switches:
   -b <arch> Build a full system image with Multistrap.
