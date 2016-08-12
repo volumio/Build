@@ -107,6 +107,11 @@ if [ -n "$BUILD" ]; then
   elif [ "$BUILD" = x86 ]; then
     echo 'Building X86 Base System'
     ARCH="i386"
+  else
+    if [ ! -f recipes/$BUILD.conf ]; then
+      echo "Unexpected Base System architecture '$BUILD' - aborting."
+      exit
+    fi
   fi
   if [ -d build/$BUILD ]
     then
