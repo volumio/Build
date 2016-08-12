@@ -22,12 +22,14 @@ Help documentation for Volumio Image Builder
 Basic usage: ./build.sh -b -d all -v 2.0
 
 Switches:
--b      --Build system with Multistrap, use arm or x86 to select architecture
--d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab, odr
--l      --Create docker layer. Docker Repository name as as argument
--v      --Version, must be a dot separated number. Example 1.102
--p      --Patch, optionally patch the builder
-Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b arm -d pi -v 2.0 -l reponame
+  -b      Build system with Multistrap, use arm or x86 to select architecture
+  -d      Create Image for Specific Devices. Usage: all (all), pi, udoo,
+          cuboxi, bbb, cubietruck, compulab, odr
+  -l      Create docker layer. Docker Repository name as as argument
+  -v      Version, must be a dot separated number. Example 1.102
+  -p      Patch, optionally patch the builder
+Example: Build a Raspberry PI image from scratch, version 2.0 :
+         ./build.sh -b arm -d pi -v 2.0 -l reponame
 "
   exit 1
 }
