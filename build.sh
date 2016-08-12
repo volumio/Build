@@ -22,7 +22,8 @@ Help documentation for Volumio Image Builder
 Basic usage: ./build.sh -b -d all -v 2.0
 
 Switches:
-  -b      Build system with Multistrap, use arm or x86 to select architecture
+  -b <arch> Build a full system image with Multistrap.
+            Options for the target architecture are 'arm' or 'x86'.
   -d      Create Image for Specific Devices. Usage: all (all), pi, udoo,
           cuboxi, bbb, cubietruck, compulab, odroidc1, odroidc2, odroidxu4
   -l      Create docker layer. Docker Repository name as as argument
