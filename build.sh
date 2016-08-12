@@ -29,7 +29,7 @@ Switches:
               odroidc1, odroidc2, odroidxu4
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
-  -l      Create docker layer. Docker Repository name as as argument
+  -l <repo> Create docker layer. Give a Docker Repository name as the argument.
   -p      Patch, optionally patch the builder
 Example: Build a Raspberry PI image from scratch, version 2.0 :
          ./build.sh -b arm -d pi -v 2.0 -l reponame
