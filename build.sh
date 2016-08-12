@@ -24,8 +24,9 @@ Basic usage: ./build.sh -b -d all -v 2.0
 Switches:
   -b <arch> Build a full system image with Multistrap.
             Options for the target architecture are 'arm' or 'x86'.
-  -d      Create Image for Specific Devices. Usage: all (all), pi, udoo,
-          cuboxi, bbb, cubietruck, compulab, odroidc1, odroidc2, odroidxu4
+  -d        Create Image for Specific Devices. Supported device names:
+              all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab,
+              odroidc1, odroidc2, odroidxu4
   -l      Create docker layer. Docker Repository name as as argument
   -v      Version, must be a dot separated number. Example 1.102
   -p      Patch, optionally patch the builder
