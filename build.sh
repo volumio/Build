@@ -15,15 +15,27 @@ REV=`tput smso`
 ARCH=none
 #Help function
 function HELP {
-  echo -e \\n"Help documentation for Volumio Image Builder"\\n
-  echo -e "Basic usage: ./build.sh -b -d all -v 2.0"\\n
-  echo "Switches:"
-  echo "-b      --Build system with Multistrap, use arm or x86 to select architecture"
-  echo "-d      --Create Image for Specific Devices. Usage: all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab, odroidc1, odroidc2, odroidxu4"
-  echo "-l      --Create docker layer. Docker Repository name as as argument"
-  echo "-v      --Version, must be a dot separated number. Example 1.102"
-  echo "-p      --Patch, optionally patch the builder"
-  echo -e "Example: Build a Raspberry PI image from scratch, version 2.0 : ./build.sh -b arm -d pi -v 2.0 -l reponame "\\n
+  echo "
+
+Help documentation for Volumio Image Builder
+
+Basic usage: ./build.sh -b arm -d all -v 2.0
+
+Switches:
+  -b <arch> Build a full system image with Multistrap.
+            Options for the target architecture are 'arm' or 'x86'.
+  -d        Create Image for Specific Devices. Supported device names:
+              all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab,
+              odroidc1, odroidc2, odroidxu4
+  -v <vers> Version must be a dot separated number. Example 1.102 .
+
+  -l <repo> Create docker layer. Give a Docker Repository name as the argument.
+  -p <dir>  Optionally patch the builder. <dir> should contain a tree of
+            files you want to replace within the build tree. Experts only.
+
+Example: Build a Raspberry PI image from scratch, version 2.0 :
+         ./build.sh -b arm -d pi -v 2.0 -l reponame
+"
   exit 1
 }
 
@@ -95,6 +107,11 @@ if [ -n "$BUILD" ]; then
   elif [ "$BUILD" = x86 ]; then
     echo 'Building X86 Base System'
     ARCH="i386"
+  else
+    if [ ! -f recipes/$BUILD.conf ]; then
+      echo "Unexpected Base System architecture '$BUILD' - aborting."
+      exit
+    fi
   fi
   if [ -d build/$BUILD ]
     then
