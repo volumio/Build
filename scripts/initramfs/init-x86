@@ -145,26 +145,12 @@ echo "Initrd initialisation finished..."
 
 #
 # Step 1: As the image likely has been dd'ed to a bigger disk, 
-#         the GPT backup sits in the wrong sectors. Move it 
-#         to the end of the disk before doing anything else.
+#         the GPT backup sits in the wrong sectors, fix it 
+#         before doing anything else.
 # =============================================================
 #
-# only run this at first boot
-
-mkdir boot
-mount -t vfat ${BOOTPART} /boot
-if [ -e "/boot/resize-volumio-datapart" ]; then
-  echo "Compensating for flashing starter image to a bigger disk"
-  BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-  gdisk ${BOOT_DEVICE} >/dev/null <<EOF
-x
-e
-w
-y
-EOF
-fi
-umount /boot
-rm -r /boot
+BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
+parted ${BOOT_DEVICE} print Fix > /dev/null 2>&1
 
 #
 # Step 2: Check for recovery image, if not found create it
@@ -237,7 +223,7 @@ mkdir /mnt/factory
 mount -t vfat ${BOOT_DEVICE}1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   echo "Executing factory reset"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumio_data
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumiodata
 
   echo "Factory reset executed: part I"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
@@ -245,7 +231,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumio_data
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumiodata
   rm /mnt/factory/user_data
   
   echo "User Data successfully deleted "
@@ -320,6 +306,5 @@ exec switch_root /mnt/ext/union /sbin/init
 
 echo "Failed to switch_root, dropping to a shell"
 exec sh 
-
 
 
