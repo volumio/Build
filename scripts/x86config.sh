@@ -86,6 +86,7 @@ grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI -d /u
 #and remove it again
 echo "  Uninstalling grub-efi-ia32-bin"
 apt-get -y --purge remove grub-efi-ia32-bin
+apt-get -y --purge remove efibootmgr libefivar0
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
