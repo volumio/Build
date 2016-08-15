@@ -145,13 +145,28 @@ echo "Initrd initialisation finished..."
 
 #
 # Step 1: As the image likely has been dd'ed to a bigger disk, 
-#         the GPT backup sits in the wrong sectors, fix it 
-#         before doing anything else.
-# =============================================================
+#         the backup GPT table is not at the end of the disk.
+# 		  Fix it before doing anything else (only at first boot)
+# ==============================================================
 #
-BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-parted ${BOOT_DEVICE} print Fix > /dev/null 2>&1
 
+BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
+mkdir boot
+mount -t vfat ${BOOTPART} /boot
+if [ -e "/boot/resize-volumio-datapart" ]; then
+  umount /boot
+  echo "First time boot, moving the backup GPT table to the end of the disk"
+  parted ${BOOT_DEVICE} <<EOF
+p
+Fix
+q
+EOF
+  echo "Succesfully moved the backup GPT table"
+else
+  umount /boot
+fi
+rm -r /boot	
+exec sh
 #
 # Step 2: Check for recovery image, if not found create it
 # =============================================================
