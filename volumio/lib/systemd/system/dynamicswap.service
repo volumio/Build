@@ -1,0 +1,11 @@
+[Service]
+ExecStart=/bin/dynswap.sh
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=volumio
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+
