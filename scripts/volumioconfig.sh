@@ -196,11 +196,11 @@ if [ $(uname -m) = armv7l ]; then
   chmod a+x /usr/sbin/hostapd-edimax
 
   echo "interface=wlan0
-  ssid=Volumio
-  channel=4
-  driver=rtl871xdrv
-  hw_mode=g" >> /etc/hostapd/hostapd-edimax.conf
-  
+ssid=Volumio
+channel=4
+driver=rtl871xdrv
+hw_mode=g" >> /etc/hostapd/hostapd-edimax.conf
+  chmod -R 777 /etc/hostapd-edimax.conf
 
   echo "Cleanup"
   apt-get clean
