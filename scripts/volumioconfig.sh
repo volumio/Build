@@ -327,6 +327,9 @@ ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.tar
 echo "Adding First start script"
 ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.target.wants/firststart.service
 
+echo "Adding Dynamic Swap Service"
+ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.target.wants/dynamicswap.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
