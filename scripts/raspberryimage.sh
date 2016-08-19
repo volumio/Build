@@ -87,6 +87,7 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 
 echo "Custom dtoverlay pre and post"
+mkdir -p /mnt/volumio/rootfs/opt/vc/bin/
 cp -rp volumio/opt/vc/bin/* /mnt/volumio/rootfs/opt/vc/bin/
 
 echo $PATCH > /mnt/volumio/rootfs/patch
