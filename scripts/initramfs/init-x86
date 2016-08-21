@@ -156,9 +156,10 @@ mount -t vfat ${BOOTPART} /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
   umount /boot
   echo "First time boot, moving the backup GPT table to the end of the disk"
-  parted ${BOOT_DEVICE} <<EOF
+  exec sh
+  parted ${BOOT_DEVICE} > /mnt/imgpart/parted.log <<EOF
 p
-Fix
+f
 q
 EOF
   echo "Succesfully moved the backup GPT table"
