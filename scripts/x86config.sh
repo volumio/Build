@@ -32,7 +32,7 @@ echo "  Creating syslinux.cfg template for Syslinux Legacy BIOS"
 echo "DEFAULT volumio
 
 LABEL volumio
-  SAY Legacy Boot Volumio Audiophole Music Player (default)
+  SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
   APPEND ro imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=volumio_current.sqsh quiet splash ${DEBUG}
   INITRD volumio.initrd
