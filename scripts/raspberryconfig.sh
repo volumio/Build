@@ -27,6 +27,7 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
 
 echo "Adding PI Modules"
 echo "
+snd_bcm2835
 i2c-dev
 i2c-bcm2708
 " >> /etc/modules
