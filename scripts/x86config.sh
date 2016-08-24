@@ -86,6 +86,7 @@ grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI -d /u
 #and remove it again
 echo "  Uninstalling grub-efi-ia32-bin"
 apt-get -y --purge remove grub-efi-ia32-bin
+apt-get -y --purge remove efibootmgr libefivar0
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -157,6 +158,15 @@ mv volumio-init-updater /usr/local/sbin
 
 echo "  Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
+
+echo "  No need to keep the original initrd"
+DELFILE=`ls -l /boot |grep initrd.img | awk '{print $9}'`
+echo "  Found "$DELFILE", deleting"
+rm /boot/${DELFILE}
+echo "  No need for the system map either"
+DELFILE=`ls -l /boot |grep System.map | awk '{print $9}'`
+echo "  Found "$DELFILE", deleting"
+rm /boot/${DELFILE}
 
 echo "  Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart

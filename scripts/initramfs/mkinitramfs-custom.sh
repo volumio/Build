@@ -389,15 +389,20 @@ cp /sbin/e2fsck "${DESTDIR}/sbin"
 cp /sbin/resize2fs "${DESTDIR}/sbin"
 if [ ${DPKG_ARCH} = "i386" ]; then
   cp /sbin/findfs "${DESTDIR}/sbin"
+  cp /sbin/gdisk "${DESTDIR}/sbin"
+# these libs are only for gdisk
+  cp "/usr/${LIB_GNUE}/libstdc++.so.6" "${DESTDIR}${LIB_GNUE}"
 fi
 
-echo "Adding their dependencies"
+echo "Adding all common dependencies"
 cp "${LIB_GNUE}/libparted.so.2" "${DESTDIR}${LIB_GNUE}"
 cp "${LIB_GNUE}/libreadline.so.6" "${DESTDIR}${LIB_GNUE}"
 cp "${LIB_GNUE}/libtinfo.so.5" "${DESTDIR}${LIB_GNUE}"	
 cp "${LIB_GNUE}/libext2fs.so.2" "${DESTDIR}${LIB_GNUE}"
 cp "${LIB_GNUE}/libcom_err.so.2" "${DESTDIR}${LIB_GNUE}"
 cp "${LIB_GNUE}/libe2p.so.2" "${DESTDIR}${LIB_GNUE}"
+cp "${LIB_GNUE}/libgcc_s.so.1" "${DESTDIR}${LIB_GNUE}"
+cp "${LIB_GNUE}/libm.so.6" "${DESTDIR}${LIB_GNUE}"
 
 
 
