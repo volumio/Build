@@ -104,8 +104,7 @@ force_turbo=1
 max_usb_current=1
 dtparam=audio=on
 dtparam=i2c_arm=on
-disable_splash=1
-force_eeprom_read=0" >> /boot/config.txt
+disable_splash=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
