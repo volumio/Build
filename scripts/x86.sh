@@ -151,7 +151,7 @@ sudo umount -l /mnt/volumio/rootfs/boot
 
 echo "Avoiding fsck errors on boot"
 # as the syslinux boot sector has no backup, no idea why (yet), simply fix that by coyping to the backup)
-fsck.vfat -r "${BOOT_PART}" <<EOF
+fsck.vfat -r > /dev/null  2>&1 "${BOOT_PART}" <<EOF
 1
 1
 y
