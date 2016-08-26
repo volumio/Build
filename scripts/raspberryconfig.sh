@@ -27,6 +27,7 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
 
 echo "Adding PI Modules"
 echo "
+snd_bcm2835
 i2c-dev
 i2c-bcm2708
 " >> /etc/modules
@@ -57,8 +58,11 @@ mkdir /lib/modules
 echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
 
 echo "Adding PI3 Wireless firmware"
-wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.bin -P /lib/firmware/brcm
-wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.txt -P /lib/firmware/brcm
+wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
+wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
+
+echo "Adding PI WIFI Wireless firmware"
+wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /lib/firmware/brcm/
 
 #echo "Adding raspi-config"
 #wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
