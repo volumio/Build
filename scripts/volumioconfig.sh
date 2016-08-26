@@ -196,11 +196,11 @@ if [ $(uname -m) = armv7l ]; then
   chmod a+x /usr/sbin/hostapd-edimax
 
   echo "interface=wlan0
-  ssid=Volumio
-  channel=4
-  driver=rtl871xdrv
-  hw_mode=g" >> /etc/hostapd/hostapd-edimax.conf
-  
+ssid=Volumio
+channel=4
+driver=rtl871xdrv
+hw_mode=g" >> /etc/hostapd/hostapd-edimax.conf
+  chmod -R 777 /etc/hostapd-edimax.conf
 
   echo "Cleanup"
   apt-get clean
@@ -326,6 +326,9 @@ ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.tar
 
 echo "Adding First start script"
 ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.target.wants/firststart.service
+
+echo "Adding Dynamic Swap Service"
+ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.target.wants/dynamicswap.service
 
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
