@@ -307,6 +307,19 @@ mount --move /mnt/imgpart /mnt/ext/union/imgpart
 
 chmod -R 777 /mnt/ext/union/imgpart
 
+# Step 9: The UUID of the bootpartition could possibly not match the one used in fstab.
+#         This is the case when an new version of the squash file has been created.
+#         This step fixes that 
+# ============================================================================================
+UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
+echo "Editing fstab to use UUID=<correct uuid of bootpartition>"
+if [ -e "/mnt/ext/union/etc/fstab.prev" ]; then
+  rm /mnt/ext/union/etc/fstab.prev
+fi
+mv /mnt/ext/union/etc/fstab /mnt/ext/union/etc/fstab.prev
+cp /mnt/ext/union/etc/fstab.tmpl /mnt/ext/union/etc/fstab
+sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /mnt/ext/union/etc/fstab
+
 echo ${VOLUMIO_VERSION}
 echo "Finishing initramfs, switching rootfs and starting the boot process..."
 umount /proc
