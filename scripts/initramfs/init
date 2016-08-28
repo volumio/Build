@@ -17,6 +17,13 @@ mknod /dev/console c 5 1
 
 mdev -s
 
+#Hardware specific adaptions
+
+HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $4}' )"
+if [ $HWDEVICE == i.MX6 ]; then
+   exec >/dev/kmsg 2>&1 </dev/console
+fi
+
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
 
 #redirect console to kernel messages for Odroid
@@ -31,6 +38,8 @@ echo "Booting Volumio for" $HWDEVICE
 echo "	This script mounts rootfs RO with an overlay RW layer."
 
 # Do your stuff here.
+
+exec >/dev/kmsg 2>&1 </dev/console
 
 if [ $OVERLAY == WITHWRKDIR ]; then
    # For overlayfs version V22 or higher (modulename 'overlay')
