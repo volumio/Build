@@ -153,6 +153,7 @@ echo "hid" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
 echo "nls_utf8" >> /etc/initramfs-tools/modules
 echo "vfat" >> /etc/initramfs-tools/modules
+echo "pata_sis" >> /etc/initramfs-tools/modules
 
 echo "  Copying volumio initramfs updater"
 cd /root/
