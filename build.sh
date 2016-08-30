@@ -193,7 +193,8 @@ if [ "$DEVICE" = udoo ]; then
 fi
 if [ "$DEVICE" = cuboxi ]; then
   echo 'Writing Cubox-i Image File'
-  sh scripts/cuboxiimage.sh -v $VERSION;
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/cuboxiimage.sh -v $VERSION -p $PATCH;
 fi
 if  [ "$DEVICE" = odroidc1 ]; then
   echo 'Writing Odroid-C1/C1+ Image File'
