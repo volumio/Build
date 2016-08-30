@@ -99,7 +99,11 @@ mkdir -p /mnt/volumio/rootfs/boot/efi/EFI/debian
 mkdir -p /mnt/volumio/rootfs/boot/efi/BOOT/
 modprobe efivarfs
 
-echo "LOOP_DEV=${LOOP_DEV}
+UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
+UUID_IMG=$(blkid -s UUID -o value ${IMG_PART})
+echo "UUID_BOOT=${UUID_BOOT}
+UUID_IMG=${UUID_IMG}
+LOOP_DEV=${LOOP_DEV}
 BOOT_PART=${BOOT_PART}
 " >> /mnt/volumio/rootfs/init.sh
 chmod +x /mnt/volumio/rootfs/init.sh
@@ -107,6 +111,7 @@ chmod +x /mnt/volumio/rootfs/init.sh
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 /x86config.sh
 EOF
+
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb /mnt/volumio/rootfs/linux-firmware-*.deb
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh  
 sync

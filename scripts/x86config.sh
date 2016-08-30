@@ -34,7 +34,7 @@ echo "DEFAULT volumio
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=volumio_current.sqsh quiet splash ${DEBUG}
+  APPEND ro imgpart=UUID=${UUID_IMG} bootpart=UUID=${UUID_BOOT} imgfile=volumio_current.sqsh quiet splash ${DEBUG}
   INITRD volumio.initrd
 " > /boot/syslinux.cfg
 
@@ -61,8 +61,8 @@ chmod +w boot/grub/grub.cfg
 
 echo "  Inserting root and boot partition label (building the boot cmdline used in initramfs)"
 # Opting for finding partitions by-LABEL
-sed -i "s/root=imgpart=%%IMGPART%%/imgpart=LABEL=volumioimg/g" /boot/grub/grub.cfg
-sed -i "s/bootpart=%%BOOTPART%%/bootpart=LABEL=volumioboot/g" /boot/grub/grub.cfg
+sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
+sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
 
 echo "  Prevent cgmanager starting during install (causing problems)" 
 cat > /usr/sbin/policy-rc.d << EOF
@@ -93,8 +93,10 @@ rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
 
-echo "Editing fstab to use LABEL"
-sed -i "s/%%BOOTPART%%/LABEL=volumioboot/g" /etc/fstab
+echo "Copying fstab as a template to be used in initrd"
+cp /etc/fstab /etc/fstab.tmpl
+echo "Editing fstab to use UUID=<uuid of boot partition>"
+sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 
 echo "Setting up in kiosk-mode"
 echo "  Creating chromium kiosk start script"
@@ -151,6 +153,7 @@ echo "hid" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
 echo "nls_utf8" >> /etc/initramfs-tools/modules
 echo "vfat" >> /etc/initramfs-tools/modules
+echo "pata_sis" >> /etc/initramfs-tools/modules
 
 echo "  Copying volumio initramfs updater"
 cd /root/
