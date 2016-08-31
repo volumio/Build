@@ -37,6 +37,7 @@ echo "Preparing Volumio Boot Process for X86"
 #     (rootfs RO and volumio_data (RW)
 
 echo "Loading the necessary modules..." 
+
 modprobe overlay 
 modprobe squashfs
 modprobe nls_cp437
@@ -67,8 +68,9 @@ mknod /dev/tty c 5 0
 echo "Now probing usb  and pci storage..."
 modprobe usb_storage
 modprobe sd_mod
+modprobe ata_piix
 modprobe pata_sis
-
+modprobe ata_generic
 
 echo "Waiting for storage devices to become ready"
 sleep 5
