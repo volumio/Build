@@ -100,6 +100,10 @@ echo "Copying cuboxi boot files, Kernel, Modules and Firmware"
 sudo cp platform-cuboxi/cuboxi/boot/* /mnt/volumio/rootfs/boot
 sudo cp -pdR platform-cuboxi/cuboxi/lib/modules /mnt/volumio/rootfs/lib
 sudo cp -pdR platform-cuboxi/cuboxi/lib/firmware /mnt/volumio/rootfs/lib
+sudo cp -pdR platform-cuboxi/cuboxi/usr/share/alsa/cards/imx-hdmi-soc.conf /mnt/volumio/rootfs/usr/share/alsa/cards
+sudo cp -pdR platform-cuboxi/cuboxi/usr/share/alsa/cards/imx-spdif.conf /mnt/volumio/rootfs/usr/share/alsa/cards
+sudo chown root:root /mnt/volumio/rootfs/usr/share/alsa/cards/imx-hdmi-soc.conf
+sudo chown root:root /mnt/volumio/rootfs/usr/share/alsa/cards/imx-spdif.conf
 
 sync
 
