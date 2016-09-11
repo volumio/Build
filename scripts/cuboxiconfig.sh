@@ -20,10 +20,10 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
   
 #TODO: add sound modules
 echo "Adding sound modules"
-echo "
-.....
-.....
-" >> /etc/modules
+#echo "
+#.....
+#.....
+#" >> /etc/modules
 
 echo "Prevent services starting during install, running under chroot" 
 echo "(avoids unnecessary errors)"
