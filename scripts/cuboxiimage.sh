@@ -57,7 +57,7 @@ then
     # if you really want to re-clone from the repo, then delete the platforms-cuboxi folder
 else
 	echo "Clone all cubox files from repo"
-	git clone https://github.com/gkkpch/platform-cuboxi.git platform-cuboxi
+	git clone https://github.com/volumio/platform-cuboxi.git platform-cuboxi
 	echo "Unpack the cubox platform files"
     cd platform-cuboxi
 	tar xfJ cuboxi.tar.xz
