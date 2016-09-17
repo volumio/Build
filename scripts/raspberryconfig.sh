@@ -18,7 +18,6 @@ touch /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   nodev,uid=1000,mode=0777,gid=4, 0 0
-tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
@@ -128,8 +127,8 @@ echo "echo 'post'" > /usr/bin/dtoverlay-post
 
 echo "DTOverlay utility"
 
-ln -s /opt/vc/lib/libdtovl.so /usr/lib/libdtovl.so 
-ln -s /opt/vc/bin/dtoverlay /usr/bin/dtoverlay 
+ln -s /opt/vc/lib/libdtovl.so /usr/lib/libdtovl.so
+ln -s /opt/vc/bin/dtoverlay /usr/bin/dtoverlay
 ln -s /opt/vc/bin/dtoverlay-pre /usr/bin/dtoverlay-pre
 ln -s /opt/vc/bin/dtoverlay-post /usr/bin/dtoverlay-post
 
