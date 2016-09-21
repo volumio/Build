@@ -20,7 +20,7 @@ mdev -s
 #Hardware specific adaptions
 
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $4}' )"
-if [ $HWDEVICE == i.MX6 ] ||[ $HWDEVICE == gs705a ]; then
+if [ $HWDEVICE == i.MX6 ]; then
    exec >/dev/kmsg 2>&1 </dev/console
 fi
 
