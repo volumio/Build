@@ -20,14 +20,14 @@ mdev -s
 #Hardware specific adaptions
 
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $4}' )"
-if [ $HWDEVICE == i.MX6 ]; then
+if [ $HWDEVICE == i.MX6 ] ||[ $HWDEVICE == gs705a ]; then
    exec >/dev/kmsg 2>&1 </dev/console
 fi
 
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
 
 #redirect console to kernel messages for Odroid
-if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == ODROID-C2 ]; then
+if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == ODROID-C2 ] || [ $HWDEVICE == gs705a ]; then
    OVERLAY=NOWRKDIR
    exec >/dev/kmsg 2>&1 </dev/console
 else
@@ -38,8 +38,6 @@ echo "Booting Volumio for" $HWDEVICE
 echo "	This script mounts rootfs RO with an overlay RW layer."
 
 # Do your stuff here.
-
-exec >/dev/kmsg 2>&1 </dev/console
 
 if [ $OVERLAY == WITHWRKDIR ]; then
    # For overlayfs version V22 or higher (modulename 'overlay')
