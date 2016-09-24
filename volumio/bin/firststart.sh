@@ -5,6 +5,9 @@ echo "Volumio first start configuration script"
 echo "configuring unconfigured packages"
 dpkg --configure --pending
 
+echo "Generating SSH host keys"
+dpkg-reconfigure openssh-server
+
 echo "Installing winbind, its done here because else it will freeze networking"
 
 mkdir /var/log/samba
