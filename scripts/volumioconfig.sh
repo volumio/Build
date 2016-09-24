@@ -381,3 +381,6 @@ hw_mode=g" >> /etc/hostapd/hostapd.conf
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
+
+echo "Removing Avahi Service for UDISK-SSH"
+rm /etc/avahi/services/udisks.service
