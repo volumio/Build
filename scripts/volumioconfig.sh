@@ -334,10 +334,6 @@ echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
 
-echo "Removing default SSH host keys"
-# These should be created on first boot to ensure they are unique on each system
-rm -v /etc/ssh/ssh_host_*
-
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
