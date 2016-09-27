@@ -5,25 +5,28 @@ PATCH=$(cat /patch)
 # This script will be run in chroot under qemu.
 
 echo "Creating \"fstab\""
-echo "# OdroidC fstab" > /etc/fstab
+echo "# Odroid C2 fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
+tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-
-echo "Adding sound modules"
+  
+echo "Adding default sound modules"
 echo "
 snd_soc_pcm5102
 snd_soc_odroid_dac
 " >> /etc/modules
+#TODO
+#ln -s /lib/systemd/system/odroiddac.service /etc/systemd/system/multi-user.target.wants/odroiddac.service
 
-echo "Prevent services starting during install, running under chroot"
+echo "Prevent services starting during install, running under chroot" 
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
@@ -32,7 +35,7 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools liblircclient0 lirc
+apt-get -y install u-boot-tools liblircclient0 lirc 
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -78,15 +81,11 @@ echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
 echo "Creating uInitrd from 'volumio.initrd'"
-if [ -e "/c1.flag" ]; then
-   echo "  for kernel armhf"
-   mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-   rm /c1.flag
-else
-   echo "  for kernel AArch64"
-   mkimage -A arm64 -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-   rm /c2.flag
-fi
+mkimage -A arm64 -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 
 echo "Removing unnecessary /boot files"
 rm /boot/volumio.initrd
+
+
+
+

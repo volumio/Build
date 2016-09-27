@@ -63,7 +63,7 @@ then
 	cd ..
 else
 	echo "Clone all Odroid files from repo"
-	git clone https://github.com/volumio/Platform-Odroid.git platforms-O
+	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
 	echo "Unpack the C1/C1+ platform files"
     cd platforms-O
 	tar xfJ odroidc1.tar.xz
@@ -108,6 +108,10 @@ sudo cp platforms-O/odroidc1/boot/uImage /mnt/volumio/rootfs/boot
 echo "Copying OdroidC1 modules and firmware"
 sudo cp -pdR platforms-O/odroidc1/lib/modules /mnt/volumio/rootfs/lib/
 sudo cp -pdR platforms-O/odroidc1/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying OdroidC1 DAC detection service"
+sudo cp platforms-O/odroidc1/etc/odroiddac.service /mnt/volumio/rootfs/lib/systemd/system/
+sudo cp platforms-O/odroidc1/etc/odroiddac.sh /mnt/volumio/rootfs/opt/
+
 echo "Copying OdroidC1 inittab"
 sudo cp platforms-O/odroidc1/etc/inittab /mnt/volumio/rootfs/etc/
 
@@ -117,7 +121,7 @@ sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
 sync
 
 echo "Preparing to run chroot for more Odroid-${MODEL} configuration"
-cp scripts/odroidcconfig.sh /mnt/volumio/rootfs
+cp scripts/odroidc1config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -127,14 +131,14 @@ mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
-touch /mnt/volumio/rootfs/c1.flag
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/odroidcconfig.sh
+/odroidc1config.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/odroidcconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/odroidc1config.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev 
