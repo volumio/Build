@@ -5,7 +5,7 @@ PATCH=$(cat /patch)
 # This script will be run in chroot under qemu.
 
 echo "Creating \"fstab\""
-echo "# OdroidC fstab" > /etc/fstab
+echo "# Odroid C1 fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
@@ -18,11 +18,12 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
   
-echo "Adding sound modules"
+echo "Adding default sound modules"
 echo "
 snd_soc_pcm5102
 snd_soc_odroid_dac
 " >> /etc/modules
+ln -s /lib/systemd/system/odroiddac.service /etc/systemd/system/multi-user.target.wants/odroiddac.service
 
 echo "Prevent services starting during install, running under chroot" 
 echo "(avoids unnecessary errors)"
@@ -79,15 +80,7 @@ echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
 echo "Creating uInitrd from 'volumio.initrd'"
-if [ -e "/c1.flag" ]; then
-   echo "  for kernel armhf"
-   mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-   rm /c1.flag
-else
-   echo "  for kernel AArch64"
-   mkimage -A arm64 -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-   rm /c2.flag
-fi
+mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 
 echo "Removing unnecessary /boot files"
 rm /boot/volumio.initrd
