@@ -199,7 +199,12 @@ if [ $(uname -m) = armv7l ]; then
 ssid=Volumio
 channel=4
 driver=rtl871xdrv
-hw_mode=g" >> /etc/hostapd/hostapd-edimax.conf
+hw_mode=g
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
   chmod -R 777 /etc/hostapd-edimax.conf
 
   echo "Cleanup"
@@ -375,7 +380,13 @@ echo "Configuring hostapd"
 echo "interface=wlan0
 ssid=Volumio
 channel=4
-hw_mode=g" >> /etc/hostapd/hostapd.conf
+hw_mode=g
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+wpa_passphrase=volumio2
+" >> /etc/hostapd/hostapd.conf
 
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
