@@ -392,5 +392,10 @@ echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
 
+echo "Setting default DNS with Google's DNS"
+echo "# Google nameservers
+nameserver 8.8.8.8
+nameserver 8.8.4.4" >> /etc/resolv.conf.head
+
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
