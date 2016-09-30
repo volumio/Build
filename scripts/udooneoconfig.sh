@@ -20,7 +20,6 @@ echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p2  /               ext4    defaults,noatime               0  0
 /dev/mmcblk0p3  /data           ext4    defaults,noatime,noauto,nofail               0  0
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
-tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
@@ -41,7 +40,7 @@ rm -rf /boot/dts
 mv /boot/dtsnew /boot/dts
 
 echo "Installing Firmware and Modules"
-apt-get -y install firmware-udooneo-wl1831 udev-udooneo-rules udooneo-bluetooth 
+apt-get -y install firmware-udooneo-wl1831 udev-udooneo-rules udooneo-bluetooth
 
 
 #echo "Adding volumio-remote-updater"
@@ -73,7 +72,7 @@ cd $PATCHPATH
 #Check the existence of patch script
 if [ -f "patch.sh" ]; then
 sh patch.sh
-else 
+else
 echo "Cannot Find Patch File, aborting"
 fi
 cd /

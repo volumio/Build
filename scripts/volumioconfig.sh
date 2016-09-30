@@ -63,7 +63,7 @@ alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_clien
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect" >> /etc/sudoers
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname" >> /etc/sudoers
 
 #echo "Configuring Default Network"
 #cat > /etc/network/interfaces << EOF
@@ -199,7 +199,12 @@ if [ $(uname -m) = armv7l ]; then
 ssid=Volumio
 channel=4
 driver=rtl871xdrv
-hw_mode=g" >> /etc/hostapd/hostapd-edimax.conf
+hw_mode=g
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
   chmod -R 777 /etc/hostapd-edimax.conf
 
   echo "Cleanup"
@@ -334,7 +339,6 @@ echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
 
-
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
@@ -376,8 +380,22 @@ echo "Configuring hostapd"
 echo "interface=wlan0
 ssid=Volumio
 channel=4
-hw_mode=g" >> /etc/hostapd/hostapd.conf
+hw_mode=g
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+wpa_passphrase=volumio2
+" >> /etc/hostapd/hostapd.conf
 
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
+
+echo "Setting default DNS with Google's DNS"
+echo "# Google nameservers
+nameserver 8.8.8.8
+nameserver 8.8.4.4" >> /etc/resolv.conf.head
+
+echo "Removing Avahi Service for UDISK-SSH"
+rm /etc/avahi/services/udisks.service
