@@ -7,9 +7,11 @@ if [ ${RAMSIZE} -le 512844 ]; then
     if [ -e /data/swapfile ]; then
     echo "Enabling Swap"
     swapon /data/swapfile
+    echo "Setting swappiness to 40"
+    echo 'vm.swappiness = 40' >> /etc/sysctl.conf
     else
     echo "No Swapfile present, creating it..."
-	dd if=/dev/zero of=/data/swapfile bs=1024 count=524288
+	dd if=/dev/zero of=/data/swapfile bs=1024 count=81920
 	echo "Securing Swap permissions"
 	chown root:root /data/swapfile
 	chmod 0600 /data/swapfile
@@ -17,5 +19,7 @@ if [ ${RAMSIZE} -le 512844 ]; then
 	mkswap /data/swapfile
 	echo "Enabling Swap"
 	swapon /data/swapfile
+	echo "Setting swappiness to 40"
+	echo 'vm.swappiness = 40' >> /etc/sysctl.conf
     fi
 fi

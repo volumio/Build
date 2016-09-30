@@ -13,14 +13,13 @@ echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
-tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-echo "Prevent services starting during install, running under chroot" 
+echo "Prevent services starting during install, running under chroot"
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
@@ -39,7 +38,7 @@ rm /usr/sbin/policy-rc.d
 echo "Adding custom module squashfs"
 echo "overlay" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
-echo "Adding custom module nls_cp437" 
+echo "Adding custom module nls_cp437"
 echo "(needed to mount usb /dev/sda1 during initramfs"
 echo "nls_cp437" >> /etc/initramfs-tools/modules
 
@@ -70,7 +69,7 @@ else
   #Check the existence of patch script
   if [ -f "patch.sh" ]; then
     sh patch.sh
-  else 
+  else
     echo "Cannot Find Patch File, aborting"
   fi
   cd /
@@ -91,4 +90,3 @@ mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio
 
 echo "Removing unnecessary /boot files"
 rm /boot/volumio.initrd
-

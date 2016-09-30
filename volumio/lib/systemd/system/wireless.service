@@ -4,6 +4,7 @@ Description=Wireless Services
 Type=forking
 ExecStart=/volumio/app/plugins/system_controller/network/wireless.js start
 KillMode=mixed 
+Before=volumio.service
 
 [Install]
 WantedBy=multi-user.target
