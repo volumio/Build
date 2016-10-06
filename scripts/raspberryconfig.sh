@@ -138,26 +138,6 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
-echo "Installing Raspbian specific additional wireless modules 
-
-##8188eu driver module
-
-mkdir wifi
-cd wifi 
-wget https://dl.dropboxusercontent.com/u/80256631/8188eu-4.4.9-v7-884.tar.gz
-tar xzf 8188eu-4.4.9-v7-884.tar.gz
-./install.sh
-cd ..
-rm -rf wifi
-
-mkdir wifi
-cd wifi 
-wget https://dl.dropboxusercontent.com/u/80256631/8188eu-4.4.9-884.tar.gz
-tar xzf 8188eu-4.4.9-884.tar.gz
-./install.sh
-cd ..
-rm -rf wifi
-
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
 echo "No Patch To Apply"
