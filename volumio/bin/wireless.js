@@ -83,7 +83,7 @@ function startHotspot() {
 		});
 		}
 
-               if (hotspotjson.enable_hotspot != undefined && hotspotjson.enable_hotspot.value != undefined && !hotspotjson.enable_hotspot.value) {
+               if (hotspotjson != undefined && hotspotjson.enable_hotspot != undefined && hotspotjson.enable_hotspot.value != undefined && !hotspotjson.enable_hotspot.value) {
 		   			console.log('Hotspot is disabled, not starting it');
 				    launch(ifconfigWlan, "configwlanup", true, function(err) {
 				   	console.log("ifconfig " + err);
