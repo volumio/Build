@@ -73,7 +73,15 @@ function startHotspot() {
 		var hotspotenabled = true;
 		try {
 			var hotspotjson = fs.readJsonSync('/data/configuration/system_controller/network/config.json', {throws: false});
-		} catch(e) {}
+		} catch(e) {
+			console.log('First boot, starting Hotspot');
+			launch(ifconfigHotspot, "confighotspot", true, function(err) {
+			console.log("ifconfig " + err);
+			launch(starthostapd,"hotspot" , false, function() {
+				wstatus("hotspot");
+			});
+		});
+		}
 
                if (hotspotjson.enable_hotspot != undefined && hotspotjson.enable_hotspot.value != undefined && !hotspotjson.enable_hotspot.value) {
 		   			console.log('Hotspot is disabled, not starting it');
