@@ -150,7 +150,6 @@ sudo cp platforms-O/odroidc1/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
 sudo cp platforms-O/odroidc1/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
 sudo cp platforms-O/odroidc1/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
-
 echo "==> Odroid-C1 device installed"  
 
 #echo "Removing temporary platform files"
