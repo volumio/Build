@@ -109,9 +109,8 @@ echo "Copying OdroidC2 modules and firmware"
 sudo cp -pdR platforms-O/odroidc2/lib/modules /mnt/volumio/rootfs/lib/
 sudo cp -pdR platforms-O/odroidc2/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Copying OdroidC2 DAC detection service"
-#TODO
-#sudo cp platforms-O/odroidc2/etc/odroiddac.service /mnt/volumio/rootfs/lib/systemd/system/
-#sudo cp platforms-O/odroidc2/etc/odroiddac.sh /mnt/volumio/rootfs/opt/
+sudo cp platforms-O/odroidc2/etc/odroiddac.service /mnt/volumio/rootfs/lib/systemd/system/
+sudo cp platforms-O/odroidc2/etc/odroiddac.sh /mnt/volumio/rootfs/opt/
 
 echo "Copying OdroidC2 inittab"
 sudo cp platforms-O/odroidc2/etc/inittab /mnt/volumio/rootfs/etc/
