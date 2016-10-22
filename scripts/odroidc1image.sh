@@ -63,7 +63,7 @@ then
 	cd ..
 else
 	echo "Clone all Odroid files from repo"
-	git clone https://github.com/volumio/Platform-Odroid.git platforms-O
+	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
 	echo "Unpack the C1/C1+ platform files"
     cd platforms-O
 	tar xfJ odroidc1.tar.xz
@@ -102,7 +102,7 @@ sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 echo "Copying Volumio RootFs"
 sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
 echo "Copying OdroidC1 boot files"
-sudo cp platforms-O/odroidc1/boot/boot.ini /mnt/volumio/rootfs/boot
+sudo cp platforms-O/odroidc1/boot/boot.ini* /mnt/volumio/rootfs/boot
 sudo cp platforms-O/odroidc1/boot/meson8b_odroidc.dtb /mnt/volumio/rootfs/boot
 sudo cp platforms-O/odroidc1/boot/uImage /mnt/volumio/rootfs/boot
 echo "Copying OdroidC1 modules and firmware"
@@ -111,6 +111,8 @@ sudo cp -pdR platforms-O/odroidc1/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Copying OdroidC1 DAC detection service"
 sudo cp platforms-O/odroidc1/etc/odroiddac.service /mnt/volumio/rootfs/lib/systemd/system/
 sudo cp platforms-O/odroidc1/etc/odroiddac.sh /mnt/volumio/rootfs/opt/
+echo "Copying framebuffer init script"
+sudo cp platforms-O/odroidc1/etc/C1_init.sh /mnt/volumio/rootfs/usr/local/bin/c1-init.sh
 
 echo "Copying OdroidC1 inittab"
 sudo cp platforms-O/odroidc1/etc/inittab /mnt/volumio/rootfs/etc/
