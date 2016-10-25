@@ -146,3 +146,5 @@ rm -rf /mnt/volumio /mnt/boot
 
 dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
