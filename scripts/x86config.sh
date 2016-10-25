@@ -11,6 +11,9 @@ echo "Installing the kernel and creating initramfs"
 dpkg -i linux-image-*_i386.deb
 dpkg -i linux-firmware-*_i386.deb
 
+KRNL=`ls -l /boot |grep vmlinuz | awk -F'vmlinuz-' '{print $2}'`
+cp e1000e.ko /lib/modules/$KRNL/kernel/drivers/net/ethernet/intel/e1000e/
+
 echo "Creating node/ nodejs symlinks to stay compatible with the armv6/v7 platforms"
 ln -s /usr/bin/nodejs /usr/local/bin/nodejs
 
@@ -23,7 +26,6 @@ syslinux "${BOOT_PART}"
 
 echo "  Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
-echo "  Found " $KRNL
 
 #uncomment for debugging, also edit init-x86 to enable kernel & initrd messages
 #DEBUG="console=ttyS0 console=tty0 ignore_loglevel"
