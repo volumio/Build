@@ -17,12 +17,14 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
 echo "Adding default sound modules"
-
-echo "
-snd_soc_pcm5102
+echo "snd_soc_pcm5102
 snd_soc_odroid_dac
 " >> /etc/modules
 ln -s /lib/systemd/system/odroiddac.service /etc/systemd/system/multi-user.target.wants/odroiddac.service
+
+echo "#!/bin/sh -e
+/usr/local/bin/c1-init.sh
+exit 0" > /etc/rc.local
 
 echo "Prevent services starting during install, running under chroot"
 echo "(avoids unnecessary errors)"
@@ -33,7 +35,7 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools liblircclient0 lirc
+apt-get -y install u-boot-tools liblircclient0 lirc fbset
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
