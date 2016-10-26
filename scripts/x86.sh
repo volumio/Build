@@ -83,8 +83,6 @@ fi
 cp platform-x86/packages/linux-image-*.deb /mnt/volumio/rootfs
 cp platform-x86/packages/linux-firmware-*.deb /mnt/volumio/rootfs
 cp platform-x86/Intel-e1000e-3.3.4/e1000e.ko /mnt/volumio/rootfs
-ls -l /mnt/volumio/rootfs
-
 cp volumio/splash/volumio.png /mnt/volumio/rootfs/boot
 
 cp scripts/initramfs/init-x86 /mnt/volumio/rootfs/root/init
