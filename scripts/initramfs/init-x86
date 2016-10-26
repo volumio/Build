@@ -50,6 +50,10 @@ modprobe ohci_hcd
 modprobe ohci_pci
 modprobe ehci_pci
 modprobe xhci_pci
+modprobe mmc_core
+modprobe sdhci
+modprobe sdhci_pci
+modprobe sdhci_acpi
 modprobe hid
 modprobe usbhid
 modprobe hid_cherry
