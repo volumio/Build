@@ -142,6 +142,10 @@ echo "overlay" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "usbcore" >> /etc/initramfs-tools/modules
 echo "usb_common" >> /etc/initramfs-tools/modules
+echo "mmc_core" >> /etc/initramfs-tools/modules
+echo "sdhci" >> /etc/initramfs-tools/modules
+echo "sdhci_pci" >> /etc/initramfs-tools/modules
+echo "sdhci_acpi" >> /etc/initramfs-tools/modules
 echo "ehci_pci" >> /etc/initramfs-tools/modules
 echo "ohci_pci" >> /etc/initramfs-tools/modules
 echo "uhci_hcd" >> /etc/initramfs-tools/modules
