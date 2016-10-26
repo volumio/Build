@@ -57,7 +57,7 @@ then
     # if you really want to re-clone from the repo, then delete the platforms-sparky folder
 else
 	echo "Clone all sparky files from repo"
-	git clone https://github.com/gkkpch/platform-sparky.git platform-sparky
+	git clone https://github.com/volumio/platform-sparky.git
 	echo "Unpack the sparky platform files"
     cd platform-sparky
 	tar xfJ sparky.tar.xz
@@ -170,3 +170,5 @@ rm -rf /mnt/volumio /mnt/boot
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

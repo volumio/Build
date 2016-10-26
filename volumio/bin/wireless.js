@@ -4,7 +4,7 @@
 
 // Time needed to settle some commands sent to the system like ifconfig
 var settleTime = 3000;
-var fs = require('fs');
+var fs = require('fs-extra')
 var thus = require('child_process');
 var wlan = "wlan0";
 var dhcpd = "dhcpd";
@@ -14,6 +14,7 @@ var wpasupp = "wpa_supplicant -d -B -Dwext -c/etc/wpa_supplicant/wpa_supplicant.
 var starthostapd = "systemctl start hotspot.service";
 var stophostapd = "systemctl stop hotspot.service";
 var ifconfigHotspot = "ifconfig " + wlan + " 192.168.211.1 up";
+var ifconfigWlan = "ifconfig " + wlan + " up";
 var ifdeconfig = "sudo ip addr flush dev " + wlan + " && sudo ifconfig " + wlan + " down";
 
 function kill(process, callback) {
@@ -69,12 +70,33 @@ function launch(fullprocess, name, sync, callback) {
 
 function startHotspot() {
 	stopHotspot(function(err) {
+		var hotspotenabled = true;
+		try {
+			var hotspotjson = fs.readJsonSync('/data/configuration/system_controller/network/config.json', {throws: false});
+		} catch(e) {
+			console.log('First boot, starting Hotspot');
+			launch(ifconfigHotspot, "confighotspot", true, function(err) {
+			console.log("ifconfig " + err);
+			launch(starthostapd,"hotspot" , false, function() {
+				wstatus("hotspot");
+			});
+		});
+		}
+
+               if (hotspotjson != undefined && hotspotjson.enable_hotspot != undefined && hotspotjson.enable_hotspot.value != undefined && !hotspotjson.enable_hotspot.value) {
+		   			console.log('Hotspot is disabled, not starting it');
+				    launch(ifconfigWlan, "configwlanup", true, function(err) {
+				   	console.log("ifconfig " + err);
+					});
+		} else {
+		
 		launch(ifconfigHotspot, "confighotspot", true, function(err) {
 			console.log("ifconfig " + err);
 			launch(starthostapd,"hotspot" , false, function() {
 				wstatus("hotspot");
 			});
 		});
+		}
 	});
 }
 

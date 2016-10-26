@@ -171,7 +171,11 @@ rm -rf /mnt/volumio /mnt/boot
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
+
 echo "X86 Image file created"
 echo "Building VMDK Virtual Image File"
 qemu-img convert ${IMG_FILE} -O vmdk Volumio-dev.vmdk
+md5sum Volumio-dev.vmdk > Volumio-dev.vmdk.md5
 echo "VMDK Virtual Image File generated"
