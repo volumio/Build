@@ -216,7 +216,7 @@ rm -r /boot
 # 4) mount a filesystem for write access to the static image
 # unclear: memory size? -o size=1024M
 [ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
-mount -t ext4 -o sync,noatime /dev/mmcblk0p3 /mnt/ext
+mount -t ext4 -o noatime /dev/mmcblk0p3 /mnt/ext
 
 [ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn
 [ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union
