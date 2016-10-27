@@ -16,6 +16,9 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
+echo "Adding default sound module"
+echo "snd-soc-allo-piano-dac-plus" >> /etc/modules
+
 echo "Prevent services starting during install, running under chroot" 
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
