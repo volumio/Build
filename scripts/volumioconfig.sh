@@ -7,6 +7,27 @@ export LC_ALL=C LANGUAGE=C LANG=C
 /var/lib/dpkg/info/dash.preinst install
 dpkg --configure -a
 
+# Reduce locales to just one beyond C.UTF-8
+echo "Existing locales:"
+locale -a
+echo "Generating required locales:"
+[ -f /etc/locale.gen ] || touch -m /etc/locale.gen
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+locale-gen
+echo "Removing unused locales"
+echo "en_US.UTF-8" >> /etc/locale.nopurge
+# To remove existing locale data we must turn off the dpkg hook
+sed -i -e 's/^USE_DPKG/#USE_DPKG/' /etc/locale.nopurge
+# Ensure that the package knows it has been configured
+sed -i -e 's/^NEEDSCONFIGFIRST/#NEEDSCONFIGFIRST/' /etc/locale.nopurge
+dpkg-reconfigure localepurge -f noninteractive
+localepurge
+# Turn dpkg feature back on, it will handle further locale-cleaning
+sed -i -e 's/^#USE_DPKG/USE_DPKG/' /etc/locale.nopurge
+dpkg-reconfigure localepurge -f noninteractive
+echo "Final locale list"
+locale -a
+echo ""
 
 #Adding Main user Volumio
 echo "Adding Volumio User"
