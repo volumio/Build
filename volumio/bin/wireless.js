@@ -89,7 +89,7 @@ function startHotspot() {
 				   	console.log("ifconfig " + err);
 					});
 		} else {
-		
+
 		launch(ifconfigHotspot, "confighotspot", true, function(err) {
 			console.log("ifconfig " + err);
 			launch(starthostapd,"hotspot" , false, function() {
@@ -139,10 +139,18 @@ var actualTime = 0;
 var apstopped = 0
 
 function startFlow() {
-	console.log("Start wireless flow");
-	startAP(function() {
+	try {
+		var wirelessjson = fs.readJsonSync('/data/configuration/system_controller/network/config.json', {throws: false});
+	} catch (e) {
+		console.log('');
+	}
+	if (wirelessjson != undefined && wirelessjson.wireless_enabled != undefined && wirelessjson.wireless_enabled.value != undefined && !wirelessjson.wireless_enabled.value) {
+		console.log('Wireless Networking DISABLED, not starting wireless flow');
+	} else {
+		console.log("Start wireless flow");
+	startAP(function () {
 		console.log("Start ap");
-		lesstimer = setInterval(function() {
+		lesstimer = setInterval(function () {
 			actualTime += pollingTime;
 			if (wpaerr > 0) actualTime = totalSecondsForConnection + 1;
 
@@ -150,9 +158,9 @@ function startFlow() {
 				console.log("Overtime, starting plan B");
 				apstopped = 1;
 				clearTimeout(lesstimer);
-				stopAP(function() {
-					setTimeout(function() {
-						startHotspot(function() {
+				stopAP(function () {
+					setTimeout(function () {
+						startHotspot(function () {
 
 
 						});
@@ -161,11 +169,11 @@ function startFlow() {
 			} else {
 				var iwconfig = require('wireless-tools/iwconfig');
 				var ifconfig = require('wireless-tools/ifconfig');
-				iwconfig.status(wlan, function(err, status) {
+				iwconfig.status(wlan, function (err, status) {
 					console.log("trying...");
 					//console.log("ssid: " status.ssid);
 					if (status.ssid != undefined) {
-						ifconfig.status(wlan, function(err, ifstatus) {
+						ifconfig.status(wlan, function (err, ifstatus) {
 							console.log("... joined AP, wlan0 IPv4 is " + ifstatus.ipv4_address + ", ipV6 is " + ifstatus.ipv6_address);
 							if (((ifstatus.ipv4_address != undefined) &&
 								(ifstatus.ipv4_address.length > "0.0.0.0".length))
@@ -185,6 +193,7 @@ function startFlow() {
 			}
 		}, pollingTime * 1000);
 	});
+}
 }
 
 function stop(callback) {
