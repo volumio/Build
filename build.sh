@@ -26,7 +26,7 @@ Switches:
             Options for the target architecture are 'arm' or 'x86'.
   -d        Create Image for Specific Devices. Supported device names:
               all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky
+              odroidc1, odroidc2, odroidxu4, sparky, bbb
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -220,6 +220,11 @@ if [ "$DEVICE" = sparky ]; then
   echo 'Writing Sparky Image File'
   check_os_release "arm" $VERSION $DEVICE
   sh scripts/sparkyimage.sh -v $VERSION -p $PATCH;
+fi
+if [ "$DEVICE" = bbb ]; then
+  echo 'Writing BeagleBone Black Image File'
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/bbbimage.sh -v $VERSION -p $PATCH;
 fi
 if  [ "$DEVICE" = udooneo ]; then
   echo 'Writing UDOO NEO Image File'
