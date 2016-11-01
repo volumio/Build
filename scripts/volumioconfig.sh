@@ -425,3 +425,13 @@ nameserver 8.8.4.4" >> /etc/resolv.conf.head
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
+
+echo "Fine-tuning logging setup"
+d=/var/log/volumio
+[ -d "$d" ] || mkdir "$d"
+chown volumio:volumio "$d"
+chmod 775 "$d"
+# This tar file will be unpacked by logdirs.service
+find /var/log -maxdepth 1 -type d | egrep -v 'log$'| \
+    xargs tar cf /etc/logdirs.tar --no-recursion
+
