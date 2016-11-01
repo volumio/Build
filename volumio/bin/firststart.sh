@@ -7,7 +7,7 @@ dpkg --configure --pending
 
 echo "Installing winbind, its done here because else it will freeze networking"
 
-mkdir /var/log/samba
+[ -d /var/log/samba ] || mkdir /var/log/samba
 cd /
 dpkg -i libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
 dpkg -i winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
