@@ -1,18 +1,23 @@
-Build
+### Buildscripts for Volumio System
 
-Buildscripts for Volumio System
+Copyright Michelangelo Guarise - 2016
 
-required :
-git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support
+#### Requirements
 
-required for building x86 : qemu-utils
+```
+git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support qemu-utils
+```
+
+#### How to
 
 - clone the build repo on your local folder  : git clone https://github.com/volumio/Build build
 - if on Ubuntu, you may need to remove `$forceyes` from line 989 of /usr/sbin/multistrap
 - cd to /build and type
+
 ```
 ./build.sh -b <architecture> -d <device> -v <version>
 ```
+
 where switches are :
 
  * -b `<arch>` Build a full system image with Multistrap. Options for the target architecture are **arm** or **x86**.
@@ -35,3 +40,29 @@ Example: Build the architecture for x86 first and the image version MyVersion in
 ./build.sh -d x86 -v MyVersion
 ```
 
+#### Sources 
+
+Kernel Sources
+
+* [Raspberry PI](https://github.com/volumio/raspberrypi-linux)
+* [X86](https://github.com/volumio/linux)
+* [Odroid C1\C2](https://github.com/volumio/linux-odroid-public)
+* [BeagleBoneBlack](https://github.com/volumio/linux-beagleboard-botic)
+
+Main Packages Sources
+
+* [MPD](https://github.com/volumio/MPD) by Max Kellerman
+* [Shairport-Sync](https://github.com/volumio/shairport-sync) by Mike Brady
+* [Node.JS](https://github.com/volumio/node) by Ryan Dahl
+* [SnapCast](https://github.com/volumio/snapcast) by Badaix 
+* [Upmpdcli](https://github.com/volumio/upmpdcli) by Justin Maggard
+
+Debian Packages Sources (x86)
+
+All Debian-retrieved packages sources can be found at the [debian-sources Repository](https://github.com/volumio/debian-sources)
+
+Raspbian Packages Sources (armhf)
+
+All Raspbian-retrieved packages sources can be found at the [raspbian-sources Repository](https://github.com/volumio/raspbian-sources)
+
+If any information, source package or license is missing, please report it to info at volumio dot org  
