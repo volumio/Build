@@ -7,6 +7,27 @@ export LC_ALL=C LANGUAGE=C LANG=C
 /var/lib/dpkg/info/dash.preinst install
 dpkg --configure -a
 
+# Reduce locales to just one beyond C.UTF-8
+echo "Existing locales:"
+locale -a
+echo "Generating required locales:"
+[ -f /etc/locale.gen ] || touch -m /etc/locale.gen
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+locale-gen
+echo "Removing unused locales"
+echo "en_US.UTF-8" >> /etc/locale.nopurge
+# To remove existing locale data we must turn off the dpkg hook
+sed -i -e 's/^USE_DPKG/#USE_DPKG/' /etc/locale.nopurge
+# Ensure that the package knows it has been configured
+sed -i -e 's/^NEEDSCONFIGFIRST/#NEEDSCONFIGFIRST/' /etc/locale.nopurge
+dpkg-reconfigure localepurge -f noninteractive
+localepurge
+# Turn dpkg feature back on, it will handle further locale-cleaning
+sed -i -e 's/^#USE_DPKG/USE_DPKG/' /etc/locale.nopurge
+dpkg-reconfigure localepurge -f noninteractive
+echo "Final locale list"
+locale -a
+echo ""
 
 #Adding Main user Volumio
 echo "Adding Volumio User"
@@ -101,13 +122,14 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing ARM Node Environment"
   # version 6.3.0
   cd /
-  wget https://nodejs.org/dist/v6.3.0/node-v6.3.0-linux-armv6l.tar.xz
-  tar xf node-v6.3.0-linux-armv6l.tar.xz
-  rm /node-v6.3.0-linux-armv6l.tar.xz
-  cd /node-v6.3.0-linux-armv6l
+  https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-armv6l.tar.xz
+  tar xf node-v6.9.1-linux-armv6l.tar.xz
+  rm /node-v6.9.1-linux-armv6l.tar.xz
+  cd /node-v6.9.1-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.3.0-linux-armv6l
+  rm -rf /node-v6.9.1-linux-armv6l
+
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
