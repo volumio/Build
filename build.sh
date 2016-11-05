@@ -25,8 +25,8 @@ Switches:
   -b <arch> Build a full system image with Multistrap.
             Options for the target architecture are 'arm' or 'x86'.
   -d        Create Image for Specific Devices. Supported device names:
-              all (all), pi, udoo, cuboxi, bbb, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky, bbb
+              all (all), pi, udoo, cuboxi, cubietruck, compulab,
+              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -230,6 +230,12 @@ if  [ "$DEVICE" = udooneo ]; then
   echo 'Writing UDOO NEO Image File'
   check_os_release "arm" $VERSION $DEVICE
   sh scripts/udooneoimage.sh -v $VERSION -p $PATCH;
+fi
+
+if  [ "$DEVICE" = pine64 ]; then
+  echo 'Writing Pine64 Image File'
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/pine64image.sh -v $VERSION -p $PATCH;
 fi
 
 if [ "$DEVICE" = x86 ]; then

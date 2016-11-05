@@ -32,8 +32,8 @@ if [ $HWDEVICE == ODROID-C2 ] ; then
    exec >/dev/kmsg 2>&1 </dev/console
 fi
 
-#redirect console to kernel messages for Odroid
-if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ]; then
+# Odroid C1, SparkySBC and Pine64 have overlayfs version < V22
+if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a || [ $HWDEVICE == sun50iw1p1 ]; then
    OVERLAY=NOWRKDIR
    exec >/dev/kmsg 2>&1 </dev/console
 else
