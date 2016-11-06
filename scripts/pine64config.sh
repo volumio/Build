@@ -20,6 +20,9 @@ echo "Adding default sound modules and wifi"
 echo "sunxi_codec
 sunxi_i2s
 sunxi_sndcodec
+sndhdmi
+sunxi_sndhdmi
+sunxi_tdmhdmi
 8723bs
 " >> /etc/modules
 
@@ -35,7 +38,7 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools
+apt-get -y install u-boot-tools liblircclient0 lirc 
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*

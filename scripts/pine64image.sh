@@ -108,7 +108,7 @@ sudo cp -pdR platform-pine64/pine64/lib/modules /mnt/volumio/rootfs/lib/
 sudo cp -pdR platform-pine64/pine64/lib/firmware /mnt/volumio/rootfs/lib/
 
 echo "Confguring ALSA with sane defaults"
-sudo cp platform-pine64/pine64/var/lib/alsa/asound.state /mnt/volumio/rootfs/var/lib/alsa/asound.state
+sudo cp platform-pine64/pine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
 
 #TODO: pine64 should be able to run generic debian
 #sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
