@@ -122,7 +122,7 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing ARM Node Environment"
   # version 6.3.0
   cd /
-  https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-armv6l.tar.xz
+  wget https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-armv6l.tar.xz
   tar xf node-v6.9.1-linux-armv6l.tar.xz
   rm /node-v6.9.1-linux-armv6l.tar.xz
   cd /node-v6.9.1-linux-armv6l
