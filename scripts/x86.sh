@@ -166,7 +166,7 @@ y
 EOF
 
 echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
+#rm -rf /mnt/volumio /mnt/boot
 
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
