@@ -156,6 +156,18 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
+
+### Allo I2S Firmware
+
+cd /
+wget http://repo.volumio.org/Volumio2/Firmwares/allo-piano-rpi.tar.gz
+echo "Extracting allo modules"
+tar xf allo-piano-rpi.tar.gz
+rm xf allo-piano-rpi.tar.gz
+
+echo "Allo modules and firmware installed"
+
+
 #First Boot operations
 
 echo "Signalling the init script to re-size the volumio data partition"
