@@ -20,9 +20,6 @@ echo "Adding default sound modules and wifi"
 echo "sunxi_codec
 sunxi_i2s
 sunxi_sndcodec
-sndhdmi
-sunxi_sndhdmi
-sunxi_tdmhdmi
 8723bs
 " >> /etc/modules
 
