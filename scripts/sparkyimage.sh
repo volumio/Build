@@ -57,7 +57,7 @@ then
     # if you really want to re-clone from the repo, then delete the platforms-sparky folder
 else
 	echo "Clone all sparky files from repo"
-	git clone https://github.com/gkkpch/platform-sparky.git platform-sparky
+	git clone https://github.com/volumio/platform-sparky.git platform-sparky
 	echo "Unpack the sparky platform files"
     cd platform-sparky
 	tar xfJ sparky.tar.xz
@@ -99,8 +99,9 @@ echo "Copying sparky boot files, kernel, modules and firmware"
 sudo cp platform-sparky/sparky/boot/* /mnt/volumio/rootfs/boot
 sudo cp -pdR platform-sparky/sparky/lib/modules /mnt/volumio/rootfs/lib
 sudo cp -pdR platform-sparky/sparky/lib/firmware /mnt/volumio/rootfs/lib
-echo "Copying DSP firmware"
-sudo cp -pdR platform-sparky/sparky/dsp-firmware/* /mnt/volumio/rootfs/lib/firmware
+
+echo "Copying DSP firmware and license"
+tar zxf platform-sparky/alloPiano*.tgz -C /mnt/volumio/rootfs/
 sync
 
 echo "Preparing to run chroot for more sparky configuration"
