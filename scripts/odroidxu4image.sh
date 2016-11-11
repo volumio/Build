@@ -16,15 +16,15 @@ IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidxu4.img"
 
 echo "Creating Image File"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=2000
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
  
 sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 3072s 266239s
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 266240s 2929687s
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 2929688s 100%
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 3072s 64
+sudo parted -s "${LOOP_DEV}" mkpart primary ext4 64 1500
+sudo parted -s "${LOOP_DEV}" mkpart primary ext4 1500 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
