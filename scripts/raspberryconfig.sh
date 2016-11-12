@@ -159,14 +159,31 @@ rm /patch
 
 ### Allo I2S Firmware
 
-cd /
-wget http://repo.volumio.org/Volumio2/Firmwares/allo-piano-rpi.tar.gz
-echo "Extracting allo modules"
-tar xf allo-piano-rpi.tar.gz
-rm xf allo-piano-rpi.tar.gz
 
+echo "Getting Allo Modules"
+cd /
+wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDACplus.tgz
+echo "Extracting Allo modules"
+tar xf volumio-RPi4.4.9_pianoDACplus.tgz
+rm volumio-RPi4.4.9_pianoDACplus.tgz
+
+echo "Getting Allo Firmwares"
+wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_09112016.tgz
+echo "Extracting Allo Firmwares"
+tar xf alloPianoDACfw_09112016.tgz
+rm alloPianoDACfw_09112016.tgz
 echo "Allo modules and firmware installed"
 
+echo "Adding license info"
+
+echo "You may royalty free distribute object and executable versions of the TI component libraries, and its derivatives 
+(“derivative” shall mean adding the TI component library to an audio signal flow of a product to make a new audio signal chain without
+changing the algorithm of the TI component library), to use and integrate the software with any other software, these files are only
+licensed to be used on the TI  PCM 5142 DAC IC , but are freely distributable and re-distributable , subject to acceptance of the license 
+agreement, including executable only versions of the TI component libraries, or its derivatives, that execute solely and exclusively with 
+the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
+ equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
+" >  /lib/firmware/alloPiano/LICENSE
 
 #First Boot operations
 
