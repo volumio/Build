@@ -13,7 +13,7 @@ while getopts ":v:p:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-sparky.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-pine64.img"
 
 
 echo "Creating Image File"
@@ -22,11 +22,11 @@ dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
- 
+# Note: leave the first 20Mb free for the firmware
 sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 8 71
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 71 1500
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 21 84
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 84 1520
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1520 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -50,23 +50,24 @@ sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
 sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the sparky kernel/ platform files"
-if [ -d platform-sparky ]
+echo "Preparing for the pine64 kernel/ platform files"
+if [ -d platform-pine64 ]
 then 
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platforms-sparky folder
+    # if you really want to re-clone from the repo, then delete the platform-pine64 folder
+    # that will refresh all the odroid platforms, see below
 else
-	echo "Clone all sparky files from repo"
-	git clone https://github.com/volumio/platform-sparky.git platform-sparky
-	echo "Unpack the sparky platform files"
-    cd platform-sparky
-	tar xfJ sparky.tar.xz
+	echo "Clone pine64 files from repo"
+	git clone https://github.com/volumio/platform-pine64.git platform-pine64
+	echo "Unpack the platform files"
+    cd platform-pine64
+	tar xfJ pine64.tar.xz
 	cd ..
 fi
 
-echo "Burning the bootloader and u-boot"
-sudo dd if=platform-sparky/sparky/u-boot/bootloader.bin of=${LOOP_DEV} bs=512 seek=4097
-sudo dd if=platform-sparky/sparky/u-boot/u-boot-dtb.img of=${LOOP_DEV} bs=512 seek=6144
+echo "Copying the bootloader"
+sudo dd if=platform-pine64/pine64/u-boot/boot0.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+sudo dd if=platform-pine64/pine64/u-boot/u-boot-with-dtb.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -94,18 +95,28 @@ sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+echo "Copying pine64 boot files"
+mkdir /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/pine64/boot/pine64/Image /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/pine64/boot/pine64/*.dtb /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/pine64/boot/uEnv.txt /mnt/volumio/rootfs/boot
+sudo cp platform-pine64/pine64/boot/Image.version /mnt/volumio/rootfs/boot
+sudo cp platform-pine64/pine64/boot/config* /mnt/volumio/rootfs/boot
 
-echo "Copying sparky boot files, kernel, modules and firmware"
-sudo cp platform-sparky/sparky/boot/* /mnt/volumio/rootfs/boot
-sudo cp -pdR platform-sparky/sparky/lib/modules /mnt/volumio/rootfs/lib
-sudo cp -pdR platform-sparky/sparky/lib/firmware /mnt/volumio/rootfs/lib
+echo "Copying pine64 modules and firmware"
+sudo cp -pdR platform-pine64/pine64/lib/modules /mnt/volumio/rootfs/lib/
+sudo cp -pdR platform-pine64/pine64/lib/firmware /mnt/volumio/rootfs/lib/
 
-echo "Copying DSP firmware and license"
-tar zxf platform-sparky/alloPiano*.tgz -C /mnt/volumio/rootfs/
+echo "Confguring ALSA with sane defaults"
+sudo cp platform-pine64/pine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
+
+#TODO: pine64 should be able to run generic debian
+#sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
+
 sync
 
-echo "Preparing to run chroot for more sparky configuration"
-cp scripts/sparkyconfig.sh /mnt/volumio/rootfs
+echo "Preparing to run chroot for more pine64 configuration"
+cp scripts/pine64config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -115,24 +126,30 @@ mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/sparkyconfig.sh
+/pine64config.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/sparkyconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/pine64config.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev 
 umount -l /mnt/volumio/rootfs/proc 
 umount -l /mnt/volumio/rootfs/sys 
 
-echo "==> sparky device installed"  
+#echo "Copying LIRC configuration files"
+#sudo cp platform-pine64/pine64/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+#sudo cp platform-pine64/pine64/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+#sudo cp platform-pine64/pine64/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+
+echo "==> Pine64 device installed"  
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platforms-sparky
+#sudo rm -r platform-pine64
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -172,3 +189,5 @@ rm -rf /mnt/volumio /mnt/boot
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

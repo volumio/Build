@@ -5,7 +5,7 @@ PATCH=$(cat /patch)
 # This script will be run in chroot under qemu.
 
 echo "Creating \"fstab\""
-echo "# sparky fstab" > /etc/fstab
+echo "# Odroid C2 fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
@@ -16,9 +16,15 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-echo "Adding default sound module"
-echo "snd-soc-allo-piano-dac-plus
-snd-soc-allo-piano-dac" >> /etc/modules
+echo "Adding default sound modules and wifi"
+echo "sunxi_codec
+sunxi_i2s
+sunxi_sndcodec
+8723bs
+" >> /etc/modules
+
+echo "Blacklisting 8723bs_vq0"
+echo "blacklist 8723bs_vq0" >> /etc/modprobe.d/blacklist-pine64.conf
 
 echo "Prevent services starting during install, running under chroot" 
 echo "(avoids unnecessary errors)"
@@ -29,7 +35,7 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools 
+apt-get -y install u-boot-tools liblircclient0 lirc 
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -64,7 +70,7 @@ fi
 rm /patch
 
 echo "Changing to 'modules=dep'"
-echo "(otherwise sparky may not boot due to size of initrd)"
+echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
 #First Boot operations
@@ -73,10 +79,3 @@ touch /boot/resize-volumio-datapart
 
 echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
-
-echo "Creating uInitrd from 'volumio.initrd'"
-mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/ramdisk.img
-#TODO update uenv.txt to use uInitrd as the ramdisk name (like all other platforms)
-
-echo "Removing unnecessary /boot files"
-rm /boot/volumio.initrd
