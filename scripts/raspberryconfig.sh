@@ -122,10 +122,10 @@ echo "overlay" >> /etc/initramfs-tools/modules
 
 echo "Customizing pre and post actions for dtoverlay"
 
-echo "echo 'pre'" > /usr/bin/dtoverlay-pre
-chmod a+x /usr/bin/dtoverlay-pre
-echo "echo 'post'" > /usr/bin/dtoverlay-post
-chmod a+x /usr/bin/dtoverlay-post
+echo "echo 'pre'" > /opt/vc/bin/dtoverlay-pre
+chmod a+x /opt/vc/bin/dtoverlay-pre
+echo "echo 'post'" > /opt/vc/bin/dtoverlay-post
+chmod a+x /opt/vc/bin/dtoverlay-post
 
 echo "DTOverlay utility"
 
