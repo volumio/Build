@@ -160,6 +160,12 @@ echo "nls_cp437" >> /etc/initramfs-tools/modules
 echo "nls_utf8" >> /etc/initramfs-tools/modules
 echo "vfat" >> /etc/initramfs-tools/modules
 echo "pata_sis" >> /etc/initramfs-tools/modules
+echo "ata_piix" >> /etc/initramfs-tools/modules
+echo "pata_atiipx" >> /etc/initramfs-tools/modules
+echo "ahci" >> /etc/initramfs-tools/modules
+echo "libata" >> /etc/initramfs-tools/modules
+echo "libahci" >> /etc/initramfs-tools/modules
+echo "ata_generic" >> /etc/initramfs-tools/modules
 
 echo "  Copying volumio initramfs updater"
 cd /root/
