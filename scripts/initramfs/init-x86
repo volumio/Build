@@ -71,6 +71,10 @@ mknod /dev/tty c 5 0
 
 echo "Now probing usb  and pci storage..."
 modprobe usb_storage
+modprobe libata
+modprobe libahci
+modprobe ahci
+modprobe pata_atiipx
 modprobe sd_mod
 modprobe ata_piix
 modprobe pata_sis
