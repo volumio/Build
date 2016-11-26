@@ -63,6 +63,14 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
+echo "Getting Allo Firmwares"
+wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_22112016.tgz
+echo "Extracting Allo Firmwares"
+tar xf alloPianoDACfw_22112016.tgz
+rm alloPianoDACfw_22112016.tgz
+echo "Allo firmware installed"
+
+
 echo "Changing to 'modules=dep'"
 echo "(otherwise sparky may not boot due to size of initrd)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
