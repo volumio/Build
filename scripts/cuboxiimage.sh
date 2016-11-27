@@ -100,6 +100,9 @@ echo "Copying cuboxi boot files, Kernel, Modules and Firmware"
 sudo cp platform-cuboxi/cuboxi/boot/* /mnt/volumio/rootfs/boot
 sudo cp -pdR platform-cuboxi/cuboxi/lib/modules /mnt/volumio/rootfs/lib
 sudo cp -pdR platform-cuboxi/cuboxi/lib/firmware /mnt/volumio/rootfs/lib
+sudo cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4329-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
+sudo cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4330-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
+
 sudo cp -pdR platform-cuboxi/cuboxi/usr/share/alsa/cards/imx-hdmi-soc.conf /mnt/volumio/rootfs/usr/share/alsa/cards
 sudo cp -pdR platform-cuboxi/cuboxi/usr/share/alsa/cards/imx-spdif.conf /mnt/volumio/rootfs/usr/share/alsa/cards
 sudo cp -pdR platform-cuboxi/cuboxi/usr/share/alsa/cards/aliases.conf /mnt/volumio/rootfs/usr/share/alsa/cards
