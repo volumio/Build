@@ -26,7 +26,7 @@ Switches:
             Options for the target architecture are 'arm' or 'x86'.
   -d        Create Image for Specific Devices. Supported device names:
               all (all), pi, udoo, cuboxi, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64
+              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, bananam2u
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -135,8 +135,7 @@ if [ -n "$BUILD" ]; then
 
   echo 'Cloning Volumio Node Backend'
   mkdir build/$BUILD/root/volumio
-  git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
-  #git clone -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  git clone --depth 1 -bmaster --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
 
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git build/$BUILD/root/volumio/http/www
@@ -237,6 +236,12 @@ if  [ "$DEVICE" = pine64 ]; then
   echo 'Writing Pine64 Image File'
   check_os_release "arm" $VERSION $DEVICE
   sh scripts/pine64image.sh -v $VERSION -p $PATCH;
+fi
+
+if  [ "$DEVICE" = bananam2u ]; then
+  echo 'Writing Pine64 Image File'
+  check_os_release "arm" $VERSION $DEVICE
+  sh scripts/bananam2uimage.sh -v $VERSION -p $PATCH;
 fi
 
 if [ "$DEVICE" = x86 ]; then
