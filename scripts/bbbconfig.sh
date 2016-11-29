@@ -16,15 +16,6 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-
-#TODO: add sound modules
-echo "Adding sound modules"
-# IF you need modules loaded, add them
-#echo "
-#.....
-#.....
-#" >> /etc/modules
-
 echo "Prevent services starting during install, running under chroot"
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
@@ -34,7 +25,6 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-#do we need those?
 apt-get -y install u-boot-tools
 
 echo "Cleaning APT Cache and remove policy file"
@@ -42,7 +32,8 @@ rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
 
-echo "Adding custom modules overlayfs, squashfs and nls_cp437"
+echo "Adding custom modules loop, overlayfs, squashfs and nls_cp437"
+echo "loop" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
@@ -69,9 +60,10 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
-#TODO: check initrd size
-echo "Changing to 'modules=dep'"
-echo "(otherwise bbb may not boot due to size of initrd)"
+# Retrieve choosen kernel version
+uname_r=$(sed -n 's/^uname_r=//p' /boot/uEnv.txt)
+# Update kernel dependencies
+depmod -a ${uname_r}
 
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
@@ -82,9 +74,9 @@ touch /boot/resize-volumio-datapart
 echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
-#TODO: check if it is OK to use uInitrd
-echo "Creating uInitrd from 'volumio.initrd'"
-mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+mv -f /boot/volumio.initrd /boot/initrd.img-${uname_r}
 
-echo "Removing unnecessary /boot files"
-rm /boot/volumio.initrd
+# BBB bootloader searches kernel+dtb+initrd in the /boot subdir of the boot volume
+cd /boot
+mkdir boot
+mv -t boot dtbs/ *${uname_r}
