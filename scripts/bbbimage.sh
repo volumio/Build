@@ -22,7 +22,7 @@ else
 fi
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bbb.img"
+IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-bbb.img"
 
 echo "Creating Image File"
 echo "Image file: ${IMG_FILE}"
