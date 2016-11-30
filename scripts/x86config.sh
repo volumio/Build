@@ -1,5 +1,6 @@
 #!/bin/bash
 
+PATCH=$(cat /patch)
 # This script will be run in chroot.
 echo "Initializing.."
 . init.sh
@@ -22,7 +23,7 @@ echo "blacklist snd_pcsp" >> /etc/modprobe.d/blacklist.conf
 
 echo "Installing Syslinux Legacy BIOS"
 syslinux -v
-syslinux "${BOOT_PART}" 
+syslinux "${BOOT_PART}"
 
 echo "  Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
@@ -40,7 +41,7 @@ LABEL volumio
   INITRD volumio.initrd
 " > /boot/syslinux.cfg
 
-echo "Installing Grub UEFI" 
+echo "Installing Grub UEFI"
 echo "  Editing the grub config template"
 # Make grub boot menu transparent
 sed -i "s/menu_color_normal=cyan\/blue/menu_color_normal=white\/black/g" /etc/grub.d/05_debian_theme
@@ -48,7 +49,7 @@ sed -i "s/menu_color_highlight=white\/blue/menu_color_highlight=green\/dark-gray
 # replace the initrd string in the template
 sed -i "s/initrd=\"\$i\"/initrd=\"volumio.initrd\"/g" /etc/grub.d/10_linux
 
-#replace both LINUX_ROOT_DEVICE and LINUX_ROOT_DEVICE=UUID= in the template 
+#replace both LINUX_ROOT_DEVICE and LINUX_ROOT_DEVICE=UUID= in the template
 # to a string which we can replace after creating the grub config file
 #TODO: update the default grub file
 sed -i "s/LINUX_ROOT_DEVICE=\${GRUB_DEVICE}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
@@ -66,7 +67,7 @@ echo "  Inserting root and boot partition label (building the boot cmdline used 
 sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
 
-echo "  Prevent cgmanager starting during install (causing problems)" 
+echo "  Prevent cgmanager starting during install (causing problems)"
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
 EOF
@@ -84,7 +85,7 @@ apt-get -y --purge remove grub-efi-amd64-bin
 
 echo "  Installing grub-efi-ia32 to make the 32bit UEFI bootloader"
 apt-get -y install grub-efi-ia32-bin
-grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI -d /usr/lib/grub/i386-efi --modules="part_gpt part_msdos" --fonts="unicode" --locales="en@quot" --themes="" /boot/grub/grub.cfg 
+grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI -d /usr/lib/grub/i386-efi --modules="part_gpt part_msdos" --fonts="unicode" --locales="en@quot" --themes="" /boot/grub/grub.cfg
 #and remove it again
 echo "  Uninstalling grub-efi-ia32-bin"
 apt-get -y --purge remove grub-efi-ia32-bin
@@ -182,6 +183,24 @@ echo "  No need for the system map either"
 DELFILE=`ls -l /boot |grep System.map | awk '{print $9}'`
 echo "  Found "$DELFILE", deleting"
 rm /boot/${DELFILE}
+
+#On The Fly Patch
+if [ "$PATCH" = "volumio" ]; then
+echo "No Patch To Apply"
+else
+echo "Applying Patch ${PATCH}"
+PATCHPATH=/${PATCH}
+cd $PATCHPATH
+#Check the existence of patch script
+if [ -f "patch.sh" ]; then
+sh patch.sh
+else
+echo "Cannot Find Patch File, aborting"
+fi
+cd /
+rm -rf ${PATCH}
+fi
+rm /patch
 
 echo "  Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
