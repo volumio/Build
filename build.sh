@@ -26,7 +26,7 @@ Switches:
             Options for the target architecture are 'arm' or 'x86'.
   -d        Create Image for Specific Devices. Supported device names:
               all (all), pi, udoo, cuboxi, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, bananam2u
+              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, bpim2u
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -238,10 +238,10 @@ if  [ "$DEVICE" = pine64 ]; then
   sh scripts/pine64image.sh -v $VERSION -p $PATCH;
 fi
 
-if  [ "$DEVICE" = bananam2u ]; then
-  echo 'Writing Pine64 Image File'
+if  [ "$DEVICE" = bpim2u ]; then
+  echo 'Writing BPI-M2U Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/bananam2uimage.sh -v $VERSION -p $PATCH;
+  sh scripts/bpim2uimage.sh -v $VERSION -p $PATCH;
 fi
 
 if [ "$DEVICE" = x86 ]; then
