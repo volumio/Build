@@ -32,11 +32,12 @@ rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
 
-echo "Adding custom modules loop, overlayfs, squashfs and nls_cp437"
+echo "Adding custom modules loop, overlayfs, squashfs, nls_cp437 and nls_iso8859_1"
 echo "loop" >> /etc/initramfs-tools/modules
 echo "overlay" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
+echo "nls_iso8859_1" >> /etc/initramfs-tools/modules
 
 echo "Copying volumio initramfs updater"
 cd /root/
