@@ -162,7 +162,11 @@ echo "nls_utf8" >> /etc/initramfs-tools/modules
 echo "vfat" >> /etc/initramfs-tools/modules
 echo "pata_sis" >> /etc/initramfs-tools/modules
 echo "ata_piix" >> /etc/initramfs-tools/modules
-echo "pata_atiipx" >> /etc/initramfs-tools/modules
+echo "sata_sis" >> /etc/initramfs-tools/modules
+echo "sata_via" >> /etc/initramfs-tools/modules
+echo "pata_atiixp" >> /etc/initramfs-tools/modules
+echo "pata_via" >> /etc/initramfs-tools/modules
+echo "pata_amd" >> /etc/initramfs-tools/modules
 echo "ahci" >> /etc/initramfs-tools/modules
 echo "libata" >> /etc/initramfs-tools/modules
 echo "libahci" >> /etc/initramfs-tools/modules
