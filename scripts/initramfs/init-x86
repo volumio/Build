@@ -74,10 +74,14 @@ modprobe usb_storage
 modprobe libata
 modprobe libahci
 modprobe ahci
-modprobe pata_atiipx
+modprobe pata_atiixp
 modprobe sd_mod
 modprobe ata_piix
 modprobe pata_sis
+modprobe pata_via
+modprobe pata_amd
+modprobe sata_sis
+modprobe sata_via
 modprobe ata_generic
 
 echo "Waiting for storage devices to become ready"
