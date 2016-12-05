@@ -13,7 +13,7 @@ while getopts ":v:p:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-pi.img"
+IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-pi.img"
 
 
 echo "Creating Image Bed"
