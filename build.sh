@@ -247,7 +247,7 @@ fi
 if [ "$DEVICE" = x86 ]; then
   echo 'Writing x86 Image File'
   check_os_release "x86" $VERSION $DEVICE
-  sh scripts/x86.sh -v $VERSION -p $PATCH;
+  sh scripts/x86image.sh -v $VERSION -p $PATCH;
 fi
 
 #When the tar is created we can build the docker layer
