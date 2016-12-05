@@ -12,21 +12,34 @@ while getopts ":v:p:" opt; do
   esac
 done
 
-BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bbb.img"
+echo "Preparing for the BeagleBone Black kernel/platform files"
+if [ -d platform-bbb ]
+then
+	echo "Platform folder already exists - keeping it"
+else
+	echo "Clone all BBB files from repo"
+	git clone https://github.com/volumio/platform-bbb.git platform-bbb
+fi
 
+BUILDDATE=$(date -I)
+IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-bbb.img"
 
 echo "Creating Image File"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1900
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=896
+
+echo Copying bootloader and U-Boot
+dd if=platform-bbb/opt/backup/uboot/MLO of=${IMG_FILE} count=1 seek=1 bs=128k conv=notrunc
+dd if=platform-bbb/opt/backup/uboot/u-boot.img of=${IMG_FILE} count=2 seek=1 bs=384k conv=notrunc
+sync
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 1700
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1700 100%
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 4 63
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 64 831
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 832 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -46,32 +59,13 @@ fi
 
 echo "Creating boot and rootfs filesystems"
 sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
-sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
-sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
-sync
-
-echo "Preparing for the BeagleBone Black kernel/ platform files"
-if [ -d platform-bbb ]
-then
-	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platforms-bbb folder
-    #Take a look at platform-odroid repo to see what we need here.
-else
-	echo "Clone all cubox files from repo"
-  #ideally in the end we'll have a tar here
-	git clone https://github.com/volumio/platform-bbb.git platform-bbb
-	echo "Unpack the cubox platform files"
-    cd platform-bbb
-    #if you don't want to untar every time, just move files over
-	tar xfJ bbb.tar.xz
-	cd ..
-fi
-
-#TODO: Check!!!!
-echo "Copying the bootloader"
-echo "Burning bootloader"
-sudo dd if=platform-bbb/bbb/uboot/SPL of=${LOOP_DEV} bs=1K seek=1
-sudo dd if=platform-bbb/bbb/uboot/u-boot.img of=${LOOP_DEV} bs=1K seek=42
+EXT4OPTS="-F -b 4096"
+# for U-Boot we need to make sure metadata_csum and 64bit are disabled
+sudo mkfs.ext4 $EXT4OPTS -L volumio -O ^metadata_csum,^64bit "${SYS_PART}" || \
+    sudo mkfs.ext4 $EXT4OPTS -L volumio "${SYS_PART}"
+# for U-Boot we need to make sure metadata_csum and 64bit are disabled
+sudo mkfs.ext4 $EXT4OPTS -L volumio_data -O ^metadata_csum,^64bit "${DATA_PART}" || \
+    sudo mkfs.ext4 $EXT4OPTS -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -101,17 +95,12 @@ echo "Copying Volumio RootFs"
 sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
 
 echo "Copying bbb boot files, Kernel, Modules and Firmware"
-#I've kept those for reference, probably you don't need aliases or confs
-sudo cp platform-bbb/bbb/boot/* /mnt/volumio/rootfs/boot
-sudo cp -pdR platform-bbb/bbb/lib/modules /mnt/volumio/rootfs/lib
-sudo cp -pdR platform-bbb/bbb/lib/firmware /mnt/volumio/rootfs/lib
-sudo cp -pdR platform-bbb/bbb/usr/share/alsa/cards/imx-hdmi-soc.conf /mnt/volumio/rootfs/usr/share/alsa/cards
-sudo cp -pdR platform-bbb/bbb/usr/share/alsa/cards/imx-spdif.conf /mnt/volumio/rootfs/usr/share/alsa/cards
-sudo cp -pdR platform-bbb/bbb/usr/share/alsa/cards/aliases.conf /mnt/volumio/rootfs/usr/share/alsa/cards
-sudo chown root:root /mnt/volumio/rootfs/usr/share/alsa/cards/imx-hdmi-soc.conf
-sudo chown root:root /mnt/volumio/rootfs/usr/share/alsa/cards/imx-spdif.conf
-sudo chown root:root /mnt/volumio/rootfs/usr/share/alsa/cards/aliases.conf
-
+for file in platform-bbb/bbb*.tar.xz; do
+	tar xvJf "$file" -C /mnt/volumio/rootfs
+done
+(cd platform-bbb; tar cO . --exclude ./.git --exclude './bbb*.tar.xz' --exclude ./README.md ) | \
+	sudo tar xv -C /mnt/volumio/rootfs
+echo "Volumio.org ${VERSION} Image ${BUILDDATE}" > /mnt/volumio/rootfs/ID.txt
 sync
 
 echo "Preparing to run chroot for more bbb configuration"
@@ -177,7 +166,7 @@ sudo umount -l /mnt/volumio/images
 sudo umount -l /mnt/volumio/rootfs/boot
 
 echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
+rm -rf /mnt/volumio
 
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}

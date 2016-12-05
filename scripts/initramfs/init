@@ -167,13 +167,13 @@ fi
 
 
 # 2) init a loop pointing to the image file
-loop_free=$(losetup -f | sed s#p/#p#)
-losetup $loop_free /mnt/imgpart/${IMGFILE}
+[ -e /dev/loop0 ] || mknod /dev/loop0 b 7 0
+losetup /dev/loop0 /mnt/imgpart/${IMGFILE}
 
 
 # 3) mount the squashfs to /mnt/static
 [ -d /mnt/static ] || mkdir /mnt/static
-mount -t squashfs $loop_free /mnt/static
+mount -t squashfs /dev/loop0 /mnt/static
 
 VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 
