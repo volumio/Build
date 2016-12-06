@@ -78,6 +78,8 @@ cp volumio/bin/hotspot.sh build/$BUILD/root/bin/hotspot.sh
 cp volumio/bin/dynswap.sh build/$BUILD/root/bin/dynswap.sh
 #Wireless
 cp volumio/bin/wireless.js build/$BUILD/root/volumio/app/plugins/system_controller/network/wireless.js
+#Log setup
+cp volumio/bin/logdirs.sh build/$BUILD/root/bin/logdirs.sh
 echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"

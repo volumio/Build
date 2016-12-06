@@ -1,0 +1,13 @@
+[Unit]
+Description=Prepare subdirectories on tmpfs logging filesystem
+Requires=local-fs.target
+After=var-log.mount
+
+[Service]
+Type=oneshot
+ExecStart=/bin/logdirs.sh
+TimeoutSec=30
+
+[Install]
+WantedBy=multi-user.target
+

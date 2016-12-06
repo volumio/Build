@@ -362,6 +362,9 @@ ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.targ
 echo "Adding Dynamic Swap Service"
 ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.target.wants/dynamicswap.service
 
+echo "Adding log subdirectories setup to Startup"
+ln -s /lib/systemd/system/logdirs.service /etc/systemd/system/multi-user.target.wants/logdirs.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
@@ -426,3 +429,26 @@ nameserver 8.8.4.4" >> /etc/resolv.conf.head
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
+
+echo "Fine-tuning logging setup"
+d=/var/log/volumio
+[ -d "$d" ] || mkdir "$d"
+chown volumio:volumio "$d"
+chmod 775 "$d"
+# This tar file will be unpacked by logdirs.service
+find /var/log -maxdepth 1 -type d | egrep -v 'log$'| \
+    xargs tar cf /etc/logdirs.tar --no-recursion
+
+# For long-running instances, log rotation will be needed
+echo '
+/var/log/volumio/*.log
+{
+    rotate 1
+    daily
+    notifempty
+    missingok
+    compress
+    create 0644 volumio volumio
+}
+' > /etc/logrotate.d/volumio
+
