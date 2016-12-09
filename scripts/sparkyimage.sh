@@ -100,8 +100,11 @@ sudo cp platform-sparky/sparky/boot/* /mnt/volumio/rootfs/boot
 sudo cp -pdR platform-sparky/sparky/lib/modules /mnt/volumio/rootfs/lib
 sudo cp -pdR platform-sparky/sparky/lib/firmware /mnt/volumio/rootfs/lib
 
-echo "Copying DSP firmware and license"
-tar zxf platform-sparky/alloPiano*.tgz -C /mnt/volumio/rootfs/
+echo "Copying DSP firmware and license from allocom dsp git"
+# doing this here and not in config because cloning under chroot caused issues before"
+git clone http://github.com/allocom/piano-firmware allo
+cp -pdR allo/lib /mnt/volumio/rootfs
+sudo rm -r allo
 sync
 
 echo "Preparing to run chroot for more sparky configuration"
