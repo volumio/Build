@@ -407,6 +407,7 @@ echo "Configuring hostapd"
 echo "interface=wlan0
 ssid=Volumio
 channel=4
+driver=nl80211
 hw_mode=g
 auth_algs=1
 wpa=2
