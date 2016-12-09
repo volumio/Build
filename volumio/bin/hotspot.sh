@@ -9,7 +9,7 @@ if [ $DRIVER = "rtl8192cu" -a $ARCH = "armhf" ] ; then
   echo "Launching Hostapd Edimax"
 /usr/sbin/hostapd-edimax /etc/hostapd/hostapd-edimax.conf
 else
-  echo "LaunghingOrdinary Hostapd"
+  echo "Launching Ordinary Hostapd"
 /usr/sbin/hostapd /etc/hostapd/hostapd.conf
 fi
 ;;
