@@ -122,7 +122,7 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing ARM Node Environment"
   # version 6.3.0
   cd /
-  wget https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-armv6l.tar.xz
+  wget http://repo.volumio.org/Volumio2/node-v6.9.1-linux-armv6l.tar.xz
   tar xf node-v6.9.1-linux-armv6l.tar.xz
   rm /node-v6.9.1-linux-armv6l.tar.xz
   cd /node-v6.9.1-linux-armv6l
@@ -241,7 +241,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget https://nodejs.org/dist/v6.3.0/node-v6.3.0-linux-x86.tar.xz
+  wget http://repo.volumio.org/Volumio2/node-v6.3.0-linux-x86.tar.xz
   tar xf node-v6.3.0-linux-x86.tar.xz
   rm /node-v6.3.0-linux-x86.tar.xz
   cd /node-v6.3.0-linux-x86
