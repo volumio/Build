@@ -418,7 +418,7 @@ wpa_passphrase=volumio2
 
 echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
-chmod -R 777 /etc/hostapd
+chmod -R 777 /etc/hostapd/hostapd.conf
 
 echo "Setting default DNS with Google's DNS"
 echo "# Google nameservers
