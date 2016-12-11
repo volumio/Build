@@ -407,6 +407,7 @@ echo "Configuring hostapd"
 echo "interface=wlan0
 ssid=Volumio
 channel=4
+driver=nl80211
 hw_mode=g
 auth_algs=1
 wpa=2
@@ -426,3 +427,9 @@ nameserver 8.8.4.4" >> /etc/resolv.conf.head
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
+
+echo "Creating DHCPCD folder structure"
+mkdir /var/lib/dhcpcd5
+touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
+touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
+chmod -R 777 /var/lib/dhcpcd5
