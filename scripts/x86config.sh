@@ -205,6 +205,7 @@ PATCHPATH=/${PATCH}
 cd $PATCHPATH
 #Check the existence of patch script
 if [ -f "patch.sh" ]; then
+chmod a+x patch.sh
 sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
