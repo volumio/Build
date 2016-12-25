@@ -20,7 +20,8 @@ git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted d
 
 where switches are :
 
- * -b `<arch>` Build a full system image with Multistrap. Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit).
+ * -b `<arch>` Build a full system image with Multistrap. 
+ Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit).
  * -d `<dev>`  Create Image for Specific Devices. Supported device names:
              **pi**, **odroidc1/2/xu4/x2**, udoo, **cuboxi**, **bbb**, cubietruck, compulab, **x86**
  * -l `<repo>` Create docker layer. Give a Docker Repository name as the argument.
