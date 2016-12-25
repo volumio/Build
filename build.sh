@@ -23,7 +23,7 @@ Basic usage: ./build.sh -b arm -d all -v 2.0
 
 Switches:
   -b <arch> Build a full system image with Multistrap.
-            Options for the target architecture are 'arm' or 'x86'.
+            Options for the target architecture are 'arm' (Raspbian), 'armv7' (Debian 32bit)), 'armv8' (Debian 64bit) or 'x86' (Debian 32bit).
   -d        Create Image for Specific Devices. Supported device names:
               all (all), pi, udoo, cuboxi, cubietruck, compulab,
               odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, bpim2u
