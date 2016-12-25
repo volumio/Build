@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while getopts ":v:" opt; do
+while getopts ":v:p:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
@@ -117,7 +117,7 @@ chmod +x /mnt/volumio/rootfs/init.sh
 
 echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
-/x86config.sh
+/x86config.sh -p
 EOF
 
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb

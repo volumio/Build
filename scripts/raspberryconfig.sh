@@ -164,10 +164,10 @@ rm /patch
 
 echo "Getting Allo Modules"
 cd /
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDACplus.tgz
+wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
 echo "Extracting Allo modules"
-tar xf volumio-RPi4.4.9_pianoDACplus.tgz
-rm volumio-RPi4.4.9_pianoDACplus.tgz
+tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
+rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
 
 echo "Getting Allo Firmwares"
 wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_22112016.tgz
