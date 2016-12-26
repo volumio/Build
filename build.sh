@@ -220,23 +220,23 @@ if  [ "$DEVICE" = odroidc1 ]; then
 fi
 if  [ "$DEVICE" = odroidc2 ]; then
   echo 'Writing Odroid-C2 Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidc2image.sh -v $VERSION -p $PATCH;
+  check_os_release "armv7" $VERSION $DEVICE
+  sh scripts/odroidc2image.sh -v $VERSION -p $PATCH -a armv7;
 fi
 if  [ "$DEVICE" = odroidxu4 ]; then
   echo 'Writing Odroid-XU4 Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH;
+  check_os_release "armv7" $VERSION $DEVICE
+  sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH -a armv7;
 fi
 if  [ "$DEVICE" = odroidx2 ]; then
   echo 'Writing Odroid-X2 Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidx2image.sh -v $VERSION -p $PATCH;
+  check_os_release "armv7" $VERSION $DEVICE
+  sh scripts/odroidx2image.sh -v $VERSION -p $PATCH -a armv7;
 fi
 if [ "$DEVICE" = sparky ]; then
   echo 'Writing Sparky Image File'
   check_os_release "arm" $VERSION $DEVICE
-  sh scripts/sparkyimage.sh -v $VERSION -p $PATCH;
+  sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a arm;
 fi
 if [ "$DEVICE" = bbb ]; then
   echo 'Writing BeagleBone Black Image File'

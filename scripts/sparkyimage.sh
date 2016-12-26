@@ -1,6 +1,9 @@
 #!/bin/sh
 
-while getopts ":v:p:" opt; do
+# Default build for Debian
+ARCH="armv7"
+
+while getopts ":v:p:a:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
@@ -8,16 +11,22 @@ while getopts ":v:p:" opt; do
     p)
       PATCH=$OPTARG
       ;;
-
+    a)
+      ARCH=$OPTARG
+      ;;
   esac
 done
 
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-sparky.img"
 
+if [ "$ARCH" = arm ]; then
+  DISTRO="Raspbian"
+else
+  DISTRO="Debian 32bit"
+fi
 
-echo "Creating Image File"
-echo "Image file: ${IMG_FILE}"
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
@@ -93,7 +102,7 @@ sudo mkdir /mnt/volumio/rootfs/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 
 echo "Copying sparky boot files, kernel, modules and firmware"
 sudo cp platform-sparky/sparky/boot/* /mnt/volumio/rootfs/boot
