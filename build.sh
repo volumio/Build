@@ -94,41 +94,55 @@ done
 
 shift $((OPTIND-1))
 
-echo "Checking if we are running as root"
+echo "Checking whether we are running as root"
 if [ $(id -u) -ne 0 ]; then
   echo "Please run the build script as root"
   exit
 fi
 
 if [ -n "$BUILD" ]; then
-  if [ "$BUILD" = arm ]; then
+  CONF=recipes/$BUILD.conf
+  if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
     ARCH="armhf"
-    echo "Building ARM Base System"
-  elif [ "$BUILD" = x86 ]; then
-    echo 'Building X86 Base System'
+	BUILD=arm
+    echo "Building ARM Base System with Raspbian"
+  elif [ "$BUILD" = armv7 ] || [ "$BUILD" = armv7-dev ]; then
+    ARCH="armhf"
+	BUILD="armv7"
+    echo "Building ARMV7 Base System with Debian"
+  elif [ "$BUILD" = armv8 ] || [ "$BUILD" = armv8-dev ]; then
+    ARCH="arm64"
+	BUILD="armv8"
+    echo "Building ARMV8 (arm64) Base System with Debian"
+  elif [ "$BUILD" = x86 ] || [ "$BUILD" = x86-dev ]; then
+    echo 'Building X86 Base System with Debian'
     ARCH="i386"
+	BUILD="x86"
   else
     if [ ! -f recipes/$BUILD.conf ]; then
       echo "Unexpected Base System architecture '$BUILD' - aborting."
       exit
     fi
   fi
-  if [ -d build/$BUILD ]
-    then
-    echo "Build folder exist, cleaning it"
-    rm -rf build/$BUILD/*
+  if [ -d build/$BUILD ]; then
+    echo "Build folder exists, cleaning it"
+    rm -rf build/$BUILD
+  elif [ -d build ]; then
+    echo "Build folder exists, leaving it"
   else
     echo "Creating build folder"
-    sudo mkdir build
+    mkdir build
   fi
 
   mkdir build/$BUILD
   mkdir build/$BUILD/root
-  multistrap -a $ARCH -f recipes/$BUILD.conf
-  if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
-    cp /usr/bin/qemu-arm-static build/arm/root/usr/bin/
+  multistrap -a $ARCH -f $CONF
+  if [ ! "$BUILD" = x86 ]; then
+	echo "Build for arm/armv7/armv8 platform, copying qemu"
+    cp /usr/bin/qemu-arm-static build/$BUILD/root/usr/bin/
   fi
   cp scripts/volumioconfig.sh build/$BUILD/root
+
   mount /dev build/$BUILD/root/dev -o bind
   mount /proc build/$BUILD/root/proc -t proc
   mount /sys build/$BUILD/root/sys -t sysfs
@@ -140,19 +154,19 @@ if [ -n "$BUILD" ]; then
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git build/$BUILD/root/volumio/http/www
 
-  if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
-  chroot build/arm/root /bin/bash -x <<'EOF'
+  if [ ! "$BUILD" = x86 ]; then
+  chroot build/$BUILD/root /bin/bash -x <<'EOF'
 su -
 ./volumioconfig.sh
 EOF
-  elif [ "$BUILD" = x86 ] || [ "$BUILD" = x86-dev ]; then
-    chroot build/x86/root /volumioconfig.sh
+  else 
+    chroot build/$BUILD/root /volumioconfig.sh
   fi
 
   echo "Adding information in os-release"
   echo '
 
-' >> build/${BUILD}/root/etc/os-release
+' >> build/$BUILD/root/etc/os-release
 
   echo "Base System Installed"
   rm build/$BUILD/root/volumioconfig.sh
@@ -171,6 +185,9 @@ VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
   umount -l build/$BUILD/root/dev
   umount -l build/$BUILD/root/proc
   umount -l build/$BUILD/root/sys
+  # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
+  umount -l build/$BUILD/root/run/cgmanager/fs
+  mount
   sh scripts/configure.sh -b $BUILD
 fi
 
@@ -198,8 +215,8 @@ if [ "$DEVICE" = cuboxi ]; then
 fi
 if  [ "$DEVICE" = odroidc1 ]; then
   echo 'Writing Odroid-C1/C1+ Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/odroidc1image.sh -v $VERSION -p $PATCH;
+  check_os_release "armv7" $VERSION $DEVICE
+  sh scripts/odroidc1image.sh -v $VERSION -p $PATCH -a arm;
 fi
 if  [ "$DEVICE" = odroidc2 ]; then
   echo 'Writing Odroid-C2 Image File'
