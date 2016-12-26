@@ -216,7 +216,7 @@ fi
 if  [ "$DEVICE" = odroidc1 ]; then
   echo 'Writing Odroid-C1/C1+ Image File'
   check_os_release "armv7" $VERSION $DEVICE
-  sh scripts/odroidc1image.sh -v $VERSION -p $PATCH -a arm;
+  sh scripts/odroidc1image.sh -v $VERSION -p $PATCH -a armv7;
 fi
 if  [ "$DEVICE" = odroidc2 ]; then
   echo 'Writing Odroid-C2 Image File'
@@ -251,8 +251,8 @@ fi
 
 if  [ "$DEVICE" = pine64 ]; then
   echo 'Writing Pine64 Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/pine64image.sh -v $VERSION -p $PATCH;
+  check_os_release "armv7" $VERSION $DEVICE
+  sh scripts/pine64image.sh -v $VERSION -p $PATCH -a armv7;
 fi
 
 if  [ "$DEVICE" = bpim2u ]; then
