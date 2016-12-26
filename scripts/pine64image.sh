@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# Build Architecture Debian 32bit
+# Build Architecture Debian 32bit (to be changed to armv8)
 ARCH="armv7"
 
-while getopts ":v:p:" opt; do
+while getopts ":v:p:a:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
@@ -20,14 +20,14 @@ done
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-pine64.img"
 
-if [ "$ARCH" = armv7 ]; then
-  echo "Creating Image File with Debian rootfs"
+if [ "$ARCH" = arm ]; then
+  DISTRO="Raspbian"
 else
-  echo "Creating Image File with Raspbian rootfs"
+  DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File"
-echo "Image file: ${IMG_FILE}"
+echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs" 
+
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
