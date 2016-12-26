@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Default build for Debian 32bit
+ARCH="armv7"
+
 while getopts ":v:p:" opt; do
   case $opt in
     v)
@@ -8,15 +11,21 @@ while getopts ":v:p:" opt; do
     p)
       PATCH=$OPTARG
       ;;
-
+    a)
+      ARCH=$OPTARG
+      ;;
   esac
 done
 
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidc1.img"
 
+if [ "$ARCH" = armv7 ]; then
+  echo "Creating Image File with Debian rootfs"
+else
+  echo "Creating Image File with Raspbian rootfs"
+fi
 
-echo "Creating Image File"
 echo "Image file: ${IMG_FILE}"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
@@ -100,7 +109,7 @@ sudo mkdir /mnt/volumio/rootfs/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying OdroidC1 boot files"
 sudo cp platforms-O/odroidc1/boot/boot.ini* /mnt/volumio/rootfs/boot
 sudo cp platforms-O/odroidc1/boot/meson8b_odroidc.dtb /mnt/volumio/rootfs/boot

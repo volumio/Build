@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Build Architecture Debian 32bit
+ARCH="armv7"
+
 while getopts ":v:p:" opt; do
   case $opt in
     v)
@@ -8,13 +11,20 @@ while getopts ":v:p:" opt; do
     p)
       PATCH=$OPTARG
       ;;
-
+    a)
+      ARCH=$OPTARG
+      ;;
   esac
 done
 
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-pine64.img"
 
+if [ "$ARCH" = armv7 ]; then
+  echo "Creating Image File with Debian rootfs"
+else
+  echo "Creating Image File with Raspbian rootfs"
+fi
 
 echo "Creating Image File"
 echo "Image file: ${IMG_FILE}"
@@ -94,7 +104,7 @@ sudo mkdir /mnt/volumio/rootfs/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying pine64 boot files"
 mkdir /mnt/volumio/rootfs/boot/pine64
 sudo cp platform-pine64/pine64/boot/pine64/Image /mnt/volumio/rootfs/boot/pine64
@@ -109,9 +119,6 @@ sudo cp -pdR platform-pine64/pine64/lib/firmware /mnt/volumio/rootfs/lib/
 
 echo "Confguring ALSA with sane defaults"
 sudo cp platform-pine64/pine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
-
-#TODO: pine64 should be able to run generic debian
-#sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
 
 sync
 
