@@ -1,21 +1,32 @@
 #!/bin/sh
 
-while getopts ":v:" opt; do
+# Default build for Debian 32bit
+ARCH="armv7"
+
+while getopts ":v:p:a:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
       ;;
-	p)
-	  PATCH=$OPTARG
-	  ;;
-
+    p)
+      PATCH=$OPTARG
+      ;;
+    a)
+      ARCH=$OPTARG
+      ;;
   esac
 done
+
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidxu4.img"
 
-echo "Creating Image File"
-echo "Image file: ${IMG_FILE}"
+if [ "$ARCH" = arm ]; then
+  DISTRO="Raspbian"
+else
+  DISTRO="Debian 32bit"
+fi
+
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
@@ -97,7 +108,7 @@ echo "Copying rootfs"
 mkdir /mnt/volumio/images
 sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 sudo mkdir /mnt/volumio/rootfs
-sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying boot files"

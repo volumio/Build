@@ -21,9 +21,9 @@ BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidc1.img"
 
 if [ "$ARCH" = arm ]; then
-  $DISTRO="Raspbian"
+  DISTRO="Raspbian"
 else
-  $DISTRO="Debian 32bit"
+  DISTRO="Debian 32bit"
 fi
 
 echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
