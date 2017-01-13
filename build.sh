@@ -23,7 +23,7 @@ Basic usage: ./build.sh -b arm -d all -v 2.0
 
 Switches:
   -b <arch> Build a full system image with Multistrap.
-            Options for the target architecture are 'arm' (Raspbian), 'armv7' (Debian 32bit), 'armv8' (Debian 64bit) or 'x86' (Debian 32bit).
+            Options for the target architecture are 'arm' (Raspbian), 'armv7' (Debian arm64), 'armv8' (Debian arm64) or 'x86' (Debian i386).
   -d        Create Image for Specific Devices. Supported device names:
               all (all), pi, udoo, cuboxi, cubietruck, compulab,
               odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, bpim2u
@@ -118,11 +118,9 @@ if [ -n "$BUILD" ]; then
     echo 'Building X86 Base System with Debian'
     ARCH="i386"
 	BUILD="x86"
-  else
-    if [ ! -f recipes/$BUILD.conf ]; then
-      echo "Unexpected Base System architecture '$BUILD' - aborting."
-      exit
-    fi
+  elif [ ! -f recipes/$BUILD.conf ]; then
+    echo "Unexpected Base System architecture '$BUILD' - aborting."
+    exit
   fi
   if [ -d build/$BUILD ]; then
     echo "Build folder exists, cleaning it"
@@ -198,74 +196,62 @@ else
   PATCH='volumio'
 fi
 
-
-if [ "$DEVICE" = pi ]; then
-  echo 'Writing Raspberry Pi Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/raspberryimage.sh -v $VERSION -p $PATCH;
-fi
-if [ "$DEVICE" = udoo ]; then
-  echo 'Writing UDOO Image File'
-  sh scripts/udooimage.sh -v $VERSION ;
-fi
-if [ "$DEVICE" = cuboxi ]; then
-  echo 'Writing Cubox-i Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/cuboxiimage.sh -v $VERSION -p $PATCH;
-fi
-if  [ "$DEVICE" = odroidc1 ]; then
-  echo 'Writing Odroid-C1/C1+ Image File'
-  check_os_release "armv7" $VERSION $DEVICE
-  sh scripts/odroidc1image.sh -v $VERSION -p $PATCH -a armv7;
-fi
-if  [ "$DEVICE" = odroidc2 ]; then
-  echo 'Writing Odroid-C2 Image File'
-  check_os_release "armv7" $VERSION $DEVICE
-  sh scripts/odroidc2image.sh -v $VERSION -p $PATCH -a armv7;
-fi
-if  [ "$DEVICE" = odroidxu4 ]; then
-  echo 'Writing Odroid-XU4 Image File'
-  check_os_release "armv7" $VERSION $DEVICE
-  sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH -a armv7;
-fi
-if  [ "$DEVICE" = odroidx2 ]; then
-  echo 'Writing Odroid-X2 Image File'
-  check_os_release "armv7" $VERSION $DEVICE
-  sh scripts/odroidx2image.sh -v $VERSION -p $PATCH -a armv7;
-fi
-if [ "$DEVICE" = sparky ]; then
-  echo 'Writing Sparky Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a arm;
-fi
-if [ "$DEVICE" = bbb ]; then
-  echo 'Writing BeagleBone Black Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/bbbimage.sh -v $VERSION -p $PATCH;
-fi
-if  [ "$DEVICE" = udooneo ]; then
-  echo 'Writing UDOO NEO Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/udooneoimage.sh -v $VERSION -p $PATCH;
-fi
-
-if  [ "$DEVICE" = pine64 ]; then
-  echo 'Writing Pine64 Image File'
-  check_os_release "armv7" $VERSION $DEVICE
-  sh scripts/pine64image.sh -v $VERSION -p $PATCH -a armv7;
-fi
-
-if  [ "$DEVICE" = bpim2u ]; then
-  echo 'Writing BPI-M2U Image File'
-  check_os_release "arm" $VERSION $DEVICE
-  sh scripts/bpim2uimage.sh -v $VERSION -p $PATCH;
-fi
-
-if [ "$DEVICE" = x86 ]; then
-  echo 'Writing x86 Image File'
-  check_os_release "x86" $VERSION $DEVICE
-  sh scripts/x86image.sh -v $VERSION -p $PATCH;
-fi
+case $DEVICE in
+  pi) echo 'Writing Raspberry Pi Image File'
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/raspberryimage.sh -v $VERSION -p $PATCH
+      ;;
+  udoo) echo 'Writing UDOO Image File'
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/udooimage.sh -v $VERSION
+      ;;
+  cuboxi) echo 'Writing Cubox-i Image File'
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/cuboxiimage.sh -v $VERSION -p $PATCH
+      ;;
+  odroidc1) echo 'Writing Odroid-C1/C1+ Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/odroidc1image.sh -v $VERSION -p $PATCH -a armv7
+      ;;
+  odroidc2) echo 'Writing Odroid-C2 Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+# this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
+      sh scripts/odroidc2image.sh -v $VERSION -p $PATCH -a armv7
+      ;;
+  odroidxu4) echo 'Writing Odroid-XU4 Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/odroidxu4image.sh -v $VERSION -p $PATCH -a armv7
+      ;;
+  odroidx2) echo 'Writing Odroid-X2 Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/odroidx2image.sh -v $VERSION -p $PATCH -a armv7
+      ;;
+  sparky) echo 'Writing Sparky Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a armv7
+      ;;
+  bbb) echo 'Writing BeagleBone Black Image File'
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/bbbimage.sh -v $VERSION -p $PATCH
+      ;;
+  udooneo) echo 'Writing UDOO NEO Image File'
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/udooneoimage.sh -v $VERSION -p $PATCH
+      ;;
+  pine64) echo 'Writing Pine64 Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+# this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
+      sh scripts/pine64image.sh -v $VERSION -p $PATCH -a armv7
+      ;;
+  bpim2u) echo 'Writing BPI-M2U Image File'
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/bpim2uimage.sh -v $VERSION -p $PATCH;
+      ;; 
+  x86) echo 'Writing x86 Image File'
+      check_os_release "x86" $VERSION $DEVICE
+      sh scripts/x86image.sh -v $VERSION -p $PATCH;
+      ;;
+esac
 
 #When the tar is created we can build the docker layer
 if  [ "$CREATE_DOCKER_LAYER" = 1 ]; then
