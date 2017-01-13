@@ -125,12 +125,9 @@ sudo cp platforms-O/odroidc2/etc/C2_init.sh /mnt/volumio/rootfs/usr/local/bin/c2
 echo "Copying OdroidC2 inittab"
 sudo cp platforms-O/odroidc2/etc/inittab /mnt/volumio/rootfs/etc/
 
-#TODO: odroids should be able to run generic debian
-sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
-
 sync
 
-echo "Preparing to run chroot for more Odroid-${MODEL} configuration"
+echo "Preparing to run chroot for more Odroid-C2 configuration"
 cp scripts/odroidc2config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin

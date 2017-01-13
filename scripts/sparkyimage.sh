@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Default build for Debian
-ARCH="armv7"
+# Default build for Raspbian
+ARCH="arm"
 
 while getopts ":v:p:a:" opt; do
   case $opt in
@@ -171,7 +171,7 @@ echo "Squash filesystem created"
 echo "Cleaning squash environment"
 rm -rf /mnt/squash
 
-#copy the squash image inside the boot partition
+#copy the squash image inside the image partition
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 echo "Unmounting Temp Devices"
