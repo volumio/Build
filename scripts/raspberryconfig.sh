@@ -38,6 +38,14 @@ options snd-usb-audio nrpacks=1
 options snd-usb-audio index=5
 options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
 
+echo "Adding Raspberrypi.org Repo"
+echo "
+deb http://archive.raspberrypi.org/debian/ jessie main ui
+deb-src http://archive.raspberrypi.org/debian/ jessie main ui
+" >> /etc/apt/sources.list.d/raspi.list 
+
+echo "Adding Raspberrypi.org Repo Key"
+wget https://www.raspberrypi.org/raspberrypi.gpg.key -O - | sudo apt-key add -
 
 echo "Installing R-pi specific binaries"
 apt-get update
