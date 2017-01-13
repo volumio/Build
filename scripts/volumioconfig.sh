@@ -117,7 +117,7 @@ ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/
 if [ $(uname -m) = armv7l ]; then
   echo "Arm Environment detected"
   echo ' Adding Raspbian Repo Key'
-  wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
+  wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
   echo "Installing ARM Node Environment"
   # version 6.3.0
