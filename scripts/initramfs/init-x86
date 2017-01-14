@@ -44,11 +44,13 @@ modprobe nls_cp437
 modprobe nls_utf8
 modprobe usb_common
 modprobe usbcore
+# The EHCI driver should be loaded before the ones for low speed cpntrollers
+# or some devices may be confused when they are disconencted and reconnected.
 modprobe ehci_hcd
+modprobe ehci_pci
 modprobe uhci_hcd
 modprobe ohci_hcd
 modprobe ohci_pci
-modprobe ehci_pci
 modprobe xhci_pci
 modprobe mmc_core
 modprobe sdhci
@@ -77,6 +79,7 @@ modprobe ahci
 modprobe pata_atiixp
 modprobe sd_mod
 modprobe ata_piix
+modprobe pata_sch
 modprobe pata_sis
 modprobe pata_via
 modprobe pata_amd
