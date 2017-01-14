@@ -20,9 +20,10 @@ git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted d
 
 where switches are :
 
- * -b `<arch>` Build a full system image with Multistrap. Options for the target architecture are **arm** or **x86**.
+ * -b `<arch>` Build a full system image with Multistrap. 
+ Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit).
  * -d `<dev>`  Create Image for Specific Devices. Supported device names:
-             **pi**, **odroidc1/2/xu4/x2**, udoo, cuboxi, bbb, cubietruck, compulab, **x86**
+             **pi**, **odroidc1/2/xu4/x2**, udoo, **cuboxi**, **bbb**, cubietruck, compulab, **x86**
  * -l `<repo>` Create docker layer. Give a Docker Repository name as the argument.
  * -v `<vers>` Version
 
@@ -46,7 +47,10 @@ Kernel Sources
 
 * [Raspberry PI](https://github.com/volumio/raspberrypi-linux)
 * [X86](https://github.com/volumio/linux)
-* [Odroid C1\C2](https://github.com/volumio/linux-odroid-public)
+* [Odroid C1, branch odroidc-3.10.y](https://github.com/hardkernel/linux.git)
+* [Odroid C2, branch odroidc2-3.14.y](https://github.com/hardkernel/linux.git)
+* [Odroid X2](https://github.com/volumio/linux-odroid-public)
+* [Odroid XU4](https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.4.tar.xz)
 * [BeagleBoneBlack](https://github.com/volumio/linux-beagleboard-botic)
 
 Main Packages Sources

@@ -93,6 +93,8 @@ cp volumio/splash/volumio.png /mnt/volumio/rootfs/boot
 cp scripts/initramfs/init-x86 /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 
+cp volumio/etc/ata-modules.x86 /mnt/volumio/rootfs/root/ata-modules.x86
+
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
@@ -123,6 +125,7 @@ EOF
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb
 rm /mnt/volumio/rootfs/linux-firmware-*.deb /mnt/volumio/rootfs/e1000e.ko
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
+rm /mnt/volumio/rootfs/root/ata-modules.x86
 sync
 
 echo "Unmounting Temp Devices"
