@@ -1,2 +1,2 @@
-deb http://ftp.it.debian.org/debian/ jessie main contrib non-free
-deb-src http://ftp.it.debian.org/debian/ jessie main contrib non-free
+deb http://httpredir.debian.org/debian/ jessie main contrib non-free
+deb-src http://httpredir.debian.org/debian/ jessie main contrib non-free
