@@ -1,6 +1,9 @@
 #!/bin/sh
 
-while getopts ":v:p:" opt; do
+# Default build for Debian 32bit (to be changed to armv8)
+ARCH="armv7"
+
+while getopts ":v:p:a:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
@@ -8,16 +11,22 @@ while getopts ":v:p:" opt; do
     p)
       PATCH=$OPTARG
       ;;
-
+    a)
+      ARCH=$OPTARG
+      ;;
   esac
 done
 
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidc2.img"
 
+if [ "$ARCH" = arm ]; then
+  DISTRO="Raspbian"
+else
+  DISTRO="Debian 32bit"
+fi
 
-echo "Creating Image File"
-echo "Image file: ${IMG_FILE}"
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
@@ -100,7 +109,7 @@ sudo mkdir /mnt/volumio/rootfs/boot
 sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying OdroidC2 boot files"
 sudo cp platforms-O/odroidc2/boot/boot.ini* /mnt/volumio/rootfs/boot
 sudo cp platforms-O/odroidc2/boot/meson64_odroidc2.dtb /mnt/volumio/rootfs/boot
@@ -116,12 +125,9 @@ sudo cp platforms-O/odroidc2/etc/C2_init.sh /mnt/volumio/rootfs/usr/local/bin/c2
 echo "Copying OdroidC2 inittab"
 sudo cp platforms-O/odroidc2/etc/inittab /mnt/volumio/rootfs/etc/
 
-#TODO: odroids should be able to run generic debian
-sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
-
 sync
 
-echo "Preparing to run chroot for more Odroid-${MODEL} configuration"
+echo "Preparing to run chroot for more Odroid-C2 configuration"
 cp scripts/odroidc2config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
