@@ -1,8 +1,9 @@
 #!/bin/sh
 
 RAMSIZE=`cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'`
+SWAPDEVS=`cat /proc/swaps | wc -l`
 
-if [ ${RAMSIZE} -le 512844 ]; then
+if [ ${RAMSIZE} -le 512844 -a ${SWAPDEVS} -le 1 ]; then
 	echo "512 MB or less RAM Detected, need to enable swap"
     if [ -e /data/swapfile ]; then
     echo "Enabling Swap"
