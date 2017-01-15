@@ -387,8 +387,8 @@ cp /sbin/partprobe "${DESTDIR}/sbin"
 cp /sbin/mkfs.ext4 "${DESTDIR}/sbin"
 cp /sbin/e2fsck "${DESTDIR}/sbin"
 cp /sbin/resize2fs "${DESTDIR}/sbin"
+cp /sbin/findfs "${DESTDIR}/sbin"
 if [ ${DPKG_ARCH} = "i386" ]; then
-  cp /sbin/findfs "${DESTDIR}/sbin"
   cp /sbin/gdisk "${DESTDIR}/sbin"
 # these libs are only for gdisk
   cp "/usr/${LIB_GNUE}/libstdc++.so.6" "${DESTDIR}${LIB_GNUE}"
