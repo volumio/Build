@@ -117,7 +117,7 @@ ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/
 if [ $(uname -m) = armv7l ]; then
   echo "Arm Environment detected"
   echo ' Adding Raspbian Repo Key'
-  wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
+  wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
   echo "Installing ARM Node Environment"
   # version 6.3.0
@@ -210,8 +210,13 @@ if [ $(uname -m) = armv7l ]; then
   chmod a+x /usr/local/sbin/volumio-remote-updater
 
   echo "Installing winbind, its done here because else it will freeze networking"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
+  echo "Cleaning /var/cache/apt/archives folder"
+  rm -rf /var/cache/apt/archives/*
+  echo "Downloading and moving winbind to /winbind"
+  apt-get update
+  apt-get install -y -d winbind libnss-winbind
+  mkdir /winbind
+  mv /var/cache/apt/archives/* /winbind
 
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
@@ -420,10 +425,10 @@ echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
 
-echo "Setting default DNS with Google's DNS"
+echo "Setting fallback DNS with Google's DNS"
 echo "# Google nameservers
 nameserver 8.8.8.8
-nameserver 8.8.4.4" >> /etc/resolv.conf.head
+nameserver 8.8.4.4" >> /etc/resolv.conf.tail
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
