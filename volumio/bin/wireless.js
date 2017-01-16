@@ -8,8 +8,8 @@ var fs = require('fs-extra')
 var thus = require('child_process');
 var wlan = "wlan0";
 var dhcpd = "dhcpd";
-var dhclient = "/usr/bin/sudo /sbin/dhcpcd";
-var justdhclient = "/usr/bin/sudo /sbin/dhcpcd";
+var dhclient = "/usr/bin/sudo /sbin/dhclient";
+var justdhclient = "/usr/bin/sudo /sbin/dhclient";
 var wpasupp = "wpa_supplicant -d -B -Dwext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
 var starthostapd = "systemctl start hotspot.service";
 var stophostapd = "systemctl stop hotspot.service";
@@ -213,7 +213,16 @@ if (process.argv.length < 2) {
 		case "start":
 			console.log("Cleaning previous...");
                         stopHotspot(function () {
-                        stopAP(function() {
+                        stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {});
+						stopAP(function() {
                                 console.log("Stopped aP");
                                 startFlow();
                         })});
@@ -234,3 +243,4 @@ function wstatus(nstatus) {
 function restartAvahi() {
 	//thus.exec("/bin/systemctl restart avahi-daemon");
 }
+
