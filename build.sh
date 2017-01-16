@@ -228,7 +228,7 @@ case $DEVICE in
       ;;
   sparky) echo 'Writing Sparky Image File'
       check_os_release "armv7" $VERSION $DEVICE
-      sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a armv7
+      sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a arm
       ;;
   bbb) echo 'Writing BeagleBone Black Image File'
       check_os_release "arm" $VERSION $DEVICE
