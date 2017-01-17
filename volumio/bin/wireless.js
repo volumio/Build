@@ -234,3 +234,4 @@ function wstatus(nstatus) {
 function restartAvahi() {
 	//thus.exec("/bin/systemctl restart avahi-daemon");
 }
+
