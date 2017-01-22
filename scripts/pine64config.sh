@@ -9,7 +9,7 @@ echo "# Odroid C2 fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
-tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
+tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
@@ -26,7 +26,7 @@ sunxi_sndcodec
 echo "Blacklisting 8723bs_vq0"
 echo "blacklist 8723bs_vq0" >> /etc/modprobe.d/blacklist-pine64.conf
 
-echo "Prevent services starting during install, running under chroot" 
+echo "Prevent services starting during install, running under chroot"
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
@@ -35,7 +35,7 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools liblircclient0 lirc 
+apt-get -y install u-boot-tools liblircclient0 lirc
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -72,6 +72,13 @@ rm /patch
 echo "Changing to 'modules=dep'"
 echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+
+echo "Installing winbind here, since it freezes networking"
+apt-get update
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
 
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"
