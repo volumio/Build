@@ -42,7 +42,7 @@ echo "Adding Raspberrypi.org Repo"
 echo "
 deb http://archive.raspberrypi.org/debian/ jessie main ui
 deb-src http://archive.raspberrypi.org/debian/ jessie main ui
-" >> /etc/apt/sources.list.d/raspi.list 
+" >> /etc/apt/sources.list.d/raspi.list
 
 echo "Adding Raspberrypi.org Repo Key"
 wget https://www.raspberrypi.org/raspberrypi.gpg.key -O - | sudo apt-key add -
@@ -186,14 +186,21 @@ echo "Allo modules and firmware installed"
 
 echo "Adding license info"
 
-echo "You may royalty free distribute object and executable versions of the TI component libraries, and its derivatives 
+echo "You may royalty free distribute object and executable versions of the TI component libraries, and its derivatives
 (“derivative” shall mean adding the TI component library to an audio signal flow of a product to make a new audio signal chain without
 changing the algorithm of the TI component library), to use and integrate the software with any other software, these files are only
-licensed to be used on the TI  PCM 5142 DAC IC , but are freely distributable and re-distributable , subject to acceptance of the license 
-agreement, including executable only versions of the TI component libraries, or its derivatives, that execute solely and exclusively with 
+licensed to be used on the TI  PCM 5142 DAC IC , but are freely distributable and re-distributable , subject to acceptance of the license
+agreement, including executable only versions of the TI component libraries, or its derivatives, that execute solely and exclusively with
 the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
  equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
 " >  /lib/firmware/alloPiano/LICENSE
+
+echo "Installing winbind here, since it freezes networking"
+apt-get update
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
 
 #First Boot operations
 
