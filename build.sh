@@ -206,8 +206,8 @@ case $DEVICE in
       sh scripts/udooimage.sh -v $VERSION
       ;;
   cuboxi) echo 'Writing Cubox-i Image File'
-      check_os_release "arm" $VERSION $DEVICE
-      sh scripts/cuboxiimage.sh -v $VERSION -p $PATCH
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/cuboxiimage.sh -v $VERSION -p $PATCH -a armv7
       ;;
   odroidc1) echo 'Writing Odroid-C1/C1+ Image File'
       check_os_release "armv7" $VERSION $DEVICE
@@ -227,7 +227,7 @@ case $DEVICE in
       sh scripts/odroidx2image.sh -v $VERSION -p $PATCH -a armv7
       ;;
   sparky) echo 'Writing Sparky Image File'
-      check_os_release "armv7" $VERSION $DEVICE
+      check_os_release "arm" $VERSION $DEVICE
       sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a arm
       ;;
   bbb) echo 'Writing BeagleBone Black Image File'
