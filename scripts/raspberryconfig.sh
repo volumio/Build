@@ -64,6 +64,9 @@ mkdir /lib/modules
 
 echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
 
+echo "Updating ELF"
+echo y | SKIP_KERNEL=1 rpi-update
+
 echo "Adding PI3 Wireless firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
