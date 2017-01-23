@@ -110,7 +110,6 @@ apt-get -y remove binutils
 echo "Writing config.txt file"
 echo "initramfs volumio.initrd
 gpu_mem=16
-force_turbo=1
 max_usb_current=1
 dtparam=audio=on
 dtparam=i2c_arm=on
