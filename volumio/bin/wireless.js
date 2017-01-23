@@ -16,6 +16,7 @@ var stophostapd = "systemctl stop hotspot.service";
 var ifconfigHotspot = "ifconfig " + wlan + " 192.168.211.1 up";
 var ifconfigWlan = "ifconfig " + wlan + " up";
 var ifdeconfig = "sudo ip addr flush dev " + wlan + " && sudo ifconfig " + wlan + " down";
+var execSync = require('child_process').execSync;
 
 function kill(process, callback) {
 	var all = process.split(" ");
@@ -133,7 +134,7 @@ function stopAP(callback) {
 }
 var wpaerr;
 var lesstimer;
-var totalSecondsForConnection = 20;
+var totalSecondsForConnection = 40;
 var pollingTime = 1;
 var actualTime = 0;
 var apstopped = 0
@@ -167,12 +168,19 @@ function startFlow() {
 					}, settleTime);
 				});
 			} else {
-				var iwconfig = require('wireless-tools/iwconfig');
+				var SSID = undefined;
 				var ifconfig = require('wireless-tools/ifconfig');
-				iwconfig.status(wlan, function (err, status) {
-					console.log("trying...");
-					//console.log("ssid: " status.ssid);
-					if (status.ssid != undefined) {
+				console.log("trying...");
+				try {
+					var SSIDraw = execSync("/usr/bin/sudo /sbin/iw dev wlan0 link | grep SSID", { uid: 1000, gid: 1000, encoding: 'utf8'});
+					SSID = SSIDraw.toString().split(":")[1].replace(' ', '').replace(/\n$/, '');
+					console.log('Connected to: ----'+SSID+'----');
+				} catch(e) {
+					//console.log('ERROR: '+e)
+				}
+
+
+					if (SSID != undefined) {
 						ifconfig.status(wlan, function (err, ifstatus) {
 							console.log("... joined AP, wlan0 IPv4 is " + ifstatus.ipv4_address + ", ipV6 is " + ifstatus.ipv6_address);
 							if (((ifstatus.ipv4_address != undefined) &&
@@ -189,7 +197,7 @@ function startFlow() {
 							}
 						});
 					}
-				});
+
 			}
 		}, pollingTime * 1000);
 	});
