@@ -209,15 +209,6 @@ if [ $(uname -m) = armv7l ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
   chmod a+x /usr/local/sbin/volumio-remote-updater
 
-  echo "Installing winbind, its done here because else it will freeze networking"
-  echo "Cleaning /var/cache/apt/archives folder"
-  rm -rf /var/cache/apt/archives/*
-  echo "Downloading and moving winbind to /winbind"
-  apt-get update
-  apt-get install -y -d winbind libnss-winbind
-  mkdir /winbind
-  mv /var/cache/apt/archives/* /winbind
-
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
   chmod a+x /usr/sbin/hostapd-edimax
