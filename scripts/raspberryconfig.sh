@@ -150,9 +150,28 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
+
+
+
+#On The Fly Patch
+if [ "$PATCH" = "volumio" ]; then
+echo "No Patch To Apply"
+else
+echo "Applying Patch ${PATCH}"
+PATCHPATH=/${PATCH}
+cd $PATCHPATH
+#Check the existence of patch script
+if [ -f "patch.sh" ]; then
+sh patch.sh
+else
+echo "Cannot Find Patch File, aborting"
+fi
+cd /
+rm -rf ${PATCH}
+fi
+rm /patch
+
 ### Allo I2S Firmware
-
-
 echo "Getting Allo Modules"
 cd /
 wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
@@ -177,25 +196,6 @@ agreement, including executable only versions of the TI component libraries, or 
 the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
  equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
 " >  /lib/firmware/alloPiano/LICENSE
-
-
-#On The Fly Patch
-if [ "$PATCH" = "volumio" ]; then
-echo "No Patch To Apply"
-else
-echo "Applying Patch ${PATCH}"
-PATCHPATH=/${PATCH}
-cd $PATCHPATH
-#Check the existence of patch script
-if [ -f "patch.sh" ]; then
-sh patch.sh
-else
-echo "Cannot Find Patch File, aborting"
-fi
-cd /
-rm -rf ${PATCH}
-fi
-rm /patch
 
 echo "Installing winbind here, since it freezes networking"
 apt-get update
