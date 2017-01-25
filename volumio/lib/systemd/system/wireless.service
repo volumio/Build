@@ -4,10 +4,9 @@ Before=volumio.service
 
 [Service]
 Type=forking
-ExecStartPre=-/sbin/iw dev wlan0 set power_save off
+ExecStartPre=-/bin/wifistart.sh
 ExecStart=/volumio/app/plugins/system_controller/network/wireless.js start
-KillMode=mixed 
+KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target
-
