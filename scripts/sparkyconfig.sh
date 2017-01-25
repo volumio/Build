@@ -16,10 +16,11 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-echo "Adding default sound module"
-echo "snd-soc-allo-piano-dac-plus" >> /etc/modules
+#echo "Adding default sound module"
+#echo "snd-soc-allo-piano-dac-plus
+#snd-soc-allo-piano-dac" >> /etc/modules
 
-echo "Prevent services starting during install, running under chroot" 
+echo "Prevent services starting during install, running under chroot"
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
@@ -28,7 +29,7 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools 
+apt-get -y install u-boot-tools
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -65,6 +66,13 @@ rm /patch
 echo "Changing to 'modules=dep'"
 echo "(otherwise sparky may not boot due to size of initrd)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+
+echo "Installing winbind here, since it freezes networking"
+apt-get update
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
 
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"

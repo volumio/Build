@@ -84,7 +84,7 @@ alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_clien
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount/,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname" >> /etc/sudoers
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname" >> /etc/sudoers
 
 #echo "Configuring Default Network"
 #cat > /etc/network/interfaces << EOF
@@ -117,18 +117,19 @@ ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/
 if [ $(uname -m) = armv7l ]; then
   echo "Arm Environment detected"
   echo ' Adding Raspbian Repo Key'
-  wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
+  wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
   echo "Installing ARM Node Environment"
   # version 6.3.0
   cd /
-  wget https://nodejs.org/dist/v6.3.0/node-v6.3.0-linux-armv6l.tar.xz
-  tar xf node-v6.3.0-linux-armv6l.tar.xz
-  rm /node-v6.3.0-linux-armv6l.tar.xz
-  cd /node-v6.3.0-linux-armv6l
+  wget http://repo.volumio.org/Volumio2/node-v6.9.1-linux-armv6l.tar.xz
+  tar xf node-v6.9.1-linux-armv6l.tar.xz
+  rm /node-v6.9.1-linux-armv6l.tar.xz
+  cd /node-v6.9.1-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.3.0-linux-armv6l
+  rm -rf /node-v6.9.1-linux-armv6l
+
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
@@ -208,10 +209,6 @@ if [ $(uname -m) = armv7l ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
   chmod a+x /usr/local/sbin/volumio-remote-updater
 
-  echo "Installing winbind, its done here because else it will freeze networking"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/libnss-winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/winbind_23a4.2.10+dfsg-0+deb8u3_armhf.deb
-
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
   chmod a+x /usr/sbin/hostapd-edimax
@@ -240,7 +237,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget https://nodejs.org/dist/v6.3.0/node-v6.3.0-linux-x86.tar.xz
+  wget http://repo.volumio.org/Volumio2/node-v6.3.0-linux-x86.tar.xz
   tar xf node-v6.3.0-linux-x86.tar.xz
   rm /node-v6.3.0-linux-x86.tar.xz
   cd /node-v6.3.0-linux-x86
@@ -409,6 +406,7 @@ echo "Configuring hostapd"
 echo "interface=wlan0
 ssid=Volumio
 channel=4
+driver=nl80211
 hw_mode=g
 auth_algs=1
 wpa=2
@@ -421,13 +419,19 @@ echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
 
-echo "Setting default DNS with Google's DNS"
+echo "Setting fallback DNS with Google's DNS"
 echo "# Google nameservers
 nameserver 8.8.8.8
-nameserver 8.8.4.4" >> /etc/resolv.conf.head
+nameserver 8.8.4.4" >> /etc/resolv.conf.tail
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
+
+echo "Creating DHCPCD folder structure"
+mkdir /var/lib/dhcpcd5
+touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
+touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
+chmod -R 777 /var/lib/dhcpcd5
 
 echo "Fine-tuning logging setup"
 d=/var/log/volumio

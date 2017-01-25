@@ -73,6 +73,13 @@ echo "Changing to 'modules=dep'"
 echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
+echo "Installing winbind here, since it freezes networking"
+apt-get update
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
+
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart

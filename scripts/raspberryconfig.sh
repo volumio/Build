@@ -17,7 +17,7 @@ echo "Creating Fstab File"
 touch /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
-tmpfs   /var/log                tmpfs   nodev 0 0
+tmpfs   /var/log                tmpfs   size=20M,nodev 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
@@ -38,6 +38,14 @@ options snd-usb-audio nrpacks=1
 options snd-usb-audio index=5
 options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
 
+echo "Adding Raspberrypi.org Repo"
+echo "
+deb http://archive.raspberrypi.org/debian/ jessie main ui
+deb-src http://archive.raspberrypi.org/debian/ jessie main ui
+" >> /etc/apt/sources.list.d/raspi.list
+
+echo "Adding Raspberrypi.org Repo Key"
+wget https://www.raspberrypi.org/raspberrypi.gpg.key -O - | sudo apt-key add -
 
 echo "Installing R-pi specific binaries"
 apt-get update
@@ -55,6 +63,9 @@ mkdir /lib/modules
 # and https://github.com/Hexxeh/rpi-firmware/issues/118
 
 echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
+
+echo "Updating ELF"
+echo y | SKIP_KERNEL=1 rpi-update
 
 echo "Adding PI3 Wireless firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
@@ -99,7 +110,6 @@ apt-get -y remove binutils
 echo "Writing config.txt file"
 echo "initramfs volumio.initrd
 gpu_mem=16
-force_turbo=1
 max_usb_current=1
 dtparam=audio=on
 dtparam=i2c_arm=on
@@ -107,7 +117,7 @@ disable_splash=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
-echo "force_turbo=1 dwc_otg.lpm_enable=0  dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N " >> /boot/cmdline.txt
+echo "dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N " >> /boot/cmdline.txt
 
 echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
@@ -122,8 +132,10 @@ echo "overlay" >> /etc/initramfs-tools/modules
 
 echo "Customizing pre and post actions for dtoverlay"
 
-echo "echo 'pre'" > /usr/bin/dtoverlay-pre
-echo "echo 'post'" > /usr/bin/dtoverlay-post
+echo "echo 'pre'" > /opt/vc/bin/dtoverlay-pre
+chmod a+x /opt/vc/bin/dtoverlay-pre
+echo "echo 'post'" > /opt/vc/bin/dtoverlay-post
+chmod a+x /opt/vc/bin/dtoverlay-post
 
 echo "DTOverlay utility"
 
@@ -137,6 +149,35 @@ echo "Setting Vcgencmd"
 ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
+
+### Allo I2S Firmware
+
+
+echo "Getting Allo Modules"
+cd /
+wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
+echo "Extracting Allo modules"
+tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
+rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
+
+echo "Getting Allo Firmwares"
+wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_22112016.tgz
+echo "Extracting Allo Firmwares"
+tar xf alloPianoDACfw_22112016.tgz
+rm alloPianoDACfw_22112016.tgz
+echo "Allo modules and firmware installed"
+
+echo "Adding license info"
+
+echo "You may royalty free distribute object and executable versions of the TI component libraries, and its derivatives
+(“derivative” shall mean adding the TI component library to an audio signal flow of a product to make a new audio signal chain without
+changing the algorithm of the TI component library), to use and integrate the software with any other software, these files are only
+licensed to be used on the TI  PCM 5142 DAC IC , but are freely distributable and re-distributable , subject to acceptance of the license
+agreement, including executable only versions of the TI component libraries, or its derivatives, that execute solely and exclusively with
+the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
+ equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
+" >  /lib/firmware/alloPiano/LICENSE
+
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
@@ -155,6 +196,13 @@ cd /
 rm -rf ${PATCH}
 fi
 rm /patch
+
+echo "Installing winbind here, since it freezes networking"
+apt-get update
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
 
 #First Boot operations
 

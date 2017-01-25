@@ -68,6 +68,13 @@ else
 fi
 rm /patch
 
+echo "Installing winbind here, since it freezes networking"
+apt-get update
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
+
 #First Boot operations
 
 echo "Signalling the init script to re-size the volumio data partition"

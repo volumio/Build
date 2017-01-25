@@ -13,10 +13,10 @@ done
 
 echo 'Copying Custom Volumio System Files'
 #Apt conf file
-if [ "$BUILD" = arm ]; then
+if [ "$BUILD" = arm ] || [ "$BUILD" = armv7 ] || [ "$BUILD" = armv8 ]; then
   echo 'Copying ARM related configuration files'
-  cp volumio/etc/apt/sources.list build/$BUILD/root/etc/apt/sources.list
-  echo 'Setting time for ARM devices with fskehwclock to build time'
+  cp volumio/etc/apt/sources.list.$BUILD build/$BUILD/root/etc/apt/sources.list
+  echo 'Setting time for ARM devices with fakehwclock to build time'
   date -u '+%Y-%m-%d %H:%M:%S' > build/$BUILD/root/etc/fake-hwclock.data
 elif [ "$BUILD" = x86 ]; then
   echo 'Copying X86 related Configuration files'
@@ -27,6 +27,9 @@ elif [ "$BUILD" = x86 ]; then
   cp volumio/splash/volumio.png build/$BUILD/root/boot
 #FSTAB File
   cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
+else
+  echo 'Unexpected Build Architecture, aborting...'
+  exit 1
 fi
 #Edimax Power Saving Fix + Alsa modprobe
 cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/
@@ -78,6 +81,8 @@ cp volumio/bin/hotspot.sh build/$BUILD/root/bin/hotspot.sh
 cp volumio/bin/dynswap.sh build/$BUILD/root/bin/dynswap.sh
 #Wireless
 cp volumio/bin/wireless.js build/$BUILD/root/volumio/app/plugins/system_controller/network/wireless.js
+#dhcpcd
+cp -rp volumio/etc/dhcpcd.conf build/$BUILD/root/etc/
 #Log setup
 cp volumio/bin/logdirs.sh build/$BUILD/root/bin/logdirs.sh
 echo 'Done Copying Custom Volumio System Files'
