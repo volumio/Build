@@ -172,8 +172,7 @@ function startFlow() {
 				var ifconfig = require('wireless-tools/ifconfig');
 				console.log("trying...");
 				try {
-					var SSIDraw = execSync("/usr/bin/sudo /sbin/iw dev wlan0 link | grep SSID", { uid: 1000, gid: 1000, encoding: 'utf8'});
-					SSID = SSIDraw.toString().split(":")[1].replace(' ', '').replace(/\n$/, '');
+					var SSID = execSync("/usr/bin/sudo /sbin/iwgetid -r", { uid: 1000, gid: 1000, encoding: 'utf8'});
 					console.log('Connected to: ----'+SSID+'----');
 				} catch(e) {
 					//console.log('ERROR: '+e)
@@ -242,4 +241,3 @@ function wstatus(nstatus) {
 function restartAvahi() {
 	//thus.exec("/bin/systemctl restart avahi-daemon");
 }
-
