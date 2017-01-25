@@ -168,6 +168,41 @@ sudo /sbin/iw dev wlan0 set power_save off
 echo "Give proper permissions to wifistart.sh"
 chmod a+x /bin/wifistart.sh
 
+echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
+
+KERNEL_VERSION="4.4.9"
+KERNEL_REV="884"
+
+mkdir wifi
+cd wifi
+
+echo "WIFI: 8192EU"
+wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: 8812AU"
+wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: 8188EU"
+wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: MT7610"
+wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+cd ..
+rm -rf wifi
+
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
 echo "No Patch To Apply"
