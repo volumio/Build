@@ -83,6 +83,9 @@ cp volumio/bin/dynswap.sh build/$BUILD/root/bin/dynswap.sh
 cp volumio/bin/wireless.js build/$BUILD/root/volumio/app/plugins/system_controller/network/wireless.js
 #dhcpcd
 cp -rp volumio/etc/dhcpcd.conf build/$BUILD/root/etc/
+#wifi pre script
+cp volumio/bin/wifistart.sh build/$BUILD/root/bin/wifistart.sh
+chmod a+x build/$BUILD/root/bin/wifistart.sh
 echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"

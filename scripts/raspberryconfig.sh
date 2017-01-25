@@ -150,8 +150,23 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
+echo "Adding raspi blackist"
+#this way if another USB WIFI dongle is present, it will always be the default one
+echo "
+#wifi
+blacklist brcmfmac
+blacklist brcmutil
+" > /etc/modprobe.d/raspi-blacklist.conf
 
-
+#Load PI3 wifi module just before wifi stack starts
+echo "
+#!/bin/sh
+sudo /sbin/modprobe brcmfmac
+sudo /sbin/modprobe brcmutil
+sudo /sbin/iw dev wlan0 set power_save off
+" >> /bin/wifistart.sh
+echo "Give proper permissions to wifistart.sh"
+chmod a+x /bin/wifistart.sh
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
