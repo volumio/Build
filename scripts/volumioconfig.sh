@@ -86,22 +86,6 @@ alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_clien
 echo 'Adding Safe Sudoers NoPassw permissions'
 echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid" >> /etc/sudoers
 
-#echo "Configuring Default Network"
-#cat > /etc/network/interfaces << EOF
-
-#auto wlan0
-#auto lo
-#iface lo inet loopback
-
-#allow-hotplug eth0
-#iface eth0 inet dhcp
-
-#allow-hotplug wlan0
-#iface wlan0 inet dhcp
-# wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-#EOF
-#chmod 666 /etc/network/interfaces
-
 echo volumio > /etc/hostname
 chmod 777 /etc/hostname
 chmod 777 /etc/hosts
@@ -158,11 +142,6 @@ if [ $(uname -m) = armv7l ]; then
 
   echo "Installing Custom Packages"
   cd /
-
-  #echo "Installing Spop and libspotify"
-  #wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
-  #tar xf /spop.tar.gz
-  #rm /spop.tar.gz
 
   echo "Installing custom MPD version"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.19.19-1_armhf.deb
