@@ -19,7 +19,7 @@ echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000,noauto,nofail        0       1
 /dev/mmcblk0p2  /               ext4    defaults,noatime               0  0
 /dev/mmcblk0p3  /data           ext4    defaults,noatime,noauto,nofail               0  0
-tmpfs   /var/log                tmpfs   size=20M,nodev 0 0 
+tmpfs   /var/log                tmpfs   size=20M,nodev 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
