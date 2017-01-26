@@ -15,13 +15,8 @@ depmod
 echo "configuring unconfigured packages"
 dpkg --configure --pending
 
-echo "Installing winbind, its done here because else it will freeze networking"
-
+echo "Creating /var/log/samba folder"
 mkdir /var/log/samba
-cd /winbind
-sudo dpkg -i winbind*
-sudo dpkg -i libnss*
-rm -rf /winbind
 
 echo "Removing default SSH host keys"
 # These should be created on first boot to ensure they are unique on each system

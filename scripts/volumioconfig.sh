@@ -84,23 +84,7 @@ alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_clien
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname" >> /etc/sudoers
-
-#echo "Configuring Default Network"
-#cat > /etc/network/interfaces << EOF
-
-#auto wlan0
-#auto lo
-#iface lo inet loopback
-
-#allow-hotplug eth0
-#iface eth0 inet dhcp
-
-#allow-hotplug wlan0
-#iface wlan0 inet dhcp
-# wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-#EOF
-#chmod 666 /etc/network/interfaces
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid" >> /etc/sudoers
 
 echo volumio > /etc/hostname
 chmod 777 /etc/hostname
@@ -159,11 +143,6 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Custom Packages"
   cd /
 
-  #echo "Installing Spop and libspotify"
-  #wget http://repo.volumio.org/Packages/Spop/spop.tar.gz
-  #tar xf /spop.tar.gz
-  #rm /spop.tar.gz
-
   echo "Installing custom MPD version"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.19.19-1_armhf.deb
   dpkg -i mpd_0.19.19-1_armhf.deb
@@ -208,15 +187,6 @@ if [ $(uname -m) = armv7l ]; then
   echo "Adding volumio-remote-updater"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
   chmod a+x /usr/local/sbin/volumio-remote-updater
-
-  echo "Installing winbind, its done here because else it will freeze networking"
-  echo "Cleaning /var/cache/apt/archives folder"
-  rm -rf /var/cache/apt/archives/*
-  echo "Downloading and moving winbind to /winbind"
-  apt-get update
-  apt-get install -y -d winbind libnss-winbind
-  mkdir /winbind
-  mv /var/cache/apt/archives/* /winbind
 
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
