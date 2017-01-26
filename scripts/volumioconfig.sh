@@ -337,6 +337,9 @@ ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.targ
 echo "Adding Dynamic Swap Service"
 ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.target.wants/dynamicswap.service
 
+echo "Adding log subdirectories setup to Startup"
+ln -s /lib/systemd/system/logdirs.service /etc/systemd/system/multi-user.target.wants/logdirs.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
