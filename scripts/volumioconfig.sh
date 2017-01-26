@@ -418,3 +418,16 @@ chmod 775 "$d"
 find /var/log -maxdepth 1 -type d | egrep -v 'log$'| \
     xargs tar cf /etc/logdirs.tar --no-recursion
 
+# For long-running instances, log rotation will be needed
+echo '
+/var/log/volumio/*.log
+{
+    rotate 1
+    daily
+    notifempty
+    missingok
+    compress
+    create 0644 volumio volumio
+}
+' > /etc/logrotate.d/volumio
+
