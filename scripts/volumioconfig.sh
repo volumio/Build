@@ -408,3 +408,13 @@ mkdir /var/lib/dhcpcd5
 touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
 touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
 chmod -R 777 /var/lib/dhcpcd5
+
+echo "Fine-tuning logging setup"
+d=/var/log/volumio
+[ -d "$d" ] || mkdir "$d"
+chown volumio:volumio "$d"
+chmod 775 "$d"
+# This tar file will be unpacked by logdirs.service
+find /var/log -maxdepth 1 -type d | egrep -v 'log$'| \
+    xargs tar cf /etc/logdirs.tar --no-recursion
+
