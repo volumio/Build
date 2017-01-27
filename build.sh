@@ -246,7 +246,11 @@ case $DEVICE in
   bpim2u) echo 'Writing BPI-M2U Image File'
       check_os_release "arm" $VERSION $DEVICE
       sh scripts/bpim2uimage.sh -v $VERSION -p $PATCH;
-      ;; 
+      ;;
+  bpipro) echo 'Writing Banana PI PRO Image File'
+      check_os_release "armV7" $VERSION $DEVICE
+      sh scripts/bpiproimage.sh.sh -v $VERSION -p $PATCH;
+      ;;    
   x86) echo 'Writing x86 Image File'
       check_os_release "x86" $VERSION $DEVICE
       sh scripts/x86image.sh -v $VERSION -p $PATCH;
