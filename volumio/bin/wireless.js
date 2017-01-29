@@ -134,7 +134,7 @@ function stopAP(callback) {
 }
 var wpaerr;
 var lesstimer;
-var totalSecondsForConnection = 40;
+var totalSecondsForConnection = 25;
 var pollingTime = 1;
 var actualTime = 0;
 var apstopped = 0
