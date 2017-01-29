@@ -57,7 +57,7 @@ mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the banana bpi-m2u kernel/ platform files"
+echo "Preparing for the banana bpi-pro kernel/ platform files"
 if [ -d platform-banana ]
 then 
 	echo "Platform folder already exists - keeping it"
@@ -69,7 +69,9 @@ else
 	echo "Unpack the platform files"
     cd platform-banana
 	tar xfJ bpi-pro.tar.xz
-	cd ..
+	wget https://raw.githubusercontent.com/chrismade/platform-banana-pi/master/bootp01.tgz
+	tar xvzf bootp01.tgz
+    cd ..
 fi
 
 echo "Copying the bootloader"
@@ -104,10 +106,11 @@ echo "Copying Volumio RootFs"
 cp -pdR build/arm/root/* /mnt/volumio/rootfs
 echo "Copying BPI-PRO boot files"
 cp platform-banana/bpi-pro/boot/uImage /mnt/volumio/rootfs/boot/
-cp platform-banana/bpi-pro/boot/config* /mnt/volumio/rootfs/boot/
-mkimage -C none -A arm -T script -d platform-banana/bpi-pro/boot/boot.cmd mnt/volumio/rootfs/boot/boot.scr
+cp platform-banana/bootp01/* /mnt/volumio/rootfs/boot/
+# cp platform-banana/bpi-pro/boot/config* /mnt/volumio/rootfs/boot/
+# mkimage -C none -A arm -T script -d platform-banana/bpi-pro/boot/boot.cmd mnt/volumio/rootfs/boot/boot.scr
 
-echo "Copying BPI-M2U modules and firmware"
+echo "Copying BPI-PRO modules and firmware"
 cp -pdR platform-banana/bpi-pro/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-banana/bpi-pro/lib/firmware /mnt/volumio/rootfs/lib/
 
