@@ -5,7 +5,7 @@ PATCH=$(cat /patch)
 # This script will be run in chroot under qemu.
 
 echo "Creating \"fstab\""
-echo "# Odroid C2 fstab" > /etc/fstab
+echo "# BPI-PRO fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
@@ -43,7 +43,6 @@ apt-get clean
 rm /usr/sbin/policy-rc.d
 
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
-echo "overlay" >> /etc/initramfs-tools/modules
 echo "overlayfs" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
