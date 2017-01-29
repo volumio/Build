@@ -248,8 +248,10 @@ case $DEVICE in
       sh scripts/bpim2uimage.sh -v $VERSION -p $PATCH;
       ;;
   bpipro) echo 'Writing Banana PI PRO Image File'
-      check_os_release "armV7" $VERSION $DEVICE
-      sh scripts/bpiproimage.sh.sh -v $VERSION -p $PATCH;
+      # check_os_release "armV7" $VERSION $DEVICE
+      # sh scripts/bpiproimage.sh.sh -v $VERSION -p $PATCH;
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/bpiproimage.sh -v $VERSION -p $PATCH;
       ;;    
   x86) echo 'Writing x86 Image File'
       check_os_release "x86" $VERSION $DEVICE

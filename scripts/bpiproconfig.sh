@@ -83,5 +83,5 @@ mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 echo "Creating uInitrd from 'volumio.initrd'"
 mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 echo "Cleaning up"
-rm /boot/volumio.initrd
+# rm /boot/volumio.initrd
 
