@@ -65,17 +65,25 @@ then
     # that will refresh all the bananapi platforms, see below
 else
 	echo "Clone bananapi pro files from repo"
-	git clone https://github.com/gkkpch/platform-banana.git platform-banana
-	echo "Unpack the platform files"
-    cd platform-banana
-	tar xfJ bpi-pro.tar.xz
+### Option 1 - Kernel 3.4.104 gkkpch
+#	git clone https://github.com/gkkpch/platform-banana.git platform-banana
+#	echo "Unpack the platform files gkkpch"
+#	cd platform-banana
+#	tar xfJ bpi-pro.tar.xz
+### Option 2 - Kernel 3.4.113 chrismade
+	git clone https://github.com/chrismade/platform-banana-pi.git platform-banana
+	echo "Unpack the platform files chrismade"
+	cd platform-banana
+	tar xvzf kernel_3_4_113_w_olfs.tgz
+        ln -s bananapi bpi-pro
+### End of Options
 	wget https://raw.githubusercontent.com/chrismade/platform-banana-pi/master/bootp01.tgz
 	tar xvzf bootp01.tgz
-    cd ..
+	cd ..
 fi
 
 echo "Copying the bootloader"
-dd if=platform-banana/bpi-pro/uboot/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+dd if=platform-banana/bootp01/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
 sync
 
 echo "Preparing for Volumio rootfs"
