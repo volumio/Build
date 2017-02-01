@@ -19,28 +19,20 @@ mdev -s
 
 #Hardware specific adaptions
 
-HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $4}' )"
-if [ ! x${HWDEVICE} == "x" ]; then
-  if [ $HWDEVICE == i.MX6 ]; then
-    exec >/dev/kmsg 2>&1 </dev/console
-  fi
-fi
-
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
-
 if [ $HWDEVICE == ODROID-C2 ] ; then
    exec >/dev/kmsg 2>&1 </dev/console
 fi
 
-# Odroid C1, SparkySBC, BPI-M2U and Pine64 have overlayfs version < V22
-if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ]; then
+# Odroid C1, SparkySBC, BPI-M2U, Pine64 and Cubox have overlayfs version < V22
+if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 || [ $HWDEVICE == Freescale ]; then
    OVERLAY=NOWRKDIR
    exec >/dev/kmsg 2>&1 </dev/console
 else
    OVERLAY=WITHWRKDIR
 fi
 
-echo "Booting Volumio for" $HWDEVICE
+echo "Booting Volumio for $(cat /proc/cpuinfo | grep Hardware )" 
 echo "	This script mounts rootfs RO with an overlay RW layer."
 
 # Do your stuff here.
