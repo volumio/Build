@@ -221,6 +221,8 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
+
+if [ "$PATCH" = "volumio" ]; then
 ### Allo I2S Firmware
 echo "Getting Allo Modules"
 cd /
@@ -246,6 +248,7 @@ agreement, including executable only versions of the TI component libraries, or 
 the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
  equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
 " >  /lib/firmware/alloPiano/LICENSE
+fi
 
 echo "Installing winbind here, since it freezes networking"
 apt-get update
