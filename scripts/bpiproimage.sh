@@ -123,7 +123,7 @@ cp -pdR platform-banana/bpi-pro/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-banana/bpi-pro/lib/firmware /mnt/volumio/rootfs/lib/
 
 sync
-
+ 
 echo "Preparing to run chroot for more BPI-PRO configuration"
 cp scripts/bpiproconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
