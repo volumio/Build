@@ -31,17 +31,18 @@ exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
-echo "Installing additonal packages"
+echo "Installing additional packages"
 apt-get update
 apt-get -y install u-boot-tools
-
+echo "Installing winbind here, since it freezes networking"
+apt-get install -y winbind libnss-winbind
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
 
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
-echo "overlay" >> /etc/initramfs-tools/modules
+echo "overlayfs" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
 
@@ -71,13 +72,6 @@ rm /patch
 echo "Changing to 'modules=dep'"
 echo "(otherwise cuboxi may not boot due to size of initrd)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
-
-echo "Installing winbind here, since it freezes networking"
-apt-get update
-apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
-rm -f /var/lib/apt/lists/*archive*
-apt-get clean
 
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"
