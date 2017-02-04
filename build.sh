@@ -19,14 +19,15 @@ function HELP {
 
 Help documentation for Volumio Image Builder
 
-Basic usage: ./build.sh -b arm -d all -v 2.0
+Basic usage: ./build.sh -b arm -d pi -v 2.0
 
 Switches:
   -b <arch> Build a full system image with Multistrap.
             Options for the target architecture are 'arm' (Raspbian), 'armv7' (Debian arm64), 'armv8' (Debian arm64) or 'x86' (Debian i386).
   -d        Create Image for Specific Devices. Supported device names:
-              all (all), pi, udoo, cuboxi, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, bpim2u
+              pi, udooneo, udooqdl, cuboxi, cubietruck, compulab,
+              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, 
+              bpim2u, bpipro
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -186,7 +187,6 @@ VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
   umount -l build/$BUILD/root/sys
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
   umount -l build/$BUILD/root/run/cgmanager/fs
-  mount
   sh scripts/configure.sh -b $BUILD
 fi
 
@@ -201,10 +201,6 @@ case $DEVICE in
   pi) echo 'Writing Raspberry Pi Image File'
       check_os_release "arm" $VERSION $DEVICE
       sh scripts/raspberryimage.sh -v $VERSION -p $PATCH
-      ;;
-  udoo) echo 'Writing UDOO Image File'
-      check_os_release "arm" $VERSION $DEVICE
-      sh scripts/udooimage.sh -v $VERSION
       ;;
   cuboxi) echo 'Writing Cubox-i Image File'
       check_os_release "armv7" $VERSION $DEVICE
@@ -233,11 +229,15 @@ case $DEVICE in
       ;;
   bbb) echo 'Writing BeagleBone Black Image File'
       check_os_release "arm" $VERSION $DEVICE
-      sh scripts/bbbimage.sh -v $VERSION -p $PATCH
+      sh scripts/bbbimage.sh -v $VERSION -p $PATCH -a armv7
       ;;
   udooneo) echo 'Writing UDOO NEO Image File'
-      check_os_release "arm" $VERSION $DEVICE
-      sh scripts/udooneoimage.sh -v $VERSION -p $PATCH
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/udooneoimage.sh -v $VERSION -p $PATCH -a armv7
+      ;;
+  udooqdl) echo 'Writing UDOO Quad/Dual Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/udooneoimage.sh -v $VERSION -p $PATCH -a armv7
       ;;
   pine64) echo 'Writing Pine64 Image File'
       check_os_release "armv7" $VERSION $DEVICE
@@ -246,13 +246,11 @@ case $DEVICE in
       ;;
   bpim2u) echo 'Writing BPI-M2U Image File'
       check_os_release "arm" $VERSION $DEVICE
-      sh scripts/bpim2uimage.sh -v $VERSION -p $PATCH;
+      sh scripts/bpim2uimage.sh -v $VERSION -p $PATCH -a armv7
       ;;
   bpipro) echo 'Writing Banana PI PRO Image File'
-      # check_os_release "armV7" $VERSION $DEVICE
-      # sh scripts/bpiproimage.sh.sh -v $VERSION -p $PATCH;
-      check_os_release "arm" $VERSION $DEVICE
-      sh scripts/bpiproimage.sh -v $VERSION -p $PATCH;
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/bpiproimage.sh -v $VERSION -p $PATCH -a armv7
       ;;    
   x86) echo 'Writing x86 Image File'
       check_os_release "x86" $VERSION $DEVICE
