@@ -237,7 +237,7 @@ case $DEVICE in
       ;;
   udooqdl) echo 'Writing UDOO Quad/Dual Image File'
       check_os_release "armv7" $VERSION $DEVICE
-      sh scripts/udooneoimage.sh -v $VERSION -p $PATCH -a armv7
+      sh scripts/udooqdlimage.sh -v $VERSION -p $PATCH -a armv7
       ;;
   pine64) echo 'Writing Pine64 Image File'
       check_os_release "armv7" $VERSION $DEVICE
