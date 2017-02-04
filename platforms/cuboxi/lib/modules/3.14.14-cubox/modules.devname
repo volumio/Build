@@ -1,7 +1,0 @@
-# Device nodes to trigger on-demand module loading.
-cuse cuse c10:203
-btrfs btrfs-control c10:234
-tun net/tun c10:200
-ppp_generic ppp c108:0
-uinput uinput c10:223
-uhid uhid c10:239
