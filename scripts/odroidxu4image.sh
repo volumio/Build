@@ -30,16 +30,16 @@ echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
-LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
+LOOP_DEV=`losetup -f --show ${IMG_FILE}`
  
-sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 3072s 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 64 1500
-sudo parted -s "${LOOP_DEV}" mkpart primary ext4 1500 100%
-sudo parted -s "${LOOP_DEV}" set 1 boot on
-sudo parted -s "${LOOP_DEV}" print
-sudo partprobe "${LOOP_DEV}"
-sudo kpartx -s -a "${LOOP_DEV}"
+parted -s "${LOOP_DEV}" mklabel msdos
+parted -s "${LOOP_DEV}" mkpart primary fat32 3072s 64
+parted -s "${LOOP_DEV}" mkpart primary ext4 64 1500
+parted -s "${LOOP_DEV}" mkpart primary ext4 1500 100%
+parted -s "${LOOP_DEV}" set 1 boot on
+parted -s "${LOOP_DEV}" print
+partprobe "${LOOP_DEV}"
+kpartx -s -a "${LOOP_DEV}"
 
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
@@ -54,38 +54,38 @@ then
 fi
 
 echo "Creating filesystems"
-sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
-sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
-sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+mkfs -t vfat -n BOOT "${BOOT_PART}"
+mkfs -F -t ext4 -L volumio "${SYS_PART}"
+mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 echo "Get the Odroid kernel/ platform files from repo"
-if [ -d platforms-O ]
+if [ -d platform-odroid ]
 then 
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platforms-O folder
+    # if you really want to re-clone from the repo, then delete the platform-odroid folder
     # that will refresh all the odroid platforms, see below
-	cd platforms-O
+	cd platform-odroid
 	if [ ! -d odroidxu4 ]; then
 	   tar xfJ odroidxu4.tar.xz 
 	fi
 	cd ..
 else
 	echo "Clone all Odroid files from repo"
-	git clone https://github.com/gkkpch/Platform-Odroid.git platforms-O
+	git clone https://github.com/gkkpch/Platform-Odroid.git platform-odroid
 	echo "Unpack the XU4 platform files"
-    cd platforms-O
+    cd platform-odroid
     tar xfJ odroidxu4.tar.xz 
     cd ..
 fi
 
 echo "Copying the bootloader and trustzone software"
-sudo dd iflag=dsync oflag=dsync if=platforms-O/odroidxu4/uboot/bl1.bin.hardkernel of=${LOOP_DEV} seek=1
-sudo dd iflag=dsync oflag=dsync if=platforms-O/odroidxu4/uboot/bl2.bin.hardkernel of=${LOOP_DEV} seek=31
-sudo dd iflag=dsync oflag=dsync if=platforms-O/odroidxu4/uboot/u-boot.bin.hardkernel of=${LOOP_DEV} seek=63
-sudo dd iflag=dsync oflag=dsync if=platforms-O/odroidxu4/uboot/tzsw.bin.hardkernel of=${LOOP_DEV} seek=719
+dd iflag=dsync oflag=dsync if=platform-odroid/odroidxu4/uboot/bl1.bin.hardkernel of=${LOOP_DEV} seek=1
+dd iflag=dsync oflag=dsync if=platform-odroid/odroidxu4/uboot/bl2.bin.hardkernel of=${LOOP_DEV} seek=31
+dd iflag=dsync oflag=dsync if=platform-odroid/odroidxu4/uboot/u-boot.bin.hardkernel of=${LOOP_DEV} seek=63
+dd iflag=dsync oflag=dsync if=platform-odroid/odroidxu4/uboot/tzsw.bin.hardkernel of=${LOOP_DEV} seek=719
 echo "Erasing u-boot env"
-sudo dd iflag=dsync oflag=dsync if=/dev/zero of=${LOOP_DEV} seek=1231 count=32 bs=512
+dd iflag=dsync oflag=dsync if=/dev/zero of=${LOOP_DEV} seek=1231 count=32 bs=512
 
 sync
 
@@ -94,7 +94,7 @@ if [ -d /mnt ]
 then 
   echo "/mnt/folder exist"
 else
-  sudo mkdir /mnt
+  mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then 
@@ -102,25 +102,25 @@ then
   rm -rf /mnt/volumio/*
 else
   echo "Creating Volumio Temp Directory"
-  sudo mkdir /mnt/volumio
+  mkdir /mnt/volumio
 fi
 echo "Copying rootfs"
 mkdir /mnt/volumio/images
-sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
-sudo mkdir /mnt/volumio/rootfs
-sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+mount -t ext4 "${SYS_PART}" /mnt/volumio/images
+mkdir /mnt/volumio/rootfs
+cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
+mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying boot files"
-sudo cp platforms-O/odroidxu4/boot/boot.ini /mnt/volumio/rootfs/boot
-sudo cp platforms-O/odroidxu4/boot/exynos5422-odroidxu4.dtb /mnt/volumio/rootfs/boot
-sudo cp platforms-O/odroidxu4/boot/zImage /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidxu4/boot/boot.ini /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidxu4/boot/exynos5422-odroidxu4.dtb /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidxu4/boot/zImage /mnt/volumio/rootfs/boot
 
 echo "Copying modules and firmware and inittab"
-sudo cp -pdR platforms-O/odroidxu4/lib/modules /mnt/volumio/rootfs/lib/
-sudo cp -pdR platforms-O/odroidxu4/lib/firmware /mnt/volumio/rootfs/lib/
+cp -pdR platform-odroid/odroidxu4/lib/modules /mnt/volumio/rootfs/lib/
+cp -pdR platform-odroid/odroidxu4/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Copying modified securetty (oDroid-XU4 console)"
-sudo cp platforms-O/odroidxu4/etc/securetty /mnt/volumio/rootfs/etc/
+cp platform-odroid/odroidxu4/etc/securetty /mnt/volumio/rootfs/etc/
 
 echo "Preparing to run chroot for more OdroidXU configuration"
 cp scripts/odroidxu4config.sh /mnt/volumio/rootfs
@@ -130,8 +130,8 @@ cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 echo "Adding fancontrol"
 mkdir /mnt/volumio/rootfs/opt/fan-control
-cp platforms-O/odroidxu4/opt/fan-control/odroid-xu3-fan-control.sh /mnt/volumio/rootfs/opt/fan-control
-cp platforms-O/odroidxu4/opt/fan-control/odroid-xu3-fan-control.service /mnt/volumio/rootfs/opt/fan-control
+cp platform-odroid/odroidxu4/opt/fan-control/odroid-xu3-fan-control.sh /mnt/volumio/rootfs/opt/fan-control
+cp platform-odroid/odroidxu4/opt/fan-control/odroid-xu3-fan-control.service /mnt/volumio/rootfs/opt/fan-control
 
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
@@ -151,7 +151,7 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys 
 
 #TODO echo "Copying inittab"
-#TODO sudo cp platforms-O/odroidxu4/etc/inittab /mnt/volumio/etc/
+#TODO cp platform-odroid/odroidxu4/etc/inittab /mnt/volumio/etc/
 
 sync
 echo "Odroid-XU4 device installed" 
@@ -163,7 +163,7 @@ if [ -d /mnt/squash ]; then
 	rm -rf /mnt/squash/*
 else
 	echo "Creating Volumio SquashFS Temp Dir"
-	sudo mkdir /mnt/squash
+	mkdir /mnt/squash
 fi
 
 echo "Copying Volumio rootfs to Temp Dir"
@@ -185,14 +185,14 @@ cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 
 echo "Unmounting Temp Devices"
-sudo umount -l /mnt/volumio/images
-sudo umount -l /mnt/volumio/rootfs/boot
+umount -l /mnt/volumio/images
+umount -l /mnt/volumio/rootfs/boot
 
 echo "Cleaning build environment"
 rm -rf /mnt/volumio /mnt/boot
 
-sudo dmsetup remove_all
-sudo losetup -d ${LOOP_DEV}
+dmsetup remove_all
+losetup -d ${LOOP_DEV}
 sync
 
 md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
