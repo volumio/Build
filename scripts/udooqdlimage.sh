@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# Default build for Debian 32bit
+# Default build for Debian 32bit (to be changed to armv8)
 ARCH="armv7"
 
-while getopts ":v:p:a:" opt; do
+while getopts ":v:p:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
@@ -14,12 +14,12 @@ while getopts ":v:p:a:" opt; do
     a)
       ARCH=$OPTARG
       ;;
-
   esac
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bananapi-m2u.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-udoo-qdl.img"
+
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
 else
@@ -27,15 +27,15 @@ else
 fi
 
 echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1700
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
-# Note: leave the first 20Mb free for the firmware
+ 
 parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary fat32 105 172
-parted -s "${LOOP_DEV}" mkpart primary ext3 172 1650
-parted -s "${LOOP_DEV}" mkpart primary ext3 1650 100%
+parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
+parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
@@ -59,28 +59,25 @@ mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the banana bpi-m2u kernel/ platform files"
-if [ -d platform-banana ]
+echo "Preparing for the udoo kernel/ platform files"
+if [ -d platform-udoo ]
 then 
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platform-banana folder
-    # that will refresh all the bananapi platforms, see below
+    # if you really want to re-clone from the repo, then delete the platforms-udoo folder
 else
-	echo "Clone bananapi m2u files from repo"
-	git clone https://github.com/gkkpch/platform-banana.git platform-banana
-	echo "Unpack the platform files"
-    cd platform-banana
-	tar xfJ bpi-m2u.tar.xz
+	echo "Clone all cubox files from repo"
+	git clone https://github.com/volumio/platform-udoo.git platform-udoo
+	echo "Unpack the cubox platform files"
+    cd platform-udoo
+	tar xfJ udoo-qdl.tar.xz
 	cd ..
 fi
 
+#TODO: Check!!!!
 echo "Copying the bootloader"
-dd if=platform-banana/bpi-m2u/uboot/boot0_sdcard.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=8
-dd if=platform-banana/bpi-m2u/uboot/boot_package.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=16400
-dd if=platform-banana/bpi-m2u/uboot/sunxi_mbr.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=20480
-dd if=platform-banana/bpi-m2u/uboot/boot-resource.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=36864
-dd if=platform-banana/bpi-m2u/uboot/env.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=53248
-
+echo "Burning bootloader"
+dd if=platform-udoo/udoo-qdl/uboot/SPL of=${LOOP_DEV} bs=1K seek=1
+dd if=platform-udoo/udoo-qdl/uboot/u-boot.img of=${LOOP_DEV} bs=1K seek=69
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -103,33 +100,20 @@ echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
 mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
-echo "Creating mount point for the boot partition"
 mkdir /mnt/volumio/rootfs/boot
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying BPI-M2U boot files"
-mkdir -p /mnt/volumio/rootfs/boot/bananapi
-mkdir -p /mnt/volumio/rootfs/boot/bananapi/bpi-m2u
-mkdir -p /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux
-cp platform-banana/bpi-m2u/boot/uImage /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux
-cp platform-banana/bpi-m2u/boot/uEnv.txt /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux
-cp platform-banana/bpi-m2u/boot/Image.version /mnt/volumio/rootfs/boot/
-cp platform-banana/bpi-m2u/boot/config* /mnt/volumio/rootfs/boot/
-
-echo "Copying BPI-M2U modules and firmware"
-cp -pdR platform-banana/bpi-m2u/lib/modules /mnt/volumio/rootfs/lib/
-cp -pdR platform-banana/bpi-m2u/lib/firmware /mnt/volumio/rootfs/lib/
-
-
-#TODO: bananapi's should be able to run generic debian
-#sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
+echo "Copying udoo-qdl boot files, Kernel, Modules and Firmware"
+cp platform-udoo/udoo-qdl/boot/* /mnt/volumio/rootfs/boot
+cp -pdR platform-udoo/udoo-qdl/lib/modules /mnt/volumio/rootfs/lib
+cp -pdR platform-udoo/udoo-qdl/lib/firmware /mnt/volumio/rootfs/lib
 
 sync
 
-echo "Preparing to run chroot for more BPI-M2U configuration"
-cp scripts/bpim2uconfig.sh /mnt/volumio/rootfs
+echo "Preparing to run chroot for more udoo-qdl configuration"
+cp scripts/udooqdlconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -139,30 +123,24 @@ mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
-
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/bpim2uconfig.sh
+/udoo-qdlconfig.sh
 EOF
 
-echo "Moving uInitrd to where the kernel is"
-mv /mnt/volumio/rootfs/boot/uInitrd /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux/uInitrd
 #cleanup
-rm /mnt/volumio/rootfs/bpim2uconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/udooqdlconfig.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev 
 umount -l /mnt/volumio/rootfs/proc 
 umount -l /mnt/volumio/rootfs/sys 
 
-#echo "Copying LIRC configuration files"
-
-
-echo "==> BPI-M2U device installed"  
+echo "==> udoo-qdl device installed"  
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platform-bananapi
+#sudo rm -r platforms-udoo
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -203,4 +181,4 @@ dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
 
-md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
+

@@ -3,7 +3,7 @@
 # Default build for Debian 32bit
 ARCH="armv7"
 
-while getopts ":v:p:" opt; do
+while getopts ":v:p:a:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
@@ -11,13 +11,15 @@ while getopts ":v:p:" opt; do
     p)
       PATCH=$OPTARG
       ;;
+    a)
+      ARCH=$OPTARG
+      ;;
 
   esac
 done
 
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bananapi-pro.img"
-
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
 else
