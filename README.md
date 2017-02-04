@@ -23,7 +23,7 @@ where switches are :
  * -b `<arch>` Build a full system image with Multistrap. 
  Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit).
  * -d `<dev>`  Create Image for Specific Devices. Supported device names:
-             **pi**, **odroidc1/2/xu4/x2**, udoo, **cuboxi**, **bbb**, cubietruck, compulab, **x86**
+             **pi**, **odroidc1/2/xu4/x2**, **udooneo**, **udooqdl**, **cuboxi**, **pine64**, **sparky**, **bbb**, ***bpipro***, bpim2u, cubietruck, compulab, **x86**
  * -l `<repo>` Create docker layer. Give a Docker Repository name as the argument.
  * -v `<vers>` Version
 
