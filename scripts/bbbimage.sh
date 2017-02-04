@@ -1,12 +1,15 @@
 #!/bin/sh
 
-while getopts ":v:p:" opt; do
+while getopts ":v:p:a:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
       ;;
     p)
       PATCH=$OPTARG
+      ;;
+    a)
+      ARCH=$OPTARG
       ;;
 
   esac
@@ -23,9 +26,13 @@ fi
 
 BUILDDATE=$(date -I)
 IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bbb.img"
+if [ "$ARCH" = arm ]; then
+  DISTRO="Raspbian"
+else
+  DISTRO="Debian 32bit"
+fi
 
-echo "Creating Image File"
-echo "Image file: ${IMG_FILE}"
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=896
 
 echo Copying bootloader and U-Boot
@@ -36,14 +43,14 @@ sync
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
-sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 4 63
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 64 831
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 832 100%
-sudo parted -s "${LOOP_DEV}" set 1 boot on
-sudo parted -s "${LOOP_DEV}" print
-sudo partprobe "${LOOP_DEV}"
-sudo kpartx -s -a "${LOOP_DEV}"
+parted -s "${LOOP_DEV}" mklabel msdos
+parted -s "${LOOP_DEV}" mkpart primary fat32 4 63
+parted -s "${LOOP_DEV}" mkpart primary ext3 64 831
+parted -s "${LOOP_DEV}" mkpart primary ext3 832 100%
+parted -s "${LOOP_DEV}" set 1 boot on
+parted -s "${LOOP_DEV}" print
+partprobe "${LOOP_DEV}"
+kpartx -s -a "${LOOP_DEV}"
 
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
@@ -58,14 +65,14 @@ then
 fi
 
 echo "Creating boot and rootfs filesystems"
-sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
+mkfs -t vfat -n BOOT "${BOOT_PART}"
 EXT4OPTS="-F -b 4096"
 # for U-Boot we need to make sure metadata_csum and 64bit are disabled
-sudo mkfs.ext4 $EXT4OPTS -L volumio -O ^metadata_csum,^64bit "${SYS_PART}" || \
-    sudo mkfs.ext4 $EXT4OPTS -L volumio "${SYS_PART}"
+mkfs.ext4 $EXT4OPTS -L volumio -O ^metadata_csum,^64bit "${SYS_PART}" || \
+     mkfs.ext4 $EXT4OPTS -L volumio "${SYS_PART}"
 # for U-Boot we need to make sure metadata_csum and 64bit are disabled
-sudo mkfs.ext4 $EXT4OPTS -L volumio_data -O ^metadata_csum,^64bit "${DATA_PART}" || \
-    sudo mkfs.ext4 $EXT4OPTS -L volumio_data "${DATA_PART}"
+mkfs.ext4 $EXT4OPTS -L volumio_data -O ^metadata_csum,^64bit "${DATA_PART}" || \
+    mkfs.ext4 $EXT4OPTS -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -73,7 +80,7 @@ if [ -d /mnt ]
 then
 	echo "/mount folder exist"
 else
-	sudo mkdir /mnt
+	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then
@@ -81,25 +88,25 @@ then
 	rm -rf /mnt/volumio/*
 else
 	echo "Creating Volumio Temp Directory"
-	sudo mkdir /mnt/volumio
+	mkdir /mnt/volumio
 fi
 
 echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
-sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
-sudo mkdir /mnt/volumio/rootfs
-sudo mkdir /mnt/volumio/rootfs/boot
-sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+mount -t ext4 "${SYS_PART}" /mnt/volumio/images
+mkdir /mnt/volumio/rootfs
+mkdir /mnt/volumio/rootfs/boot
+mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/arm/root/* /mnt/volumio/rootfs
+cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 
 echo "Copying bbb boot files, Kernel, Modules and Firmware"
 for file in platform-bbb/bbb*.tar.xz; do
 	tar xvJf "$file" -C /mnt/volumio/rootfs
 done
 (cd platform-bbb; tar cO . --exclude ./.git --exclude './bbb*.tar.xz' --exclude ./README.md ) | \
-	sudo tar xv -C /mnt/volumio/rootfs
+	tar xv -C /mnt/volumio/rootfs
 echo "Volumio.org ${VERSION} Image ${BUILDDATE}" > /mnt/volumio/rootfs/ID.txt
 sync
 
@@ -141,7 +148,7 @@ if [ -d /mnt/squash ]; then
 	rm -rf /mnt/squash/*
 else
 	echo "Creating Volumio SquashFS Temp Dir"
-	sudo mkdir /mnt/squash
+	mkdir /mnt/squash
 fi
 
 echo "Copying Volumio rootfs to Temp Dir"
@@ -162,14 +169,14 @@ rm -rf /mnt/squash
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 echo "Unmounting Temp Devices"
-sudo umount -l /mnt/volumio/images
-sudo umount -l /mnt/volumio/rootfs/boot
+umount -l /mnt/volumio/images
+umount -l /mnt/volumio/rootfs/boot
 
 echo "Cleaning build environment"
 rm -rf /mnt/volumio
 
-sudo dmsetup remove_all
-sudo losetup -d ${LOOP_DEV}
+dmsetup remove_all
+losetup -d ${LOOP_DEV}
 sync
 
 md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
