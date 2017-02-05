@@ -232,10 +232,10 @@ tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
 rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
 
 echo "Getting Allo Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_22112016.tgz
+wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_01122016.tgz
 echo "Extracting Allo Firmwares"
-tar xf alloPianoDACfw_22112016.tgz
-rm alloPianoDACfw_22112016.tgz
+tar xf alloPianoDACfw_01122016.tgz
+rm alloPianoDACfw_01122016.tgz
 echo "Allo modules and firmware installed"
 
 echo "Adding license info"
