@@ -1,24 +1,45 @@
-#!/bin/bash
+#!/bin/sh
 
-case "$1" in
-'start')
-DRIVER=`/sbin/ethtool -i wlan0 | grep driver | awk -F": " '{print $2}'`
-ARCH=`/usr/bin/dpkg --print-architecture`
+set -eux
 
-if [ $DRIVER = "rtl8192cu" -a $ARCH = "armhf" ] ; then
-  echo "Launching Hostapd Edimax"
-/usr/sbin/hostapd-edimax /etc/hostapd/hostapd-edimax.conf
-else
-  echo "Launching Ordinary Hostapd"
-/usr/sbin/hostapd /etc/hostapd/hostapd.conf
-fi
-;;
-'stop')
+say() {
+  printf '%s\n' "$1"
+}
 
-echo "Killing Hostapd"
-/usr/bin/sudo /usr/bin/killall hostapd
+die() {
+  say "$0: $1" >& 2
+  exit 1
+}
 
-echo "Killing Dhcpd"
-/usr/bin/sudo /usr/bin/killall dhcpd
-;;
-esac
+usage() {
+  say "usage: $0 device" >&2
+  exit 1
+}
+
+[ $# -eq 1 ] || usage
+
+hostapd() {
+  DRIVER=$(/sbin/ethtool -i "$1" | awk -F': ' '/driver/ {print $2}')
+  ARCH=$(/usr/bin/dpkg --print-architecture)
+  if [ x"$DRIVER" = x"rtl8192cu" -a x"$ARCH" = x"armhf" ] ; then
+    say '-edimax'
+  else
+    say ''
+  fi
+}
+
+interface() {
+  say "$(sed -n -e '/^interface=/{s,^interface=,,;p;q;}')"
+}
+
+set -- "$1" "$(hostapd "$1")"
+set -- "$1" "/usr/sbin/hostapd$2" "/etc/hostapd/hostapd$2.conf"
+set -- "$1" "$(interface < "$3")" "$2" "$3"
+
+[ x"$1" = x"$2" ] ||
+  die "Inconsistent network interface: $1 $2"
+
+rm -rf /var/run/hostapd
+
+set -- "$3" -g "/var/run/hostapd/$1" "$4"
+exec "$@"
