@@ -337,6 +337,9 @@ ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.targ
 echo "Adding Dynamic Swap Service"
 ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.target.wants/dynamicswap.service
 
+echo "Adding log subdirectories setup to Startup"
+ln -s /lib/systemd/system/logdirs.service /etc/systemd/system/multi-user.target.wants/logdirs.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
@@ -408,3 +411,26 @@ mkdir /var/lib/dhcpcd5
 touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
 touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
 chmod -R 777 /var/lib/dhcpcd5
+
+echo "Fine-tuning logging setup"
+d=/var/log/volumio
+[ -d "$d" ] || mkdir "$d"
+chown volumio:volumio "$d"
+chmod 775 "$d"
+# This tar file will be unpacked by logdirs.service
+find /var/log -maxdepth 1 -type d | egrep -v 'log$'| \
+    xargs tar cf /etc/logdirs.tar --no-recursion
+
+# For long-running instances, log rotation will be needed
+echo '
+/var/log/volumio/*.log
+{
+    rotate 1
+    daily
+    notifempty
+    missingok
+    compress
+    create 0644 volumio volumio
+}
+' > /etc/logrotate.d/volumio
+

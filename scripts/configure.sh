@@ -86,6 +86,8 @@ cp -rp volumio/etc/dhcpcd.conf build/$BUILD/root/etc/
 #wifi pre script
 cp volumio/bin/wifistart.sh build/$BUILD/root/bin/wifistart.sh
 chmod a+x build/$BUILD/root/bin/wifistart.sh
+#Log setup
+cp volumio/bin/logdirs.sh build/$BUILD/root/bin/logdirs.sh
 echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"
