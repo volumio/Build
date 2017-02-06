@@ -1,66 +1,59 @@
 #!/bin/bash
 
-while getopts ":v:" opt; do
-  case $opt in
-    v)
-      VERSION=$OPTARG
-      ;;
-  esac
-done
-
 PATCH=$(cat /patch)
 
 # This script will be run in chroot under qemu.
 
-echo "Creating Fstab File"
-
-touch /etc/fstab
+echo "Creating \"fstab\""
+echo "# udooneo fstab" > /etc/fstab
+echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000,noauto,nofail        0       1
-/dev/mmcblk0p2  /               ext4    defaults,noatime               0  0
-/dev/mmcblk0p3  /data           ext4    defaults,noatime,noauto,nofail               0  0
-tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
+/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /dev/shm                tmpfs   defaults        0 0
 " > /etc/fstab
 
-echo "Adding UDOO's Repo Key"
-apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 71F0E740
 
+#TODO: add sound modules
+echo "Adding sound modules"
+#echo "
+#.....
+#.....
+#" >> /etc/modules
+
+echo "Prevent services starting during install, running under chroot"
+echo "(avoids unnecessary errors)"
+cat > /usr/sbin/policy-rc.d << EOF
+exit 101
+EOF
+chmod +x /usr/sbin/policy-rc.d
+
+echo "Installing additional packages"
 echo "Adding UDOO's Repository"
 echo "deb http://repository.udoo.org udoobuntu main" >> /etc/apt/sources.list
 
-echo "Installing Kernel"
 apt-get update
-apt-get -y install linux-3.14.56-udooneo
-
-echo "Applying Custom DTS"
-rm -rf /boot/dts
-mv /boot/dtsnew /boot/dts
-
 echo "Installing Firmware and Modules"
 apt-get -y install firmware-udooneo-wl1831 udev-udooneo-rules udooneo-bluetooth
-
-
-#echo "Adding volumio-remote-updater"
-#wget -P /usr/local/bin/ http://updates.volumio.org/jx
-#wget -P /usr/local/sbin/ http://updates.volumio.org/volumio-remote-updater.jx
-#chmod +x /usr/local/sbin/volumio-remote-updater.jx /usr/local/bin/jx
-
-echo "Cleaning APT Cache"
+apt-get -y install u-boot-tools
+echo "Installing winbind here, since it freezes networking"
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
-#echo "Adding custom modules"
-#echo "squashfs" >> /etc/initramfs-tools/modules
-#echo "overlay" >> /etc/initramfs-tools/modules
+echo "Adding custom modules overlayfs, squashfs and nls_cp437"
+echo "overlayfs" >> /etc/initramfs-tools/modules
+echo "squashfs" >> /etc/initramfs-tools/modules
+echo "nls_cp437" >> /etc/initramfs-tools/modules
 
-
-#compile the volumio-init-updater
-#echo "Compiling volumio initramfs updater"
-#cd /root/
-#mv volumio-init-updater /usr/local/sbin
+echo "Copying volumio initramfs updater"
+cd /root/
+mv volumio-init-updater /usr/local/sbin
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
@@ -80,6 +73,21 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
+#TODO: check initrd size
+echo "Changing to 'modules=dep'"
+echo "(otherwise cuboxi may not boot due to size of initrd)"
+sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
-#echo "Creating initramfs"
-#mkinitramfs-custom.sh -o /tmp/initramfs-tmp
+#First Boot operations
+echo "Signalling the init script to re-size the volumio data partition"
+touch /boot/resize-volumio-datapart
+
+echo "Creating initramfs 'volumio.initrd'"
+mkinitramfs-custom.sh -o /tmp/initramfs-tmp
+
+#TODO: check if it is OK to use uInitrd
+echo "Creating uInitrd from 'volumio.initrd'"
+mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+
+echo "Removing unnecessary /boot files"
+rm /boot/volumio.initrd
