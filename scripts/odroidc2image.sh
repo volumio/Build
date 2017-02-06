@@ -30,16 +30,16 @@ echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
-LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
+LOOP_DEV=`losetup -f --show ${IMG_FILE}`
  
-sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
-sudo parted -s "${LOOP_DEV}" set 1 boot on
-sudo parted -s "${LOOP_DEV}" print
-sudo partprobe "${LOOP_DEV}"
-sudo kpartx -s -a "${LOOP_DEV}"
+parted -s "${LOOP_DEV}" mklabel msdos
+parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
+parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
+parted -s "${LOOP_DEV}" set 1 boot on
+parted -s "${LOOP_DEV}" print
+partprobe "${LOOP_DEV}"
+kpartx -s -a "${LOOP_DEV}"
 
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
@@ -54,35 +54,35 @@ then
 fi
 
 echo "Creating boot and rootfs filesystems"
-sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
-sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
-sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+mkfs -t vfat -n BOOT "${BOOT_PART}"
+mkfs -F -t ext4 -L volumio "${SYS_PART}"
+mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for the Odroid C2 kernel/ platform files"
-if [ -d platforms-O ]
+if [ -d platform-odroid ]
 then 
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platforms-O folder
+    # if you really want to re-clone from the repo, then delete the platform-odroid folder
     # that will refresh all the odroid platforms, see below
-	cd platforms-O
+	cd platform-odroid
 	if [ ! -d odroidc2 ]; then
 	   tar xfJ odroidc2.tar.xz 
 	fi
 	cd ..
 else
 	echo "Clone all Odroid files from repo"
-	git clone https://github.com/volumio/Platform-Odroid.git platforms-O
+	git clone https://github.com/volumio/Platform-Odroid.git platform-odroid
 	echo "Unpack the C2 platform files"
-    cd platforms-O
+    cd platform-odroid
 	tar xfJ odroidc2.tar.xz
 	cd ..
 fi
 
 echo "Copying the bootloader"
-sudo dd if=platforms-O/odroidc2/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
-sudo dd if=platforms-O/odroidc2/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
-sudo dd if=platforms-O/odroidc2/uboot/u-boot.bin of=${LOOP_DEV} conv=fsync bs=512 seek=97
+dd if=platform-odroid/odroidc2/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
+dd if=platform-odroid/odroidc2/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
+dd if=platform-odroid/odroidc2/uboot/u-boot.bin of=${LOOP_DEV} conv=fsync bs=512 seek=97
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -90,7 +90,7 @@ if [ -d /mnt ]
 then 
 	echo "/mount folder exist"
 else
-	sudo mkdir /mnt
+	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then 
@@ -98,32 +98,32 @@ then
 	rm -rf /mnt/volumio/*
 else
 	echo "Creating Volumio Temp Directory"
-	sudo mkdir /mnt/volumio
+	mkdir /mnt/volumio
 fi
 
 echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
-sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
-sudo mkdir /mnt/volumio/rootfs
-sudo mkdir /mnt/volumio/rootfs/boot
-sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+mount -t ext4 "${SYS_PART}" /mnt/volumio/images
+mkdir /mnt/volumio/rootfs
+mkdir /mnt/volumio/rootfs/boot
+mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
+cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying OdroidC2 boot files"
-sudo cp platforms-O/odroidc2/boot/boot.ini* /mnt/volumio/rootfs/boot
-sudo cp platforms-O/odroidc2/boot/meson64_odroidc2.dtb /mnt/volumio/rootfs/boot
-sudo cp platforms-O/odroidc2/boot/Image /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidc2/boot/boot.ini* /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidc2/boot/meson64_odroidc2.dtb /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidc2/boot/Image /mnt/volumio/rootfs/boot
 echo "Copying OdroidC2 modules and firmware"
-sudo cp -pdR platforms-O/odroidc2/lib/modules /mnt/volumio/rootfs/lib/
-sudo cp -pdR platforms-O/odroidc2/lib/firmware /mnt/volumio/rootfs/lib/
+cp -pdR platform-odroid/odroidc2/lib/modules /mnt/volumio/rootfs/lib/
+cp -pdR platform-odroid/odroidc2/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Copying OdroidC2 DAC detection service"
-sudo cp platforms-O/odroidc2/etc/odroiddac.service /mnt/volumio/rootfs/lib/systemd/system/
-sudo cp platforms-O/odroidc2/etc/odroiddac.sh /mnt/volumio/rootfs/opt/
+cp platform-odroid/odroidc2/etc/odroiddac.service /mnt/volumio/rootfs/lib/systemd/system/
+cp platform-odroid/odroidc2/etc/odroiddac.sh /mnt/volumio/rootfs/opt/
 echo "Copying framebuffer init script"
-sudo cp platforms-O/odroidc2/etc/C2_init.sh /mnt/volumio/rootfs/usr/local/bin/c2-init.sh
+cp platform-odroid/odroidc2/etc/C2_init.sh /mnt/volumio/rootfs/usr/local/bin/c2-init.sh
 echo "Copying OdroidC2 inittab"
-sudo cp platforms-O/odroidc2/etc/inittab /mnt/volumio/rootfs/etc/
+cp platform-odroid/odroidc2/etc/inittab /mnt/volumio/rootfs/etc/
 
 sync
 
@@ -153,15 +153,15 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys 
 
 echo "Copying LIRC configuration files for HK stock remote"
-sudo cp platforms-O/odroidc2/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms-O/odroidc2/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
-sudo cp platforms-O/odroidc2/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidc2/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidc2/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidc2/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
 echo "==> Odroid-C2 device installed"  
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platforms-O
+#rm -r platform-odroid
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -171,7 +171,7 @@ if [ -d /mnt/squash ]; then
 	rm -rf /mnt/squash/*
 else
 	echo "Creating Volumio SquashFS Temp Dir"
-	sudo mkdir /mnt/squash
+	mkdir /mnt/squash
 fi
 
 echo "Copying Volumio rootfs to Temp Dir"
@@ -192,14 +192,14 @@ rm -rf /mnt/squash
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 echo "Unmounting Temp Devices"
-sudo umount -l /mnt/volumio/images
-sudo umount -l /mnt/volumio/rootfs/boot
+umount -l /mnt/volumio/images
+umount -l /mnt/volumio/rootfs/boot
 
 echo "Cleaning build environment"
 rm -rf /mnt/volumio /mnt/boot
 
-sudo dmsetup remove_all
-sudo losetup -d ${LOOP_DEV}
+dmsetup remove_all
+losetup -d ${LOOP_DEV}
 sync
 
 
