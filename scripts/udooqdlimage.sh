@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Default build for Debian 32bit (to be changed to armv8)
+# Default build for Debian 32bit
 ARCH="armv7"
 
 while getopts ":v:p:" opt; do
@@ -106,7 +106,7 @@ mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying udoo-qdl boot files, Kernel, Modules and Firmware"
-cp platform-udoo/udoo-qdl/boot/* /mnt/volumio/rootfs/boot
+cp -R platform-udoo/udoo-qdl/boot/* /mnt/volumio/rootfs/boot
 cp -pdR platform-udoo/udoo-qdl/lib/modules /mnt/volumio/rootfs/lib
 cp -pdR platform-udoo/udoo-qdl/lib/firmware /mnt/volumio/rootfs/lib
 
@@ -125,7 +125,7 @@ mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/udoo-qdlconfig.sh
+/udooqdlconfig.sh
 EOF
 
 #cleanup
