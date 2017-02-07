@@ -106,7 +106,7 @@ mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying udoo-neo boot files, Kernel, Modules and Firmware"
-cp platform-udoo/udoo-neo/boot/* /mnt/volumio/rootfs/boot
+cp -R platform-udoo/udoo-neo/boot/* /mnt/volumio/rootfs/boot
 cp -pdR platform-udoo/udoo-neo/lib/modules /mnt/volumio/rootfs/lib
 cp -pdR platform-udoo/udoo-neo/lib/firmware /mnt/volumio/rootfs/lib
 
@@ -115,7 +115,7 @@ cp -pdR platform-udoo/udoo-neo/lib/firmware /mnt/volumio/rootfs/lib
 sync
 
 echo "Preparing to run chroot for more udoo-neo configuration"
-cp scripts/udooqdlconfig.sh /mnt/volumio/rootfs
+cp scripts/udooneoconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -127,11 +127,11 @@ mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/udoo-neoconfig.sh
+/udooneoconfig.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/udooqdlconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/udooneoconfig.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev 

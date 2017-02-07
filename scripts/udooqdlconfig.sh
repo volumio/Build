@@ -1,186 +1,92 @@
-#!/bin/sh
+#!/bin/bash
 
-# Default build for Debian 32bit
-ARCH="armv7"
+PATCH=$(cat /patch)
 
-while getopts ":v:p:a:" opt; do
-  case $opt in
-    v)
-      VERSION=$OPTARG
-      ;;
-    p)
-      PATCH=$OPTARG
-      ;;
-    a)
-      ARCH=$OPTARG
-      ;;
-  esac
-done
+# This script will be run in chroot under qemu.
 
-BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-udoo-neo.img"
-
-if [ "$ARCH" = arm ]; then
-  DISTRO="Raspbian"
-else
-  DISTRO="Debian 32bit"
-fi
-
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
-
-echo "Creating Image Bed"
-LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
- 
-parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
-parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
-parted -s "${LOOP_DEV}" set 1 boot on
-parted -s "${LOOP_DEV}" print
-partprobe "${LOOP_DEV}"
-kpartx -s -a "${LOOP_DEV}"
-
-BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
-SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
-DATA_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
-echo "Using: " ${BOOT_PART}
-echo "Using: " ${SYS_PART}
-echo "Using: " ${DATA_PART}
-if [ ! -b "${BOOT_PART}" ]
-then
-	echo "${BOOT_PART} doesn't exist"
-	exit 1
-fi
-
-echo "Creating boot and rootfs filesystems"
-mkfs -t vfat -n BOOT "${BOOT_PART}"
-mkfs -F -t ext4 -L volumio "${SYS_PART}"
-mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
-sync
-
-echo "Preparing for the udoo kernel/ platform files"
-if [ -d platform-udoo ]
-then 
-	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platforms-udoo folder
-else
-	echo "Clone all cubox files from repo"
-	git clone https://github.com/volumio/platform-udoo.git platform-udoo
-	echo "Unpack the cubox platform files"
-    cd platform-udoo
-	tar xfJ udoo-neo.tar.xz
-	cd ..
-fi
-
-#TODO: Check!!!!
-echo "Copying the bootloader"
-echo "Burning bootloader"
-dd if=platform-udoo/udoo-neo/uboot/SPL of=${LOOP_DEV} bs=1K seek=1
-dd if=platform-udoo/udoo-neo/uboot/u-boot.img of=${LOOP_DEV} bs=1K seek=69
-sync
-
-echo "Preparing for Volumio rootfs"
-if [ -d /mnt ]
-then 
-	echo "/mount folder exist"
-else
-	mkdir /mnt
-fi
-if [ -d /mnt/volumio ]
-then 
-	echo "Volumio Temp Directory Exists - Cleaning it"
-	rm -rf /mnt/volumio/*
-else
-	echo "Creating Volumio Temp Directory"
-	mkdir /mnt/volumio
-fi
-
-echo "Creating mount point for the images partition"
-mkdir /mnt/volumio/images
-mount -t ext4 "${SYS_PART}" /mnt/volumio/images
-mkdir /mnt/volumio/rootfs
-mkdir /mnt/volumio/rootfs/boot
-mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
-
-echo "Copying Volumio RootFs"
-cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying udoo-neo boot files, Kernel, Modules and Firmware"
-cp platform-udoo/udoo-neo/boot/* /mnt/volumio/rootfs/boot
-cp -pdR platform-udoo/udoo-neo/lib/modules /mnt/volumio/rootfs/lib
-cp -pdR platform-udoo/udoo-neo/lib/firmware /mnt/volumio/rootfs/lib
+echo "Creating \"fstab\""
+echo "# udooneo fstab" > /etc/fstab
+echo "" >> /etc/fstab
+echo "proc            /proc           proc    defaults        0       0
+/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
+tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
+tmpfs   /dev/shm                tmpfs   defaults        0 0
+" > /etc/fstab
 
 
-#TODO: asound.conf (/etc/) and asound.state (/var/lib/alsa/)
-sync
+#TODO: add sound modules
+echo "Adding sound modules"
+#echo "
+#.....
+#.....
+#" >> /etc/modules
 
-echo "Preparing to run chroot for more udoo-neo configuration"
-cp scripts/udooqdlconfig.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
-#copy the scripts for updating from usb
-wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
-
-mount /dev /mnt/volumio/rootfs/dev -o bind
-mount /proc /mnt/volumio/rootfs/proc -t proc
-mount /sys /mnt/volumio/rootfs/sys -t sysfs
-echo $PATCH > /mnt/volumio/rootfs/patch
-chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
-su -
-/udoo-neoconfig.sh
+echo "Prevent services starting during install, running under chroot"
+echo "(avoids unnecessary errors)"
+cat > /usr/sbin/policy-rc.d << EOF
+exit 101
 EOF
+chmod +x /usr/sbin/policy-rc.d
 
-#cleanup
-rm /mnt/volumio/rootfs/udooqdlconfig.sh /mnt/volumio/rootfs/root/init
+echo "Installing additional packages"
+echo "Adding UDOO's Repository"
+echo "deb http://repository.udoo.org udoobuntu main" >> /etc/apt/sources.list
 
-echo "Unmounting Temp devices"
-umount -l /mnt/volumio/rootfs/dev 
-umount -l /mnt/volumio/rootfs/proc 
-umount -l /mnt/volumio/rootfs/sys 
+apt-get update
+echo "Installing Firmware and Modules"
+apt-get -y install firmware-udooneo-wl1831 udev-udooneo-rules udooneo-bluetooth
+apt-get -y install u-boot-tools
+echo "Installing winbind here, since it freezes networking"
+apt-get install -y winbind libnss-winbind
+echo "Cleaning APT Cache and remove policy file"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
+rm /usr/sbin/policy-rc.d
 
-echo "==> udoo-neo device installed"  
+echo "Adding custom modules overlayfs, squashfs and nls_cp437"
+echo "overlayfs" >> /etc/initramfs-tools/modules
+echo "squashfs" >> /etc/initramfs-tools/modules
+echo "nls_cp437" >> /etc/initramfs-tools/modules
 
-#echo "Removing temporary platform files"
-#echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platforms-udoo
-sync
+echo "Copying volumio initramfs updater"
+cd /root/
+mv volumio-init-updater /usr/local/sbin
 
-echo "Preparing rootfs base for SquashFS"
-
-if [ -d /mnt/squash ]; then
-	echo "Volumio SquashFS Temp Dir Exists - Cleaning it"
-	rm -rf /mnt/squash/*
+#On The Fly Patch
+if [ "$PATCH" = "volumio" ]; then
+echo "No Patch To Apply"
 else
-	echo "Creating Volumio SquashFS Temp Dir"
-	mkdir /mnt/squash
+echo "Applying Patch ${PATCH}"
+PATCHPATH=/${PATCH}
+cd $PATCHPATH
+#Check the existence of patch script
+if [ -f "patch.sh" ]; then
+sh patch.sh
+else
+echo "Cannot Find Patch File, aborting"
 fi
+cd /
+rm -rf ${PATCH}
+fi
+rm /patch
 
-echo "Copying Volumio rootfs to Temp Dir"
-cp -rp /mnt/volumio/rootfs/* /mnt/squash/
+#TODO: check initrd size
+echo "Changing to 'modules=dep'"
+echo "(otherwise udoo may not boot due to size of initrd)"
+sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
-echo "Removing the Kernel"
-rm -rf /mnt/squash/boot/*
+#First Boot operations
+echo "Signalling the init script to re-size the volumio data partition"
+touch /boot/resize-volumio-datapart
 
-echo "Creating SquashFS, removing any previous one"
-rm -r Volumio.sqsh
-mksquashfs /mnt/squash/* Volumio.sqsh
+echo "Creating initramfs 'volumio.initrd'"
+mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
-echo "Squash filesystem created"
-echo "Cleaning squash environment"
-rm -rf /mnt/squash
+#TODO: check if it is OK to use uInitrd
+echo "Creating uInitrd from 'volumio.initrd'"
+mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 
-#copy the squash image inside the boot partition
-cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
-sync
-echo "Unmounting Temp Devices"
-umount -l /mnt/volumio/images
-umount -l /mnt/volumio/rootfs/boot
-
-echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
-
-dmsetup remove_all
-losetup -d ${LOOP_DEV}
-sync
-
-
+#rm /boot/volumio.initrd
