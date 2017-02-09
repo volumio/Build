@@ -31,13 +31,7 @@ exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
-echo "Installing additional packages"
-echo "Adding UDOO's Repository"
-echo "deb http://repository.udoo.org udoobuntu main" >> /etc/apt/sources.list
-
 apt-get update
-echo "Installing Firmware and Modules"
-apt-get -y install firmware-udooneo-wl1831 udev-udooneo-rules udooneo-bluetooth
 apt-get -y install u-boot-tools
 echo "Installing winbind here, since it freezes networking"
 apt-get install -y winbind libnss-winbind
@@ -75,7 +69,7 @@ rm /patch
 
 #TODO: check initrd size
 echo "Changing to 'modules=dep'"
-echo "(otherwise cuboxi may not boot due to size of initrd)"
+echo "(otherwise udoo may not boot due to size of initrd)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
 #First Boot operations
@@ -89,5 +83,4 @@ mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 echo "Creating uInitrd from 'volumio.initrd'"
 mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 
-echo "Removing unnecessary /boot files"
-rm /boot/volumio.initrd
+#rm /boot/volumio.initrd
