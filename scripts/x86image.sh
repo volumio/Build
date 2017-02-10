@@ -42,7 +42,7 @@ echo "Creating filesystems"
 #sudo mkdosfs "${BOOT_PART}"
 sudo mkfs -t vfat -F 32 -n volumioboot "${BOOT_PART}"
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumioimg
-sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumiodata
+sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumio_data
 sudo parted -s "${LOOP_DEV}" print
 
 sync
