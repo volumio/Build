@@ -1,0 +1,16 @@
+[Unit]
+# If the access point service is started, also start the DHCP client service.
+# Schedule that to be started only after the access point itself is running.
+PartOf=wireless.service
+Wants=wireless-client-dhcpcd.service
+Before=wireless-client-dhcpcd.service
+
+[Service]
+Type=idle
+ExecStart=/sbin/wpa_supplicant -d -s -Dwext -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
+KillMode=mixed
+Restart=always
+RestartSec=1
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=wifi-client
