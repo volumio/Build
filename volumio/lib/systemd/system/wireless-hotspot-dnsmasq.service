@@ -1,0 +1,15 @@
+[Unit]
+Description=DNS service for wireless hotspot
+# Schedule the DNS service to stop when the hotspot stops. The DNS service
+# is scheduled to start after the hotspot starts, but that dependency
+# is specified in hotspot.service.
+BindsTo=wireless-hotspot.service
+[Service]
+Type=idle
+ExecStart=/usr/sbin/dnsmasq -k -C /var/run/hotspot-dnsmasq.conf -i wlan0
+KillMode=mixed
+Restart=always
+RestartSec=1
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=wifi-hotspot
