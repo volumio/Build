@@ -1,0 +1,21 @@
+[Unit]
+Description=DHCP client service for wireless access point
+# Schedule the DHCP client service to stop when the access point stops. The
+# DHCP client service is scheduled to start after the access point starts,
+# but that dependency is specified in accesspoint.service.
+#
+# The DHCP client runs as a separate instance, and not as a slave to
+# another DHCP client master. When the hotspot is activated, this
+# instance is stopped, no DHCP client is run on wlan0, and instead
+# dnsmasq will provide a DHCP server on wlan0.
+BindsTo=wireless-client.service
+
+[Service]
+Type=idle
+ExecStart=/sbin/dhcpcd -B wlan0
+KillMode=mixed
+Restart=always
+RestartSec=1
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=wifi-client
