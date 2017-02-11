@@ -1,0 +1,16 @@
+[Unit]
+Description=DHCP client
+# Take care not to run the DHCP client in master mode because it will try
+# to obtain an IP address on all network interfaces, and any other DHCP
+# client instance will run as a slave to the master, rather than running
+# independently. This means that it can easily end up trying to obtain an
+# IP address on wlan0, even when wlan0 runs as a hotspot rather than an
+# access point.
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
