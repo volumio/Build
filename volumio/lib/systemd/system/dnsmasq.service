@@ -1,12 +1,13 @@
 [Unit]
-BindsTo=hotspot.service
-After=hotspot.service
-Requires=hotspot.service
+Description=DNS service
+# Take care not to run the DNS server because it is only required when
+# providing the wireless hotspot, and in that case a special instance
+# will be to service wlan0 only.
+
 [Service]
-Type=forking
-ExecStart=/usr/sbin/dnsmasq --address=/#/192.168.211.1  -2 --interface=wlan0
-KillMode=mixed
-Restart=no
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=dnsmasq
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
