@@ -1,14 +1,17 @@
 [Unit]
-Wants=dhcpd.service
-Wants=dnsmasq.service
+# If the hotspot service is started, also start the DHCP and DNS services.
+# Schedule those services to be started only after the hotspot itself is
+# running.
+PartOf=wireless.service
+Wants=wireless-hotspot-dnsmasq.service
+Before=wireless-hotspot-dnsmasq.service
+
 [Service]
 Type=idle
-ExecStart=/bin/hotspot.sh start
-ExecStop=/bin/hotspot.sh stop
+ExecStart=/bin/hotspot.sh wlan0
 KillMode=mixed
-Restart=no
+Restart=always
+RestartSec=1
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=hotspot
-[Install]
-WantedBy=multi-user.target
+SyslogIdentifier=wifi-hotspot
