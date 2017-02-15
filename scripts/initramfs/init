@@ -133,6 +133,14 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
   echo "Factory image created"
+  echo "Creating archive for factory kernel..."
+  mkdir /mnt/factory
+  mount -t vfat /dev/mmcblk0p1 /mnt/factory
+  tar -zcf /mnt/factory kernel_current.tar.gz
+  cp kernel_current.tar.gz /mnt/imgpart/kernel_factory.tar.gz
+  umount /mnt/factory
+  rm -r /mnt/factory
+
 elif [ ! -z "${BOOTDELAY}" ]; then
   echo "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
   sleep ${BOOTDELAY}
@@ -180,9 +188,12 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   echo "Executing factory reset"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
 
-  echo "Factory reset executed: part I"
-  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
-  echo "Factory reset executed: part II - end"
+  echo "Factory reset executed: part I - Kernel"
+  tar xf /mnt/imgpart/kernel_factory.tar.gz -C /mnt/factory
+  echo "Factory reset executed: part II - Squash"
+  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh
+  echo "Factory reset executed: part III - end"
+  rm /mnt/factory/factory_reset
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
