@@ -122,11 +122,23 @@ fi
 echo "Copying Volumio ROOTFS to Temp DIR"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
-echo "Removing Kernel"
+if [ -e /mnt/kernel_current.tar.gz ]; then
+	echo "Volumio Kernel Partition Archive exists - Cleaning it"
+	rm -rf /mnt/kernel_current.tar.gz
+fi
+
+echo "Creating Kernel Partition Archive"
+tar zcf /mnt/kernel_current.tar.gz  -C /mnt/squash/boot/ .
+
+echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
-echo "Deleting Volumio.sqsh from an earlier session"
-rm Volumio.sqsh
+echo "Creating SquashFS, removing any previous one"
+if [ -e Volumio.sqsh ]; then
+	echo "Volumio Kernel Partition Archive exists - Cleaning it"
+	rm -r Volumio.sqsh
+fi
+
 echo "Creating SquashFS"
 mksquashfs /mnt/squash/* Volumio.sqsh
 
