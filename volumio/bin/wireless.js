@@ -101,12 +101,10 @@ class NetworkInterface {
 
 	run(period, callback) {
 		if ( ! this.enabled) {
-			if (callback !== undefined)
-				setImmediate(callback);
+			setImmediate(callback);
 		} else {
 			this._startInterface();
-			if (callback !== undefined)
-				this._checkPeriodically(period, callback);
+			this._checkPeriodically(period, callback);
 		}
 	}
 
@@ -364,7 +362,7 @@ function runNetwork() {
 
 function stopService() {
 	console.log('');
-	console.log('Exiting wireless service');
+	console.log('Stopping wireless service');
 	hotspot.destructor();
 	client.destructor();
 }
@@ -373,7 +371,19 @@ function killService(sigName) {
 	stopService();
 	process.removeAllListeners(sigName);
 	process.kill(process.pid, sigName);
+	process.removeAllListeners('exit');
 	process.exit(1);
+}
+
+function exitService(code) {
+	console.log('');
+	if (code)
+		console.log(`Wireless service exit ${code}`);
+	else {
+		console.log('Unexpected wireless service exit');
+		code = 1;
+	}
+	process.exit(code);
 }
 
 // Continue running the service until there is a signal received that
@@ -383,7 +393,7 @@ function killService(sigName) {
 
 for (let sigName of ['SIGINT', 'SIGTERM'])
 	process.on(sigName, function () { killService(sigName); });
-setInterval(function() {}, 60000);
+process.on('exit', exitService);
 
 console.log('Running wireless service');
 runNetwork();
