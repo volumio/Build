@@ -26,9 +26,7 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
 
 echo "Adding PI Modules"
 echo "
-snd_bcm2835
 i2c-dev
-i2c-bcm2708
 " >> /etc/modules
 
 echo "Alsa Raspberry PI Card Ordering"
@@ -39,8 +37,7 @@ options snd-usb-audio index=5
 options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
 
 echo "Adding Raspberrypi.org Repo"
-echo "
-deb http://archive.raspberrypi.org/debian/ jessie main ui
+echo "deb http://archive.raspberrypi.org/debian/ jessie main ui
 deb-src http://archive.raspberrypi.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
