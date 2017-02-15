@@ -136,8 +136,8 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Creating archive for factory kernel..."
   mkdir /mnt/factory
   mount -t vfat /dev/mmcblk0p1 /mnt/factory
-  tar -zcf /mnt/factory kernel_current.tar.gz
-  cp kernel_current.tar.gz /mnt/imgpart/kernel_factory.tar.gz
+  tar cf /mnt/factory kernel_current.tar
+  cp kernel_current.tar /mnt/imgpart/kernel_factory.tar
   umount /mnt/factory
   rm -r /mnt/factory
 
@@ -189,7 +189,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
 
   echo "Factory reset executed: part I - Kernel"
-  tar xf /mnt/imgpart/kernel_factory.tar.gz -C /mnt/factory
+  tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
   echo "Factory reset executed: part II - Squash"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh
   echo "Factory reset executed: part III - end"
