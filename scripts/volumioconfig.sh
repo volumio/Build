@@ -154,14 +154,14 @@ if [ $(uname -m) = armv7l ]; then
   rm /shairport-sync_arm.tar.gz
 
   echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.2.12-1_armhf.deb
   wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.20.jfd5-1_armhf.deb
   dpkg -i libupnpp2_0.14.1-1_armhf.deb
-  dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
-  dpkg -i upmpdcli_1.1.3-1_armhf.deb
-  rm /upmpdcli_1.1.3-1_armhf.deb
-  rm /libupnp6_1.6.19.jfd3-1_armhf.deb
+  dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+  dpkg -i upmpdcli_1.2.12-1_armhf.deb
+  rm /upmpdcli_1.2.12-1_armhf.deb
+  rm /libupnp6_1.6.20.jfd5-1_armhf.deb
   rm /libupnpp2_0.14.1-1_armhf.deb
 
   #Remove autostart of upmpdcli
@@ -255,12 +255,12 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /mpd_0.19.19-1_i386.deb
 
   echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.1.3-1_i386.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnpp2_0.14.1-1_i386.deb
-  dpkg -i libupnpp2_0.14.1-1_i386.deb
-  dpkg -i upmpdcli_1.1.3-1_i386.deb
-  rm /upmpdcli_1.1.3-1_i386.deb
-  rm /libupnpp2_0.14.1-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnp6_1.6.20.jfd5-1_i386.deb
+  dpkg -i libupnp6_1.6.20.jfd5-1_i386.deb
+  dpkg -i upmpdcli_1.2.12-1_i386.deb
+  rm /upmpdcli_1.2.12-1_i386.deb
+  rm /libupnp6_1.6.20.jfd5-1_i386.deb
 
   echo "Installing Shairport-Sync"
   wget http://repo.volumio.org/Volumio2/Binaries/x86/shairport-sync_2.8.4-1_i386.deb
@@ -291,6 +291,17 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
 
 fi
+
+echo "Installing Upmpdcli Streaming Modules"
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-gmusic_1.2.12-1_all.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-qobuz_1.2.12-1_all.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-tidal_1.2.12-1_all.deb
+dpkg -i upmpdcli-gmusic_1.2.12-1_all.deb
+dpkg -i upmpdcli-qobuz_1.2.12-1_all.deb
+dpkg -i upmpdcli-tidal_1.2.12-1_all.deb
+rm /upmpdcli-gmusic_1.2.12-1_all.deb
+rm /upmpdcli-qobuz_1.2.12-1_all.deb
+rm /upmpdcli-tidal_1.2.12-1_all.deb
 
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
