@@ -136,8 +136,8 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Creating archive for factory kernel..."
   mkdir /mnt/factory
   mount -t vfat /dev/mmcblk0p1 /mnt/factory
-  tar cf kernel_current.tar -C /mnt/factory .
-  cp kernel_current.tar /mnt/imgpart/kernel_factory.tar
+  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
+  cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
   umount /mnt/factory
   rm -r /mnt/factory
 
