@@ -26,12 +26,12 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
 
 echo "Creating Image Bed"
 LOOP_DEV=`losetup -f --show ${IMG_FILE}`
- 
+
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 3072s 64
 parted -s "${LOOP_DEV}" mkpart primary ext4 64 1500
@@ -61,13 +61,13 @@ sync
 
 echo "Get the Odroid kernel/ platform files from repo"
 if [ -d platform-odroid ]
-then 
+then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platform-odroid folder
     # that will refresh all the odroid platforms, see below
 	cd platform-odroid
 	if [ ! -d odroidxu4 ]; then
-	   tar xfJ odroidxu4.tar.xz 
+	   tar xfJ odroidxu4.tar.xz
 	fi
 	cd ..
 else
@@ -75,7 +75,7 @@ else
 	git clone https://github.com/gkkpch/Platform-Odroid.git platform-odroid
 	echo "Unpack the XU4 platform files"
     cd platform-odroid
-    tar xfJ odroidxu4.tar.xz 
+    tar xfJ odroidxu4.tar.xz
     cd ..
 fi
 
@@ -91,13 +91,13 @@ sync
 
 echo "Copying Volumio RootFs"
 if [ -d /mnt ]
-then 
+then
   echo "/mnt/folder exist"
 else
   mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
-then 
+then
   echo "Volumio Temp Directory Exists - Cleaning it"
   rm -rf /mnt/volumio/*
 else
@@ -146,15 +146,15 @@ EOF
 rm /mnt/volumio/rootfs/odroidxu4config.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
-umount -l /mnt/volumio/rootfs/dev 
-umount -l /mnt/volumio/rootfs/proc 
-umount -l /mnt/volumio/rootfs/sys 
+umount -l /mnt/volumio/rootfs/dev
+umount -l /mnt/volumio/rootfs/proc
+umount -l /mnt/volumio/rootfs/sys
 
 #TODO echo "Copying inittab"
 #TODO cp platform-odroid/odroidxu4/etc/inittab /mnt/volumio/etc/
 
 sync
-echo "Odroid-XU4 device installed" 
+echo "Odroid-XU4 device installed"
 
 echo "Preparing rootfs base for SquashFS"
 
@@ -187,9 +187,6 @@ sync
 echo "Unmounting Temp Devices"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
-
-echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
 
 dmsetup remove_all
 losetup -d ${LOOP_DEV}

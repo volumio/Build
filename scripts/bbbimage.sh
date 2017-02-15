@@ -32,7 +32,7 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=896
 
 echo Copying bootloader and U-Boot
@@ -171,9 +171,6 @@ sync
 echo "Unmounting Temp Devices"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
-
-echo "Cleaning build environment"
-rm -rf /mnt/volumio
 
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
