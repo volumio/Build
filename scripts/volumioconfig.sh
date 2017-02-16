@@ -144,9 +144,9 @@ if [ $(uname -m) = armv7l ]; then
   cd /
 
   echo "Installing custom MPD version"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.19.19-1_armhf.deb
-  dpkg -i mpd_0.19.19-1_armhf.deb
-  rm /mpd_0.19.19-1_armhf.deb
+  wget http://repo.volumio.org//Packages/Mpd/arm/mpd_0.20.4-1_armhf.deb
+  dpkg -i mpd_0.20.4-1_armhf.deb
+  rm /mpd_0.20.4-1_armhf.deb
 
   echo "Installing Shairport for Airplay emulation"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
@@ -253,9 +253,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   cd /
 
   echo "Installing custom MPD version"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/mpd_0.19.19-1_i386.deb
-  dpkg -i mpd_0.19.19-1_i386.deb
-  rm /mpd_0.19.19-1_i386.deb
+  wget http://repo.volumio.org/Packages/Mpd/x86/mpd_0.20.4-1_i386.deb
+  dpkg -i mpd_0.20.4-1_i386.deb
+  rm /mpd_0.20.4-1_i386.deb
 
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
