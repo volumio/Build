@@ -74,12 +74,15 @@ If any information, source package or license is missing, please report it to in
 
 ### armbian-based images
 
-In case there is no native support in volumio there is the option to build
+In case of lacking native support in volumio there is the option to build
 images based on Armbian ( www.armbian.com ) which supports a variety of
 PI clones - 
 
 Example:
+
+```
 ./build.sh -b arm -d armbian_bananapipro_vanilla -v 2.0
+```
 
 where
 
@@ -110,6 +113,7 @@ sucessfully tested images:
 * current sunxi bootloader version 5.25/armbian is not working, solved by explicitely using 5.23 (be careful with apt-get upgrade later on)
 * Partition 1 has been changed from vfat to ext4 because armbian scripts are
 using symbolic links
+* kernel, ramdisk and squashfs may be larger compared to native support images due to extra packages required by armbian build routines
 
 * armbian_orangepipc_legacy ... not booting
 
