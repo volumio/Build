@@ -26,9 +26,7 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
 
 echo "Adding PI Modules"
 echo "
-snd_bcm2835
 i2c-dev
-i2c-bcm2708
 " >> /etc/modules
 
 echo "Alsa Raspberry PI Card Ordering"
@@ -39,8 +37,7 @@ options snd-usb-audio index=5
 options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
 
 echo "Adding Raspberrypi.org Repo"
-echo "
-deb http://archive.raspberrypi.org/debian/ jessie main ui
+echo "deb http://archive.raspberrypi.org/debian/ jessie main ui
 deb-src http://archive.raspberrypi.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
@@ -238,11 +235,18 @@ echo "Extracting Allo Boss modules"
 tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
 rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
 
-echo "Getting Allo Firmwares"
+echo "Getting Allo Piano Firmwares"
+wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_01122016.tgz
+echo "Extracting Allo Firmwares"
+tar xf alloPianoDACfw_01122016.tgz
+rm alloPianoDACfw_01122016.tgz
+
+echo "Getting Allo BOSS Firmwares"
 wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
 echo "Extracting Allo Firmwares"
 tar xf volumio-RPi4.4.9_boss_03022017.tgz
 rm volumio-RPi4.4.9_boss_03022017.tgz
+
 echo "Allo modules and firmware installed"
 
 echo "Adding license info"
