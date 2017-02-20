@@ -1,0 +1,276 @@
+#!/bin/busybox sh
+set -x
+# Default PATH differs between shells, and is not automatically exported
+# by klibc dash.  Make it consistent.
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+[ -d /proc ] || mkdir /proc
+mount -t proc none /proc
+[ -d /sys ] || mkdir /sys
+mount -t sysfs none /sys
+
+#busybox --install -s
+
+mknod /dev/null c 1 3
+mknod /dev/tty c 5 0
+[ -e /dev/console ] || mknod /dev/console c 5 1
+
+mdev -s
+
+#Hardware specific adaptions
+
+HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $4}' )"
+if [ ! x${HWDEVICE} == "x" ]; then
+  if [ $HWDEVICE == i.MX6 ]; then
+    exec >/dev/kmsg 2>&1 </dev/console
+  fi
+fi
+
+HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
+
+if [ $HWDEVICE == ODROID-C2 ] ; then
+   exec >/dev/kmsg 2>&1 </dev/console
+fi
+
+# Odroid C1, SparkySBC, BPI-M2U and Pine64 have overlayfs version < V22
+if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ]; then
+   OVERLAY=NOWRKDIR
+else
+   OVERLAY=WITHWRKDIR
+fi
+
+OVERLAY=NOWRKDIR # hardwired for banana-pi with kernel 3.4.113 and overlayfs v13
+
+echo "Booting Volumio for" $HWDEVICE
+echo "	This script mounts rootfs RO with an overlay RW layer."
+
+# Do your stuff here.
+
+if [ $OVERLAY == WITHWRKDIR ]; then
+   # For overlayfs version V22 or higher (modulename 'overlay')
+   modprobe overlay
+else
+   # For overlayfs version V20/V21 (modulename ='overlayfs')
+   modprobe overlayfs
+fi
+modprobe squashfs
+modprobe nls_cp437
+
+# Parse the kernel command line from grub
+
+CMDLINE="$(cat /proc/cmdline)"
+
+parse_disk() {
+  if [ "$(echo $1|cut -c -5)" = "UUID=" ]; then
+    # $1 is a UUID
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -6)" = "LABEL=" ]; then
+    # $1 is a LABEL
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -5)" = "/dev/" ]; then
+    # $1 is a device name
+    echo $1
+  else
+    # $1 is unrecognized.
+    echo "unknown-disk"
+  fi
+}
+
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+
+  case $key in
+  imgpart)
+    IMGPART=`parse_disk $value`
+    ;;
+  imgfile)
+    IMGFILE=$value
+    ;;
+  esac
+done
+
+if [ -z "${IMGPART}" ]; then
+  echo "Specify the squash image partition after the kernel command ${CMDLINE}"
+  echo "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  exec sh
+  exit 0
+fi
+
+if [ -z "${IMGFILE}" ]; then
+  echo "Specify the squash image file after the kernel command ${CMDLINE}"
+  echo "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  exec sh
+  exit 0
+fi
+
+echo IMGPART=${IMGPART}
+echo IMGFILE=${IMGFILE}
+
+# Retry mdev -s 3 times before throwing the towel
+for i in 1 2 3 4 5 6
+  do
+    if [ ! -b "${IMGPART}" ]; then
+      echo  "${IMGPART} not detected,retrying mdev in 5 seconds"
+	  sleep 0.5
+      mdev -s
+    else
+	  blkid ${IMGPART}
+      break
+    fi
+  done
+
+if [ ! -b "${IMGPART}" ]; then
+  echo "No partition with ${IMGPART} has been found"
+  exec sh
+  exit 0
+fi
+
+# ok, parsing done
+[ -d /mnt ] || mkdir /mnt
+# Mount the partitions
+# 1) mount the partition where the squash image resides
+[ -d /mnt/imgpart ] || mkdir /mnt/imgpart
+mount -t ext4 ${IMGPART} /mnt/imgpart
+
+#check for recovery image, if not found create it
+if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
+  echo "Creating factory image, this will take a minute, please wait..."
+  cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
+  echo "Factory image created"
+fi
+
+
+#Check eventually for USB updates (could be vfat or ext4 partion --> mount auto)
+echo "Check for USB updates"
+if [ -e /dev/sda1 ]; then
+  [ -d /mnt/usb ] || mkdir /mnt/usb
+  mount -t auto /dev/sda1 /mnt/usb
+  #If there is a firmware file inside the usb
+  if [ -e /mnt/usb/volumio.fir ]; then
+	echo "Firmware found, updating will take a few minutes, please wait..."
+    #when the partitions are mounted we can launch the update script
+    volumio-init-updater
+  fi
+  if [ -e /mnt/usb/factory_reset ]; then
+    echo "Factory Reset on USB"
+    mkdir /mnt/factory
+    mount -t auto /dev/mmcblk0p1 /mnt/factory
+    echo " " > /mnt/factory/factory_reset
+    umount /mnt/factory
+    rm -r /mnt/factory
+  fi
+  umount /dev/sda1
+  rm -r /mnt/usb
+fi
+
+
+# 2) init a loop pointing to the image file
+[ -e /dev/loop0 ] || mknod /dev/loop0 b 7 0
+losetup /dev/loop0 /mnt/imgpart/${IMGFILE}
+losetup -a
+
+# 3) mount the squashfs to /mnt/static
+[ -d /mnt/static ] || mkdir /mnt/static
+mount -t squashfs /dev/loop0 /mnt/static
+mount
+
+VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
+
+#if there is factory file then format data partition
+mkdir /mnt/factory
+mount -t vfat /dev/mmcblk0p1 /mnt/factory
+if [ -e "/mnt/factory/factory_reset" ]; then
+  echo "Executing factory reset"
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+
+  echo "Factory reset executed: part I"
+  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
+  echo "Factory reset executed: part II - end"
+fi
+if [ -e "/mnt/factory/user_data" ]; then
+  echo "Deleting User Data"
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+  rm /mnt/factory/user_data
+  
+  echo "User Data successfully deleted "
+fi
+umount /mnt/factory
+rm -r /mnt/factory
+
+mkdir boot
+mount -t vfat /dev/mmcblk0p1 /boot
+# check and 2nd try with ext4
+if [ ! -e "/boot/boot.scr" ]; then
+mount -t ext4 /dev/mmcblk0p1 /boot
+fi
+
+# check if mainline / vanilla kernel
+if [ -e "/boot/.next" ]; then
+   OVERLAY=WITHWRKDIR
+   # For overlayfs version V22 or higher (modulename 'overlay')
+   modprobe fuse
+   modprobe overlay
+   modprobe overlayfs # fallback
+else
+   OVERLAY=NOWRKDIR
+   # For overlayfs version V22 or higher (modulename 'overlay')
+   modprobe fuse
+   modprobe overlayfs
+   modprobe overlay # fallback
+fi
+
+if [ -e "/boot/resize-volumio-datapart" ]; then
+echo "Re-sizing Volumio data partition"
+  END="$(parted -s /dev/mmcblk0 unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
+  parted -s /dev/mmcblk0 resizepart 3 ${END}
+  e2fsck -fy /dev/mmcblk0p3
+  resize2fs /dev/mmcblk0p3
+  echo "Volumio data partition succesfully resized"
+  parted -s /dev/mmcblk0 unit MB print
+  rm /boot/resize-volumio-datapart
+fi
+umount /boot
+rm -r /boot
+
+# 4) mount a filesystem for write access to the static image
+# unclear: memory size? -o size=1024M
+[ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
+mount -t ext4 -o noatime /dev/mmcblk0p3 /mnt/ext
+
+[ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn
+[ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union
+
+echo lsmod
+lsmod
+
+# 5) mount the writable overlay to the static image
+if [ $OVERLAY == WITHWRKDIR ]; then
+  [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
+  echo "With Option:" $OVERLAY
+  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
+else
+  echo "Without Option:" $OVERLAY
+  mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
+fi
+
+[ -d /mnt/ext/union/static ] || mkdir -m 777 /mnt/ext/union/static
+[ -d /mnt/ext/union/imgpart ] || mkdir -m 777 /mnt/ext/union/imgpart
+mount --move /mnt/static /mnt/ext/union/static
+mount --move /mnt/imgpart /mnt/ext/union/imgpart
+
+chmod -R 777 /mnt/ext/union/imgpart
+
+umount /proc
+umount /sys
+
+echo ${VOLUMIO_VERSION}
+echo "Finish initramfs, continue booting Volumio"
+exec switch_root /mnt/ext/union /sbin/init
+
+echo "Failed to switch_root, dropping to a shell"
+exec sh
+
+
