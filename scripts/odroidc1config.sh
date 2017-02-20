@@ -36,13 +36,6 @@ chmod +x /usr/sbin/policy-rc.d
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install u-boot-tools liblircclient0 lirc fbset
-echo "Installing winbind here, since it freezes networking"
-apt-get install -y winbind libnss-winbind
-
-echo "Cleaning APT Cache and remove policy file"
-rm -f /var/lib/apt/lists/*archive*
-apt-get clean
-rm /usr/sbin/policy-rc.d
 
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlayfs" >> /etc/initramfs-tools/modules
@@ -70,6 +63,15 @@ cd /
 rm -rf ${PATCH}
 fi
 rm /patch
+
+#MUST BE PLACED AFTER EVERYTHING THAT NEEDS NETWORKING
+echo "Installing winbind here, since it freezes networking"
+apt-get install -y winbind libnss-winbind
+
+echo "Cleaning APT Cache and remove policy file"
+rm -f /var/lib/apt/lists/*archive*
+apt-get clean
+rm /usr/sbin/policy-rc.d
 
 echo "Changing to 'modules=dep'"
 echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
