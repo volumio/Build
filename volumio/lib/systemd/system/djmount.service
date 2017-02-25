@@ -3,7 +3,7 @@ Description = DJMmount
 
 [Service]
 ExecStart=/usr/bin/djmount -o iocharset=utf8 /mnt/UPNP
-ExecStop=/usr/bin/killall djmount && fusermount -u /mnt/UPNP
+Type=forking
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
