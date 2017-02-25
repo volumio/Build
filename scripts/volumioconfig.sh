@@ -358,6 +358,10 @@ echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
 
+echo "Preventing un-needed dhcp servers to start automatically"
+systemctl disable isc-dhcp-server.service
+systemctl disable dhcpd.service
+
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
