@@ -319,6 +319,9 @@ ln -s /media /mnt/USB
 mkdir /data/INTERNAL
 ln -s /data/INTERNAL /mnt/INTERNAL
 
+#UPNP Folder
+mkdir /mnt/UPNP
+
 #Permissions
 chmod -R 777 /mnt
 chmod -R 777 /media
