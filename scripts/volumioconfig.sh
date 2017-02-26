@@ -337,6 +337,9 @@ touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
+echo "Setting mpc to bind to unix socket"
+export MPD_HOST=/run/mpd/socket
+
 echo "Setting Permissions for /etc/modules"
 chmod 777 /etc/modules
 
