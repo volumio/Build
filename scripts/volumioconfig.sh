@@ -319,6 +319,9 @@ ln -s /media /mnt/USB
 mkdir /data/INTERNAL
 ln -s /data/INTERNAL /mnt/INTERNAL
 
+#UPNP Folder
+mkdir /mnt/UPNP
+
 #Permissions
 chmod -R 777 /mnt
 chmod -R 777 /media
@@ -357,6 +360,10 @@ ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.tar
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
+
+echo "Preventing un-needed dhcp servers to start automatically"
+systemctl disable isc-dhcp-server.service
+systemctl disable dhcpd.service
 
 #####################
 #Audio Optimizations#-----------------------------------------
