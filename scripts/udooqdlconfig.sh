@@ -32,12 +32,7 @@ EOF
 chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additional packages"
-echo "Adding UDOO's Repository"
-echo "deb http://repository.udoo.org udoobuntu main" >> /etc/apt/sources.list
-
 apt-get update
-echo "Installing Firmware and Modules"
-apt-get -y install firmware-udooneo-wl1831 udev-udooneo-rules udooneo-bluetooth
 apt-get -y install u-boot-tools
 echo "Installing winbind here, since it freezes networking"
 apt-get install -y winbind libnss-winbind
