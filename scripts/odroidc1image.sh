@@ -26,16 +26,16 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
- 
+
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
-parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
@@ -61,13 +61,13 @@ sync
 
 echo "Preparing for the Odroid C1/C1+ kernel/ platform files"
 if [ -d platform-odroid ]
-then 
+then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platform-odroid folder
     # that will refresh all the odroid platforms, see below
 	cd platform-odroid
 	if [ ! -d odroidc1 ]; then
-	   tar xfJ odroidc1.tar.xz 
+	   tar xfJ odroidc1.tar.xz
 	fi
 	cd ..
 else
@@ -87,13 +87,13 @@ sync
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
-then 
+then
 	echo "/mount folder exist"
 else
 	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
-then 
+then
 	echo "Volumio Temp Directory Exists - Cleaning it"
 	rm -rf /mnt/volumio/*
 else
@@ -152,16 +152,16 @@ EOF
 rm /mnt/volumio/rootfs/odroidc1config.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
-umount -l /mnt/volumio/rootfs/dev 
-umount -l /mnt/volumio/rootfs/proc 
-umount -l /mnt/volumio/rootfs/sys 
+umount -l /mnt/volumio/rootfs/dev
+umount -l /mnt/volumio/rootfs/proc
+umount -l /mnt/volumio/rootfs/sys
 
 echo "Copying LIRC configuration files for HK stock remote"
 cp platform-odroid/odroidc1/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
 cp platform-odroid/odroidc1/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
 cp platform-odroid/odroidc1/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
-echo "==> Odroid-C1 device installed"  
+echo "==> Odroid-C1 device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
@@ -205,5 +205,3 @@ rm -rf /mnt/volumio /mnt/boot
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
-
-

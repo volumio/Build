@@ -21,7 +21,7 @@ done
 old="$IFS"
 set -f; IFS='_'
 set -- $DEVICE
-BOARD=$2 
+BOARD=$2
 BRANCH=$3
 set +f
 IFS="$old"
@@ -37,8 +37,8 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
@@ -46,8 +46,8 @@ LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 parted -s "${LOOP_DEV}" mklabel msdos
 # parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
 parted -s "${LOOP_DEV}" mkpart primary ext3 1 64
-parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
-parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
@@ -73,13 +73,13 @@ mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 if [ -d /mnt ]
-then 
+then
 	echo "/mount folder exist"
 else
 	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
-then 
+then
 	echo "Volumio Temp Directory Exists - Cleaning it"
 	rm -rf /mnt/volumio/*
 else
@@ -126,14 +126,14 @@ dd if=/mnt/volumio/rootfs/boot/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} bs=1024 
 rm /mnt/volumio/rootfs/armbianconfig.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
-umount -l /mnt/volumio/rootfs/dev 
-umount -l /mnt/volumio/rootfs/proc 
-umount -l /mnt/volumio/rootfs/sys 
+umount -l /mnt/volumio/rootfs/dev
+umount -l /mnt/volumio/rootfs/proc
+umount -l /mnt/volumio/rootfs/sys
 
 #echo "Copying LIRC configuration files"
 
 
-echo "==> BPI-PRO device installed"  
+echo "==> BPI-PRO device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
