@@ -173,32 +173,56 @@ KERNEL_REV="884"
 mkdir wifi
 cd wifi
 
+echo "for armv7"
+module_dir="/lib/modules/$KERNEL_VERSION-v7+/kernel/drivers/net/wireless"
+
 echo "WIFI: 8192EU"
 wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
-rm -rf *
 
 echo "WIFI: 8812AU"
 wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
-rm -rf *
 
 echo "WIFI: 8188EU"
 wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
-rm -rf *
 
 echo "WIFI: MT7610"
 wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
+
+cp *.conf /etc/modprobe.d/.    # same for armv7 and armv6: do it once only
+install -p -m 644 *.ko $module_dir  # copy drivers in right place
+
 rm -rf *
+
+echo "for armv6"
+module_dir="/lib/modules/$KERNEL_VERSION+/kernel/drivers/net/wireless"
+
+echo "WIFI: 8192EU"
+wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+
+echo "WIFI: 8812AU"
+wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+
+echo "WIFI: 8188EU"
+wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+
+echo "WIFI: MT7610"
+wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+
+install -p -m 644 *.ko $module_dir  # copy drivers in right place
+
+echo "Relevant depmod will be done by firstart.service"
 
 cd ..
 rm -rf wifi
+
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
