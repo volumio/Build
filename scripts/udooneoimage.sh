@@ -64,10 +64,15 @@ if [ -d platform-udoo ]
 then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platforms-udoo folder
+	cd platform-udoo
+        tar xfJ udoo-neo.tar.xz
+	tar xfJ udoo-qdl.tar.xz
+        cd ..
+
 else
-	echo "Clone all cubox files from repo"
+	echo "Clone all UDOO files from repo"
 	git clone https://github.com/volumio/platform-udoo.git platform-udoo
-	echo "Unpack the cubox platform files"
+	echo "Unpack the UDOO  platform files"
     cd platform-udoo
 	tar xfJ udoo-neo.tar.xz
 	cd ..
