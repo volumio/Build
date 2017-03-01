@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-udoo-neo.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-udooneo.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
