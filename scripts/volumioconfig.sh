@@ -2,6 +2,13 @@
 
 # This script will be run in chroot under qemu.
 
+echo "Prevent services starting during install, running under chroot"
+echo "(avoids unnecessary errors)"
+cat > /usr/sbin/policy-rc.d << EOF
+exit 101
+EOF
+chmod +x /usr/sbin/policy-rc.d
+
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
 /var/lib/dpkg/info/dash.preinst install

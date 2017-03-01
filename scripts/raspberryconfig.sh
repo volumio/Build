@@ -29,13 +29,6 @@ echo "
 i2c-dev
 " >> /etc/modules
 
-echo "Prevent services starting during install, running under chroot"
-echo "(avoids unnecessary errors)"
-cat > /usr/sbin/policy-rc.d << EOF
-exit 101
-EOF
-chmod +x /usr/sbin/policy-rc.d
-
 echo "Alsa Raspberry PI Card Ordering"
 echo "
 options snd-usb-audio nrpacks=1
