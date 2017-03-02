@@ -16,12 +16,12 @@ IMG_FILE="Volumio${VERSION}-${BUILDDATE}-x86.img"
 
 echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=3500
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=3900
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 sudo parted -s "${LOOP_DEV}" mklabel gpt
 sudo parted -s "${LOOP_DEV}" mkpart primary 1 512		    #legacy and uefi boot
-sudo parted -s "${LOOP_DEV}" mkpart primary 512 3200		#volumio
+sudo parted -s "${LOOP_DEV}" mkpart primary 512 3500		#volumio
 sudo parted -s "${LOOP_DEV}" mkpart primary 3200 100%		#data
 sudo parted -s "${LOOP_DEV}" set 1 legacy_boot on
 sudo parted -s "${LOOP_DEV}" set 1 esp on

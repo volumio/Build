@@ -32,8 +32,8 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=896
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo Copying bootloader and U-Boot
 dd if=platform-bbb/opt/backup/uboot/MLO of=${IMG_FILE} count=1 seek=1 bs=128k conv=notrunc
@@ -45,8 +45,8 @@ LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 4 63
-parted -s "${LOOP_DEV}" mkpart primary ext3 64 831
-parted -s "${LOOP_DEV}" mkpart primary ext3 832 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 64 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"

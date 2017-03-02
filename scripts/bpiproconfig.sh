@@ -9,7 +9,7 @@ echo "# BPI-PRO fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
-tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
+tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
@@ -26,7 +26,7 @@ tmpfs   /dev/shm                tmpfs   defaults        0 0
 #echo "Blacklisting 8723bs_vq0"
 #echo "blacklist 8723bs_vq0" >> /etc/modprobe.d/blacklist-pine64.conf
 
-echo "Prevent services starting during install, running under chroot" 
+echo "Prevent services starting during install, running under chroot"
 echo "(avoids unnecessary errors)"
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
@@ -35,7 +35,7 @@ chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools liblircclient0 lirc 
+apt-get -y install u-boot-tools liblircclient0 lirc
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -76,9 +76,11 @@ sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
+
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"
@@ -91,4 +93,3 @@ echo "Creating uInitrd from 'volumio.initrd'"
 mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 echo "Cleaning up"
 # rm /boot/volumio.initrd
-

@@ -26,16 +26,16 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs" 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1700
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 # Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 105 172
-parted -s "${LOOP_DEV}" mkpart primary ext3 172 1650
-parted -s "${LOOP_DEV}" mkpart primary ext3 1650 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 172 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
@@ -61,7 +61,7 @@ sync
 
 echo "Preparing for the banana bpi-m2u kernel/ platform files"
 if [ -d platform-banana ]
-then 
+then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platform-banana folder
     # that will refresh all the bananapi platforms, see below
@@ -85,13 +85,13 @@ sync
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
-then 
+then
 	echo "/mount folder exist"
 else
 	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
-then 
+then
 	echo "Volumio Temp Directory Exists - Cleaning it"
 	rm -rf /mnt/volumio/*
 else
@@ -151,14 +151,14 @@ mv /mnt/volumio/rootfs/boot/uInitrd /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/li
 rm /mnt/volumio/rootfs/bpim2uconfig.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
-umount -l /mnt/volumio/rootfs/dev 
-umount -l /mnt/volumio/rootfs/proc 
-umount -l /mnt/volumio/rootfs/sys 
+umount -l /mnt/volumio/rootfs/dev
+umount -l /mnt/volumio/rootfs/proc
+umount -l /mnt/volumio/rootfs/sys
 
 #echo "Copying LIRC configuration files"
 
 
-echo "==> BPI-M2U device installed"  
+echo "==> BPI-M2U device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"

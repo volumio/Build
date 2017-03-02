@@ -76,9 +76,11 @@ sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
+
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"

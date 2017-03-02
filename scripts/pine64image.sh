@@ -26,17 +26,17 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs" 
+echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs"
 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 # Note: leave the first 20Mb free for the firmware
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 21 84
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 84 1520
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 1520 100%
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 84 2500
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -62,7 +62,7 @@ sync
 
 echo "Preparing for the pine64 kernel/ platform files"
 if [ -d platform-pine64 ]
-then 
+then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platform-pine64 folder
     # that will refresh all the odroid platforms, see below
@@ -82,13 +82,13 @@ sync
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
-then 
+then
 	echo "/mount folder exist"
 else
 	sudo mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
-then 
+then
 	echo "Volumio Temp Directory Exists - Cleaning it"
 	rm -rf /mnt/volumio/*
 else
@@ -143,16 +143,16 @@ EOF
 rm /mnt/volumio/rootfs/pine64config.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
-umount -l /mnt/volumio/rootfs/dev 
-umount -l /mnt/volumio/rootfs/proc 
-umount -l /mnt/volumio/rootfs/sys 
+umount -l /mnt/volumio/rootfs/dev
+umount -l /mnt/volumio/rootfs/proc
+umount -l /mnt/volumio/rootfs/sys
 
 #echo "Copying LIRC configuration files"
 #sudo cp platform-pine64/pine64/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
 #sudo cp platform-pine64/pine64/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
 #sudo cp platform-pine64/pine64/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
-echo "==> Pine64 device installed"  
+echo "==> Pine64 device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
@@ -196,4 +196,3 @@ rm -rf /mnt/volumio /mnt/boot
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
-

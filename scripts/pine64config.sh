@@ -26,13 +26,6 @@ sunxi_sndcodec
 echo "Blacklisting 8723bs_vq0"
 echo "blacklist 8723bs_vq0" >> /etc/modprobe.d/blacklist-pine64.conf
 
-echo "Prevent services starting during install, running under chroot"
-echo "(avoids unnecessary errors)"
-cat > /usr/sbin/policy-rc.d << EOF
-exit 101
-EOF
-chmod +x /usr/sbin/policy-rc.d
-
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install u-boot-tools liblircclient0 lirc
@@ -40,7 +33,6 @@ apt-get -y install u-boot-tools liblircclient0 lirc
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
-rm /usr/sbin/policy-rc.d
 
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlayfs" >> /etc/initramfs-tools/modules
@@ -76,9 +68,11 @@ sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
+
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"
