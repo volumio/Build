@@ -173,27 +173,51 @@ KERNEL_REV="884"
 mkdir wifi
 cd wifi
 
-echo "WIFI: 8192EU"
+echo "WIFI: 8192EU for armv7"
 wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
-echo "WIFI: 8812AU"
+echo "WIFI: 8192EU for armv6"
+wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: 8812AU for armv7"
 wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
-echo "WIFI: 8188EU"
+echo "WIFI: 8812AU for armv6"
+wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: 8188EU for armv7"
 wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
-echo "WIFI: MT7610"
+echo "WIFI: 8188EU for armv6"
+wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: MT7610 for armv7"
 wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: MT7610 for armv6"
+wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
@@ -264,12 +288,13 @@ fi
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
+
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
 #First Boot operations
-
 echo "Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
 
