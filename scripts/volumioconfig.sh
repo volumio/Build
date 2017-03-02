@@ -163,15 +163,15 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.2.12-1_armhf.deb
   wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.20.jfd5-1_armhf.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
    wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp3_0.15.1-1_armhf.deb
   dpkg -i libupnpp3_0.15.1-1_armhf.deb
   dpkg -i libupnpp2_0.14.1-1_armhf.deb
-  dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+  dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
   dpkg -i upmpdcli_1.2.12-1_armhf.deb
   rm /libupnpp3_0.15.1-1_armhf.deb
   rm /upmpdcli_1.2.12-1_armhf.deb
-  rm /libupnp6_1.6.20.jfd5-1_armhf.deb
+  rm /libupnp6_1.6.19.jfd3-1_armhf.deb
   rm /libupnpp2_0.14.1-1_armhf.deb
 
   #Remove autostart of upmpdcli
