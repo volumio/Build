@@ -90,12 +90,12 @@ echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"
 
-echo "Size before strip"$( du -sh build/$BUILD/root/ )
-find build/$BUILD/root/usr/lib -type f -name \*.a  -exec strip --strip-debug {} ';'
-find build/$BUILD/root/usr/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
-find build/$BUILD/root/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
-find build/$BUILD/root/sbin -type f -exec strip --strip-all {} ';'
-find build/$BUILD/root/bin -type f -exec strip --strip-all {} ';'
-find build/$BUILD/root/usr/bin -type f -exec strip --strip-all {} ';'
-find build/$BUILD/root/usr/sbin -type f -exec strip --strip-all {} ';'
-echo "Size after strip"$( du -sh build/$BUILD/root/ )
+#echo "Size before strip"$( du -sh build/$BUILD/root/ )
+#find build/$BUILD/root/usr/lib -type f -name \*.a  -exec strip --strip-debug {} ';'
+#find build/$BUILD/root/usr/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
+#find build/$BUILD/root/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
+#find build/$BUILD/root/sbin -type f -exec strip --strip-all {} ';'
+#find build/$BUILD/root/bin -type f -exec strip --strip-all {} ';'
+#find build/$BUILD/root/usr/bin -type f -exec strip --strip-all {} ';'
+#find build/$BUILD/root/usr/sbin -type f -exec strip --strip-all {} ';'
+#echo "Size after strip"$( du -sh build/$BUILD/root/ )
