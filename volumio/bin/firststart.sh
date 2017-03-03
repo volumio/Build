@@ -1,17 +1,5 @@
 #!/bin/bash
 
-KERNEL="4.4.9"
-
-echo "Volumio first start configuration script"
-
-echo "Doing Depmod, to install additional firmware and modules"
-echo "Doing depmod for ordinary kernel"
-cd /lib/modules/${KERNEL}+
-depmod
-echo "Doing depmod for v7 kernel"
-cd /lib/modules/${KERNEL}-v7+
-depmod
-
 echo "configuring unconfigured packages"
 dpkg --configure --pending
 
