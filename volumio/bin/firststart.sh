@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Volumio first start configuration script"
+
 echo "configuring unconfigured packages"
 dpkg --configure --pending
 
