@@ -58,6 +58,8 @@ mkdir /lib/modules
 # Kernel 4.4.9 for Pi3 Support
 # see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
 # and https://github.com/Hexxeh/rpi-firmware/issues/118
+KERNEL_VERSION="4.4.9"
+KERNEL_REV="884"
 
 echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
 
@@ -166,9 +168,6 @@ echo "Give proper permissions to wifistart.sh"
 chmod a+x /bin/wifistart.sh
 
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
-
-KERNEL_VERSION="4.4.9"
-KERNEL_REV="884"
 
 mkdir wifi
 cd wifi
@@ -288,6 +287,10 @@ fi
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
+
+echo "Finalising drivers installation with depmod on $KERNEL_VERSION+ and $KERNEL_VERSION-v7+"
+depmod $KERNEL_VERSION+
+depmod $KERNEL_VERSION-v7+
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
