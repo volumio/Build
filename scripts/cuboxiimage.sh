@@ -108,7 +108,7 @@ echo "Copying cuboxi boot files, Kernel, Modules and Firmware"
 cp platform-cuboxi/cuboxi/boot/* /mnt/volumio/rootfs/boot
 cp -pdR platform-cuboxi/cuboxi/lib/modules /mnt/volumio/rootfs/lib
 cp -pdR platform-cuboxi/cuboxi/lib/firmware /mnt/volumio/rootfs/lib
-cp -pdR platform-cuboxi/cuboxi/usr /mnt/volumio/rootfs
+tar cfJ /mnt/volumio/rootfs/usr/linux-headers.tar.xz platform-cuboxi/cuboxi/usr/include 
 
 cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4329-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
 cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4330-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
