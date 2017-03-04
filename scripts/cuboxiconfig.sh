@@ -64,10 +64,6 @@ echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
 
-echo "Installing winbind here, since it freezes networking"
-apt-get update
-apt-get install -y winbind libnss-winbind
-
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
