@@ -22,7 +22,7 @@ LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 sudo parted -s "${LOOP_DEV}" mklabel gpt
 sudo parted -s "${LOOP_DEV}" mkpart primary 1 512		    #legacy and uefi boot
 sudo parted -s "${LOOP_DEV}" mkpart primary 512 3500		#volumio
-sudo parted -s "${LOOP_DEV}" mkpart primary 3200 100%		#data
+sudo parted -s "${LOOP_DEV}" mkpart primary 3500 100%		#data
 sudo parted -s "${LOOP_DEV}" set 1 legacy_boot on
 sudo parted -s "${LOOP_DEV}" set 1 esp on
 sudo partprobe "${LOOP_DEV}"
