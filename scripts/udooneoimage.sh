@@ -35,7 +35,7 @@ LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
 parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
-parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
