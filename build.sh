@@ -26,7 +26,7 @@ Switches:
             Options for the target architecture are 'arm' (Raspbian), 'armv7' (Debian arm64), 'armv8' (Debian arm64) or 'x86' (Debian i386).
   -d        Create Image for Specific Devices. Supported device names:
               pi, udooneo, udooqdl, cuboxi, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, 
+              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64,
               bpim2u, bpipro
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
@@ -56,6 +56,8 @@ function check_os_release {
   echo "VOLUMIO_VERSION=\"${VERSION}\"" >> build/${ARCH_BUILD}/root/etc/os-release
   echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> build/${ARCH_BUILD}/root/etc/os-release
   echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\"" >> build/${ARCH_BUILD}/root/etc/os-release
+  echo "VOLUMIO_BE_VERSION=\"$(git --git-dir /volumio/.git rev-parse HEAD)\"" >> os-release
+  echo "VOLUMIO_FE_VERSION=\"$(git --git-dir /volumio/http/www/.git rev-parse HEAD)\"" >> os-release
 }
 
 
@@ -160,15 +162,10 @@ if [ -n "$BUILD" ]; then
 su -
 ./volumioconfig.sh
 EOF
-  else 
+  else
 echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' > /proc/sys/fs/binfmt_misc/register
     chroot build/$BUILD/root /volumioconfig.sh
   fi
-
-  echo "Adding information in os-release"
-  echo '
-
-' >> build/$BUILD/root/etc/os-release
 
   echo "Base System Installed"
   rm build/$BUILD/root/volumioconfig.sh
@@ -253,7 +250,7 @@ case $DEVICE in
   bpipro) echo 'Writing Banana PI PRO Image File'
       check_os_release "armv7" $VERSION $DEVICE
       sh scripts/bpiproimage.sh -v $VERSION -p $PATCH -a armv7
-      ;;    
+      ;;
   armbian_*)
       echo 'Writing armbian-based Image File'
       check_os_release "arm" $VERSION $DEVICE
