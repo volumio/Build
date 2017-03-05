@@ -55,9 +55,6 @@ function check_os_release {
   fi
   echo "VOLUMIO_VERSION=\"${VERSION}\"" >> build/${ARCH_BUILD}/root/etc/os-release
   echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> build/${ARCH_BUILD}/root/etc/os-release
-  echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\"" >> build/${ARCH_BUILD}/root/etc/os-release
-  echo "VOLUMIO_BE_VERSION=\"$(git --git-dir /volumio/.git rev-parse HEAD)\"" >> os-release
-  echo "VOLUMIO_FE_VERSION=\"$(git --git-dir /volumio/http/www/.git rev-parse HEAD)\"" >> os-release
 }
 
 
@@ -152,10 +149,14 @@ if [ -n "$BUILD" ]; then
   echo 'Cloning Volumio Node Backend'
   mkdir build/$BUILD/root/volumio
   git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
-  echo "VOLUMIO_BE_VERSION=\"$(git --git-dir /volumio/.git rev-parse HEAD)\"" >> os-release
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git build/$BUILD/root/volumio/http/www
-  echo "VOLUMIO_FE_VERSION=\"$(git --git-dir /volumio/http/www/.git rev-parse HEAD)\"" >> os-release
+
+
+  echo "Adding os-release infos"
+  echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\"" >> build/${ARCH_BUILD}/root/etc/os-release
+  echo "VOLUMIO_FE_VERSION=\"$(git --git-dir /volumio/http/www/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
+  echo "VOLUMIO_BE_VERSION=\"$(git --git-dir /volumio/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
 
   if [ ! "$BUILD" = x86 ]; then
   chroot build/$BUILD/root /bin/bash -x <<'EOF'
