@@ -154,9 +154,9 @@ if [ -n "$BUILD" ]; then
 
 
   echo "Adding os-release infos"
-  echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\"" >> build/${ARCH_BUILD}/root/etc/os-release
-  echo "VOLUMIO_FE_VERSION=\"$(git --git-dir /volumio/http/www/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
-  echo "VOLUMIO_BE_VERSION=\"$(git --git-dir /volumio/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
+  echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
+  echo "VOLUMIO_FE_VERSION=\"$(git --git-dir build/$BUILD/root/volumio/http/www/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
+  echo "VOLUMIO_BE_VERSION=\"$(git --git-dir build/$BUILD/root/volumio/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
 
   if [ ! "$BUILD" = x86 ]; then
   chroot build/$BUILD/root /bin/bash -x <<'EOF'
