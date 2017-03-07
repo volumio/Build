@@ -61,10 +61,11 @@ mkdir /lib/modules
 KERNEL_VERSION="4.4.9"
 KERNEL_REV="884"
 
-echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
+# using rpi-update stable branch for 4.4.y as master is now on 4.9.y
+echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
 
 echo "Updating ELF"
-echo y | SKIP_KERNEL=1 rpi-update
+echo y | SKIP_KERNEL=1 BRANCH=stable rpi-update
 
 echo "Adding PI3 Wireless firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
