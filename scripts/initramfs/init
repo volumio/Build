@@ -140,6 +140,7 @@ fi
 
 #Check eventually for USB updates (could be vfat or ext4 partion --> mount auto)
 echo "Check for USB updates"
+[ -e /dev/sda1 ] || mdev -s
 if [ -e /dev/sda1 ]; then
   [ -d /mnt/usb ] || mkdir /mnt/usb
   mount -t auto /dev/sda1 /mnt/usb
@@ -159,6 +160,8 @@ if [ -e /dev/sda1 ]; then
   fi
   umount /dev/sda1
   rm -r /mnt/usb
+else
+  echo "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
 fi
 
 
@@ -243,5 +246,4 @@ exec switch_root /mnt/ext/union /sbin/init
 
 echo "Failed to switch_root, dropping to a shell"
 exec sh
-
 
