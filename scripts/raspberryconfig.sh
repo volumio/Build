@@ -67,6 +67,19 @@ echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f
 echo "Updating bootloader files *.elf *.dat *.bin"
 echo y | SKIP_KERNEL=1 BRANCH=stable rpi-update
 
+echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
+# these packages critically update kernel & firmware files and break Volumio
+# may be triggered by manual or plugin installs explicitly or through dependencies like chromium, sense-hat, picamera,...
+echo "Package: raspberrypi-bootloader
+Pin: release *
+Pin-Priority: -1
+
+Package: raspberrypi-kernel
+Pin: release *
+Pin-Priority: -1" > /etc/apt/preferences
+apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
+
+
 echo "Adding PI3 Wireless firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
