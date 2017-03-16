@@ -186,54 +186,54 @@ echo "Give proper permissions to wifistart.sh"
 chmod a+x /bin/wifistart.sh
 
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
-
+MRENGMAN_REPO="http://www.fars-robotics.net"
 mkdir wifi
 cd wifi
 
 echo "WIFI: 8192EU for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8192EU for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8812AU for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8812AU for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8188EU for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8188EU for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: MT7610 for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: MT7610 for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
