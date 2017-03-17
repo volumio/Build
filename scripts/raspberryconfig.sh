@@ -21,7 +21,7 @@ tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4,
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
-tmpfs   /dev/shm                tmpfs   defaults        0 0
+tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
 echo "Adding PI Modules"
@@ -61,16 +61,34 @@ mkdir /lib/modules
 KERNEL_VERSION="4.4.9"
 KERNEL_REV="884"
 
-echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
+# using rpi-update stable branch for 4.4.y as master is now on 4.9.y
+echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
 
-echo "Updating ELF"
-echo y | SKIP_KERNEL=1 rpi-update
+echo "Updating bootloader files *.elf *.dat *.bin"
+echo y | SKIP_KERNEL=1 BRANCH=stable rpi-update
 
-echo "Adding PI3 Wireless firmware"
+echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
+# these packages critically update kernel & firmware files and break Volumio
+# may be triggered by manual or plugin installs explicitly or through dependencies like chromium, sense-hat, picamera,...
+echo "Package: raspberrypi-bootloader
+Pin: release *
+Pin-Priority: -1
+
+Package: raspberrypi-kernel
+Pin: release *
+Pin-Priority: -1" > /etc/apt/preferences
+apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
+echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
+wget -P /boot/. https://github.com/raspberrypi/firmware/raw/stable/boot/bcm2708-rpi-0-w.dtb
+fi
+
+echo "Adding PI3 & PiZero W Wireless firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
 
-echo "Adding PI WIFI Wireless firmware"
+echo "Adding PI WIFI Wireless dongle firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /lib/firmware/brcm/
 
 #echo "Adding raspi-config"
@@ -168,54 +186,54 @@ echo "Give proper permissions to wifistart.sh"
 chmod a+x /bin/wifistart.sh
 
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
-
+MRENGMAN_REPO="http://www.fars-robotics.net"
 mkdir wifi
 cd wifi
 
 echo "WIFI: 8192EU for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8192EU for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8812AU for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8812AU for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8188EU for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: 8188EU for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: MT7610 for armv7"
-wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
 echo "WIFI: MT7610 for armv6"
-wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
