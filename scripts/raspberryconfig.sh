@@ -300,6 +300,12 @@ agreement, including executable only versions of the TI component libraries, or 
 the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
  equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
 " >  /lib/firmware/alloPiano/LICENSE
+
+echo "Adding Pisound Kernel Module and dtbo"
+wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
+echo "Extracting  PiSound Modules"
+tar xf pisound_volumio_4.4.9.tar.gz
+rm pisound_volumio_4.4.9.tar.gz
 fi
 
 echo "Installing winbind here, since it freezes networking"
