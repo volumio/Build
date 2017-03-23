@@ -306,6 +306,12 @@ wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
 echo "Extracting  PiSound Modules"
 tar xf pisound_volumio_4.4.9.tar.gz
 rm pisound_volumio_4.4.9.tar.gz
+
+echo "Adding Aoide-DACs Kernel Module and dtbo"
+wget https://github.com/howardqiao/volumio2-aoide-drivers/raw/master/aoide_volumio_4.4.9.tar.gz
+echo "Extracting Aoide-DACs Modules"
+tar xf aoide_volumio_4.4.9.tar.gz
+rm aoide_volumio_4.4.9.tar.gz
 fi
 
 echo "Installing winbind here, since it freezes networking"
