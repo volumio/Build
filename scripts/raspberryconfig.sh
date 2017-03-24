@@ -82,6 +82,8 @@ apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depen
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/raspberrypi/firmware/raw/stable/boot/bcm2708-rpi-0-w.dtb
+echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
+wget -P /boot/overlays/. https://github.com/raspberrypi/firmware/raw/stable/boot/overlays/pi3-disable-wifi.dtbo
 fi
 
 echo "Adding PI3 & PiZero W Wireless firmware"
