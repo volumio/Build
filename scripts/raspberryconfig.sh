@@ -51,7 +51,7 @@ apt-get -y install binutils i2c-tools
 #apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
 
 echo "Installing Kernel from Rpi-Update"
-sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
+sudo wget -O /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
 touch /boot/start.elf
 mkdir /lib/modules
 
