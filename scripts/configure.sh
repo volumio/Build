@@ -86,6 +86,10 @@ cp -rp volumio/etc/dhcpcd.conf build/$BUILD/root/etc/
 #wifi pre script
 cp volumio/bin/wifistart.sh build/$BUILD/root/bin/wifistart.sh
 chmod a+x build/$BUILD/root/bin/wifistart.sh
+#udev script
+cp volumio/bin/rename_netiface0.sh build/$BUILD/root/bin/rename_netiface0.sh
+chmod a+x build/$BUILD/root/bin/rename_netiface0.sh
+
 echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"
