@@ -167,12 +167,6 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
-echo "Setting udev rules to give USB network adapters priority over Built-in interfaces if connected"
-echo "# Give priority to wlan or eth USB network dongles if connected
-ACTION==\"add\", SUBSYSTEM==\"net\", SUBSYSTEMS==\"usb\", KERNEL==\"wlan*\", ATTR{type}==\"1\", NAME=\"wlan0\"
-ACTION==\"add\", SUBSYSTEM==\"net\", SUBSYSTEMS==\"usb\", KERNEL==\"eth*\", DRIVERS!=\"smsc95*\", ATTR{type}==\"1\", NAME=\"eth0\"
-" > /etc/udev/rules.d/70-persistent-net.rules
-
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
 
 mkdir wifi
