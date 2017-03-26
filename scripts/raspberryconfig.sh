@@ -167,6 +167,9 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
+# changing external ethX priority rule for Pi as built-in eth _is_ on USB (smsc95xx driver)
+sed -i 's/KERNEL==\"eth/DRIVERS!=\"smsc95xx\", &/' /etc/udev/rules.d/99-Volumio-net.rules
+
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
 
 mkdir wifi
