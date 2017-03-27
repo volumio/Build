@@ -266,23 +266,11 @@ if [ "$PATCH" = "volumio" ]; then
 ### Allo I2S Firmware
 echo "Getting Allo Modules"
 cd /
-echo "Getting Allo Piano 2.1 Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
-echo "Extracting Allo Piano 2.1 modules"
-tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
-rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
-
-echo "Getting Allo Boss Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
-echo "Extracting Allo Boss modules"
-tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
-rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
-
-echo "Getting Allo Piano Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_01122016.tgz
-echo "Extracting Allo Firmwares"
-tar xf alloPianoDACfw_01122016.tgz
-rm alloPianoDACfw_01122016.tgz
+echo "Getting Allo DAC Modules"
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4_4_9-AlloDAC-modules.tgz
+echo "Extracting Allo DAC modules"
+tar xf rpi-volumio-4_4_9-AlloDAC-modules.tgz
+rm rpi-volumio-4_4_9-AlloDAC-modules.tgz
 
 echo "Getting Allo BOSS Firmwares"
 wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
@@ -290,18 +278,16 @@ echo "Extracting Allo Firmwares"
 tar xf volumio-RPi4.4.9_boss_03022017.tgz
 rm volumio-RPi4.4.9_boss_03022017.tgz
 
+echo "Getting Allo Piano Firmwares"
+wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
+echo "Extracting Allo Firmwares"
+tar xf master.tar.gz
+cp -rp /piano-firmware-master/* /
+rm -rf /piano-firmware-master 
+rm /README.md
+rm master.tar.gz
+
 echo "Allo modules and firmware installed"
-
-echo "Adding license info"
-
-echo "You may royalty free distribute object and executable versions of the TI component libraries, and its derivatives
-(“derivative” shall mean adding the TI component library to an audio signal flow of a product to make a new audio signal chain without
-changing the algorithm of the TI component library), to use and integrate the software with any other software, these files are only
-licensed to be used on the TI  PCM 5142 DAC IC , but are freely distributable and re-distributable , subject to acceptance of the license
-agreement, including executable only versions of the TI component libraries, or its derivatives, that execute solely and exclusively with
-the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
- equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
-" >  /lib/firmware/alloPiano/LICENSE
 
 echo "Adding Pisound Kernel Module and dtbo"
 wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
