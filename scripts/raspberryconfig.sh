@@ -284,13 +284,13 @@ echo "Extracting Allo DAC modules"
 tar xf rpi-volumio-$KERNEL_VERSION-AlloDAC-modules.tgz
 rm rpi-volumio-$KERNEL_VERSION-AlloDAC-modules.tgz
 
-echo "Getting Allo BOSS Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
+echo "Getting Allo BOSS Modules"
+wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi$KERNEL_VERSION_boss_03022017.tgz
 echo "Extracting Allo Firmwares"
-tar xf volumio-RPi4.4.9_boss_03022017.tgz
-rm volumio-RPi4.4.9_boss_03022017.tgz
+tar xf volumio-RPi$KERNEL_VERSION_boss_03022017.tgz
+rm volumio-RPi$KERNEL_VERSION_boss_03022017.tgz
 
-echo "Getting Allo Piano Firmwares"
+echo "Getting Allo Piano Firmware"
 wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
 echo "Extracting Allo Firmwares"
 tar xf master.tar.gz
