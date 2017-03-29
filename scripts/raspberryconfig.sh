@@ -58,7 +58,7 @@ mkdir /lib/modules
 # Kernel 4.4.9 for Pi3 Support
 # see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
 # and https://github.com/Hexxeh/rpi-firmware/issues/118
-KERNEL_VERSION="4.4.9"
+KERNEL_VERSION="4.9.17"
 
 case $KERNEL_VERSION in
     "4.4.9")
