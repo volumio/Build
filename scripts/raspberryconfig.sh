@@ -275,16 +275,14 @@ if [ "$PATCH" = "volumio" ]; then
 
 echo "Adding third party kernel modules"
 
-if [ "$KERNEL_VERSION" = "4.4.9" ]; then
-
 ### Allo I2S Firmware
 echo "Getting Allo Modules"
 cd /
 echo "Getting Allo DAC Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4_4_9-AlloDAC-modules.tgz
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-$KERNEL_VERSION-AlloDAC-modules.tgz
 echo "Extracting Allo DAC modules"
-tar xf rpi-volumio-4_4_9-AlloDAC-modules.tgz
-rm rpi-volumio-4_4_9-AlloDAC-modules.tgz
+tar xf rpi-volumio-$KERNEL_VERSION-AlloDAC-modules.tgz
+rm rpi-volumio-$KERNEL_VERSION-AlloDAC-modules.tgz
 
 echo "Getting Allo BOSS Firmwares"
 wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
@@ -304,12 +302,10 @@ rm master.tar.gz
 echo "Allo modules and firmware installed"
 
 echo "Adding Pisound Kernel Module and dtbo"
-wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-$KERNEL_VERSION-pisound-modules.tgz
 echo "Extracting  PiSound Modules"
-tar xf pisound_volumio_4.4.9.tar.gz
-rm pisound_volumio_4.4.9.tar.gz
-fi
-
+tar xf rpi-volumio-$KERNEL_VERSION-pisound-modules.tgz
+rm rpi-volumio-$KERNEL_VERSION-pisound-modules.tgz
 fi
 
 echo "Installing winbind here, since it freezes networking"
