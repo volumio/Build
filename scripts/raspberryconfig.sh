@@ -272,6 +272,11 @@ rm /patch
 
 
 if [ "$PATCH" = "volumio" ]; then
+
+echo "Adding third party kernel modules"
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then
+
 ### Allo I2S Firmware
 echo "Getting Allo Modules"
 cd /
@@ -303,6 +308,8 @@ wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
 echo "Extracting  PiSound Modules"
 tar xf pisound_volumio_4.4.9.tar.gz
 rm pisound_volumio_4.4.9.tar.gz
+fi
+
 fi
 
 echo "Installing winbind here, since it freezes networking"
