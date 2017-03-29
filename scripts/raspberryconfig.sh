@@ -66,6 +66,11 @@ case $KERNEL_VERSION in
       KERNEL_BRANCH="stable"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       ;; 
+    "4.9.17")
+      KERNEL_REV="981"
+      KERNEL_BRANCH="master"
+      KERNEL_COMMIT="41561448388d90f19f2e40ac62ce1c21c2e064ec"
+      ;; 
 esac
 
 # using rpi-update relevant to defined kernel version
