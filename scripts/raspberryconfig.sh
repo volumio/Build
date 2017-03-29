@@ -59,13 +59,20 @@ mkdir /lib/modules
 # see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
 # and https://github.com/Hexxeh/rpi-firmware/issues/118
 KERNEL_VERSION="4.4.9"
-KERNEL_REV="884"
 
-# using rpi-update stable branch for 4.4.y as master is now on 4.9.y
-echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
+case $KERNEL_VERSION in
+    "4.4.9")
+      KERNEL_REV="884"
+      KERNEL_BRANCH="stable"
+      KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
+      ;; 
+esac
+
+# using rpi-update relevant to defined kernel version
+echo y | SKIP_BACKUP=1 BRANCH=$KERNEL_BRANCH rpi-update $KERNEL_COMMIT
 
 echo "Updating bootloader files *.elf *.dat *.bin"
-echo y | SKIP_KERNEL=1 BRANCH=stable rpi-update
+echo y | SKIP_KERNEL=1 BRANCH=$KERNEL_BRANCH rpi-update
 
 echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
 # these packages critically update kernel & firmware files and break Volumio
