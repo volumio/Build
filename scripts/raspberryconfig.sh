@@ -127,9 +127,6 @@ SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c' "'chown -R root:gpio /sys/class/gpio &&
 echo "adding volumio to gpio group"
 sudo adduser volumio gpio
 
-echo "Fixing crda domain error"
-apt-get -y install crda wireless-regdb
-
 echo "Removing unneeded binaries"
 apt-get -y remove binutils
 
