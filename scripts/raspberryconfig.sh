@@ -59,7 +59,7 @@ mkdir /lib/modules
 # see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
 # and https://github.com/Hexxeh/rpi-firmware/issues/118
 KERNEL_VERSION="4.9.13"
-KERNEL_REV="884"
+KERNEL_REV="974"
 
 # using rpi-update stable branch for 4.4.y as master is now on 4.9.y
 #echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
