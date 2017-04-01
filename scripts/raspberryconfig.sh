@@ -55,10 +55,10 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-# Kernel 4.4.9 for Pi3 Support
+# Kernel 4.9.13 for Pi3 Support
 # see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
 # and https://github.com/Hexxeh/rpi-firmware/issues/118
-KERNEL_VERSION="4.4.9"
+KERNEL_VERSION="4.9.13"
 KERNEL_REV="884"
 
 # using rpi-update stable branch for 4.4.y as master is now on 4.9.y
@@ -80,10 +80,8 @@ Pin: release *
 Pin-Priority: -1" > /etc/apt/preferences
 apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
 
-if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
-echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
+echo "Adding initial support for PiZero W wireless on 4.9.13 kernel"
 wget -P /boot/. https://github.com/raspberrypi/firmware/raw/stable/boot/bcm2708-rpi-0-w.dtb
-fi
 
 echo "Adding PI3 & PiZero W Wireless firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
@@ -263,34 +261,6 @@ rm /patch
 
 if [ "$PATCH" = "volumio" ]; then
 ### Allo I2S Firmware
-echo "Getting Allo Modules"
-cd /
-echo "Getting Allo Piano 2.1 Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
-echo "Extracting Allo Piano 2.1 modules"
-tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
-rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
-
-echo "Getting Allo Boss Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
-echo "Extracting Allo Boss modules"
-tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
-rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
-
-echo "Getting Allo Piano Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_01122016.tgz
-echo "Extracting Allo Firmwares"
-tar xf alloPianoDACfw_01122016.tgz
-rm alloPianoDACfw_01122016.tgz
-
-echo "Getting Allo BOSS Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
-echo "Extracting Allo Firmwares"
-tar xf volumio-RPi4.4.9_boss_03022017.tgz
-rm volumio-RPi4.4.9_boss_03022017.tgz
-
-echo "Allo modules and firmware installed"
-
 echo "Adding license info"
 
 echo "You may royalty free distribute object and executable versions of the TI component libraries, and its derivatives
@@ -302,17 +272,11 @@ the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an e
  equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
 " >  /lib/firmware/alloPiano/LICENSE
 
-echo "Adding Pisound Kernel Module and dtbo"
-wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
-echo "Extracting  PiSound Modules"
-tar xf pisound_volumio_4.4.9.tar.gz
-rm pisound_volumio_4.4.9.tar.gz
-
 echo "Adding Aoide-DACs Kernel Module and dtbo"
-wget https://github.com/howardqiao/volumio2-aoide-drivers/raw/master/aoide_volumio_4.4.9.tar.gz
+wget https://github.com/howardqiao/volumio2-aoide-drivers/raw/master/aoide_volumio_4.9.13.tar.gz
 echo "Extracting Aoide-DACs Modules"
-tar xf aoide_volumio_4.4.9.tar.gz
-rm aoide_volumio_4.4.9.tar.gz
+tar xf aoide_volumio_4.9.13.tar.gz
+rm aoide_volumio_4.9.13.tar.gz
 fi
 
 echo "Installing winbind here, since it freezes networking"
