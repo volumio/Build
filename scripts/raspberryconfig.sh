@@ -62,7 +62,8 @@ KERNEL_VERSION="4.4.9"
 KERNEL_REV="884"
 
 # using rpi-update stable branch for 4.4.y as master is now on 4.9.y
-echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
+#echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
+echo y | SKIP_BACKUP=1 BRANCH=stable rpi-update d8803bc3b369b087450e636beb0cb30857e3215e
 
 echo "Updating bootloader files *.elf *.dat *.bin"
 echo y | SKIP_KERNEL=1 BRANCH=stable rpi-update
