@@ -150,10 +150,12 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Custom Packages"
   cd /
 
-  echo "Installing custom MPD version"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.19.19-1_armhf.deb
-  dpkg -i mpd_0.19.19-1_armhf.deb
-  rm /mpd_0.19.19-1_armhf.deb
+  if [ -f /custom-mpd ]; then
+	echo "Installing custom MPD version"
+  	wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.19.19-1_armhf.deb
+  	dpkg -i mpd_0.19.19-1_armhf.deb
+  	rm /mpd_0.19.19-1_armhf.deb
+  fi
 
   echo "Installing Shairport for Airplay emulation"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz

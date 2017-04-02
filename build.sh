@@ -135,6 +135,11 @@ if [ -n "$BUILD" ]; then
 
   mkdir build/$BUILD
   mkdir build/$BUILD/root
+
+  if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
+    echo "Building for arm/arm-dev, needs custom mpd package"
+    echo "need" > build/$BUILD/root/custom-mpd
+  fi
   multistrap -a $ARCH -f $CONF
   if [ ! "$BUILD" = x86 ]; then
 	echo "Build for arm/armv7/armv8 platform, copying qemu"
@@ -169,6 +174,9 @@ echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x2
   fi
 
   echo "Base System Installed"
+  if [ -e build/$BUILD/root/custom-mpd ]; then
+	rm build/$BUILD/root/custom-mpd
+  fi
   rm build/$BUILD/root/volumioconfig.sh
   ###Dirty fix for mpd.conf TODO use volumio repo
   cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
@@ -225,7 +233,7 @@ case $DEVICE in
       ;;
   sparky) echo 'Writing Sparky Image File'
       check_os_release "arm" $VERSION $DEVICE
-      sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a arm
+      sh scripts/sparkyimage.sh -v $VERSION -p $PATCH -a armv7
       ;;
   bbb) echo 'Writing BeagleBone Black Image File'
       check_os_release "arm" $VERSION $DEVICE
