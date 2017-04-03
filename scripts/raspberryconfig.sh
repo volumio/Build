@@ -281,16 +281,10 @@ if [ "$KERNEL_VERSION" = "4.4.9" ]; then
 echo "Getting Allo Modules"
 cd /
 echo "Getting Allo DAC Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4_4_9-AlloDAC-modules.tgz
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
 echo "Extracting Allo DAC modules"
-tar xf rpi-volumio-4_4_9-AlloDAC-modules.tgz
-rm rpi-volumio-4_4_9-AlloDAC-modules.tgz
-
-echo "Getting Allo BOSS Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
-echo "Extracting Allo Firmwares"
-tar xf volumio-RPi4.4.9_boss_03022017.tgz
-rm volumio-RPi4.4.9_boss_03022017.tgz
+tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
+rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
 
 echo "Getting Allo Piano Firmwares"
 wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
