@@ -298,10 +298,10 @@ rm master.tar.gz
 echo "Allo modules and firmware installed"
 
 echo "Adding Pisound Kernel Module and dtbo"
-wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-pisound-modules.tgz
 echo "Extracting  PiSound Modules"
-tar xf pisound_volumio_4.4.9.tar.gz
-rm pisound_volumio_4.4.9.tar.gz
+tar xf rpi-volumio-4.4.9-pisound-modules.tgz
+rm rpi-volumio-4.4.9-pisound-modules.tgz
 fi
 
 fi
