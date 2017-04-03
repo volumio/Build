@@ -178,23 +178,8 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
-echo "Adding raspi blackist"
-#this way if another USB WIFI dongle is present, it will always be the default one
-echo "
-#wifi
-blacklist brcmfmac
-blacklist brcmutil
-" > /etc/modprobe.d/raspi-blacklist.conf
-
-#Load PI3 wifi module just before wifi stack starts
-echo "
-#!/bin/sh
-sudo /sbin/modprobe brcmfmac
-sudo /sbin/modprobe brcmutil
-sudo /sbin/iw dev wlan0 set power_save off
-" >> /bin/wifistart.sh
-echo "Give proper permissions to wifistart.sh"
-chmod a+x /bin/wifistart.sh
+# changing external ethX priority rule for Pi as built-in eth _is_ on USB (smsc95xx driver)
+sed -i 's/KERNEL==\"eth/DRIVERS!=\"smsc95xx\", &/' /etc/udev/rules.d/99-Volumio-net.rules
 
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
 MRENGMAN_REPO="http://www.fars-robotics.net"
