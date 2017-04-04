@@ -182,6 +182,9 @@ if [ $(uname -m) = armv7l ]; then
   #dpkg -i sc2mpd_0.11.0-1_armhf.deb
   #rm /sc2mpd_0.11.0-1_armhf.deb
 
+  echo "Volumio Init Updater"
+  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater
+  chmod a+x /usr/local/sbin/volumio-init-updater
   echo "Installing Snapcast for multiroom"
 
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
@@ -290,7 +293,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /sc2mpd_1.1.1-1_i386.deb
 
   echo "Volumio Init Updater"
-  wget -P /usr/local/sbin/volumio-init-updater http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater
+  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
 
   echo "Zsync"
