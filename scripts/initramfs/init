@@ -157,6 +157,7 @@ if [ -e /dev/sda1 ]; then
     echo " " > /mnt/factory/factory_reset
     umount /mnt/factory
     rm -r /mnt/factory
+    rm /mnt/usb/factory_reset
   fi
   umount /dev/sda1
   rm -r /mnt/usb
