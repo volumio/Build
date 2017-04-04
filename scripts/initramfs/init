@@ -185,7 +185,12 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 
   echo "Factory reset executed: part I"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
+  sync
   echo "Factory reset executed: part II - end"
+  
+  #Setting 5 second for rebooting after kernel panic (sometimes it happens after factory reset)
+  echo 5 > /proc/sys/kernel/panic
+
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
