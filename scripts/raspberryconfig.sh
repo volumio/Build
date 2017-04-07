@@ -113,11 +113,12 @@ wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /l
 echo "Installing WiringPi from Raspberrypi.org Repo"
 apt-get -y install wiringpi
 
-echo "adding gpio group and permissions"
+echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
+groupadd -f --system spi
 
-echo "adding volumio to gpio group"
-sudo adduser volumio gpio
+echo "adding volumio to gpio group and al"
+usermod -a -G gpio,i2c,spi,input volumio
 
 echo "Use up-to-date jessie rules for gpio & al."
 read -rd '' Rule_String <<"EOF"
