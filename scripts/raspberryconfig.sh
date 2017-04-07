@@ -114,13 +114,7 @@ echo "Installing WiringPi from Raspberrypi.org Repo"
 apt-get -y install wiringpi
 
 echo "adding gpio group and permissions"
-cd /
-wget http://repo.volumio.org/Volumio2/Binaries/gpio-admin.tar.gz
-tar xvf gpio-admin.tar.gz
-rm /gpio-admin.tar.gz
 groupadd -f --system gpio
-chgrp gpio /usr/local/bin/gpio-admin
-chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
 
 touch /lib/udev/rules.d/91-gpio.rules
 echo 'KERNEL=="spidev*", GROUP="spi", MODE="0660"
