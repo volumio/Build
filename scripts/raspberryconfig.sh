@@ -110,11 +110,6 @@ wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /l
 #dpkg -i /raspi/raspi-config_20151019_all.deb
 #rm -Rf /raspi
 
-echo "Installing WiringPi"
-wget http://repo.volumio.org/Volumio2/Binaries/wiringpi_2.24_armhf.deb
-dpkg -i wiringpi_2.24_armhf.deb
-rm /wiringpi_2.24_armhf.deb
-
 
 echo "adding gpio group and permissions"
 cd /
