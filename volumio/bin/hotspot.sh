@@ -5,7 +5,7 @@ case "$1" in
 MODULE=$(basename $(readlink /sys/class/net/wlan0/device/driver/module))
 ARCH=`/usr/bin/dpkg --print-architecture`
 
-if [ $MODULE = "8192cu" -a $ARCH = "armhf" ] && !(modinfo $MODULE | grep "cfg80211" > /dev/null) ; then
+if [ $MODULE = "8192cu" -a $ARCH = "armhf" ] && !(modinfo $MODULE | grep '^depends:.*cfg80211.*' > /dev/null) ; then
   echo "Launching Hostapd Edimax"
 /usr/sbin/hostapd-edimax /etc/hostapd/hostapd-edimax.conf
 else
