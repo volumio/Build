@@ -110,27 +110,52 @@ wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /l
 #dpkg -i /raspi/raspi-config_20151019_all.deb
 #rm -Rf /raspi
 
-echo "Installing WiringPi"
-wget http://repo.volumio.org/Volumio2/Binaries/wiringpi_2.24_armhf.deb
-dpkg -i wiringpi_2.24_armhf.deb
-rm /wiringpi_2.24_armhf.deb
+echo "Installing WiringPi from Raspberrypi.org Repo"
+apt-get -y install wiringpi
 
-
-echo "adding gpio group and permissions"
-cd /
-wget http://repo.volumio.org/Volumio2/Binaries/gpio-admin.tar.gz
-tar xvf gpio-admin.tar.gz
-rm /gpio-admin.tar.gz
+echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
-chgrp gpio /usr/local/bin/gpio-admin
-chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
+groupadd -f --system spi
 
-touch /lib/udev/rules.d/91-gpio.rules
-echo 'KERNEL=="spidev*", GROUP="spi", MODE="0660"
-SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c' "'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio; chown -R root:gpio /sys/devices/platform/soc/*.gpio/gpio && chmod -R 770 /sys/devices/platform/soc/*.gpio/gpio'"'"' > /lib/udev/rules.d/91-gpio.rules
+echo "adding volumio to gpio group and al"
+usermod -a -G gpio,i2c,spi,input volumio
 
-echo "adding volumio to gpio group"
-sudo adduser volumio gpio
+echo "Use up-to-date jessie rules for gpio & al."
+read -rd '' Rule_String <<"EOF"
+SUBSYSTEM=="input", GROUP="input", MODE="0660"
+SUBSYSTEM=="i2c-dev", GROUP="i2c", MODE="0660"
+SUBSYSTEM=="spidev", GROUP="spi", MODE="0660"
+SUBSYSTEM=="bcm2835-gpiomem", GROUP="gpio", MODE="0660"
+
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c '\
+	chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
+	chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio;\
+	chown -R root:gpio /sys$devpath && chmod -R 770 /sys$devpath\
+'"
+
+KERNEL=="ttyAMA[01]", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $ALIASES/uart0 $ALIASES/serial0; then \
+		echo 0;\
+	elif cmp -s $ALIASES/uart0 $ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi\
+'", SYMLINK+="serial%c"
+
+KERNEL=="ttyS0", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $ALIASES/uart1 $ALIASES/serial0; then \
+		echo 0; \
+	elif cmp -s $ALIASES/uart1 $ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi \
+'", SYMLINK+="serial%c"
+EOF
+echo "${Rule_String}" > /etc/udev/rules.d/99-com.rules
 
 echo "Removing unneeded binaries"
 apt-get -y remove binutils
