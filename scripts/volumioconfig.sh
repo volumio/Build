@@ -432,6 +432,9 @@ echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
 
+echo "Empty resolv.conf.head for custom DNS settings"
+touch /etc/resolv.conf.head
+
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
 
