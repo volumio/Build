@@ -66,6 +66,11 @@ case $KERNEL_VERSION in
       KERNEL_BRANCH="stable"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       ;; 
+    "4.9.20")
+      KERNEL_REV="985"
+      KERNEL_BRANCH="master"
+      KERNEL_COMMIT="3ff94f1fc459f88d3e2530542fb609643a7bd1a6"
+      ;; 
 esac
 
 # using rpi-update relevant to defined kernel version
@@ -105,27 +110,52 @@ wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /l
 #dpkg -i /raspi/raspi-config_20151019_all.deb
 #rm -Rf /raspi
 
-echo "Installing WiringPi"
-wget http://repo.volumio.org/Volumio2/Binaries/wiringpi_2.24_armhf.deb
-dpkg -i wiringpi_2.24_armhf.deb
-rm /wiringpi_2.24_armhf.deb
+echo "Installing WiringPi from Raspberrypi.org Repo"
+apt-get -y install wiringpi
 
-
-echo "adding gpio group and permissions"
-cd /
-wget http://repo.volumio.org/Volumio2/Binaries/gpio-admin.tar.gz
-tar xvf gpio-admin.tar.gz
-rm /gpio-admin.tar.gz
+echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
-chgrp gpio /usr/local/bin/gpio-admin
-chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
+groupadd -f --system spi
 
-touch /lib/udev/rules.d/91-gpio.rules
-echo 'KERNEL=="spidev*", GROUP="spi", MODE="0660"
-SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c' "'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio; chown -R root:gpio /sys/devices/platform/soc/*.gpio/gpio && chmod -R 770 /sys/devices/platform/soc/*.gpio/gpio'"'"' > /lib/udev/rules.d/91-gpio.rules
+echo "adding volumio to gpio group and al"
+usermod -a -G gpio,i2c,spi,input volumio
 
-echo "adding volumio to gpio group"
-sudo adduser volumio gpio
+echo "Use up-to-date jessie rules for gpio & al."
+read -rd '' Rule_String <<"EOF"
+SUBSYSTEM=="input", GROUP="input", MODE="0660"
+SUBSYSTEM=="i2c-dev", GROUP="i2c", MODE="0660"
+SUBSYSTEM=="spidev", GROUP="spi", MODE="0660"
+SUBSYSTEM=="bcm2835-gpiomem", GROUP="gpio", MODE="0660"
+
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c '\
+	chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
+	chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio;\
+	chown -R root:gpio /sys$devpath && chmod -R 770 /sys$devpath\
+'"
+
+KERNEL=="ttyAMA[01]", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $ALIASES/uart0 $ALIASES/serial0; then \
+		echo 0;\
+	elif cmp -s $ALIASES/uart0 $ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi\
+'", SYMLINK+="serial%c"
+
+KERNEL=="ttyS0", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $ALIASES/uart1 $ALIASES/serial0; then \
+		echo 0; \
+	elif cmp -s $ALIASES/uart1 $ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi \
+'", SYMLINK+="serial%c"
+EOF
+echo "${Rule_String}" > /etc/udev/rules.d/99-com.rules
 
 echo "Removing unneeded binaries"
 apt-get -y remove binutils
@@ -140,7 +170,7 @@ disable_splash=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
-echo "dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N " >> /boot/cmdline.txt
+echo "dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5" >> /boot/cmdline.txt
 
 echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
@@ -173,23 +203,8 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
-echo "Adding raspi blackist"
-#this way if another USB WIFI dongle is present, it will always be the default one
-echo "
-#wifi
-blacklist brcmfmac
-blacklist brcmutil
-" > /etc/modprobe.d/raspi-blacklist.conf
-
-#Load PI3 wifi module just before wifi stack starts
-echo "
-#!/bin/sh
-sudo /sbin/modprobe brcmfmac
-sudo /sbin/modprobe brcmutil
-sudo /sbin/iw dev wlan0 set power_save off
-" >> /bin/wifistart.sh
-echo "Give proper permissions to wifistart.sh"
-chmod a+x /bin/wifistart.sh
+# changing external ethX priority rule for Pi as built-in eth _is_ on USB (smsc95xx driver)
+sed -i 's/KERNEL==\"eth/DRIVERS!=\"smsc95xx\", &/' /etc/udev/rules.d/99-Volumio-net.rules
 
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
 MRENGMAN_REPO="http://www.fars-robotics.net"
@@ -267,20 +282,19 @@ rm /patch
 
 
 if [ "$PATCH" = "volumio" ]; then
+
+echo "Adding third party kernel modules"
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then
+
 ### Allo I2S Firmware
 echo "Getting Allo Modules"
 cd /
 echo "Getting Allo DAC Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4_4_9-AlloDAC-modules.tgz
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
 echo "Extracting Allo DAC modules"
-tar xf rpi-volumio-4_4_9-AlloDAC-modules.tgz
-rm rpi-volumio-4_4_9-AlloDAC-modules.tgz
-
-echo "Getting Allo BOSS Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
-echo "Extracting Allo Firmwares"
-tar xf volumio-RPi4.4.9_boss_03022017.tgz
-rm volumio-RPi4.4.9_boss_03022017.tgz
+tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
+rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
 
 echo "Getting Allo Piano Firmwares"
 wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
@@ -294,10 +308,12 @@ rm master.tar.gz
 echo "Allo modules and firmware installed"
 
 echo "Adding Pisound Kernel Module and dtbo"
-wget http://repo.volumio.org/Volumio2/Firmwares/pisound_volumio_4.4.9.tar.gz
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-pisound-modules.tgz
 echo "Extracting  PiSound Modules"
-tar xf pisound_volumio_4.4.9.tar.gz
-rm pisound_volumio_4.4.9.tar.gz
+tar xf rpi-volumio-4.4.9-pisound-modules.tgz
+rm rpi-volumio-4.4.9-pisound-modules.tgz
+fi
+
 fi
 
 echo "Installing winbind here, since it freezes networking"

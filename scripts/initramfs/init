@@ -157,6 +157,7 @@ if [ -e /dev/sda1 ]; then
     echo " " > /mnt/factory/factory_reset
     umount /mnt/factory
     rm -r /mnt/factory
+    rm /mnt/usb/factory_reset
   fi
   umount /dev/sda1
   rm -r /mnt/usb
@@ -166,13 +167,13 @@ fi
 
 
 # 2) init a loop pointing to the image file
-[ -e /dev/loop0 ] || mknod /dev/loop0 b 7 0
-losetup /dev/loop0 /mnt/imgpart/${IMGFILE}
+loop_free=$(losetup -f | sed s#p/#p#)
+losetup $loop_free /mnt/imgpart/${IMGFILE}
 
 
 # 3) mount the squashfs to /mnt/static
 [ -d /mnt/static ] || mkdir /mnt/static
-mount -t squashfs /dev/loop0 /mnt/static
+mount -t squashfs $loop_free /mnt/static
 
 VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 
@@ -185,7 +186,12 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 
   echo "Factory reset executed: part I"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
+  sync
   echo "Factory reset executed: part II - end"
+  
+  #Setting 5 second for rebooting after kernel panic (sometimes it happens after factory reset)
+  echo 5 > /proc/sys/kernel/panic
+
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"

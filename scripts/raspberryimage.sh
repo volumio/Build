@@ -79,9 +79,6 @@ cp scripts/raspberryconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 
-#copy the scripts for updating from usb
-wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
-
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
