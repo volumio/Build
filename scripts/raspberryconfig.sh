@@ -42,7 +42,8 @@ deb-src http://archive.raspberrypi.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
 echo "Adding Raspberrypi.org Repo Key"
-wget https://www.raspberrypi.org/raspberrypi.gpg.key -O - | sudo apt-key add -
+
+wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
 
 echo "Installing R-pi specific binaries"
 apt-get update
