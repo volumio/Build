@@ -162,7 +162,7 @@ if [ -n "$BUILD" ]; then
   echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
   echo "VOLUMIO_FE_VERSION=\"$(git --git-dir build/$BUILD/root/volumio/http/www/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
   echo "VOLUMIO_BE_VERSION=\"$(git --git-dir build/$BUILD/root/volumio/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
-
+  echo "VOLUMIO_ARCH=\"${BUILD}\"" >> build/$BUILD/root/etc/os-release
   if [ ! "$BUILD" = x86 ]; then
   chroot build/$BUILD/root /bin/bash -x <<'EOF'
 su -
