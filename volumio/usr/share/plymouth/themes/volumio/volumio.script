@@ -1,0 +1,17 @@
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+theme_image = Image("volumio.png");
+resized_wallpaper_image = theme_image.Scale(screen_width, screen_height);
+sprite = Sprite(resized_wallpaper_image);
+sprite.SetZ(-100);
+
+message_sprite = Sprite();
+message_sprite.SetPosition(screen_width * 0.1, screen_height * 0.8, 10000);
+
+fun message_callback (text) {
+    my_image = Image.Text(text, 1, 1, 1);
+    message_sprite.SetImage(my_image);
+}
+
+Plymouth.SetUpdateStatusFunction(message_callback);
