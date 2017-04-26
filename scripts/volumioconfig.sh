@@ -172,7 +172,7 @@ if [ $(uname -m) = armv7l ]; then
      rm libupnp6_1.6.20.jfd5-1_armhf.deb
      rm upmpdcli_1.2.12-1_armhf.deb
 
-  else [ $ARCH = armv7 ]; then
+  elif [ $ARCH = armv7 ]; then
      echo "Installing MPD for armv7"
      wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv7.deb
      dpkg -i mpd_0.20.6-1_armv7.deb
