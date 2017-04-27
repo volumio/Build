@@ -455,8 +455,8 @@ echo "Setting fallback DNS with OpenDNS nameservers"
 echo "# OpenDNS nameservers
 nameserver 208.67.222.222
 nameserver 208.67.220.220" > /etc/resolv.conf.tail.tmpl
-ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 chmod 666 /etc/resolv.conf.*
+ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
