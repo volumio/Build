@@ -225,7 +225,7 @@ mkdir boot
 mount -t vfat /dev/mmcblk0p1 /boot
 if [ -e "/boot/kernel_update" ]; then
 echo "unpacking kernel"
-  tar xf /mnt/imgpart/kernel_current.tar /boot
+  tar xf /mnt/imgpart/kernel_current.tar -C /boot
   if [ -e "/mnt/imgpart/config.txt.bak" ]; then
     cp /mnt/imgpart/config.txt.bak /boot/config.txt
     rm /mnt/imgpart/config.txt.bak
