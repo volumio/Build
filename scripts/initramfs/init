@@ -205,6 +205,36 @@ fi
 umount /mnt/factory
 rm -r /mnt/factory
 
+# if the update failed before completion
+mkdir boot
+mount -t vfat /dev/mmcblk0p1 /boot
+if [-e "/boot/update_process" ]; then
+echo "Previous update attempt failed, restoring fallbacks"
+  cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
+  cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
+  if [-e "/boot/kernel_update" ]; then
+    rm /boot/kernel_update
+  fi
+  rm /boot/update_process
+fi
+umount /boot
+rm -rf /boot
+
+# if the kernel has been updated
+mkdir boot
+mount -t vfat /dev/mmcblk0p1 /boot
+if [ -e "/boot/kernel_update" ]; then
+echo "unpacking kernel"
+  tar xf /mnt/imgpart/kernel_current.tar /boot
+  if [ -e "/mnt/imgpart/config.txt.bak" ]; then
+    cp /mnt/imgpart/config.txt.bak /boot/config.txt
+    rm /mnt/imgpart/config.txt.bak
+  fi
+  rm /boot/kernel_update
+fi
+umount /boot
+rm -rf /boot
+
 mkdir boot
 mount -t vfat /dev/mmcblk0p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
