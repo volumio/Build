@@ -67,10 +67,10 @@ case $KERNEL_VERSION in
       KERNEL_BRANCH="stable"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       ;; 
-    "4.9.20")
-      KERNEL_REV="985"
+    "4.9.25")
+      KERNEL_REV="994"
       KERNEL_BRANCH="master"
-      KERNEL_COMMIT="3ff94f1fc459f88d3e2530542fb609643a7bd1a6"
+      KERNEL_COMMIT="a86bfee5b47a74c13056997f1e4d8b9d8090b398"
       ;; 
 esac
 
