@@ -30,7 +30,7 @@ else
    OVERLAY=WITHWRKDIR
 fi
 
-echo "Booting Volumio for $(cat /proc/cpuinfo | grep Hardware )" 
+echo "Booting Volumio for $(cat /proc/cpuinfo | grep Hardware )"
 
 echo "	This script mounts rootfs RO with an overlay RW layer."
 if [ $OVERLAY == WITHWRKDIR ]; then
@@ -133,6 +133,14 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
   echo "Factory image created"
+  echo "Creating archive for factory kernel..."
+  mkdir /mnt/factory
+  mount -t vfat /dev/mmcblk0p1 /mnt/factory
+  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
+  cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
+  umount /mnt/factory
+  rm -r /mnt/factory
+
 elif [ ! -z "${BOOTDELAY}" ]; then
   echo "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
   sleep ${BOOTDELAY}
@@ -184,6 +192,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   echo "Executing factory reset"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
 
+<<<<<<< HEAD
   echo "Factory reset executed: part I"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
   sync
@@ -192,16 +201,54 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   #Setting 5 second for rebooting after kernel panic (sometimes it happens after factory reset)
   echo 5 > /proc/sys/kernel/panic
 
+=======
+  echo "Factory reset executed: part I - Kernel"
+  tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
+  echo "Factory reset executed: part II - Squash"
+  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh
+  echo "Factory reset executed: part III - end"
+  rm /mnt/factory/factory_reset
+>>>>>>> kernelupdater
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
   rm /mnt/factory/user_data
-  
+
   echo "User Data successfully deleted "
 fi
 umount /mnt/factory
 rm -r /mnt/factory
+
+# if the update failed before completion
+mkdir boot
+mount -t vfat /dev/mmcblk0p1 /boot
+if [-e "/boot/update_process" ]; then
+echo "Previous update attempt failed, restoring fallbacks"
+  cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
+  cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
+  if [-e "/boot/kernel_update" ]; then
+    rm /boot/kernel_update
+  fi
+  rm /boot/update_process
+fi
+umount /boot
+rm -rf /boot
+
+# if the kernel has been updated
+mkdir boot
+mount -t vfat /dev/mmcblk0p1 /boot
+if [ -e "/boot/kernel_update" ]; then
+echo "unpacking kernel"
+  tar xf /mnt/imgpart/kernel_current.tar -C /boot
+  if [ -e "/mnt/imgpart/config.txt.bak" ]; then
+    cp /mnt/imgpart/config.txt.bak /boot/config.txt
+    rm /mnt/imgpart/config.txt.bak
+  fi
+  rm /boot/kernel_update
+fi
+umount /boot
+rm -rf /boot
 
 mkdir boot
 mount -t vfat /dev/mmcblk0p1 /boot
@@ -230,7 +277,7 @@ mount -t ext4 -o noatime /dev/mmcblk0p3 /mnt/ext
 if [ $OVERLAY == WITHWRKDIR ]; then
   [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
   echo "With Option:" $OVERLAY
-  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
+  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
 else
   echo "Without Option:" $OVERLAY
   mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
@@ -252,4 +299,7 @@ exec switch_root /mnt/ext/union /sbin/init
 
 echo "Failed to switch_root, dropping to a shell"
 exec sh
+<<<<<<< HEAD
 
+=======
+>>>>>>> kernelupdater
