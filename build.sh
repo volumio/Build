@@ -64,7 +64,7 @@ if [ $NUMARGS -eq 0 ]; then
   HELP
 fi
 
-while getopts b:v:d:l:p:e FLAG; do
+while getopts b:v:d:l:p:t:e FLAG; do
   case $FLAG in
     b)
       BUILD=$OPTARG
@@ -86,6 +86,9 @@ while getopts b:v:d:l:p:e FLAG; do
     h)  #show help
       HELP
       ;;
+    t)
+      VARIANT=$OPTARG
+      ;;
     /?) #unrecognized option - show help
       echo -e \\n"Option -${BOLD}$OPTARG${NORM} not allowed."
       HELP
@@ -99,6 +102,10 @@ echo "Checking whether we are running as root"
 if [ $(id -u) -ne 0 ]; then
   echo "Please run the build script as root"
   exit
+fi
+
+if [ -z "${VARIANT}" ]; then
+   VARIANT="volumio"
 fi
 
 if [ -n "$BUILD" ]; then
@@ -181,7 +188,7 @@ echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x2
   CUR_DATE=$(date)
   #Write some Version informations
   echo "Writing system information"
-  echo "VOLUMIO_VARIANT=\"volumio\"
+  echo "VOLUMIO_VARIANT=\"${VARIANT}\"
 VOLUMIO_TEST=\"FALSE\"
 VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
 " >> build/${BUILD}/root/etc/os-release
