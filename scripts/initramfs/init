@@ -227,12 +227,8 @@ echo "Previous update attempt failed, restoring fallbacks"
   fi
   rm /boot/update_process
 fi
-umount /boot
-rm -rf /boot
 
-# if the kernel has been updated
-mkdir boot
-mount -t vfat /dev/mmcblk0p1 /boot
+# if the kernel has been updated, and no error has occurred before completition
 if [ -e "/boot/kernel_update" ]; then
 echo "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
@@ -245,11 +241,8 @@ echo "unpacking kernel"
   rm -rf /boot
   reboot
 fi
-umount /boot
-rm -rf /boot
 
-mkdir boot
-mount -t vfat /dev/mmcblk0p1 /boot
+# if data partition needs to be resized
 if [ -e "/boot/resize-volumio-datapart" ]; then
 echo "Re-sizing Volumio data partition"
   END="$(parted -s /dev/mmcblk0 unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
@@ -260,8 +253,10 @@ echo "Re-sizing Volumio data partition"
   parted -s /dev/mmcblk0 unit MB print
   rm /boot/resize-volumio-datapart
 fi
+
+# clear the mountpoint
 umount /boot
-rm -r /boot
+rm -rf /boot
 
 # 4) mount a filesystem for write access to the static image
 # unclear: memory size? -o size=1024M
