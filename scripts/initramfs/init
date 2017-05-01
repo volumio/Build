@@ -192,23 +192,24 @@ mount -t vfat /dev/mmcblk0p1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   echo "Executing factory reset"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
-  echo "Factory reset executed: part I - Kernel"
+  echo "Factory reset executed: part I - User DATA Part"
   tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
-  echo "Factory reset executed: part II - Squash"
+  echo "Factory reset executed: part II - Kernel"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh
-  echo "Factory reset executed: part III - end"
+  echo "Factory reset executed: part III - Squash"
+  echo "Factory reset successfully executed"
   sync
   rm /mnt/factory/factory_reset
-  
-  #Setting 5 second for rebooting after kernel panic (sometimes it happens after factory reset)
-  echo 5 > /proc/sys/kernel/panic
 
+  umount /mnt/factory
+  rm -r /mnt/factory
+  echo "Restarting"
+  reboot
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
   rm /mnt/factory/user_data
-
   echo "User Data successfully deleted "
 fi
 umount /mnt/factory
