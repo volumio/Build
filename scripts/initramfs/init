@@ -129,6 +129,7 @@ mount -t ext4 ${IMGPART} /mnt/imgpart
 #create recovery image when not yet present
 #when already present and a bootdelay parameter was specified then give the kernel the additional headstart
 #
+
 if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
@@ -216,7 +217,7 @@ rm -r /mnt/factory
 # if the update failed before completion
 mkdir boot
 mount -t vfat /dev/mmcblk0p1 /boot
-if [-e "/boot/update_process" ]; then
+if [ -e "/boot/update_process" ]; then
 echo "Previous update attempt failed, restoring fallbacks"
   cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
   cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
