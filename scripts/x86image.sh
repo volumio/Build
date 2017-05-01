@@ -16,13 +16,13 @@ IMG_FILE="Volumio${VERSION}-${BUILDDATE}-x86.img"
 
 echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=3500
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=3900
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 sudo parted -s "${LOOP_DEV}" mklabel gpt
 sudo parted -s "${LOOP_DEV}" mkpart primary 1 512		    #legacy and uefi boot
-sudo parted -s "${LOOP_DEV}" mkpart primary 512 3200		#volumio
-sudo parted -s "${LOOP_DEV}" mkpart primary 3200 100%		#data
+sudo parted -s "${LOOP_DEV}" mkpart primary 512 3500		#volumio
+sudo parted -s "${LOOP_DEV}" mkpart primary 3500 100%		#data
 sudo parted -s "${LOOP_DEV}" set 1 legacy_boot on
 sudo parted -s "${LOOP_DEV}" set 1 esp on
 sudo partprobe "${LOOP_DEV}"
@@ -93,7 +93,7 @@ cp volumio/splash/volumio.png /mnt/volumio/rootfs/boot
 cp scripts/initramfs/init-x86 /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 
-cp volumio/etc/ata-modules.x86 /mnt/volumio/rootfs/root/ata-modules.x86
+cp volumio/etc/ata-modules.x86 /mnt/volumio/rootfs/ata-modules.x86
 
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
@@ -125,7 +125,7 @@ EOF
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb
 rm /mnt/volumio/rootfs/linux-firmware-*.deb /mnt/volumio/rootfs/e1000e.ko
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
-rm /mnt/volumio/rootfs/root/ata-modules.x86
+rm /mnt/volumio/rootfs/ata-modules.x86
 sync
 
 echo "Unmounting Temp Devices"

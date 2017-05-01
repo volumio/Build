@@ -26,7 +26,7 @@ Switches:
             Options for the target architecture are 'arm' (Raspbian), 'armv7' (Debian arm64), 'armv8' (Debian arm64) or 'x86' (Debian i386).
   -d        Create Image for Specific Devices. Supported device names:
               pi, udooneo, udooqdl, cuboxi, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64, 
+              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64,
               bpim2u, bpipro
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
@@ -148,25 +148,30 @@ if [ -n "$BUILD" ]; then
 
   echo 'Cloning Volumio Node Backend'
   mkdir build/$BUILD/root/volumio
-  git clone --depth 1 -bmaster --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
-
+  if [ -n "$PATCH" ]; then
+  echo "Cloning Volumio with all its history"
+  git clone -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  else 
+  git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git build/$BUILD/root/volumio/http/www
 
+
+  echo "Adding os-release infos"
+  echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
+  echo "VOLUMIO_FE_VERSION=\"$(git --git-dir build/$BUILD/root/volumio/http/www/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
+  echo "VOLUMIO_BE_VERSION=\"$(git --git-dir build/$BUILD/root/volumio/.git rev-parse HEAD)\"" >> build/$BUILD/root/etc/os-release
+  echo "VOLUMIO_ARCH=\"${BUILD}\"" >> build/$BUILD/root/etc/os-release
   if [ ! "$BUILD" = x86 ]; then
   chroot build/$BUILD/root /bin/bash -x <<'EOF'
 su -
 ./volumioconfig.sh
 EOF
-  else 
+  else
 echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' > /proc/sys/fs/binfmt_misc/register
     chroot build/$BUILD/root /volumioconfig.sh
   fi
-
-  echo "Adding information in os-release"
-  echo '
-
-' >> build/$BUILD/root/etc/os-release
 
   echo "Base System Installed"
   rm build/$BUILD/root/volumioconfig.sh
@@ -251,7 +256,12 @@ case $DEVICE in
   bpipro) echo 'Writing Banana PI PRO Image File'
       check_os_release "armv7" $VERSION $DEVICE
       sh scripts/bpiproimage.sh -v $VERSION -p $PATCH -a armv7
-      ;;    
+      ;;
+  armbian_*)
+      echo 'Writing armbian-based Image File'
+      check_os_release "arm" $VERSION $DEVICE
+      sh scripts/armbianimage.sh -v $VERSION -d "$DEVICE" -p $PATCH
+      ;;
   x86) echo 'Writing x86 Image File'
       check_os_release "x86" $VERSION $DEVICE
       sh scripts/x86image.sh -v $VERSION -p $PATCH;

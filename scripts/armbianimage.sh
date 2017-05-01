@@ -3,23 +3,34 @@
 # Default build for Debian 32bit
 ARCH="armv7"
 
-while getopts ":v:p:a:" opt; do
+while getopts ":d:v:p:" opt; do
   case $opt in
+    d)
+      DEVICE=$OPTARG
+      ;;
     v)
       VERSION=$OPTARG
       ;;
     p)
       PATCH=$OPTARG
       ;;
-    a)
-      ARCH=$OPTARG
-      ;;
 
   esac
 done
 
+old="$IFS"
+set -f; IFS='_'
+set -- $DEVICE
+BOARD=$2
+BRANCH=$3
+set +f
+IFS="$old"
+
+echo BOARD:$BOARD BRANCH:$BRANCH
+
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bananapi-m2u.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-${DEVICE}.img"
+
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
 else
@@ -33,8 +44,9 @@ echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 # Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary fat32 105 172
-parted -s "${LOOP_DEV}" mkpart primary ext3 172 2500
+# parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
+parted -s "${LOOP_DEV}" mkpart primary ext3 1 64
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
 parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
@@ -54,36 +66,12 @@ then
 fi
 
 echo "Creating boot and rootfs filesystems"
-mkfs -t vfat -n BOOT "${BOOT_PART}"
+# mkfs -t vfat -n BOOT "${BOOT_PART}"
+mkfs -F -t ext4 -L BOOT "${BOOT_PART}"
 mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the banana bpi-m2u kernel/ platform files"
-if [ -d platform-banana ]
-then
-	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platform-banana folder
-    # that will refresh all the bananapi platforms, see below
-else
-	echo "Clone bananapi m2u files from repo"
-	git clone https://github.com/gkkpch/platform-banana.git platform-banana
-	echo "Unpack the platform files"
-    cd platform-banana
-	tar xfJ bpi-m2u.tar.xz
-	cd ..
-fi
-
-echo "Copying the bootloader"
-dd if=platform-banana/bpi-m2u/uboot/boot0_sdcard.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=8
-dd if=platform-banana/bpi-m2u/uboot/boot_package.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=16400
-dd if=platform-banana/bpi-m2u/uboot/sunxi_mbr.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=20480
-dd if=platform-banana/bpi-m2u/uboot/boot-resource.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=36864
-dd if=platform-banana/bpi-m2u/uboot/env.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=53248
-
-sync
-
-echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
 then
 	echo "/mount folder exist"
@@ -96,7 +84,7 @@ then
 	rm -rf /mnt/volumio/*
 else
 	echo "Creating Volumio Temp Directory"
-	mkdir /mnt/volumio
+	sudo mkdir /mnt/volumio
 fi
 
 echo "Creating mount point for the images partition"
@@ -105,32 +93,17 @@ mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
 echo "Creating mount point for the boot partition"
 mkdir /mnt/volumio/rootfs/boot
-mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+# mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+mount -t ext4 "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying BPI-M2U boot files"
-mkdir -p /mnt/volumio/rootfs/boot/bananapi
-mkdir -p /mnt/volumio/rootfs/boot/bananapi/bpi-m2u
-mkdir -p /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux
-cp platform-banana/bpi-m2u/boot/uImage /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux
-cp platform-banana/bpi-m2u/boot/uEnv.txt /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux
-cp platform-banana/bpi-m2u/boot/Image.version /mnt/volumio/rootfs/boot/
-cp platform-banana/bpi-m2u/boot/config* /mnt/volumio/rootfs/boot/
+cp -pdR build/arm/root/* /mnt/volumio/rootfs
 
-echo "Copying BPI-M2U modules and firmware"
-cp -pdR platform-banana/bpi-m2u/lib/modules /mnt/volumio/rootfs/lib/
-cp -pdR platform-banana/bpi-m2u/lib/firmware /mnt/volumio/rootfs/lib/
-
-
-#TODO: bananapi's should be able to run generic debian
-#sed -i "s/Raspbian/Debian/g" /mnt/volumio/rootfs/etc/issue
-
-sync
-
-echo "Preparing to run chroot for more BPI-M2U configuration"
-cp scripts/bpim2uconfig.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
+echo "Preparing to run chroot for more BPI-PRO configuration"
+cp scripts/armbianconfig.sh /mnt/volumio/rootfs
+cp scripts/upgrade_armbian.sh /mnt/volumio/rootfs/root
+cp scripts/initramfs/init_armbian  /mnt/volumio/rootfs/root/init
+echo "BOARD=$BOARD\nBRANCH=$BRANCH\n" > /mnt/volumio/rootfs/root/device.sh
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
@@ -142,13 +115,15 @@ echo $PATCH > /mnt/volumio/rootfs/patch
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/bpim2uconfig.sh
+/armbianconfig.sh
 EOF
 
-echo "Moving uInitrd to where the kernel is"
-mv /mnt/volumio/rootfs/boot/uInitrd /mnt/volumio/rootfs/boot/bananapi/bpi-m2u/linux/uInitrd
+# write board specific boot sector
+echo write board specific boot sector
+dd if=/mnt/volumio/rootfs/boot/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} bs=1024 seek=8 conv=notrunc
+
 #cleanup
-rm /mnt/volumio/rootfs/bpim2uconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/armbianconfig.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
@@ -158,11 +133,11 @@ umount -l /mnt/volumio/rootfs/sys
 #echo "Copying LIRC configuration files"
 
 
-echo "==> BPI-M2U device installed"
+echo "==> BPI-PRO device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platform-bananapi
+#rm -r platform-bananapi
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -195,6 +170,9 @@ sync
 echo "Unmounting Temp Devices"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
+
+echo "Cleaning build environment"
+rm -rf /mnt/volumio /mnt/boot
 
 dmsetup remove_all
 losetup -d ${LOOP_DEV}

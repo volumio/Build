@@ -1,0 +1,16 @@
+[Unit]
+Description = DJMmount
+
+[Service]
+ExecStart=/usr/bin/djmount -o iocharset=utf8,allow_other /mnt/UPNP
+Type=forking
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=djmount
+User=volumio
+Group=volumio
+
+
+[Install]
+WantedBy=multi-user.target

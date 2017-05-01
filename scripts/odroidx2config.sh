@@ -16,24 +16,12 @@ tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4,
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
-tmpfs   /dev/shm                tmpfs   defaults        0 0
+tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
-
-echo "Prevent services starting during install, running under chroot"
-echo "(avoids unnecessary errors)"
-cat > /usr/sbin/policy-rc.d << EOF
-exit 101
-EOF
-chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install u-boot-tools
-
-echo "Cleaning APT Cache"
-rm -f /var/lib/apt/lists/*archive*
-apt-get clean
-rm /usr/sbin/policy-rc.d
 
 echo "Adding custom module squashfs"
 echo "overlay" >> /etc/initramfs-tools/modules
@@ -71,9 +59,11 @@ rm /patch
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
+
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
 #First Boot operations
 

@@ -86,16 +86,20 @@ cp -rp volumio/etc/dhcpcd.conf build/$BUILD/root/etc/
 #wifi pre script
 cp volumio/bin/wifistart.sh build/$BUILD/root/bin/wifistart.sh
 chmod a+x build/$BUILD/root/bin/wifistart.sh
+#udev script
+cp volumio/bin/rename_netiface0.sh build/$BUILD/root/bin/rename_netiface0.sh
+chmod a+x build/$BUILD/root/bin/rename_netiface0.sh
+
 echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"
 
-echo "Size before strip"$( du -sh build/$BUILD/root/ )
-find build/$BUILD/root/usr/lib -type f -name \*.a  -exec strip --strip-debug {} ';'
-find build/$BUILD/root/usr/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
-find build/$BUILD/root/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
-find build/$BUILD/root/sbin -type f -exec strip --strip-all {} ';'
-find build/$BUILD/root/bin -type f -exec strip --strip-all {} ';'
-find build/$BUILD/root/usr/bin -type f -exec strip --strip-all {} ';'
-find build/$BUILD/root/usr/sbin -type f -exec strip --strip-all {} ';'
-echo "Size after strip"$( du -sh build/$BUILD/root/ )
+#echo "Size before strip"$( du -sh build/$BUILD/root/ )
+#find build/$BUILD/root/usr/lib -type f -name \*.a  -exec strip --strip-debug {} ';'
+#find build/$BUILD/root/usr/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
+#find build/$BUILD/root/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
+#find build/$BUILD/root/sbin -type f -exec strip --strip-all {} ';'
+#find build/$BUILD/root/bin -type f -exec strip --strip-all {} ';'
+#find build/$BUILD/root/usr/bin -type f -exec strip --strip-all {} ';'
+#find build/$BUILD/root/usr/sbin -type f -exec strip --strip-all {} ';'
+#echo "Size after strip"$( du -sh build/$BUILD/root/ )

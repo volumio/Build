@@ -13,24 +13,13 @@ tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4,
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
-tmpfs   /dev/shm                tmpfs   defaults        0 0
+tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
-echo "Prevent services starting during install, running under chroot"
-echo "(avoids unnecessary errors)"
-cat > /usr/sbin/policy-rc.d << EOF
-exit 101
-EOF
-chmod +x /usr/sbin/policy-rc.d
 
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install u-boot-tools
-
-echo "Cleaning APT Cache and remove policy file"
-rm -f /var/lib/apt/lists/*archive*
-apt-get clean
-rm /usr/sbin/policy-rc.d
 
 echo "Adding custom modules loop, overlayfs, squashfs, nls_cp437, usb-storage and nls_iso8859_1"
 echo "loop" >> /etc/initramfs-tools/modules
@@ -72,9 +61,11 @@ sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
+
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"

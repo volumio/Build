@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-udoo-neo.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-udooneo.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -27,15 +27,15 @@ else
 fi
 
 echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
-parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
@@ -64,10 +64,15 @@ if [ -d platform-udoo ]
 then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platforms-udoo folder
+	cd platform-udoo
+        tar xfJ udoo-neo.tar.xz
+	tar xfJ udoo-qdl.tar.xz
+        cd ..
+
 else
-	echo "Clone all cubox files from repo"
+	echo "Clone all UDOO files from repo"
 	git clone https://github.com/volumio/platform-udoo.git platform-udoo
-	echo "Unpack the cubox platform files"
+	echo "Unpack the UDOO  platform files"
     cd platform-udoo
 	tar xfJ udoo-neo.tar.xz
 	cd ..

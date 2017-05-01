@@ -2,6 +2,13 @@
 
 # This script will be run in chroot under qemu.
 
+echo "Prevent services starting during install, running under chroot"
+echo "(avoids unnecessary errors)"
+cat > /usr/sbin/policy-rc.d << EOF
+exit 101
+EOF
+chmod +x /usr/sbin/policy-rc.d
+
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
 /var/lib/dpkg/info/dash.preinst install
@@ -84,7 +91,7 @@ alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_clien
 
 #Sudoers Nopasswd
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid" >> /etc/sudoers
+echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid,/bin/ln,/usr/bin/unlink" >> /etc/sudoers
 
 echo volumio > /etc/hostname
 chmod 777 /etc/hostname
@@ -143,35 +150,57 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Custom Packages"
   cd /
 
-  echo "Installing custom MPD version"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.19.19-1_armhf.deb
-  dpkg -i mpd_0.19.19-1_armhf.deb
-  rm /mpd_0.19.19-1_armhf.deb
+  ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
+  echo $ARCH
+  echo "Installing custom MPD depending on system architecture"
+
+  if [ $ARCH = arm ]; then
+
+     echo "Installing MPD for armv6"
+     wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv6.deb
+     dpkg -i mpd_0.20.6-1_armv6.deb
+     rm mpd_0.20.6-1_armv6.deb
+
+     echo "Installing Upmpdcli for armv6"
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnpp3_0.15.1-1_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnp6_1.6.20.jfd5-1_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/upmpdcli_1.2.12-1_armhf.deb
+     dpkg -i libupnpp3_0.15.1-1_armhf.deb
+     dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+     dpkg -i upmpdcli_1.2.12-1_armhf.deb
+     rm libupnpp3_0.15.1-1_armhf.deb
+     rm libupnp6_1.6.20.jfd5-1_armhf.deb
+     rm upmpdcli_1.2.12-1_armhf.deb
+
+  elif [ $ARCH = armv7 ]; then
+     echo "Installing MPD for armv7"
+     wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv7.deb
+     dpkg -i mpd_0.20.6-1_armv7.deb
+     rm mpd_0.20.6-1_armv7.deb
+
+    echo "Installing Upmpdcli for armv7"
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
+    dpkg -i libupnpp3_0.15.1-1_armhf.deb
+    dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+    dpkg -i upmpdcli_1.2.12-1_armhf.deb
+    rm libupnpp3_0.15.1-1_armhf.deb
+    rm libupnp6_1.6.20.jfd5-1_armhf.deb
+    rm upmpdcli_1.2.12-1_armhf.deb
+  fi
+  #Remove autostart of upmpdcli
+  update-rc.d upmpdcli remove
+
 
   echo "Installing Shairport for Airplay emulation"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
   tar xf shairport-sync_arm.tar.gz
   rm /shairport-sync_arm.tar.gz
 
-  echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.1.3-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
-  dpkg -i libupnpp2_0.14.1-1_armhf.deb
-  dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
-  dpkg -i upmpdcli_1.1.3-1_armhf.deb
-  rm /upmpdcli_1.1.3-1_armhf.deb
-  rm /libupnp6_1.6.19.jfd3-1_armhf.deb
-  rm /libupnpp2_0.14.1-1_armhf.deb
-
-  #Remove autostart of upmpdcli
-  update-rc.d upmpdcli remove
-
-  #echo "Installing LINN Songcast module"
-  #wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
-  #dpkg -i sc2mpd_0.11.0-1_armhf.deb
-  #rm /sc2mpd_0.11.0-1_armhf.deb
-
+  echo "Volumio Init Updater"
+  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater
+  chmod a+x /usr/local/sbin/volumio-init-updater
   echo "Installing Snapcast for multiroom"
 
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
@@ -249,18 +278,21 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Installing Custom Packages"
   cd /
 
-  echo "Installing custom MPD version"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/mpd_0.19.19-1_i386.deb
-  dpkg -i mpd_0.19.19-1_i386.deb
-  rm /mpd_0.19.19-1_i386.deb
+  echo "Installing MPD for i386"
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/mpd_0.20.6-1_i386.deb
+  dpkg -i mpd_0.20.6-1_i386.deb
+  rm mpd_0.20.6-1_i386.deb
 
   echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.1.3-1_i386.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnpp2_0.14.1-1_i386.deb
-  dpkg -i libupnpp2_0.14.1-1_i386.deb
-  dpkg -i upmpdcli_1.1.3-1_i386.deb
-  rm /upmpdcli_1.1.3-1_i386.deb
-  rm /libupnpp2_0.14.1-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnp6_1.6.20.jfd5-1_i386.deb
+  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnpp3_0.15.1-1_i386.deb
+  dpkg -i libupnpp3_0.15.1-1_i386.deb
+  dpkg -i libupnp6_1.6.20.jfd5-1_i386.deb
+  dpkg -i upmpdcli_1.2.12-1_i386.deb
+  rm /libupnpp3_0.15.1-1_i386.deb
+  rm /upmpdcli_1.2.12-1_i386.deb
+  rm /libupnp6_1.6.20.jfd5-1_i386.deb
 
   echo "Installing Shairport-Sync"
   wget http://repo.volumio.org/Volumio2/Binaries/x86/shairport-sync_2.8.4-1_i386.deb
@@ -277,7 +309,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /sc2mpd_1.1.1-1_i386.deb
 
   echo "Volumio Init Updater"
-  wget -P /usr/local/sbin/volumio-init-updater http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater
+  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
 
   echo "Zsync"
@@ -292,6 +324,17 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
 fi
 
+echo "Installing Upmpdcli Streaming Modules"
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-gmusic_1.2.12-1_all.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-qobuz_1.2.12-1_all.deb
+wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-tidal_1.2.12-1_all.deb
+dpkg -i upmpdcli-gmusic_1.2.12-1_all.deb
+dpkg -i upmpdcli-qobuz_1.2.12-1_all.deb
+dpkg -i upmpdcli-tidal_1.2.12-1_all.deb
+rm /upmpdcli-gmusic_1.2.12-1_all.deb
+rm /upmpdcli-qobuz_1.2.12-1_all.deb
+rm /upmpdcli-tidal_1.2.12-1_all.deb
+
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
@@ -301,6 +344,9 @@ ln -s /media /mnt/USB
 #Internal Storage Folder
 mkdir /data/INTERNAL
 ln -s /data/INTERNAL /mnt/INTERNAL
+
+#UPNP Folder
+mkdir /mnt/UPNP
 
 #Permissions
 chmod -R 777 /mnt
@@ -316,6 +362,9 @@ echo "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
+
+echo "Setting mpc to bind to unix socket"
+export MPD_HOST=/run/mpd/socket
 
 echo "Setting Permissions for /etc/modules"
 chmod 777 /etc/modules
@@ -340,6 +389,10 @@ ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.tar
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
+
+echo "Preventing un-needed dhcp servers to start automatically"
+systemctl disable isc-dhcp-server.service
+systemctl disable dhcpd.service
 
 #####################
 #Audio Optimizations#-----------------------------------------
@@ -395,10 +448,15 @@ echo "Hostapd conf files"
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
 
-echo "Setting fallback DNS with Google's DNS"
-echo "# Google nameservers
-nameserver 8.8.8.8
-nameserver 8.8.4.4" >> /etc/resolv.conf.tail
+echo "Empty resolv.conf.head for custom DNS settings"
+touch /etc/resolv.conf.head
+
+echo "Setting fallback DNS with OpenDNS nameservers"
+echo "# OpenDNS nameservers
+nameserver 208.67.222.222
+nameserver 208.67.220.220" > /etc/resolv.conf.tail.tmpl
+chmod 666 /etc/resolv.conf.*
+ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
