@@ -214,8 +214,9 @@ if [ $(uname -m) = armv7l ]; then
   chmod a+x /usr/bin/zsync
 
   echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
-  chmod a+x /usr/local/sbin/volumio-remote-updater
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.0-armhf.deb
+  dpkg -i volumio-remote-updater_1.0-armhf.deb
+  rm volumio-remote-updater_1.0-armhf.deb
 
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
@@ -372,10 +373,6 @@ chmod 777 /etc/modules
 echo "Adding Volumio Parent Service to Startup"
 #systemctl enable volumio.service
 ln -s /lib/systemd/system/volumio.service /etc/systemd/system/multi-user.target.wants/volumio.service
-
-echo "Adding Volumio Remote Updater Service to Startup"
-#systemctl enable volumio-remote-updater.service
-ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/multi-user.target.wants/volumio-remote-updater.service
 
 echo "Adding Udisks-glue service to Startup"
 ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.target.wants/udisks-glue.service
