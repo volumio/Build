@@ -21,7 +21,7 @@ tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4,
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
-tmpfs   /dev/shm                tmpfs   defaults        0 0
+tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
 echo "Adding PI Modules"
@@ -42,7 +42,8 @@ deb-src http://archive.raspberrypi.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
 echo "Adding Raspberrypi.org Repo Key"
-wget https://www.raspberrypi.org/raspberrypi.gpg.key -O - | sudo apt-key add -
+
+wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
 
 echo "Installing R-pi specific binaries"
 apt-get update
@@ -58,17 +59,51 @@ mkdir /lib/modules
 # Kernel 4.4.9 for Pi3 Support
 # see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
 # and https://github.com/Hexxeh/rpi-firmware/issues/118
+KERNEL_VERSION="4.4.9"
 
-echo y | SKIP_BACKUP=1 rpi-update 15ffab5493d74b12194e6bfc5bbb1c0f71140155
+case $KERNEL_VERSION in
+    "4.4.9")
+      KERNEL_REV="884"
+      KERNEL_BRANCH="stable"
+      KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
+      ;; 
+    "4.9.25")
+      KERNEL_REV="994"
+      KERNEL_BRANCH="master"
+      KERNEL_COMMIT="a86bfee5b47a74c13056997f1e4d8b9d8090b398"
+      ;; 
+esac
 
-echo "Updating ELF"
-echo y | SKIP_KERNEL=1 rpi-update
+# using rpi-update relevant to defined kernel version
+echo y | SKIP_BACKUP=1 BRANCH=$KERNEL_BRANCH rpi-update $KERNEL_COMMIT
 
-echo "Adding PI3 Wireless firmware"
+echo "Updating bootloader files *.elf *.dat *.bin"
+echo y | SKIP_KERNEL=1 BRANCH=$KERNEL_BRANCH rpi-update
+
+echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
+# these packages critically update kernel & firmware files and break Volumio
+# may be triggered by manual or plugin installs explicitly or through dependencies like chromium, sense-hat, picamera,...
+echo "Package: raspberrypi-bootloader
+Pin: release *
+Pin-Priority: -1
+
+Package: raspberrypi-kernel
+Pin: release *
+Pin-Priority: -1" > /etc/apt/preferences
+apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
+echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
+wget -P /boot/. https://github.com/raspberrypi/firmware/raw/stable/boot/bcm2708-rpi-0-w.dtb
+echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
+wget -P /boot/overlays/. https://github.com/raspberrypi/firmware/raw/stable/boot/overlays/pi3-disable-wifi.dtbo
+fi
+
+echo "Adding PI3 & PiZero W Wireless firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
 
-echo "Adding PI WIFI Wireless firmware"
+echo "Adding PI WIFI Wireless dongle firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /lib/firmware/brcm/
 
 #echo "Adding raspi-config"
@@ -76,30 +111,52 @@ wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /l
 #dpkg -i /raspi/raspi-config_20151019_all.deb
 #rm -Rf /raspi
 
-echo "Installing WiringPi"
-wget http://repo.volumio.org/Volumio2/Binaries/wiringpi_2.24_armhf.deb
-dpkg -i wiringpi_2.24_armhf.deb
-rm /wiringpi_2.24_armhf.deb
+echo "Installing WiringPi from Raspberrypi.org Repo"
+apt-get -y install wiringpi
 
-
-echo "adding gpio group and permissions"
-cd /
-wget http://repo.volumio.org/Volumio2/Binaries/gpio-admin.tar.gz
-tar xvf gpio-admin.tar.gz
-rm /gpio-admin.tar.gz
+echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
-chgrp gpio /usr/local/bin/gpio-admin
-chmod u=rwxs,g=rx,o= /usr/local/bin/gpio-admin
+groupadd -f --system spi
 
-touch /lib/udev/rules.d/91-gpio.rules
-echo 'KERNEL=="spidev*", GROUP="spi", MODE="0660"
-SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c' "'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio; chown -R root:gpio /sys/devices/platform/soc/*.gpio/gpio && chmod -R 770 /sys/devices/platform/soc/*.gpio/gpio'"'"' > /lib/udev/rules.d/91-gpio.rules
+echo "adding volumio to gpio group and al"
+usermod -a -G gpio,i2c,spi,input volumio
 
-echo "adding volumio to gpio group"
-sudo adduser volumio gpio
+echo "Use up-to-date jessie rules for gpio & al."
+read -rd '' Rule_String <<"EOF"
+SUBSYSTEM=="input", GROUP="input", MODE="0660"
+SUBSYSTEM=="i2c-dev", GROUP="i2c", MODE="0660"
+SUBSYSTEM=="spidev", GROUP="spi", MODE="0660"
+SUBSYSTEM=="bcm2835-gpiomem", GROUP="gpio", MODE="0660"
 
-echo "Fixing crda domain error"
-apt-get -y install crda wireless-regdb
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c '\
+	chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
+	chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio;\
+	chown -R root:gpio /sys$devpath && chmod -R 770 /sys$devpath\
+'"
+
+KERNEL=="ttyAMA[01]", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $ALIASES/uart0 $ALIASES/serial0; then \
+		echo 0;\
+	elif cmp -s $ALIASES/uart0 $ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi\
+'", SYMLINK+="serial%c"
+
+KERNEL=="ttyS0", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $ALIASES/uart1 $ALIASES/serial0; then \
+		echo 0; \
+	elif cmp -s $ALIASES/uart1 $ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi \
+'", SYMLINK+="serial%c"
+EOF
+echo "${Rule_String}" > /etc/udev/rules.d/99-com.rules
 
 echo "Removing unneeded binaries"
 apt-get -y remove binutils
@@ -114,7 +171,7 @@ disable_splash=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
-echo "dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N " >> /boot/cmdline.txt
+echo "dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5" >> /boot/cmdline.txt
 
 echo "Cleaning APT Cache"
 rm -f /var/lib/apt/lists/*archive*
@@ -147,53 +204,59 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
-echo "Adding raspi blackist"
-#this way if another USB WIFI dongle is present, it will always be the default one
-echo "
-#wifi
-blacklist brcmfmac
-blacklist brcmutil
-" > /etc/modprobe.d/raspi-blacklist.conf
-
-#Load PI3 wifi module just before wifi stack starts
-echo "
-#!/bin/sh
-sudo /sbin/modprobe brcmfmac
-sudo /sbin/modprobe brcmutil
-sudo /sbin/iw dev wlan0 set power_save off
-" >> /bin/wifistart.sh
-echo "Give proper permissions to wifistart.sh"
-chmod a+x /bin/wifistart.sh
+# changing external ethX priority rule for Pi as built-in eth _is_ on USB (smsc95xx driver)
+sed -i 's/KERNEL==\"eth/DRIVERS!=\"smsc95xx\", &/' /etc/udev/rules.d/99-Volumio-net.rules
 
 echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
-
-KERNEL_VERSION="4.4.9"
-KERNEL_REV="884"
-
+MRENGMAN_REPO="http://www.fars-robotics.net"
 mkdir wifi
 cd wifi
 
-echo "WIFI: 8192EU"
-wget https://dl.dropboxusercontent.com/u/80256631/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+echo "WIFI: 8192EU for armv7"
+wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
-echo "WIFI: 8812AU"
-wget https://dl.dropboxusercontent.com/u/80256631/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+echo "WIFI: 8192EU for armv6"
+wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: 8812AU for armv7"
+wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
-echo "WIFI: 8188EU"
-wget https://dl.dropboxusercontent.com/u/80256631/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+echo "WIFI: 8812AU for armv6"
+wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: 8188EU for armv7"
+wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
-echo "WIFI: MT7610"
-wget https://dl.dropboxusercontent.com/u/80256631/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+echo "WIFI: 8188EU for armv6"
+wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf 8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: MT7610 for armv7"
+wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+./install.sh
+rm -rf *
+
+echo "WIFI: MT7610 for armv6"
+wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+tar xf mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 ./install.sh
 rm -rf *
 
@@ -220,56 +283,54 @@ rm /patch
 
 
 if [ "$PATCH" = "volumio" ]; then
+
+echo "Adding third party kernel modules"
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then
+
 ### Allo I2S Firmware
 echo "Getting Allo Modules"
 cd /
-echo "Getting Allo Piano 2.1 Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
-echo "Extracting Allo Piano 2.1 modules"
-tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
-rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
-
-echo "Getting Allo Boss Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_pianoDAC_22122016.tgz
-echo "Extracting Allo Boss modules"
-tar xf volumio-RPi4.4.9_pianoDAC_22122016.tgz
-rm volumio-RPi4.4.9_pianoDAC_22122016.tgz
+echo "Getting Allo DAC Modules"
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
+echo "Extracting Allo DAC modules"
+tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
+rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
 
 echo "Getting Allo Piano Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/alloPianoDACfw_01122016.tgz
+wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
 echo "Extracting Allo Firmwares"
-tar xf alloPianoDACfw_01122016.tgz
-rm alloPianoDACfw_01122016.tgz
-
-echo "Getting Allo BOSS Firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/volumio-RPi4.4.9_boss_03022017.tgz
-echo "Extracting Allo Firmwares"
-tar xf volumio-RPi4.4.9_boss_03022017.tgz
-rm volumio-RPi4.4.9_boss_03022017.tgz
+tar xf master.tar.gz
+cp -rp /piano-firmware-master/* /
+rm -rf /piano-firmware-master 
+rm /README.md
+rm master.tar.gz
 
 echo "Allo modules and firmware installed"
 
-echo "Adding license info"
+echo "Adding Pisound Kernel Module and dtbo"
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-pisound-modules.tgz
+echo "Extracting  PiSound Modules"
+tar xf rpi-volumio-4.4.9-pisound-modules.tgz
+rm rpi-volumio-4.4.9-pisound-modules.tgz
+fi
 
-echo "You may royalty free distribute object and executable versions of the TI component libraries, and its derivatives
-(“derivative” shall mean adding the TI component library to an audio signal flow of a product to make a new audio signal chain without
-changing the algorithm of the TI component library), to use and integrate the software with any other software, these files are only
-licensed to be used on the TI  PCM 5142 DAC IC , but are freely distributable and re-distributable , subject to acceptance of the license
-agreement, including executable only versions of the TI component libraries, or its derivatives, that execute solely and exclusively with
-the PCM5142 Audio DAC and not with Audio DAC Devices manufactured by or for an entity other than TI, and (ii) is sold by or for an original
- equipment manufacturer (“OEM”) bearing such OEM brand name and part number.
-" >  /lib/firmware/alloPiano/LICENSE
 fi
 
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
-echo "Cleaning APT Cache"
+
+echo "Finalising drivers installation with depmod on $KERNEL_VERSION+ and $KERNEL_VERSION-v7+"
+depmod $KERNEL_VERSION+
+depmod $KERNEL_VERSION-v7+
+
+echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm /usr/sbin/policy-rc.d
 
 #First Boot operations
-
 echo "Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
 

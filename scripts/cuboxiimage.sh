@@ -26,15 +26,15 @@ else
 fi
 
 echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=1600
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-parted -s "${LOOP_DEV}" mkpart primary ext3 65 1500
-parted -s "${LOOP_DEV}" mkpart primary ext3 1500 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
@@ -108,6 +108,8 @@ echo "Copying cuboxi boot files, Kernel, Modules and Firmware"
 cp platform-cuboxi/cuboxi/boot/* /mnt/volumio/rootfs/boot
 cp -pdR platform-cuboxi/cuboxi/lib/modules /mnt/volumio/rootfs/lib
 cp -pdR platform-cuboxi/cuboxi/lib/firmware /mnt/volumio/rootfs/lib
+tar cfJ /mnt/volumio/rootfs/usr/linux-headers.tar.xz platform-cuboxi/cuboxi/usr/include 
+
 cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4329-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
 cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4330-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
 

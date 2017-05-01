@@ -20,13 +20,13 @@ echo "Creating Image Bed"
 echo "Image file: ${IMG_FILE}"
 
 
-dd if=/dev/zero of=${IMG_FILE} bs=1M count=2700
+dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 sudo parted -s "${LOOP_DEV}" mklabel msdos
 sudo parted -s "${LOOP_DEV}" mkpart primary fat32 0 64
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 64 2300
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2300 2700
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 64 2500
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2500 2800
 sudo parted -s "${LOOP_DEV}" set 1 boot on
 sudo parted -s "${LOOP_DEV}" print
 sudo partprobe "${LOOP_DEV}"
@@ -78,9 +78,6 @@ cp scripts/raspberryconfig.sh /mnt/volumio/rootfs
 
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
-
-#copy the scripts for updating from usb
-wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc

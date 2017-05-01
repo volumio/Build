@@ -1,0 +1,3 @@
+# Give Volumio interface priority to external wlan or eth USB network dongles if connected
+ACTION=="add", SUBSYSTEM=="net", SUBSYSTEMS=="usb", ENV{DEVTYPE}=="wlan", ATTR{type}=="1", KERNEL=="wlan[1-9]*", RUN+="/bin/rename_netiface0.sh '%E{INTERFACE}'"
+ACTION=="add", SUBSYSTEM=="net", SUBSYSTEMS=="usb", ENV{DEVTYPE}!="wlan", ATTR{type}=="1", KERNEL=="eth[1-9]*", RUN+="/bin/rename_netiface0.sh '%E{INTERFACE}'"
