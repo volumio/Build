@@ -64,7 +64,7 @@ then
 else
 	echo "Clone asus files from repo"
 	git clone https://github.com/volumio/platform-asus.git platform-asus
-	echo "Unpack the platform files gkkpch"
+	echo "Unpack the Tinkerboard platform files"
 	cd platform-asus
 	tar xfJ tinkerboard.tar.xz
 	cd ..
