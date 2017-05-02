@@ -27,7 +27,7 @@ Switches:
   -d        Create Image for Specific Devices. Supported device names:
               pi, udooneo, udooqdl, cuboxi, cubietruck, compulab,
               odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64,
-              bpim2u, bpipro
+              bpim2u, bpipro, tinkerboard
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -262,6 +262,10 @@ case $DEVICE in
       check_os_release "arm" $VERSION $DEVICE
       sh scripts/armbianimage.sh -v $VERSION -d "$DEVICE" -p $PATCH
       ;;
+  tinkerboard) echo 'Writing Ausus Tinkerboard Image File'
+      check_os_release "armv7" $VERSION $DEVICE
+      sh scripts/tinkerimage.sh -v $VERSION -p $PATCH -a armv7
+      ;;  
   x86) echo 'Writing x86 Image File'
       check_os_release "x86" $VERSION $DEVICE
       sh scripts/x86image.sh -v $VERSION -p $PATCH;
