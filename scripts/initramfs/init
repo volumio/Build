@@ -204,7 +204,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   umount /mnt/factory
   rm -r /mnt/factory
   echo "Restarting"
-  reboot
+  echo b > /proc/sysrq-trigger
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   echo "Deleting User Data"
@@ -237,9 +237,10 @@ echo "unpacking kernel"
     rm /mnt/imgpart/config.txt.bak
   fi
   rm /boot/kernel_update
+  sync
   umount /boot
   rm -rf /boot
-  reboot
+  echo b > /proc/sysrq-trigger
 fi
 
 # if data partition needs to be resized
