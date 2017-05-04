@@ -62,6 +62,8 @@ cp -r volumio/lib build/$BUILD/root/
 # Netplug
 cp -rp volumio/etc/netplug build/$BUILD/root/etc/
 chmod +x build/$BUILD/root/etc/netplug/netplug
+# Network
+cp -r volumio/etc/network/* build/$BUILD/root/etc/network
 # Wpa Supplicant
 echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
