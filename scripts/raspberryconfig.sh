@@ -66,11 +66,13 @@ case $KERNEL_VERSION in
       KERNEL_REV="884"
       KERNEL_BRANCH="stable"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
+      FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
     "4.9.25")
       KERNEL_REV="994"
       KERNEL_BRANCH="master"
       KERNEL_COMMIT="a86bfee5b47a74c13056997f1e4d8b9d8090b398"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
 
@@ -78,7 +80,7 @@ esac
 echo y | SKIP_BACKUP=1 BRANCH=$KERNEL_BRANCH rpi-update $KERNEL_COMMIT
 
 echo "Updating bootloader files *.elf *.dat *.bin"
-echo y | SKIP_KERNEL=1 BRANCH=$KERNEL_BRANCH rpi-update
+echo y | SKIP_KERNEL=1 BRANCH=$KERNEL_BRANCH rpi-update $FIRMWARE_COMMIT
 
 echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
 # these packages critically update kernel & firmware files and break Volumio
@@ -94,9 +96,9 @@ apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depen
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
-wget -P /boot/. https://github.com/raspberrypi/firmware/raw/stable/boot/bcm2708-rpi-0-w.dtb
+wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
 echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
-wget -P /boot/overlays/. https://github.com/raspberrypi/firmware/raw/stable/boot/overlays/pi3-disable-wifi.dtbo
+wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
 
 echo "Adding PI3 & PiZero W Wireless firmware"
