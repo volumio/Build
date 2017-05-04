@@ -199,7 +199,7 @@ if [ $(uname -m) = armv7l ]; then
   rm /shairport-sync_arm.tar.gz
 
   echo "Volumio Init Updater"
-  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
   echo "Installing Snapcast for multiroom"
 
@@ -310,7 +310,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /sc2mpd_1.1.1-1_i386.deb
 
   echo "Volumio Init Updater"
-  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
 
   echo "Zsync"
