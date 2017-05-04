@@ -279,9 +279,20 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   cd /
 
   echo "Installing MPD for i386"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/mpd_0.20.6-1_i386.deb
-  dpkg -i mpd_0.20.6-1_i386.deb
-  rm mpd_0.20.6-1_i386.deb
+  # First we manually install a newer alsa-lib to achieve Direct DSD support
+  
+  echo "Installing alsa-lib 1.1.3"
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/libasound2/i386/libasound2_1.1.3-5_i386.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/libasound2/i386/libasound2-data_1.1.3-5_all.deb
+  dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+  dpkg --force-all -i libasound2_1.1.3-5_i386.deb
+  rm libasound2-data_1.1.3-5_all.deb
+  rm libasound2_1.1.3-5_i386.deb
+ 
+  echo "Installing MPD 20.6 with Direct DSD Support"
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/mpd_0.20.6-1_i386-DSD.deb
+  dpkg -i mpd_0.20.6-1_i386-DSD.deb
+  rm mpd_0.20.6-1_i386-DSD.deb
 
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
