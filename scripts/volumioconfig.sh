@@ -157,9 +157,20 @@ if [ $(uname -m) = armv7l ]; then
   if [ $ARCH = arm ]; then
 
      echo "Installing MPD for armv6"
-     wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv6.deb
-     dpkg -i mpd_0.20.6-1_armv6.deb
-     rm mpd_0.20.6-1_armv6.deb
+     # First we manually install a newer alsa-lib to achieve Direct DSD support
+
+     echo "Installing alsa-lib 1.1.3"
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2_1.1.3-5_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     rm libasound2-data_1.1.3-5_all.deb
+     rm libasound2_1.1.3-5_armhf.deb
+
+     echo "Installing MPD 20.6 with Direct DSD Support"
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD.deb
+     dpkg -i mpd_0.20.6-1_armv6-DSD.deb
+     rm mpd_0.20.6-1_armv6-DSD.deb
 
      echo "Installing Upmpdcli for armv6"
      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnpp3_0.15.1-1_armhf.deb
