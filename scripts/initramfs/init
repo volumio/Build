@@ -130,6 +130,7 @@ mount -t ext4 ${IMGPART} /mnt/imgpart
 #when already present and a bootdelay parameter was specified then give the kernel the additional headstart
 #
 
+
 if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   echo "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
