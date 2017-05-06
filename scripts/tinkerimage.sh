@@ -29,7 +29,7 @@ dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary ext3 1 64
+parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
 parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
 parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
@@ -50,7 +50,7 @@ then
 fi
 
 echo "Creating boot and rootfs filesystems"
-mkfs -F -t ext4 -L BOOT "${BOOT_PART}"
+mkfs -t vfat -n BOOT "${BOOT_PART}"
 mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
@@ -95,13 +95,12 @@ mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
 echo "Creating mount point for the boot partition"
 mkdir /mnt/volumio/rootfs/boot
-mount -t ext4 "${BOOT_PART}" /mnt/volumio/rootfs/boot
+mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying Tinkerboard boot files"
-cp -pdR platform-asus/tinkerboard/boot/* /mnt/volumio/rootfs/boot/
-mkimage -C none -A arm -T script -d /mnt/volumio/rootfs/boot/boot.cmd /mnt/volumio/rootfs/boot/boot.scr
+cp -R platform-asus/tinkerboard/boot/* /mnt/volumio/rootfs/boot/
 
 echo "Copying Tinkerboard modules and firmware"
 cp -pdR platform-asus/tinkerboard/lib/modules /mnt/volumio/rootfs/lib/
