@@ -64,23 +64,21 @@ KERNEL_VERSION="4.4.9"
 case $KERNEL_VERSION in
     "4.4.9")
       KERNEL_REV="884"
-      KERNEL_BRANCH="stable"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
     "4.9.25")
       KERNEL_REV="994"
-      KERNEL_BRANCH="master"
       KERNEL_COMMIT="a86bfee5b47a74c13056997f1e4d8b9d8090b398"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
 
 # using rpi-update relevant to defined kernel version
-echo y | SKIP_BACKUP=1 BRANCH=$KERNEL_BRANCH rpi-update $KERNEL_COMMIT
+echo y | SKIP_BACKUP=1 rpi-update $KERNEL_COMMIT
 
 echo "Updating bootloader files *.elf *.dat *.bin"
-echo y | SKIP_KERNEL=1 BRANCH=$KERNEL_BRANCH rpi-update $FIRMWARE_COMMIT
+echo y | SKIP_KERNEL=1 rpi-update $FIRMWARE_COMMIT
 
 echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
 # these packages critically update kernel & firmware files and break Volumio
