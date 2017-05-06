@@ -293,8 +293,8 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   # First we manually install a newer alsa-lib to achieve Direct DSD support
   
   echo "Installing alsa-lib 1.1.3"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/libasound2/i386/libasound2_1.1.3-5_i386.deb
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/libasound2/i386/libasound2-data_1.1.3-5_all.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
   dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
   dpkg --force-all -i libasound2_1.1.3-5_i386.deb
   rm libasound2-data_1.1.3-5_all.deb
