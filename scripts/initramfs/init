@@ -138,8 +138,7 @@ elif [ ! -z "${BOOTDELAY}" ]; then
   sleep ${BOOTDELAY}
 fi
 
-#Check eventually for USB updates (could be vfat or ext4 partion --> mount auto)
-echo "Check for USB updates"
+echo "Checking for USB updates"
 [ -e /dev/sda1 ] || mdev -s
 if [ -e /dev/sda1 ]; then
   [ -d /mnt/usb ] || mkdir /mnt/usb
@@ -178,8 +177,9 @@ mount -t squashfs $loop_free /mnt/static
 VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 
 #if there is factory file then format data partition
+#
 mkdir /mnt/factory
-mount -t vfat /dev/mmcblk0p1 /mnt/factory
+mount -t auto /dev/mmcblk0p1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   echo "Executing factory reset"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
@@ -204,7 +204,7 @@ umount /mnt/factory
 rm -r /mnt/factory
 
 mkdir boot
-mount -t vfat /dev/mmcblk0p1 /boot
+mount -t auto /dev/mmcblk0p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
 echo "Re-sizing Volumio data partition"
   END="$(parted -s /dev/mmcblk0 unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
