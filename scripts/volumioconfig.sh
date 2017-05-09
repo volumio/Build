@@ -157,9 +157,20 @@ if [ $(uname -m) = armv7l ]; then
   if [ $ARCH = arm ]; then
 
      echo "Installing MPD for armv6"
-     wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv6.deb
-     dpkg -i mpd_0.20.6-1_armv6.deb
-     rm mpd_0.20.6-1_armv6.deb
+     # First we manually install a newer alsa-lib to achieve Direct DSD support
+
+     echo "Installing alsa-lib 1.1.3"
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2_1.1.3-5_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     rm libasound2-data_1.1.3-5_all.deb
+     rm libasound2_1.1.3-5_armhf.deb
+
+     echo "Installing MPD 20.6 with Direct DSD Support"
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD.deb
+     dpkg -i mpd_0.20.6-1_armv6-DSD.deb
+     rm mpd_0.20.6-1_armv6-DSD.deb
 
      echo "Installing Upmpdcli for armv6"
      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnpp3_0.15.1-1_armhf.deb
@@ -174,9 +185,20 @@ if [ $(uname -m) = armv7l ]; then
 
   elif [ $ARCH = armv7 ]; then
      echo "Installing MPD for armv7"
-     wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv7.deb
-     dpkg -i mpd_0.20.6-1_armv7.deb
-     rm mpd_0.20.6-1_armv7.deb
+     # First we manually install a newer alsa-lib to achieve Direct DSD support
+
+     echo "Installing alsa-lib 1.1.3"
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     rm libasound2-data_1.1.3-5_all.deb
+     rm libasound2_1.1.3-5_armhf.deb
+
+     echo "Installing MPD 20.6 with Direct DSD Support"
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv7-DSD.deb
+     dpkg -i mpd_0.20.6-1_armv7-DSD.deb
+     rm mpd_0.20.6-1_armv7-DSD.deb	
 
     echo "Installing Upmpdcli for armv7"
     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
@@ -279,9 +301,20 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   cd /
 
   echo "Installing MPD for i386"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/mpd_0.20.6-1_i386.deb
-  dpkg -i mpd_0.20.6-1_i386.deb
-  rm mpd_0.20.6-1_i386.deb
+  # First we manually install a newer alsa-lib to achieve Direct DSD support
+  
+  echo "Installing alsa-lib 1.1.3"
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
+  dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+  dpkg --force-all -i libasound2_1.1.3-5_i386.deb
+  rm libasound2-data_1.1.3-5_all.deb
+  rm libasound2_1.1.3-5_i386.deb
+ 
+  echo "Installing MPD 20.6 with Direct DSD Support"
+  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD.deb
+  dpkg -i mpd_0.20.6-1_i386-DSD.deb
+  rm mpd_0.20.6-1_i386-DSD.deb
 
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
@@ -386,6 +419,9 @@ ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.targ
 echo "Adding Dynamic Swap Service"
 ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.target.wants/dynamicswap.service
 
+echo "Adding Iptables Service"
+ln -s /lib/systemd/system/iptables.service /etc/systemd/system/multi-user.target.wants/iptables.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
@@ -466,3 +502,6 @@ mkdir /var/lib/dhcpcd5
 touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
 touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
 chmod -R 777 /var/lib/dhcpcd5
+
+echo "Setting CPU governor to performance"
+echo 'GOVERNOR="performance"' > /etc/default/cpufrequtils
