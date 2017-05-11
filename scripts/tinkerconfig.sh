@@ -21,6 +21,15 @@ echo "Adding default sound modules"
 #
 #" >> /etc/modules
 
+echo "#!/bin/sh
+echo 2 > /proc/irq/45/smp_affinity
+" > /usr/local/bin/tinker-init.sh
+chmod +x /usr/local/bin/tinker-init.sh
+
+echo "#!/bin/sh -e
+/usr/local/bin/tinker-init.sh
+exit 0" > /etc/rc.local
+
 echo "Installing additonal packages"
 apt-get update
 #apt-get -y install u-boot-tools liblircclient0 lirc
