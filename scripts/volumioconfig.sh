@@ -86,7 +86,6 @@ alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
 alias service="sudo /usr/sbin/service"
 alias ifconfig="sudo /sbin/ifconfig"
-alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
@@ -429,6 +428,10 @@ systemctl enable mpd.service
 echo "Preventing un-needed dhcp servers to start automatically"
 systemctl disable isc-dhcp-server.service
 systemctl disable dhcpd.service
+
+echo "Linking Volumio Command Line Client"
+ln -s /volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh /usr/local/bin/volumio
+chmod a+x /usr/local/bin/volumio
 
 #####################
 #Audio Optimizations#-----------------------------------------
