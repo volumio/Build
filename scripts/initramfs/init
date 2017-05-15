@@ -167,8 +167,13 @@ fi
 
 # 2) init a loop pointing to the image file
 loop_free=$(losetup -f | sed s#p/#p#)
+if [ ! -e ${loop_free} ]; then
+  echo "Device node does not exist, creating it..."
+  # use last char from loop_device as minor device number
+  minor=$(echo ${loop_free} | sed 's/.*\(.\)/\1/')
+  mknod $loop_free b 7 $minor
+fi
 losetup $loop_free /mnt/imgpart/${IMGFILE}
-
 
 # 3) mount the squashfs to /mnt/static
 [ -d /mnt/static ] || mkdir /mnt/static
