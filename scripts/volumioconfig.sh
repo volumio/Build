@@ -86,7 +86,6 @@ alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
 alias service="sudo /usr/sbin/service"
 alias ifconfig="sudo /sbin/ifconfig"
-alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
@@ -150,32 +149,75 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing Custom Packages"
   cd /
 
+  ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
+  echo $ARCH
+  echo "Installing custom MPD depending on system architecture"
+
+  if [ $ARCH = arm ]; then
+
+     echo "Installing MPD for armv6"
+     # First we manually install a newer alsa-lib to achieve Direct DSD support
+
+     echo "Installing alsa-lib 1.1.3"
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2_1.1.3-5_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     rm libasound2-data_1.1.3-5_all.deb
+     rm libasound2_1.1.3-5_armhf.deb
+
+     echo "Installing MPD 20.6 with Direct DSD Support"
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD.deb
+     dpkg -i mpd_0.20.6-1_armv6-DSD.deb
+     rm mpd_0.20.6-1_armv6-DSD.deb
+
+     echo "Installing Upmpdcli for armv6"
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnpp3_0.15.1-1_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnp6_1.6.20.jfd5-1_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/upmpdcli_1.2.12-1_armhf.deb
+     dpkg -i libupnpp3_0.15.1-1_armhf.deb
+     dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+     dpkg -i upmpdcli_1.2.12-1_armhf.deb
+     rm libupnpp3_0.15.1-1_armhf.deb
+     rm libupnp6_1.6.20.jfd5-1_armhf.deb
+     rm upmpdcli_1.2.12-1_armhf.deb
+
+  elif [ $ARCH = armv7 ]; then
+     echo "Installing MPD for armv7"
+     # First we manually install a newer alsa-lib to achieve Direct DSD support
+
+     echo "Installing alsa-lib 1.1.3"
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+     dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     rm libasound2-data_1.1.3-5_all.deb
+     rm libasound2_1.1.3-5_armhf.deb
+
+     echo "Installing MPD 20.6 with Direct DSD Support"
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv7-DSD.deb
+     dpkg -i mpd_0.20.6-1_armv7-DSD.deb
+     rm mpd_0.20.6-1_armv7-DSD.deb	
+
+    echo "Installing Upmpdcli for armv7"
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
+    dpkg -i libupnpp3_0.15.1-1_armhf.deb
+    dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+    dpkg -i upmpdcli_1.2.12-1_armhf.deb
+    rm libupnpp3_0.15.1-1_armhf.deb
+    rm libupnp6_1.6.20.jfd5-1_armhf.deb
+    rm upmpdcli_1.2.12-1_armhf.deb
+  fi
+  #Remove autostart of upmpdcli
+  update-rc.d upmpdcli remove
+
+
   echo "Installing Shairport for Airplay emulation"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
   tar xf shairport-sync_arm.tar.gz
   rm /shairport-sync_arm.tar.gz
-
-  echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/upmpdcli_1.2.12-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp2_0.14.1-1_armhf.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnp6_1.6.19.jfd3-1_armhf.deb
-   wget http://repo.volumio.org/Packages/Upmpdcli/arm/libupnpp3_0.15.1-1_armhf.deb
-  dpkg -i libupnpp3_0.15.1-1_armhf.deb
-  dpkg -i libupnpp2_0.14.1-1_armhf.deb
-  dpkg -i libupnp6_1.6.19.jfd3-1_armhf.deb
-  dpkg -i upmpdcli_1.2.12-1_armhf.deb
-  rm /libupnpp3_0.15.1-1_armhf.deb
-  rm /upmpdcli_1.2.12-1_armhf.deb
-  rm /libupnp6_1.6.19.jfd3-1_armhf.deb
-  rm /libupnpp2_0.14.1-1_armhf.deb
-
-  #Remove autostart of upmpdcli
-  update-rc.d upmpdcli remove
-
-  #echo "Installing LINN Songcast module"
-  #wget http://repo.volumio.org/Packages/Upmpdcli/sc2mpd_0.11.0-1_armhf.deb
-  #dpkg -i sc2mpd_0.11.0-1_armhf.deb
-  #rm /sc2mpd_0.11.0-1_armhf.deb
 
   echo "Volumio Init Updater"
   wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater
@@ -257,6 +299,22 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Installing Custom Packages"
   cd /
 
+  echo "Installing MPD for i386"
+  # First we manually install a newer alsa-lib to achieve Direct DSD support
+  
+  echo "Installing alsa-lib 1.1.3"
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
+  dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+  dpkg --force-all -i libasound2_1.1.3-5_i386.deb
+  rm libasound2-data_1.1.3-5_all.deb
+  rm libasound2_1.1.3-5_i386.deb
+ 
+  echo "Installing MPD 20.6 with Direct DSD Support"
+  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD.deb
+  dpkg -i mpd_0.20.6-1_i386-DSD.deb
+  rm mpd_0.20.6-1_i386-DSD.deb
+
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnp6_1.6.20.jfd5-1_i386.deb
@@ -297,28 +355,6 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
 
 fi
-
-ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
-echo $ARCH
-echo "Installing custom MPD depending on system architecture"
-if [ $ARCH = arm ]; then
-echo "Installing MPD for armv6"
-wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv6.deb
-dpkg -i mpd_0.20.6-1_armv6.deb
-rm mpd_0.20.6-1_armv6.deb
-elif [ $ARCH = armv7 ]; then
-echo "Installing MPD for armv7"
-wget http://repo.volumio.org/Volumio2/Binaries/arm/mpd_0.20.6-1_armv7.deb
-dpkg -i mpd_0.20.6-1_armv7.deb
-rm mpd_0.20.6-1_armv7.deb
-else
-echo "Installing MPD for i386"
-wget http://repo.volumio.org/Volumio2/Binaries/x86/mpd_0.20.6-1_i386.deb
-dpkg -i mpd_0.20.6-1_i386.deb
-rm mpd_0.20.6-1_i386.deb
-fi
-
-
 
 echo "Installing Upmpdcli Streaming Modules"
 wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-gmusic_1.2.12-1_all.deb
@@ -382,6 +418,9 @@ ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.targ
 echo "Adding Dynamic Swap Service"
 ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.target.wants/dynamicswap.service
 
+echo "Adding Iptables Service"
+ln -s /lib/systemd/system/iptables.service /etc/systemd/system/multi-user.target.wants/iptables.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
@@ -389,6 +428,10 @@ systemctl enable mpd.service
 echo "Preventing un-needed dhcp servers to start automatically"
 systemctl disable isc-dhcp-server.service
 systemctl disable dhcpd.service
+
+echo "Linking Volumio Command Line Client"
+ln -s /volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh /usr/local/bin/volumio
+chmod a+x /usr/local/bin/volumio
 
 #####################
 #Audio Optimizations#-----------------------------------------
@@ -451,8 +494,8 @@ echo "Setting fallback DNS with OpenDNS nameservers"
 echo "# OpenDNS nameservers
 nameserver 208.67.222.222
 nameserver 208.67.220.220" > /etc/resolv.conf.tail.tmpl
-ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 chmod 666 /etc/resolv.conf.*
+ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
@@ -462,3 +505,6 @@ mkdir /var/lib/dhcpcd5
 touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
 touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
 chmod -R 777 /var/lib/dhcpcd5
+
+echo "Setting CPU governor to ondemand"
+echo 'GOVERNOR="ondemand"' > /etc/default/cpufrequtils
