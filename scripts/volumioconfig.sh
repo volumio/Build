@@ -506,5 +506,5 @@ touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
 touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
 chmod -R 777 /var/lib/dhcpcd5
 
-echo "Setting CPU governor to performance"
-echo 'GOVERNOR="performance"' > /etc/default/cpufrequtils
+echo "Setting CPU governor to ondemand"
+echo 'GOVERNOR="ondemand"' > /etc/default/cpufrequtils
