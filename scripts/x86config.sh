@@ -21,6 +21,10 @@ ln -s /usr/bin/nodejs /usr/local/bin/nodejs
 echo "Blacklisting PC speaker"
 echo "blacklist snd_pcsp" >> /etc/modprobe.d/blacklist.conf
 
+echo "X86 USB Card Ordering"
+echo "# USB DACs will have device number 5 in whole Volumio device range
+options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
+
 echo "Installing Syslinux Legacy BIOS"
 syslinux -v
 syslinux "${BOOT_PART}"
