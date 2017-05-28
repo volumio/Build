@@ -42,7 +42,9 @@ then
 fi
 
 echo "Creating filesystems"
-sudo mkfs.vfat "${BOOT_PART}" -n boot
+#sudo mkfs.vfat "${BOOT_PART}" -n boot
+# Using mkdosfs because pi seems to be picky with first partition block size
+mkdosfs -n boot -F 32 -v "${BOOT_PART}"
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${IMG_PART}" -L volumio
 sudo mkfs.ext4 -E stride=2,stripe-width=1024 -b 4096 "${DATA_PART}" -L volumio_data
 sync
