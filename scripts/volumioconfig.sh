@@ -217,10 +217,15 @@ if [ $(uname -m) = armv7l ]; then
   update-rc.d upmpdcli remove
 
 
-  echo "Installing Shairport for Airplay emulation"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
-  tar xf shairport-sync_arm.tar.gz
-  rm /shairport-sync_arm.tar.gz
+  echo "Installing Shairport-Sync"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
+  tar xf shairport-sync-metadata-reader-arm.tar.gz
+  rm /shairport-sync-metadata-reader-arm.tar.gz
+
+  echo "Installing Shairport-Sync Metadata Reader"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
+  tar xf shairport-sync-3.0.2-arm.tar.gz
+  rm /shairport-sync-3.0.2-arm.tar.gz
 
   echo "Volumio Init Updater"
   wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater
