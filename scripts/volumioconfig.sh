@@ -308,11 +308,14 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Installing alsa-lib 1.1.3"
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-dev_1.1.3-5_i386.deb
   dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
   dpkg --force-all -i libasound2_1.1.3-5_i386.deb
+  dpkg --force-all -i libasound2-dev_1.1.3-5_i386.deb
   rm libasound2-data_1.1.3-5_all.deb
   rm libasound2_1.1.3-5_i386.deb
- 
+  rm libasound2-dev_1.1.3-5_i386.deb 
+
   echo "Installing MPD 20.6 with Direct DSD Support"
   wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD.deb
   dpkg -i mpd_0.20.6-1_i386-DSD.deb
