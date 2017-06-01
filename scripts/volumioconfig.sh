@@ -330,13 +330,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /libupnp6_1.6.20.jfd5-1_i386.deb
 
   echo "Installing Shairport-Sync"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/shairport-sync_2.8.4-1_i386.deb
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/libssl1.0.2_1.0.2h-1_i386.deb
-  dpkg -i libssl1.0.2_1.0.2h-1_i386.deb
-  echo N | dpkg -i shairport-sync_2.8.4-1_i386.deb
-  rm /libssl1.0.2_1.0.2h-1_i386.deb
-  rm /shairport-sync_2.8.4-1_i386.deb
-
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
+  tar xf shairport-sync-3.0.2-i386.tar.gz
+  rm /shairport-sync-3.0.2-i386.tar.gz
 
   echo "Installing LINN Songcast module"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
