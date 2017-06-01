@@ -113,6 +113,9 @@ cp /etc/fstab /etc/fstab.tmpl
 echo "Editing fstab to use UUID=<uuid of boot partition>"
 sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 
+echo "Installing Japanese, Korean, Chinese and Taiwanese fonts"
+apt-get -y install fonts-arphic-ukai fonts-arphic-gbsn00lp fonts-unfonts-core
+
 echo "Setting up in kiosk-mode"
 echo "  Creating chromium kiosk start script"
 echo "#!/bin/bash
