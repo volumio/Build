@@ -333,6 +333,12 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
   tar xf shairport-sync-3.0.2-i386.tar.gz
   rm /shairport-sync-3.0.2-i386.tar.gz
+  
+  echo "Installing Shairport-Sync Metadata Reader"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-i386.tar.gz
+  tar xf shairport-sync-metadata-reader-i386.tar.gz
+  rm /shairport-sync-metadata-reader-i386.tar.gz
+  
 
   echo "Installing LINN Songcast module"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
