@@ -260,7 +260,7 @@ fi
 
 # fstab and mtab
 touch "${DESTDIR}/etc/fstab"
-ln -s /proc/mounts "${DESTDIR}/etc/mtab"
+ln -sf /proc/self/mounts "${DESTDIR}/etc/mtab"
 
 # module-init-tools
 copy_exec /sbin/modprobe /sbin
