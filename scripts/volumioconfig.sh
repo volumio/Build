@@ -86,7 +86,6 @@ alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
 alias service="sudo /usr/sbin/service"
 alias ifconfig="sudo /sbin/ifconfig"
-alias volumio="/volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
@@ -162,10 +161,13 @@ if [ $(uname -m) = armv7l ]; then
      echo "Installing alsa-lib 1.1.3"
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2_1.1.3-5_armhf.deb
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2-data_1.1.3-5_all.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2-dev_1.1.3-5_armhf.deb
      dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
      dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     dpkg --force-all -i libasound2-dev_1.1.3-5_armhf.deb
      rm libasound2-data_1.1.3-5_all.deb
      rm libasound2_1.1.3-5_armhf.deb
+     rm libasound2-dev_1.1.3-5_armhf.deb
 
      echo "Installing MPD 20.6 with Direct DSD Support"
      wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD.deb
@@ -215,10 +217,15 @@ if [ $(uname -m) = armv7l ]; then
   update-rc.d upmpdcli remove
 
 
-  echo "Installing Shairport for Airplay emulation"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_arm.tar.gz
-  tar xf shairport-sync_arm.tar.gz
-  rm /shairport-sync_arm.tar.gz
+  echo "Installing Shairport-Sync"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
+  tar xf shairport-sync-metadata-reader-arm.tar.gz
+  rm /shairport-sync-metadata-reader-arm.tar.gz
+
+  echo "Installing Shairport-Sync Metadata Reader"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
+  tar xf shairport-sync-3.0.2-arm.tar.gz
+  rm /shairport-sync-3.0.2-arm.tar.gz
 
   echo "Volumio Init Updater"
   wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater
@@ -306,11 +313,14 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Installing alsa-lib 1.1.3"
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-dev_1.1.3-5_i386.deb
   dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
   dpkg --force-all -i libasound2_1.1.3-5_i386.deb
+  dpkg --force-all -i libasound2-dev_1.1.3-5_i386.deb
   rm libasound2-data_1.1.3-5_all.deb
   rm libasound2_1.1.3-5_i386.deb
- 
+  rm libasound2-dev_1.1.3-5_i386.deb 
+
   echo "Installing MPD 20.6 with Direct DSD Support"
   wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD.deb
   dpkg -i mpd_0.20.6-1_i386-DSD.deb
@@ -328,13 +338,15 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /libupnp6_1.6.20.jfd5-1_i386.deb
 
   echo "Installing Shairport-Sync"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/shairport-sync_2.8.4-1_i386.deb
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/libssl1.0.2_1.0.2h-1_i386.deb
-  dpkg -i libssl1.0.2_1.0.2h-1_i386.deb
-  echo N | dpkg -i shairport-sync_2.8.4-1_i386.deb
-  rm /libssl1.0.2_1.0.2h-1_i386.deb
-  rm /shairport-sync_2.8.4-1_i386.deb
-
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
+  tar xf shairport-sync-3.0.2-i386.tar.gz
+  rm /shairport-sync-3.0.2-i386.tar.gz
+  
+  echo "Installing Shairport-Sync Metadata Reader"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-i386.tar.gz
+  tar xf shairport-sync-metadata-reader-i386.tar.gz
+  rm /shairport-sync-metadata-reader-i386.tar.gz
+  
 
   echo "Installing LINN Songcast module"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
@@ -430,6 +442,10 @@ echo "Preventing un-needed dhcp servers to start automatically"
 systemctl disable isc-dhcp-server.service
 systemctl disable dhcpd.service
 
+echo "Linking Volumio Command Line Client"
+ln -s /volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh /usr/local/bin/volumio
+chmod a+x /usr/local/bin/volumio
+
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
@@ -503,5 +519,5 @@ touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
 touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
 chmod -R 777 /var/lib/dhcpcd5
 
-echo "Setting CPU governor to performance"
-echo 'GOVERNOR="performance"' > /etc/default/cpufrequtils
+echo "Setting CPU governor to ondemand"
+echo 'GOVERNOR="ondemand"' > /etc/default/cpufrequtils
