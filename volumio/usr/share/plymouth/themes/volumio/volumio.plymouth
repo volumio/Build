@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Volumio
+Description=Volumio theme
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/volumio
+ScriptFile=/usr/share/plymouth/themes/volumio/volumio.script

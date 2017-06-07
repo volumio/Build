@@ -21,6 +21,10 @@ ln -s /usr/bin/nodejs /usr/local/bin/nodejs
 echo "Blacklisting PC speaker"
 echo "blacklist snd_pcsp" >> /etc/modprobe.d/blacklist.conf
 
+echo "X86 USB Card Ordering"
+echo "# USB DACs will have device number 5 in whole Volumio device range
+options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
+
 echo "Installing Syslinux Legacy BIOS"
 syslinux -v
 syslinux "${BOOT_PART}"
@@ -108,6 +112,9 @@ echo "Copying fstab as a template to be used in initrd"
 cp /etc/fstab /etc/fstab.tmpl
 echo "Editing fstab to use UUID=<uuid of boot partition>"
 sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
+
+echo "Installing Japanese, Korean, Chinese and Taiwanese fonts"
+apt-get -y install fonts-arphic-ukai fonts-arphic-gbsn00lp fonts-unfonts-core
 
 echo "Setting up in kiosk-mode"
 echo "  Creating chromium kiosk start script"
