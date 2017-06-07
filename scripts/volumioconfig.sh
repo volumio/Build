@@ -466,6 +466,9 @@ touch /var/lib/alsa/asound.state
 echo '#' > /var/lib/alsa/asound.state
 chmod 777 /var/lib/alsa/asound.state
 
+echo "Fixing UPNP L16 Playback issue"
+grep -v '^@ENABLEL16' /usr/share/upmpdcli/protocolinfo.txt > /usr/share/upmpdcli/protocolinfo.txtrepl && mv /usr/share/upmpdcli/protocolinfo.txtrepl /usr/share/upmpdcli/protocolinfo.txt
+
 #####################
 #Network Settings and Optimizations#-----------------------------------------
 #####################
