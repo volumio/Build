@@ -121,6 +121,10 @@ groupadd -f --system spi
 echo "adding volumio to gpio group and al"
 usermod -a -G gpio,i2c,spi,input volumio
 
+echo "Configuring boot splash"
+apt-get -y install plymouth plymouth-themes
+plymouth-set-default-theme volumio
+
 echo "Use up-to-date jessie rules for gpio & al."
 read -rd '' Rule_String <<"EOF"
 SUBSYSTEM=="input", GROUP="input", MODE="0660"
@@ -171,7 +175,7 @@ disable_splash=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
 
 echo "Exporting /opt/vc/bin variable"
 export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
