@@ -188,9 +188,6 @@ echo "Unmounting Temp Devices"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
 
-echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
-
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
