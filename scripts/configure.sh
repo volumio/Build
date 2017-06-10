@@ -62,6 +62,8 @@ cp -r volumio/lib build/$BUILD/root/
 # Netplug
 cp -rp volumio/etc/netplug build/$BUILD/root/etc/
 chmod +x build/$BUILD/root/etc/netplug/netplug
+# Network
+cp -r volumio/etc/network/* build/$BUILD/root/etc/network
 # Wpa Supplicant
 echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
@@ -86,6 +88,8 @@ chmod a+x build/$BUILD/root/bin/wifistart.sh
 #udev script
 cp volumio/bin/rename_netiface0.sh build/$BUILD/root/bin/rename_netiface0.sh
 chmod a+x build/$BUILD/root/bin/rename_netiface0.sh
+#Plymouth
+cp -rp volumio/usr/*  build/$BUILD/root/usr/
 
 echo 'Done Copying Custom Volumio System Files'
 

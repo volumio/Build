@@ -4,9 +4,9 @@
 #   info -f grub -n 'Simple configuration'
 
 GRUB_DEFAULT=''
-GRUB_TIMEOUT=5
+GRUB_TIMEOUT=0
 GRUB_DISTRIBUTOR="Volumio Audiophile Music player"
-GRUB_CMDLINE_LINUX_DEFAULT=" bootpart=%%BOOTPART%% imgfile=volumio_current.sqsh quiet"
+GRUB_CMDLINE_LINUX_DEFAULT=" bootpart=%%BOOTPART%% imgfile=volumio_current.sqsh splash quiet plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 "
 GRUB_CMDLINE_LINUX=""
 
 # Uncomment to enable BadRAM filtering, modify to suit your needs
