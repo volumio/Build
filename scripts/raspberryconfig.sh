@@ -67,9 +67,9 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
-    "4.9.25")
-      KERNEL_REV="994"
-      KERNEL_COMMIT="a86bfee5b47a74c13056997f1e4d8b9d8090b398"
+    "4.9.31")
+      KERNEL_REV="1005"
+      KERNEL_COMMIT="9e6a1a545ef33ac6cc3805845cb3ecac26514a41"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
@@ -284,20 +284,9 @@ rm /patch
 
 if [ "$PATCH" = "volumio" ]; then
 
-echo "Adding third party kernel modules"
-
-if [ "$KERNEL_VERSION" = "4.4.9" ]; then
-
-### Allo I2S Firmware
-echo "Getting Allo Modules"
+echo "Adding third party Firmware"
 cd /
-echo "Getting Allo DAC Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
-echo "Extracting Allo DAC modules"
-tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
-rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
-
-echo "Getting Allo Piano Firmwares"
+echo "Getting Allo Piano Firmware"
 wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
 echo "Extracting Allo Firmwares"
 tar xf master.tar.gz
@@ -305,8 +294,19 @@ cp -rp /piano-firmware-master/* /
 rm -rf /piano-firmware-master 
 rm /README.md
 rm master.tar.gz
+echo "Allo firmware installed"
 
-echo "Allo modules and firmware installed"
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then
+
+### Allo I2S Modules
+echo "Getting Allo DAC Modules"
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
+echo "Extracting Allo DAC modules"
+tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
+rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
+
+echo "Allo modules installed"
 
 echo "Adding Pisound Kernel Module and dtbo"
 wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-pisound-modules.tgz
