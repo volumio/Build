@@ -284,20 +284,9 @@ rm /patch
 
 if [ "$PATCH" = "volumio" ]; then
 
-echo "Adding third party kernel modules"
-
-if [ "$KERNEL_VERSION" = "4.4.9" ]; then
-
-### Allo I2S Firmware
-echo "Getting Allo Modules"
+echo "Adding third party Firmware"
 cd /
-echo "Getting Allo DAC Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
-echo "Extracting Allo DAC modules"
-tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
-rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
-
-echo "Getting Allo Piano Firmwares"
+echo "Getting Allo Piano Firmware"
 wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
 echo "Extracting Allo Firmwares"
 tar xf master.tar.gz
@@ -305,8 +294,19 @@ cp -rp /piano-firmware-master/* /
 rm -rf /piano-firmware-master 
 rm /README.md
 rm master.tar.gz
+echo "Allo firmware installed"
 
-echo "Allo modules and firmware installed"
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then
+
+### Allo I2S Modules
+echo "Getting Allo DAC Modules"
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
+echo "Extracting Allo DAC modules"
+tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
+rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
+
+echo "Allo modules installed"
 
 echo "Adding Pisound Kernel Module and dtbo"
 wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-pisound-modules.tgz
