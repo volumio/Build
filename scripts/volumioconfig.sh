@@ -112,13 +112,13 @@ if [ $(uname -m) = armv7l ]; then
   echo "Installing ARM Node Environment"
   # version 6.3.0
   cd /
-  wget http://repo.volumio.org/Volumio2/node-v6.9.1-linux-armv6l.tar.xz
-  tar xf node-v6.9.1-linux-armv6l.tar.xz
-  rm /node-v6.9.1-linux-armv6l.tar.xz
-  cd /node-v6.9.1-linux-armv6l
+  wget http://repo.volumio.org/Volumio2/node-v6.11.0-linux-armv6l.tar.xz
+  tar xf node-v6.11.0-linux-armv6l.tar.xz
+  rm /node-v6.11.0-linux-armv6l.tar.xz
+  cd /node-v6.11.0-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.9.1-linux-armv6l
+  rm -rf /node-v6.11.0-linux-armv6l
 
 
   # Symlinking to legacy paths
@@ -274,13 +274,13 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget http://repo.volumio.org/Volumio2/node-v6.3.0-linux-x86.tar.xz
-  tar xf node-v6.3.0-linux-x86.tar.xz
-  rm /node-v6.3.0-linux-x86.tar.xz
-  cd /node-v6.3.0-linux-x86
+  wget http://repo.volumio.org/Volumio2/node-v6.11.0-linux-x86.tar.xz
+  tar xf node-v6.11.0-linux-x86.tar.xz
+  rm /node-v6.11.0-linux-x86.tar.xz
+  cd /node-v6.11.0-linux-x86
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.3.0-linux-x86
+  rm -rf /node-v6.11.0-linux-x86
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
