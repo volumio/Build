@@ -1,5 +1,7 @@
 #!/bin/bash
 
+NODE_VERSION=6.11.0
+
 # This script will be run in chroot under qemu.
 
 echo "Prevent services starting during install, running under chroot"
@@ -110,15 +112,13 @@ if [ $(uname -m) = armv7l ]; then
   wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
   echo "Installing ARM Node Environment"
-  # version 6.3.0
-  cd /
-  wget http://repo.volumio.org/Volumio2/node-v6.9.1-linux-armv6l.tar.xz
-  tar xf node-v6.9.1-linux-armv6l.tar.xz
-  rm /node-v6.9.1-linux-armv6l.tar.xz
-  cd /node-v6.9.1-linux-armv6l
+  wget http://repo.volumio.org/Volumio2/node-v${NODE_VERSION}-linux-armv6l.tar.xz
+  tar xf node-v${NODE_VERSION}-linux-armv6l.tar.xz
+  rm /node-v${NODE_VERSION}-linux-armv6l.tar.xz
+  cd /node-v${NODE_VERSION}-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.9.1-linux-armv6l
+  rm -rf /node-v${NODE_VERSION}-linux-armv6l
 
 
   # Symlinking to legacy paths
@@ -127,9 +127,9 @@ if [ $(uname -m) = armv7l ]; then
 
   echo "Installing Volumio Modules"
   cd /volumio
-  wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
-  tar xf node_modules_arm.tar.gz
-  rm node_modules_arm.tar.gz
+  wget http://repo.volumio.org/Volumio2/node_modules_arm-${NODE_VERSION}.tar.gz
+  tar xf node_modules_arm-${NODE_VERSION}.tar.gz
+  rm node_modules_arm-${NODE_VERSION}.tar.gz
 
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
@@ -274,13 +274,13 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget http://repo.volumio.org/Volumio2/node-v6.3.0-linux-x86.tar.xz
-  tar xf node-v6.3.0-linux-x86.tar.xz
-  rm /node-v6.3.0-linux-x86.tar.xz
-  cd /node-v6.3.0-linux-x86
+  wget http://repo.volumio.org/Volumio2/node-v${NODE_VERSION}-linux-x86.tar.xz
+  tar xf node-v${NODE_VERSION}-linux-x86.tar.xz
+  rm /node-v${NODE_VERSION}-linux-x86.tar.xz
+  cd /node-v${NODE_VERSION}-linux-x86
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.3.0-linux-x86
+  rm -rf /node-v${NODE_VERSION}-linux-x86
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
@@ -288,9 +288,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing Volumio Modules"
   cd /volumio
-  wget http://repo.volumio.org/Volumio2/node_modules_x86.tar.gz
-  tar xf node_modules_x86.tar.gz
-  rm node_modules_x86.tar.gz
+  wget http://repo.volumio.org/Volumio2/node_modules_x86-${NODE_VERSION}.tar.gz
+  tar xf node_modules_x86-${NODE_VERSION}.tar.gz
+  rm node_modules_x86-${NODE_VERSION}.tar.gz
 
 
   echo "Setting proper ownership"
