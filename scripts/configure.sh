@@ -89,8 +89,8 @@ chmod a+x build/$BUILD/root/bin/wifistart.sh
 cp volumio/bin/rename_netiface0.sh build/$BUILD/root/bin/rename_netiface0.sh
 chmod a+x build/$BUILD/root/bin/rename_netiface0.sh
 #Plymouth
-cp -rp volumio/usr/*  build/$BUILD/usr/
-plymouth-set-default-theme volumio
+cp -rp volumio/usr/*  build/$BUILD/root/usr/
+
 echo 'Done Copying Custom Volumio System Files'
 
 echo "Stripping binaries and libraries to save space"
