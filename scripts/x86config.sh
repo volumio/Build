@@ -41,7 +41,7 @@ echo "DEFAULT volumio
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=UUID=${UUID_IMG} bootpart=UUID=${UUID_BOOT} imgfile=volumio_current.sqsh quiet splash ${DEBUG}
+  APPEND ro imgpart=UUID=${UUID_IMG} bootpart=UUID=${UUID_BOOT} imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
   INITRD volumio.initrd
 " > /boot/syslinux.cfg
 
@@ -58,6 +58,11 @@ sed -i "s/initrd=\"\$i\"/initrd=\"volumio.initrd\"/g" /etc/grub.d/10_linux
 #TODO: update the default grub file
 sed -i "s/LINUX_ROOT_DEVICE=\${GRUB_DEVICE}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
 sed -i "s/LINUX_ROOT_DEVICE=UUID=\${GRUB_DEVICE_UUID}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
+
+echo "Setting grub image"
+cp /usr/share/plymouth/themes/volumio/volumio-logo16.png /boot/volumio.png
+
+
 
 echo "  Creating grub config folder"
 mkdir -p /boot/grub
@@ -115,6 +120,10 @@ sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 
 echo "Installing Japanese, Korean, Chinese and Taiwanese fonts"
 apt-get -y install fonts-arphic-ukai fonts-arphic-gbsn00lp fonts-unfonts-core
+
+echo "Configuring boot splash"
+apt-get -y install plymouth plymouth-themes plymouth-x11
+plymouth-set-default-theme volumio
 
 echo "Setting up in kiosk-mode"
 echo "  Creating chromium kiosk start script"
@@ -177,6 +186,10 @@ echo "nls_utf8" >> /etc/initramfs-tools/modules
 echo "vfat" >> /etc/initramfs-tools/modules
 echo "  Adding ata modules for various chipsets"
 cat /ata-modules.x86 >> /etc/initramfs-tools/modules
+echo "  Adding modules for Plymouth"
+echo "intel_agp" >> /etc/initramfs-tools/modules
+echo "drm" >> /etc/initramfs-tools/modules
+echo "i915 modeset=1" >> /etc/initramfs-tools/modules
 
 echo "  Copying volumio initramfs updater"
 cd /root/

@@ -33,9 +33,9 @@ text_colour.green = 1.0;
 text_colour.blue = 1.0;
 
 # Tinted text #988592
-tinted_text_colour.red = 1.0;
-tinted_text_colour.green = 1.0;
-tinted_text_colour.blue = 1.0;
+tinted_text_colour.red = 0.59;
+tinted_text_colour.green = 0.52;
+tinted_text_colour.blue = 0.57;
 
 # Action Text - #ffffff - RGB 255 255 255
 action_text_colour.red = 1.0;
@@ -47,12 +47,27 @@ debugsprite = Sprite();
 debugsprite_bottom = Sprite();
 debugsprite_medium = Sprite();
 
+# Ubuntu Font
+ubuntufont = "Ubuntu 11";
+ubuntualignment = "center";
+
+# Scale factor
+scalefactor = 2;
+
 # are we currently prompting for a password?
 prompt_active = 0;
 
+# Generic scalable image loader
+fun LoadScaleImage (imagepath) {
+    image = Image (imagepath);
+    image = image.Scale (image.GetWidth() * scalefactor, image.GetHeight() * scalefactor);
+    return image;
+}
+
 # General purpose function to create text
 fun WriteText (text, colour) {
-    image = Image.Text (text, colour.red, colour.green, colour.blue);
+    image = Image.Text (text, colour.red, colour.green, colour.blue, color.alpha, ubuntufont, ubuntualignment);
+    image = image.Scale (image.GetWidth() * scalefactor, image.GetHeight() * scalefactor);
     return image;
 }
 
@@ -167,8 +182,8 @@ fun StringToInteger (str) {
 # New background colour
 # #2c001e --> 0.16, 0.00, 0.12
 #
-Window.SetBackgroundTopColor (0.0, 0.00, 0.0);     # Nice colour on top of the screen fading to
-Window.SetBackgroundBottomColor (0.0, 0.00, 0.0);  # an equally nice colour on the bottom
+Window.SetBackgroundTopColor (0.16, 0.00, 0.12);     # Nice colour on top of the screen fading to
+Window.SetBackgroundBottomColor (0.16, 0.00, 0.12);  # an equally nice colour on the bottom
 
 bits_per_pixel = Window.GetBitsPerPixel ();
 if (bits_per_pixel == 4) {
@@ -178,14 +193,14 @@ if (bits_per_pixel == 4) {
     password_field_filename = "password-field16.png";
     question_field_filename = "password-field16.png";
 } else {
-    logo_filename = "volumio-logo16.png";
+    logo_filename = "volumio-logo.png";
     progress_dot_off_filename = "progress-dot-off.png";
     progress_dot_on_filename = "progress-dot-on.png";
     password_field_filename = "password-field.png";
     question_field_filename = "password-field.png";
 }
 
-logo.image = Image (logo_filename);
+logo.image = LoadScaleImage (logo_filename);
 logo.sprite = Sprite ();
 logo.sprite.SetImage (logo.image);
 logo.width = logo.image.GetWidth ();
@@ -207,8 +222,8 @@ fsck_notification.image = ImageToActionText ("");
 
 status = "normal";
 
-progress_indicator.bullet_off = Image (progress_dot_off_filename);
-progress_indicator.bullet_on = Image (progress_dot_on_filename);
+progress_indicator.bullet_off = LoadScaleImage (progress_dot_off_filename);
+progress_indicator.bullet_on = LoadScaleImage (progress_dot_on_filename);
 progress_indicator.bullet_width = progress_indicator.bullet_off.GetWidth ();
 progress_indicator.bullet_height = progress_indicator.bullet_off.GetHeight ();
 progress_indicator.bullet_hspacing = progress_indicator.bullet_width * 1.1;
@@ -507,6 +522,108 @@ fun message_callback (message)
 
 }
 
+
+#-----------------------------------------Display Password stuff -----------------------
+#
+
+fun password_dialogue_setup (message_label) {
+    # Debug("Password dialog setup");
+
+    local.entry;
+    local.bullet_image;
+    bullet_image = LoadScaleImage (progress_dot_off_filename);
+    entry.image = LoadScaleImage (password_field_filename);
+
+    # Hide the normal labels
+    prompt_active = 1;
+    if (message_notification[1].sprite) hide_message (1);
+
+    # Set the prompt label
+    label = get_message_label(message_label, 0, 1);
+    label.z = 10000;
+
+    setup_message (message_label, label.x, label.y, label.z, 2);
+    show_message (2);
+
+    # Set up the text entry which contains the bullets
+    entry.sprite = Sprite ();
+    entry.sprite.SetImage (entry.image);
+
+    # Centre the box horizontally
+    entry.x = Window.GetX () + Window.GetWidth () / 2 - entry.image.GetWidth () / 2;
+
+    # Put the entry below the second label.
+    entry.y = message_notification[2].y + label.height;
+
+    #Debug ("entry x = " + entry.x + ", y = " + entry.y);
+    entry.z = 10000;
+    entry.sprite.SetX (entry.x);
+    entry.sprite.SetY (entry.y);
+    entry.sprite.SetZ (entry.z);
+
+    global.password_dialogue = local;
+}
+
+fun password_dialogue_opacity (opacity) {
+    # Debug("Password dialog opacity");
+    global.password_dialogue.opacity = opacity;
+    local = global.password_dialogue;
+
+    # You can make the box translucent with a float
+    # entry.sprite.SetOpacity (0.3);
+    entry.sprite.SetOpacity (opacity);
+    label.sprite.SetOpacity (opacity);
+
+    if (bullets) {
+        for (index = 0; bullets[index]; index++) {
+            bullets[index].sprite.SetOpacity (opacity);
+        }
+    }
+}
+
+
+# The callback function is called when the display should display a password dialogue.
+# First arg is prompt string, the second is the number of bullets.
+fun display_password_callback (prompt, bullets) {
+    # Debug("Password dialog setup");
+
+    global.status = "password";
+    if (!global.password_dialogue) password_dialogue_setup(prompt);
+    password_dialogue_opacity (1);
+    bullet_width = password_dialogue.bullet_image.GetWidth();
+    bullet_y = password_dialogue.entry.y +
+               password_dialogue.entry.image.GetHeight () / 2 -
+               password_dialogue.bullet_image.GetHeight () / 2;
+    margin = bullet_width;
+    spaces = Math.Int( (password_dialogue.entry.image.GetWidth () - (margin * 2) ) / ( 2 * bullet_width / 3 ) );
+    #Debug ("spaces = " + spaces + ", bullets = " + bullets);
+    bullets_area.width = margin + spaces * ( 2 * bullet_width / 3);
+    bullets_area.x = Window.GetX () + Window.GetWidth () / 2 - bullets_area.width / 2;
+    #DebugBottom ("pwd_entry x = " + password_dialogue.entry.x + ", bullets_area.x = " + bullets_area.x + ", bullets_area.width = " + bullets_area.width);
+    if (bullets > spaces)
+        bullets = spaces;
+    for (index = 0; password_dialogue.bullets[index] || index < spaces ; index++){
+        if (!password_dialogue.bullets[index]) {
+            password_dialogue.bullets[index].sprite = Sprite ();
+            password_dialogue.bullets[index].sprite.SetImage (password_dialogue.bullet_image);
+            password_dialogue.bullets[index].x = bullets_area.x + # password_dialogue.entry.x + margin +
+                                                 index * ( 2 * bullet_width / 3 ) ;
+            password_dialogue.bullets[index].sprite.SetX (password_dialogue.bullets[index].x);
+            password_dialogue.bullets[index].y = bullet_y;
+            password_dialogue.bullets[index].sprite.SetY (password_dialogue.bullets[index].y);
+            password_dialogue.bullets[index].z = password_dialogue.entry.z + 100 - index;
+            password_dialogue.bullets[index].sprite.SetZ (password_dialogue.bullets[index].z);
+        }
+
+        password_dialogue.bullets[index].sprite.SetOpacity (0);
+
+        if (index < bullets ) {
+            password_dialogue.bullets[index].sprite.SetOpacity (1);
+        }
+    }
+}
+
+Plymouth.SetDisplayPasswordFunction (display_password_callback);
 
 Plymouth.SetMessageFunction (message_callback);
 
@@ -931,9 +1048,9 @@ fun question_dialogue_setup (message_label, text_image) {
     local.content;
     local.margin;
 
-    field.image = Image (question_field_filename);
+    field.image = LoadScaleImage (question_field_filename);
     content = Sprite ();
-    bullet_image = Image (progress_dot_off_filename);
+    bullet_image = LoadScaleImage (progress_dot_off_filename);
     margin = bullet_image.GetWidth() / 2;
 
     # Hide the normal labels
