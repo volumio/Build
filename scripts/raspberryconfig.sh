@@ -77,6 +77,9 @@ esac
 # using rpi-update relevant to defined kernel version
 echo y | SKIP_BACKUP=1 rpi-update $KERNEL_COMMIT
 
+echo "Getting actual kernel revision with firmware revision backup"
+cp /boot/.firmware_revision /boot/.firmware_revision_kernel
+
 echo "Updating bootloader files *.elf *.dat *.bin"
 echo y | SKIP_KERNEL=1 rpi-update $FIRMWARE_COMMIT
 
