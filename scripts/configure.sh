@@ -90,6 +90,9 @@ cp volumio/bin/rename_netiface0.sh build/$BUILD/root/bin/rename_netiface0.sh
 chmod a+x build/$BUILD/root/bin/rename_netiface0.sh
 #Plymouth
 cp -rp volumio/usr/*  build/$BUILD/root/usr/
+#SSH
+cp volumio/bin/volumiossh.sh build/$BUILD/root/bin/volumiossh.sh
+chmod a+x build/$BUILD/root/bin/volumiossh.sh
 
 echo 'Done Copying Custom Volumio System Files'
 
