@@ -113,7 +113,7 @@ mkdir /mnt/volumio/rootfs/boot
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-cp -pdR build/arm/root/* /mnt/volumio/rootfs
+cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying BPI-PRO boot files"
 cp platform-banana/bpi-pro/boot/uImage /mnt/volumio/rootfs/boot/
 cp platform-banana/bootp01/* /mnt/volumio/rootfs/boot/
