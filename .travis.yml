@@ -8,7 +8,6 @@ addons:
     - debian-sid
     packages:
     - shellcheck
-    - findutils
 
 script:
  - find . -iname "*.sh" -exec shellcheck "{}" \;
