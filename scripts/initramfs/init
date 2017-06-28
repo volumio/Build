@@ -239,7 +239,10 @@ if [ -e "/boot/kernel_update" ]; then
 echo "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
   if [ -e "/mnt/imgpart/config.txt.bak" ]; then
-    cp /mnt/imgpart/config.txt.bak /boot/config.txt
+    echo "Restoring custom config.txt content"
+    I2S=`sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' /mnt/imgpart/config.txt.bak`
+    echo "\n" >> /boot/config.txt
+    echo "$I2S" >> /boot/config.txt
     rm /mnt/imgpart/config.txt.bak
   fi
   rm /boot/kernel_update
