@@ -64,21 +64,24 @@ KERNEL_VERSION="4.4.9"
 case $KERNEL_VERSION in
     "4.4.9")
       KERNEL_REV="884"
-      KERNEL_BRANCH="stable"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
+      FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
-    "4.9.25")
-      KERNEL_REV="994"
-      KERNEL_BRANCH="master"
-      KERNEL_COMMIT="a86bfee5b47a74c13056997f1e4d8b9d8090b398"
+    "4.9.31")
+      KERNEL_REV="1005"
+      KERNEL_COMMIT="9e6a1a545ef33ac6cc3805845cb3ecac26514a41"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
 
 # using rpi-update relevant to defined kernel version
-echo y | SKIP_BACKUP=1 BRANCH=$KERNEL_BRANCH rpi-update $KERNEL_COMMIT
+echo y | SKIP_BACKUP=1 rpi-update $KERNEL_COMMIT
+
+echo "Getting actual kernel revision with firmware revision backup"
+cp /boot/.firmware_revision /boot/.firmware_revision_kernel
 
 echo "Updating bootloader files *.elf *.dat *.bin"
-echo y | SKIP_KERNEL=1 BRANCH=$KERNEL_BRANCH rpi-update
+echo y | SKIP_KERNEL=1 rpi-update $FIRMWARE_COMMIT
 
 echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
 # these packages critically update kernel & firmware files and break Volumio
@@ -94,9 +97,9 @@ apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depen
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
-wget -P /boot/. https://github.com/raspberrypi/firmware/raw/stable/boot/bcm2708-rpi-0-w.dtb
+wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
 echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
-wget -P /boot/overlays/. https://github.com/raspberrypi/firmware/raw/stable/boot/overlays/pi3-disable-wifi.dtbo
+wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
 
 echo "Adding PI3 & PiZero W Wireless firmware"
@@ -120,6 +123,10 @@ groupadd -f --system spi
 
 echo "adding volumio to gpio group and al"
 usermod -a -G gpio,i2c,spi,input volumio
+
+echo "Configuring boot splash"
+apt-get -y install plymouth plymouth-themes
+plymouth-set-default-theme volumio
 
 echo "Use up-to-date jessie rules for gpio & al."
 read -rd '' Rule_String <<"EOF"
@@ -171,11 +178,7 @@ disable_splash=1" >> /boot/config.txt
 
 
 echo "Writing cmdline.txt file"
-echo "dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5" >> /boot/cmdline.txt
-
-echo "Cleaning APT Cache"
-rm -f /var/lib/apt/lists/*archive*
-apt-get clean
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
 
 echo "Exporting /opt/vc/bin variable"
 export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
@@ -284,20 +287,9 @@ rm /patch
 
 if [ "$PATCH" = "volumio" ]; then
 
-echo "Adding third party kernel modules"
-
-if [ "$KERNEL_VERSION" = "4.4.9" ]; then
-
-### Allo I2S Firmware
-echo "Getting Allo Modules"
+echo "Adding third party Firmware"
 cd /
-echo "Getting Allo DAC Modules"
-wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
-echo "Extracting Allo DAC modules"
-tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
-rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
-
-echo "Getting Allo Piano Firmwares"
+echo "Getting Allo Piano Firmware"
 wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/master.tar.gz
 echo "Extracting Allo Firmwares"
 tar xf master.tar.gz
@@ -305,8 +297,19 @@ cp -rp /piano-firmware-master/* /
 rm -rf /piano-firmware-master 
 rm /README.md
 rm master.tar.gz
+echo "Allo firmware installed"
 
-echo "Allo modules and firmware installed"
+
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then
+
+### Allo I2S Modules
+echo "Getting Allo DAC Modules"
+wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-AlloDAC-modules.tgz
+echo "Extracting Allo DAC modules"
+tar xf rpi-volumio-4.4.9-AlloDAC-modules.tgz
+rm rpi-volumio-4.4.9-AlloDAC-modules.tgz
+
+echo "Allo modules installed"
 
 echo "Adding Pisound Kernel Module and dtbo"
 wget http://repo.volumio.org/Volumio2/Firmwares/rpi-volumio-4.4.9-pisound-modules.tgz

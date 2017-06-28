@@ -3,7 +3,6 @@ Description = Volumio Iptables Module
 
 [Service]
 ExecStart=/sbin/iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000
-Restart=never
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=iptables

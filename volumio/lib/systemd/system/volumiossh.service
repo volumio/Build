@@ -1,0 +1,14 @@
+[Unit]
+Description = Volumio SSH enabler
+
+[Service]
+ExecStart=/bin/volumiossh.sh
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=volumiossh
+User=volumio
+Group=volumio
+
+[Install]
+WantedBy=multi-user.target
+

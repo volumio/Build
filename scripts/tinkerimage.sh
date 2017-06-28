@@ -3,7 +3,7 @@
 # Default build for Debian 32bit
 ARCH="armv7"
 
-while getopts ":v:p:a:" opt; do
+while getopts ":d:v:p:" opt; do
   case $opt in
     v)
       VERSION=$OPTARG
@@ -11,15 +11,12 @@ while getopts ":v:p:a:" opt; do
     p)
       PATCH=$OPTARG
       ;;
-    a)
-      ARCH=$OPTARG
-      ;;
-
   esac
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bananapi-pro.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-tinkerboard.img"
+
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
 else
@@ -31,7 +28,6 @@ dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
-# Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
 parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
@@ -59,36 +55,25 @@ mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the banana bpi-pro kernel/ platform files"
-if [ -d platform-banana ]
+echo "Preparing for the tinkerboard rockchip kernel/ platform files"
+if [ -d platform-asus ]
 then
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platform-banana folder
-    # that will refresh all the bananapi platforms, see below
+    # if you really want to re-clone from the repo, then delete the platform-asus folder
+    # that will refresh all the asus platforms, see below
 else
-	echo "Clone bananapi pro files from repo"
-### Option 1 - Kernel 3.4.104 gkkpch
-#	git clone https://github.com/gkkpch/platform-banana.git platform-banana
-#	echo "Unpack the platform files gkkpch"
-#	cd platform-banana
-#	tar xfJ bpi-pro.tar.xz
-### Option 2 - Kernel 3.4.113 chrismade
-	git clone https://github.com/chrismade/platform-banana-pi.git platform-banana
-	echo "Unpack the platform files chrismade"
-	cd platform-banana
-	tar xvzf kernel_3_4_113_w_olfs.tgz
-        ln -s bananapi bpi-pro
-### End of Options
-	wget https://raw.githubusercontent.com/chrismade/platform-banana-pi/master/bootp01.tgz
-	tar xvzf bootp01.tgz
+	echo "Clone asus files from repo"
+	git clone https://github.com/volumio/platform-asus.git platform-asus
+	echo "Unpack the Tinkerboard platform files"
+	cd platform-asus
+	tar xfJ tinkerboard.tar.xz
 	cd ..
 fi
 
 echo "Copying the bootloader"
-dd if=platform-banana/bootp01/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+dd if=platform-asus/tinkerboard/u-boot/u-boot.img of=${LOOP_DEV} seek=64 conv=notrunc
 sync
 
-echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
 then
 	echo "/mount folder exist"
@@ -114,20 +99,16 @@ mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying BPI-PRO boot files"
-cp platform-banana/bpi-pro/boot/uImage /mnt/volumio/rootfs/boot/
-cp platform-banana/bootp01/* /mnt/volumio/rootfs/boot/
-# cp platform-banana/bpi-pro/boot/config* /mnt/volumio/rootfs/boot/
-# mkimage -C none -A arm -T script -d platform-banana/bpi-pro/boot/boot.cmd mnt/volumio/rootfs/boot/boot.scr
+echo "Copying Tinkerboard boot files"
+cp -R platform-asus/tinkerboard/boot/* /mnt/volumio/rootfs/boot/
 
-echo "Copying BPI-PRO modules and firmware"
-cp -pdR platform-banana/bpi-pro/lib/modules /mnt/volumio/rootfs/lib/
-cp -pdR platform-banana/bpi-pro/lib/firmware /mnt/volumio/rootfs/lib/
-
+echo "Copying Tinkerboard modules and firmware"
+cp -pdR platform-asus/tinkerboard/lib/modules /mnt/volumio/rootfs/lib/
+cp -pdR platform-asus/tinkerboard/lib/firmware /mnt/volumio/rootfs/lib/
 sync
 
-echo "Preparing to run chroot for more BPI-PRO configuration"
-cp scripts/bpiproconfig.sh /mnt/volumio/rootfs
+echo "Preparing to run chroot for more Tinkerboard configuration"
+cp scripts/tinkerconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -140,25 +121,22 @@ echo $PATCH > /mnt/volumio/rootfs/patch
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/bpiproconfig.sh
+/tinkerconfig.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/bpiproconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/tinkerconfig.sh
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-#echo "Copying LIRC configuration files"
-
-
-echo "==> BPI-PRO device installed"
+echo "==> Tinkerboard device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#rm -r platform-bananapi
+#rm -r platform-asus
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -192,8 +170,9 @@ echo "Unmounting Temp Devices"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
 
+echo "Cleaning build environment"
+rm -rf /mnt/volumio /mnt/boot
+
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
-
-md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
