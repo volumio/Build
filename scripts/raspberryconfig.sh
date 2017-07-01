@@ -321,7 +321,6 @@ fi
 fi
 
 echo "Installing winbind here, since it freezes networking"
-apt-get update
 apt-get install -y winbind libnss-winbind
 
 echo "Finalising drivers installation with depmod on $KERNEL_VERSION+ and $KERNEL_VERSION-v7+"
