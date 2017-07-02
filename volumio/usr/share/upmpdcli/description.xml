@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
+    <friendlyName>@FRIENDLYNAME@</friendlyName>
+    <manufacturer>Volumio</manufacturer>
+    <manufacturerURL>https://volumio.org</manufacturerURL>
+    <modelDescription>The Audiophile Music Player</modelDescription>
+    <modelName>Volumio</modelName>
+    <modelNumber>1.0</modelNumber>
+    <modelURL>https://volumio.org</modelURL>
+    <serialNumber>42</serialNumber>
+    <UDN>uuid:@UUID@</UDN>
+    @ICONLIST@
+    <serviceList>
+      @UPNPAV@
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
+        <SCPDURL>/upmpd/ConnectionManager.xml</SCPDURL>
+        <controlURL>/ctl/ConnectionManager</controlURL>
+        <eventSubURL>/evt/ConnectionManager</eventSubURL>
+      </service>
+      @OPENHOME@
+    </serviceList>
+    @PRESENTATION@
+  </device>
+  <devicelist>
+  @MEDIASERVER@
+  </devicelist>
+</root>
