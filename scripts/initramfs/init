@@ -15,6 +15,9 @@ mknod /dev/tty c 5 0
 
 mdev -s
 
+#Defaults which may be overridden by cmdline parameters
+USE_KMSG="yes"
+
 #Hardware specific adaptions
 
 HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
@@ -30,20 +33,16 @@ else
    OVERLAY=WITHWRKDIR
 fi
 
-echo "Booting Volumio for $(cat /proc/cpuinfo | grep Hardware )" 
-
-echo "	This script mounts rootfs RO with an overlay RW layer."
-if [ $OVERLAY == WITHWRKDIR ]; then
-   # For overlayfs version V22 or higher (modulename 'overlay')
-   modprobe overlay
+# Display a message or print directly to /dev/kmsg
+print_msg() {
+if [ $USE_KMSG == yes ]; then
+  echo "initramfs:" $1 >> /dev/kmsg
 else
-   # For overlayfs version V20/V21 (modulename ='overlayfs')
-   modprobe overlayfs
+  echo "initramfs:" $1
 fi
-modprobe squashfs
-modprobe nls_cp437
+}
 
-# Parse the kernel command line from grub
+# Parse the kernel command line
 
 CMDLINE="$(cat /proc/cmdline)"
 
@@ -77,44 +76,59 @@ do
   bootdelay)
     BOOTDELAY=$value
     ;;
+  use_kmsg)
+    USE_KMSG=$value
+    ;;
   esac
 done
 
+print_msg "Booting Volumio for $(cat /proc/cpuinfo | grep Hardware )"
+print_msg "	This script mounts rootfs RO with an overlay RW layer."
+if [ $OVERLAY == WITHWRKDIR ]; then
+   # For overlayfs version V22 or higher (modulename 'overlay')
+   modprobe overlay
+else
+   # For overlayfs version V20/V21 (modulename ='overlayfs')
+   modprobe overlayfs
+fi
+modprobe squashfs
+modprobe nls_cp437
+
 if [ -z "${IMGPART}" ]; then
-  echo "Specify the squash image partition after the kernel command ${CMDLINE}"
-  echo "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  print_msg "Specify the squash image partition after the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
   exec sh
   exit 0
 fi
 
 if [ -z "${IMGFILE}" ]; then
-  echo "Specify the squash image file after the kernel command ${CMDLINE}"
-  echo "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
+  print_msg "Specify the squash image file after the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
   exec sh
   exit 0
 fi
 
-echo IMGPART=${IMGPART}
-echo IMGFILE=${IMGFILE}
+print_msg IMGPART=${IMGPART}
+print_msg IMGFILE=${IMGFILE}
 if [ ! -z "${BOOTDELAY}" ]; then
-  echo "Boot delay (except first time) will be ${BOOTDELAY} seconds"
+  print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
 fi
 
 # Retry mdev -s 3 times before throwing the towel
 for i in 1 2 3 4 5 6
   do
     if [ ! -b "${IMGPART}" ]; then
-      echo  "${IMGPART} not detected,retrying mdev in 5 seconds"
+      print_msg  "${IMGPART} not detected,retrying mdev in 5 seconds"
 	  sleep 0.5
       mdev -s
     else
-	  blkid ${IMGPART}
+	  print_msg `blkid ${IMGPART}`
       break
     fi
   done
 
 if [ ! -b "${IMGPART}" ]; then
-  echo "No partition with ${IMGPART} has been found"
+  print_msg "No partition with ${IMGPART} has been found"
   exec sh
   exit 0
 fi
@@ -130,27 +144,27 @@ mount -t ext4 ${IMGPART} /mnt/imgpart
 #when already present and a bootdelay parameter was specified then give the kernel the additional headstart
 #
 if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
-  echo "Creating factory image, this will take a minute, please wait..."
+  print_msg "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
-  echo "Factory image created"
+  print_msg "Factory image created"
 elif [ ! -z "${BOOTDELAY}" ]; then
-  echo "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
+  print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
   sleep ${BOOTDELAY}
 fi
 
-echo "Checking for USB updates"
+print_msg "Checking for USB updates"
 [ -e /dev/sda1 ] || mdev -s
 if [ -e /dev/sda1 ]; then
   [ -d /mnt/usb ] || mkdir /mnt/usb
   mount -t auto /dev/sda1 /mnt/usb
   #If there is a firmware file inside the usb
   if [ -e /mnt/usb/volumio.fir ]; then
-	echo "Firmware found, updating will take a few minutes, please wait..."
+	print_msg "Firmware found, updating will take a few minutes, please wait..."
     #when the partitions are mounted we can launch the update script
     volumio-init-updater
   fi
   if [ -e /mnt/usb/factory_reset ]; then
-    echo "Factory Reset on USB"
+    print_msg "Factory Reset on USB"
     mkdir /mnt/factory
     mount -t auto /dev/mmcblk0p1 /mnt/factory
     echo " " > /mnt/factory/factory_reset
@@ -161,14 +175,14 @@ if [ -e /dev/sda1 ]; then
   umount /dev/sda1
   rm -r /mnt/usb
 else
-  echo "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
+  print_msg "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
 fi
 
 
 # 2) init a loop pointing to the image file
 loop_free=$(losetup -f | sed s#p/#p#)
 if [ ! -e ${loop_free} ]; then
-  echo "Device node does not exist, creating it..."
+  print_msg "Device node does not exist, creating it..."
   # use last char from loop_device as minor device number
   minor=$(echo ${loop_free} | sed 's/.*\(.\)/\1/')
   mknod $loop_free b 7 $minor
@@ -186,24 +200,24 @@ VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 mkdir /mnt/factory
 mount -t auto /dev/mmcblk0p1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
-  echo "Executing factory reset"
+  print_msg "Executing factory reset"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
 
-  echo "Factory reset executed: part I"
+  print_msg "Factory reset executed: part I"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
   sync
-  echo "Factory reset executed: part II - end"
+  print_msg "Factory reset executed: part II - end"
   
   #Setting 5 second for rebooting after kernel panic (sometimes it happens after factory reset)
   echo 5 > /proc/sys/kernel/panic
 
 fi
 if [ -e "/mnt/factory/user_data" ]; then
-  echo "Deleting User Data"
+  print_msg "Deleting User Data"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
   rm /mnt/factory/user_data
   
-  echo "User Data successfully deleted "
+  print_msg "User Data successfully deleted "
 fi
 umount /mnt/factory
 rm -r /mnt/factory
@@ -211,12 +225,12 @@ rm -r /mnt/factory
 mkdir boot
 mount -t auto /dev/mmcblk0p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
-echo "Re-sizing Volumio data partition"
+print_msg "Re-sizing Volumio data partition"
   END="$(parted -s /dev/mmcblk0 unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s /dev/mmcblk0 resizepart 3 ${END}
   e2fsck -fy /dev/mmcblk0p3
   resize2fs /dev/mmcblk0p3
-  echo "Volumio data partition succesfully resized"
+  print_msg "Volumio data partition succesfully resized"
   parted -s /dev/mmcblk0 unit MB print
   rm /boot/resize-volumio-datapart
 fi
@@ -234,10 +248,10 @@ mount -t ext4 -o noatime /dev/mmcblk0p3 /mnt/ext
 # 5) mount the writable overlay to the static image
 if [ $OVERLAY == WITHWRKDIR ]; then
   [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
-  echo "With Option:" $OVERLAY
+  print_msg "With Option:" $OVERLAY
   mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
 else
-  echo "Without Option:" $OVERLAY
+  print_msg "Without Option:" $OVERLAY
   mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
 fi
 
@@ -251,10 +265,10 @@ chmod -R 777 /mnt/ext/union/imgpart
 umount /proc
 umount /sys
 
-echo ${VOLUMIO_VERSION}
-echo "Finish initramfs, continue booting Volumio"
+print_msg ${VOLUMIO_VERSION}
+print_msg "Finish initramfs, continue booting Volumio"
 exec switch_root /mnt/ext/union /sbin/init
 
-echo "Failed to switch_root, dropping to a shell"
+print_msg "Failed to switch_root, dropping to a shell"
 exec sh
 
