@@ -42,7 +42,6 @@ deb-src http://archive.raspberrypi.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
 echo "Adding Raspberrypi.org Repo Key"
-
 wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
 
 echo "Installing R-pi specific binaries"
@@ -95,19 +94,15 @@ Pin: release *
 Pin-Priority: -1" > /etc/apt/preferences
 apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
 
+echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & few others firmware upgraging to Pi Foundations packages"
+apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
+
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
 echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
 wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
-
-echo "Adding PI3 & PiZero W Wireless firmware"
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
-
-echo "Adding PI WIFI Wireless dongle firmware"
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /lib/firmware/brcm/
 
 #echo "Adding raspi-config"
 #wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
