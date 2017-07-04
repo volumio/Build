@@ -66,12 +66,12 @@ case $KERNEL_VERSION in
       KERNEL_REV="884"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
-      ;; 
+      ;;
     "4.9.31")
       KERNEL_REV="1005"
       KERNEL_COMMIT="9e6a1a545ef33ac6cc3805845cb3ecac26514a41"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
-      ;; 
+      ;;
 esac
 
 # using rpi-update relevant to defined kernel version
@@ -95,7 +95,7 @@ Pin: release *
 Pin-Priority: -1" > /etc/apt/preferences
 apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
 
-if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
 echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
@@ -133,7 +133,7 @@ dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0 snd-soc-core.pmdown_time=-1" >> /boot/cmdline.txt
 
 echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
@@ -262,7 +262,7 @@ wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/m
 echo "Extracting Allo Firmwares"
 tar xf master.tar.gz
 cp -rp /piano-firmware-master/* /
-rm -rf /piano-firmware-master 
+rm -rf /piano-firmware-master
 rm /README.md
 rm master.tar.gz
 echo "Allo firmware installed"
