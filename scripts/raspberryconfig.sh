@@ -47,12 +47,11 @@ wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-k
 
 echo "Installing R-pi specific binaries"
 apt-get update
-apt-get -y install binutils i2c-tools
+apt-get -y install i2c-tools rpi-update
 # Commenting raspi-config, not sure it is really needed
 #apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
 
 echo "Installing Kernel from Rpi-Update"
-sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
 touch /boot/start.elf
 mkdir /lib/modules
 
@@ -109,11 +108,6 @@ wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin 
 echo "Adding PI WIFI Wireless dongle firmware"
 wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /lib/firmware/brcm/
 
-#echo "Adding raspi-config"
-#wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
-#dpkg -i /raspi/raspi-config_20151019_all.deb
-#rm -Rf /raspi
-
 echo "Installing WiringPi from Raspberrypi.org Repo"
 apt-get -y install wiringpi
 
@@ -166,7 +160,7 @@ EOF
 echo "${Rule_String}" > /etc/udev/rules.d/99-com.rules
 
 echo "Removing unneeded binaries"
-apt-get -y remove binutils
+apt-get -y remove rpi-update
 
 echo "Writing config.txt file"
 echo "initramfs volumio.initrd
