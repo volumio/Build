@@ -408,6 +408,11 @@ touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
+echo "Setting mpdignore file"
+echo "@Recycle
+#recycle
+" > /var/lib/mpd/music/.mpdignore
+
 echo "Setting mpc to bind to unix socket"
 export MPD_HOST=/run/mpd/socket
 
