@@ -431,6 +431,12 @@ ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.tar
 echo "Adding Iptables Service"
 ln -s /lib/systemd/system/iptables.service /etc/systemd/system/multi-user.target.wants/iptables.service
 
+echo "Disabling SSH by default"
+systemctl disable ssh.service
+
+echo "Enable Volumio SSH enabler"
+ln -s /lib/systemd/system/volumiossh.service /etc/systemd/system/multi-user.target.wants/volumiossh.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
