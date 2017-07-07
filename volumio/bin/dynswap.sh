@@ -21,4 +21,8 @@ if [ "${RAMSIZE}" -le 512844 ] && [ "${SWAPDEVS}" -le 1 ]; then
         echo "Setting swappiness to 40"
         sysctl vm.swappiness=40
     fi
+    echo "Enabling Swap"
+    swapon /data/swapfile
+    echo "Setting swappiness to 40"
+    sysctl vm.swappiness=40
 fi

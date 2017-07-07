@@ -253,7 +253,7 @@ echo "unpacking kernel"
 fi
 
 # if data partition needs to be resized
-
+mount -t auto /dev/mmcblk0p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
 echo "Re-sizing Volumio data partition"
   END="$(parted -s /dev/mmcblk0 unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
