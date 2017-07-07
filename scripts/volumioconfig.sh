@@ -243,9 +243,9 @@ if [ $(uname -m) = armv7l ]; then
   chmod a+x /usr/bin/zsync
 
   echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.0-armhf.deb
-  dpkg -i volumio-remote-updater_1.0-armhf.deb
-  rm volumio-remote-updater_1.0-armhf.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.1-armhf.deb
+  dpkg -i volumio-remote-updater_1.1-armhf.deb
+  rm volumio-remote-updater_1.1-armhf.deb
 
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
