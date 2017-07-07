@@ -121,6 +121,10 @@ sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 echo "Installing Japanese, Korean, Chinese and Taiwanese fonts"
 apt-get -y install fonts-arphic-ukai fonts-arphic-gbsn00lp fonts-unfonts-core
 
+echo "Configuring boot splash"
+apt-get -y install plymouth plymouth-themes plymouth-x11
+plymouth-set-default-theme volumio
+
 echo "Setting up in kiosk-mode"
 echo "  Creating chromium kiosk start script"
 echo "#!/bin/bash

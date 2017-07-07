@@ -1,0 +1,16 @@
+language: bash
+
+sudo: false
+
+addons:
+  apt:
+    sources:
+    - debian-sid
+    packages:
+    - shellcheck
+
+script:
+ - find . -iname "*.sh" -exec shellcheck "{}" \;
+
+matrix:
+  fast_finish: true
