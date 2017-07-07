@@ -1,0 +1,14 @@
+[Unit]
+Description = Volumio Splash
+
+
+[Service]
+ExecStart=/bin/volumiosplash.sh
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=volumio-splash
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
