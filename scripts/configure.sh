@@ -88,7 +88,7 @@ chmod a+x build/$BUILD/root/bin/wifistart.sh
 #udev script
 cp volumio/bin/rename_netiface0.sh build/$BUILD/root/bin/rename_netiface0.sh
 chmod a+x build/$BUILD/root/bin/rename_netiface0.sh
-#Plymouth
+#Plymouth & upmpdcli files
 cp -rp volumio/usr/*  build/$BUILD/root/usr/
 #SSH
 cp volumio/bin/volumiossh.sh build/$BUILD/root/bin/volumiossh.sh

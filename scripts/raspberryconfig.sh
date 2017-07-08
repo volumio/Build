@@ -186,49 +186,57 @@ cd wifi
 echo "WIFI: 8192EU for armv7"
 wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
+sh install.sh
 rm -rf *
 
 echo "WIFI: 8192EU for armv6"
 wget $MRENGMAN_REPO/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
+sh install.sh
 rm -rf *
 
 echo "WIFI: 8812AU for armv7"
 wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
+sh install.sh
 rm -rf *
 
 echo "WIFI: 8812AU for armv6"
 wget $MRENGMAN_REPO/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
+sh install.sh
 rm -rf *
 
 echo "WIFI: 8188EU for armv7"
 wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
+sh install.sh
 rm -rf *
 
 echo "WIFI: 8188EU for armv6"
 wget $MRENGMAN_REPO/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf 8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
+sh install.sh
 rm -rf *
 
 echo "WIFI: MT7610 for armv7"
 wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
+sh install.sh
 rm -rf *
 
 echo "WIFI: MT7610 for armv6"
 wget $MRENGMAN_REPO/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
 tar xf mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-./install.sh
+sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
+sh install.sh
 rm -rf *
 
 cd ..
@@ -289,7 +297,6 @@ fi
 fi
 
 echo "Installing winbind here, since it freezes networking"
-apt-get update
 apt-get install -y winbind libnss-winbind
 
 echo "Finalising drivers installation with depmod on $KERNEL_VERSION+ and $KERNEL_VERSION-v7+"
