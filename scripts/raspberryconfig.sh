@@ -117,53 +117,9 @@ wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /l
 echo "Installing WiringPi from Raspberrypi.org Repo"
 apt-get -y install wiringpi
 
-echo "adding gpio & spi group and permissions"
-groupadd -f --system gpio
-groupadd -f --system spi
-
-echo "adding volumio to gpio group and al"
-usermod -a -G gpio,i2c,spi,input volumio
-
 echo "Configuring boot splash"
 apt-get -y install plymouth plymouth-themes
 plymouth-set-default-theme volumio
-
-echo "Use up-to-date jessie rules for gpio & al."
-read -rd '' Rule_String <<"EOF"
-SUBSYSTEM=="input", GROUP="input", MODE="0660"
-SUBSYSTEM=="i2c-dev", GROUP="i2c", MODE="0660"
-SUBSYSTEM=="spidev", GROUP="spi", MODE="0660"
-SUBSYSTEM=="bcm2835-gpiomem", GROUP="gpio", MODE="0660"
-
-SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c '\
-	chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
-	chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio;\
-	chown -R root:gpio /sys$devpath && chmod -R 770 /sys$devpath\
-'"
-
-KERNEL=="ttyAMA[01]", PROGRAM="/bin/sh -c '\
-	ALIASES=/proc/device-tree/aliases; \
-	if cmp -s $ALIASES/uart0 $ALIASES/serial0; then \
-		echo 0;\
-	elif cmp -s $ALIASES/uart0 $ALIASES/serial1; then \
-		echo 1; \
-	else \
-		exit 1; \
-	fi\
-'", SYMLINK+="serial%c"
-
-KERNEL=="ttyS0", PROGRAM="/bin/sh -c '\
-	ALIASES=/proc/device-tree/aliases; \
-	if cmp -s $ALIASES/uart1 $ALIASES/serial0; then \
-		echo 0; \
-	elif cmp -s $ALIASES/uart1 $ALIASES/serial1; then \
-		echo 1; \
-	else \
-		exit 1; \
-	fi \
-'", SYMLINK+="serial%c"
-EOF
-echo "${Rule_String}" > /etc/udev/rules.d/99-com.rules
 
 echo "Removing unneeded binaries"
 apt-get -y remove binutils
@@ -176,9 +132,21 @@ dtparam=audio=on
 dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
-
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+
+echo "adding gpio & spi group and permissions"
+groupadd -f --system gpio
+groupadd -f --system spi
+
+echo "adding volumio to gpio group and al"
+usermod -a -G gpio,i2c,spi,input volumio
+
+echo "Installing raspberrypi-sys-mods System customizations (& removing few bits)"
+apt-get -y install raspberrypi-sys-mods
+rm /etc/sudoers.d/010_pi-nopasswd
+unlink /etc/systemd/system/multi-user.target.wants/sshswitch.service
+rm /lib/systemd/system/sshswitch.service
 
 echo "Exporting /opt/vc/bin variable"
 export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
