@@ -17,21 +17,8 @@ mdev -s
 
 #Defaults which may be overridden by cmdline parameters
 USE_KMSG="yes"
-
-#Hardware specific adaptions
-
-HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
-if [ $HWDEVICE == ODROID-C2 ] ; then
-   exec >/dev/kmsg 2>&1 </dev/console
-fi
-
-# Odroid C1, SparkySBC, Banana PI, Pine64 and Cubox have overlayfs version < V22
-if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ] || [ $HWDEVICE == Freescale ]; then
-   OVERLAY=NOWRKDIR
-   exec >/dev/kmsg 2>&1 </dev/console
-else
-   OVERLAY=WITHWRKDIR
-fi
+HWDEVICE="empty"
+BOOTDEV="mmcblk0"
 
 # Display a message or print directly to /dev/kmsg
 print_msg() {
@@ -79,10 +66,35 @@ do
   use_kmsg)
     USE_KMSG=$value
     ;;
+  bootdev)
+    BOOTDEV=$value
+    ;;
+  hwdevice)
+    HWDEVICE=$value
+    ;;
   esac
 done
 
-print_msg "Booting Volumio for $(cat /proc/cpuinfo | grep Hardware )"
+#Hardware specific adaptions
+
+#When we did not already get the device name from the cmdline, try getting it from cpuinfo
+if [ $HWDEVICE == empty ]; then
+  HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
+fi
+
+if [ $HWDEVICE == ODROID-C2 ]; then
+   exec >/dev/kmsg 2>&1 </dev/console
+fi
+
+# Odroid C1, SparkySBC, Banana PI, Pine64 and Cubox have overlayfs version < V22
+if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ] || [ $HWDEVICE == Freescale ]; then
+   OVERLAY=NOWRKDIR
+   exec >/dev/kmsg 2>&1 </dev/console
+else
+   OVERLAY=WITHWRKDIR
+fi
+
+print_msg "Booting Volumio for for ${HWDEVICE}"
 print_msg "	This script mounts rootfs RO with an overlay RW layer."
 if [ $OVERLAY == WITHWRKDIR ]; then
    # For overlayfs version V22 or higher (modulename 'overlay')
