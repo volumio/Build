@@ -28,7 +28,19 @@ parse_disk() {
   fi
 }
 
-echo "Preparing Volumio Boot Process for X86"
+# Display a message or print directly to /dev/kmsg
+print_msg() {
+if [ $USE_KMSG == yes ]; then
+  echo "initramfs:" $1 >> /dev/kmsg
+else
+  echo "initramfs:" $1
+fi
+}
+
+#Defaults which may be overridden by cmdline parameters
+USE_KMSG="yes"
+
+print_msg "Preparing Volumio Boot Process for X86"
 #  -- checking if a firmware update is available on the
 #     first partition of any additional USB device
 #  -- resizing a newly flashed Volumio device
@@ -36,7 +48,7 @@ echo "Preparing Volumio Boot Process for X86"
 #  -- creating the overlay fs
 #     (rootfs RO and volumio_data (RW)
 
-echo "Loading the necessary modules..." 
+print_msg "Loading the necessary modules..." 
 
 modprobe overlay 
 modprobe squashfs
@@ -62,7 +74,7 @@ modprobe hid_cherry
 modprobe hid_generic
 modprobe loop
 
-echo "Mounting the basic files systems..."
+print_msg "Mounting the basic files systems..."
 [ -d /proc ] || mkdir /proc
 mount -t proc none /proc
 [ -d /sys ] || mkdir /sys
@@ -71,7 +83,7 @@ mount -t sysfs none /sys
 mknod /dev/null c 1 3
 mknod /dev/tty c 5 0
 
-echo "Now probing usb  and pci storage..."
+print_msg "Now probing usb  and pci storage..."
 modprobe usb_storage
 modprobe libata
 modprobe libahci
@@ -87,12 +99,9 @@ modprobe sata_sis
 modprobe sata_via
 modprobe ata_generic
 
-echo "Waiting for storage devices to become ready"
+print_msg "Waiting for storage devices to become ready"
 sleep 5
 mdev -s
-
-#uncomment when console out needs to include kenel and initrd messages (debugging)
-#exec >/dev/kmsg 2>&1 </dev/console
 
 # Parse the kernel command line from grub
 CMDLINE="$(cat /proc/cmdline)"
@@ -112,42 +121,45 @@ do
   imgfile)
     IMGFILE=$value
     ;;
+  use_kmsg)
+    USE_KMSG=$value
+    ;;
   esac
 done
 
 if [ -z "${BOOTPART}" ]; then
-  echo "Specify the squash image partition on the kernel command ${CMDLINE}"
-  echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
-  echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
-  echo "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
+  print_msg "Specify the squash image partition on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
   exec sh
   exit 0
 fi
 
 if [ -z "${IMGPART}" ]; then
-  echo "Specify the squash image partition on the kernel command ${CMDLINE}"
-  echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
-  echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
-  echo "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
+  print_msg "Specify the squash image partition on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
   exec sh
   exit 0
 fi
 
 if [ -z "${IMGFILE}" ]; then
-  echo "Specify the squash image file after the kernel command ${CMDLINE}"
-  echo "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
-  echo "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
-  echo "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
+  print_msg "Specify the squash image file after the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 imgfile=/volumio_current.sqs or" 
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot imgfile=/volumio_current.sqs" 
   exec sh
   exit 0
 fi
 
-echo IMGPART=${IMGPART}
-echo IMGFILE=${IMGFILE}
-echo BOOTPART=${BOOTPART}
+print_msg IMGPART=${IMGPART}
+print_msg IMGFILE=${IMGFILE}
+print_msg BOOTPART=${BOOTPART}
 
 if [ ! -b "${IMGPART}" ]; then
-  echo "No partition with ${IMGPART} has been found"
+  print_msg "No partition with ${IMGPART} has been found"
   exec sh
   exit 0
 fi
@@ -159,7 +171,7 @@ fi
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
-echo "Initrd initialisation finished"
+print_msg "Initrd initialisation finished"
 
 #
 # Step 1: As the image likely has been dd'ed to a bigger disk, 
@@ -170,14 +182,14 @@ echo "Initrd initialisation finished"
 
 BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
 if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
-  echo "First time boot, moving the backup GPT table to the end of the disk..."
+  print_msg "First time boot, moving the backup GPT table to the end of the disk..."
   gdisk ${BOOT_DEVICE} > /dev/null  2>&1 <<EOF
 x
 e
 w
 y
 EOF
-  echo "Succesfully moved the backup GPT table"
+  print_msg "Succesfully moved the backup GPT table"
 fi
 
 #
@@ -185,9 +197,9 @@ fi
 # =============================================================
 #
 if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
-  echo "Creating factory image, this will take a minute, please wait..."
+  print_msg "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
-  echo "Factory image created"
+  print_msg "Factory image created"
 fi
 
 #
@@ -195,7 +207,7 @@ fi
 #         or factory reset file on usb
 # =======================================
 #
-echo "Detecting additional removable devices"
+print_msg "Detecting additional removable devices"
 mkdir /mnt/usb
 usb_done=/dev/
 for devlink in /dev/sd*
@@ -204,10 +216,10 @@ for devlink in /dev/sd*
 	usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g') 
 	if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
       mount -t auto $(echo ${usb_dev}1) /mnt/usb > /dev/null  2>&1
-      echo "Checking " $usb_dev"1 for a volumio rootfs update" 
+      print_msg "Checking " $usb_dev"1 for a volumio rootfs update" 
       if [ -e /mnt/usb/volumio.fir ]; then
-        echo "New rootfs firmware found"
-        echo "Updating will take several minutes, please wait...."
+        print_msg "New rootfs firmware found"
+        print_msg "Updating will take several minutes, please wait...."
 		volumio-init-updater
 	    umount /mnt/usb > /dev/null 2>&1
 	    break
@@ -216,19 +228,19 @@ for devlink in /dev/sd*
     fi
 	usb_done=${usb_dev}
   done
-echo "Checking for factory reset on an additional device"
+print_msg "Checking for factory reset on an additional device"
 for devlink in /dev/sd*
   do 
 	# only checking the first partition of an additional device!
 	usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g') 
 	if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
       mount -t auto $(echo ${usb_dev}1) /mnt/usb > /dev/null  2>&1
-      echo "Checking " $usb_dev"1 for a factory reset" 
+      print_msg "Checking " $usb_dev"1 for a factory reset" 
       if [ -e /mnt/usb/factory_reset ]; then
         mkdir /mnt/factory
         mount -t auto ${BOOT_DEVICE}1 /mnt/factory
         echo " " > /mnt/factory/factory_reset
-        echo "Factory reset initiated"
+        print_msg "Factory reset initiated"
         umount /mnt/factory
         rm -r /mnt/factory
 	    umount /mnt/usb > /dev/null  2>&1
@@ -246,23 +258,23 @@ rmdir /mnt/usb
 # ============================================================================
 #
 #
-echo "Checking for factory or user-data reset on boot device"
+print_msg "Checking for factory or user-data reset on boot device"
 mkdir /mnt/factory
 mount -t vfat ${BOOT_DEVICE}1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
-  echo "Executing factory reset..."
+  print_msg "Executing factory reset..."
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumio_data
 
-  echo "Factory reset executed: part I"
+  print_msg "Factory reset executed: part I"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
-  echo "Factory reset executed: part II - end"
+  print_msg "Factory reset executed: part II - end"
 fi
 if [ -e "/mnt/factory/user_data" ]; then
-  echo "Deleting User Data..."
+  print_msg "Deleting User Data..."
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumio_data
   rm /mnt/factory/user_data
   
-  echo "User Data successfully deleted "
+  print_msg "User Data successfully deleted "
 fi
 umount /mnt/factory
 rm -r /mnt/factory
@@ -271,16 +283,16 @@ rm -r /mnt/factory
 # Step 5: Re-size the data partition (if sentinel file present)
 # =============================================================
 #
-echo "Checking for data partition re-size"
+print_msg "Checking for data partition re-size"
 mkdir boot
 mount -t vfat ${BOOTPART} /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
-  echo "Re-sizing Volumio data partition..."
+  print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s ${BOOT_DEVICE} resizepart 3 ${END}
   e2fsck -f ${BOOT_DEVICE}3
   resize2fs ${BOOT_DEVICE}3
-  echo "Volumio data partition succesfully resized"
+  print_msg "Volumio data partition succesfully resized"
   parted -s ${BOOT_DEVICE} unit MB print
   rm /boot/resize-volumio-datapart
 fi
@@ -330,7 +342,7 @@ chmod -R 777 /mnt/ext/union/imgpart
 #         This step fixes that 
 # ============================================================================================
 UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
-echo "Editing fstab to use UUID=<correct uuid of bootpartition>"
+print_msg "Editing fstab to use UUID=<correct uuid of bootpartition>"
 if [ -e "/mnt/ext/union/etc/fstab.prev" ]; then
   rm /mnt/ext/union/etc/fstab.prev
 fi
@@ -338,14 +350,14 @@ mv /mnt/ext/union/etc/fstab /mnt/ext/union/etc/fstab.prev
 cp /mnt/ext/union/etc/fstab.tmpl /mnt/ext/union/etc/fstab
 sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /mnt/ext/union/etc/fstab
 
-echo ${VOLUMIO_VERSION}
-echo "Finishing initramfs, switching rootfs and starting the boot process..."
+print_msg ${VOLUMIO_VERSION}
+print_msg "Finishing initramfs, switching rootfs and starting the boot process..."
 umount /proc
 umount /sys
 
 exec switch_root /mnt/ext/union /sbin/init
 
-echo "Failed to switch_root, dropping to a shell"
+print_msg "Failed to switch_root, dropping to a shell"
 exec sh 
 
 
