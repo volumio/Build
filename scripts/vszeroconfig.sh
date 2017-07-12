@@ -21,14 +21,14 @@ echo "Adding default sound modules"
 #
 #" >> /etc/modules
 
-echo "#!/bin/sh
-echo 2 > /proc/irq/45/smp_affinity
-" > /usr/local/bin/vszero-init.sh
-chmod +x /usr/local/bin/vszero-init.sh
+#echo "#!/bin/sh
+#echo 2 > /proc/irq/45/smp_affinity
+#" > /usr/local/bin/vszero-init.sh
+#chmod +x /usr/local/bin/vszero-init.sh
 
-echo "#!/bin/sh -e
-/usr/local/bin/vszero-init.sh
-exit 0" > /etc/rc.local
+#echo "#!/bin/sh -e
+#/usr/local/bin/vszero-init.sh
+#exit 0" > /etc/rc.local
 
 echo "Installing additonal packages"
 apt-get update
