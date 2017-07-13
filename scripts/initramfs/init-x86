@@ -279,6 +279,31 @@ fi
 umount /mnt/factory
 rm -r /mnt/factory
 
+
+# if the update failed before completion
+mkdir boot
+mount -t vfat ${BOOTPART} /boot
+if [ -e "/boot/update_process" ]; then
+print_msg "Previous update attempt failed, restoring fallbacks"
+  cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
+  cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
+  if [-e "/boot/kernel_update" ]; then
+    rm /boot/kernel_update
+  fi
+  rm /boot/update_process
+fi
+
+# if the kernel has been updated, and no error has occurred before completition
+if [ -e "/boot/kernel_update" ]; then
+print_msg "unpacking kernel"
+  tar xf /mnt/imgpart/kernel_current.tar -C /boot
+  rm /boot/kernel_update
+  sync
+  umount /boot
+  rm -rf /boot
+  echo b > /proc/sysrq-trigger
+fi
+
 #
 # Step 5: Re-size the data partition (if sentinel file present)
 # =============================================================
