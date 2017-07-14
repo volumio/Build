@@ -200,6 +200,13 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   print_msg "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
   print_msg "Factory image created"
+  print_msg "Creating archive for factory kernel..."
+  mkdir /mnt/factory
+  mount -t vfat ${BOOT_DEVICE}1 /mnt/factory
+  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
+  cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
+  umount /mnt/factory
+  rm -r /mnt/factory
 fi
 
 #
