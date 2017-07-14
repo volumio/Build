@@ -15,7 +15,7 @@ while getopts ":d:v:p:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-voltastreamer0.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-voltastream0.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -53,7 +53,7 @@ mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the Voltastreamer Zero kernel/ platform files"
+echo "Preparing for the Voltastream Zero kernel/ platform files"
 if [ -d platform-pv ]
 then
 	echo "Platform folder already exists - keeping it"
@@ -62,7 +62,7 @@ then
 else
 	echo "Clone Polyvection files from repo"
 	git clone https://github.com/volumio/platform-pv.git platform-pv
-	echo "Unpack the Voltastreamer Zero platform files"
+	echo "Unpack the Voltastream Zero platform files"
 	cd platform-pv
 	tar xfJ vszero.tar.xz
 	cd ..
@@ -97,15 +97,15 @@ mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying Voltastreamer boot files"
+echo "Copying Voltastream0 boot files"
 cp -R platform-pv/vszero/boot/* /mnt/volumio/rootfs/boot/
 
-echo "Copying Voltastreamer modules and firmware"
+echo "Copying Voltastream0 modules and firmware"
 cp -pdR platform-pv/vszero/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-pv/vszero/lib/firmware /mnt/volumio/rootfs/lib/
 sync
 
-echo "Preparing to run chroot for more Voltastreamer configuration"
+echo "Preparing to run chroot for more Voltastream0 configuration"
 cp scripts/vszeroconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
@@ -130,7 +130,7 @@ umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-echo "==> Voltastreamer Zero device installed"
+echo "==> Voltastream Zero device installed"
 
 sync
 
