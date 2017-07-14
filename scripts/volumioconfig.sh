@@ -364,8 +364,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   chmod a+x /usr/bin/zsync
 
   echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater -P /usr/local/sbin/
-  chmod a+x /usr/local/sbin/volumio-remote-updater
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.1-i386.deb
+  dpkg -i volumio-remote-updater_1.1-i386.deb
+  rm /volumio-remote-updater_1.1-i386.deb
 
 
 fi
