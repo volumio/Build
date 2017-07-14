@@ -157,9 +157,9 @@ if [ -n "$BUILD" ]; then
   mkdir "build/$BUILD/root/volumio"
   if [ -n "$PATCH" ]; then
   echo "Cloning Volumio with all its history"
-  git clone -b volumionext --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  git clone -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   else 
-  git clone --depth 1 -b volumionext --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
