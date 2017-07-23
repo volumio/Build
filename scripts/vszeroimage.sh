@@ -103,6 +103,8 @@ cp -R platform-pv/vszero/boot/* /mnt/volumio/rootfs/boot/
 echo "Copying Voltastream0 modules and firmware"
 cp -pdR platform-pv/vszero/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-pv/vszero/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying Voltastream0 inittab"
+cp platform-pv/vszero/etc/inittab /mnt/volumio/rootfs/etc/
 sync
 
 echo "Preparing to run chroot for more Voltastream0 configuration"
