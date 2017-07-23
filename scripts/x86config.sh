@@ -5,7 +5,6 @@ PATCH=$(cat /patch)
 echo "Initializing.."
 . init.sh
 
-
 echo "Installing the kernel and creating initramfs"
 # Kernel version not known yet
 # Not brilliant, but safe enough as x86.sh only copied one image and one firmware package version
@@ -14,6 +13,7 @@ dpkg -i linux-firmware-*_i386.deb
 
 KRNL=`ls -l /boot |grep vmlinuz | awk -F'vmlinuz-' '{print $2}'`
 cp e1000e.ko /lib/modules/$KRNL/kernel/drivers/net/ethernet/intel/e1000e/
+depmod $KRNL
 
 echo "Creating node/ nodejs symlinks to stay compatible with the armv6/v7 platforms"
 ln -s /usr/bin/nodejs /usr/local/bin/nodejs
@@ -31,9 +31,6 @@ syslinux "${BOOT_PART}"
 
 echo "  Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
-
-#uncomment for debugging, also edit init-x86 to enable kernel & initrd messages
-#DEBUG="console=ttyS0 console=tty0 ignore_loglevel"
 
 echo "  Creating syslinux.cfg template for Syslinux Legacy BIOS"
 echo "DEFAULT volumio
@@ -62,8 +59,6 @@ sed -i "s/LINUX_ROOT_DEVICE=UUID=\${GRUB_DEVICE_UUID}/LINUX_ROOT_DEVICE=imgpart=
 echo "Setting grub image"
 cp /usr/share/plymouth/themes/volumio/volumio-logo16.png /boot/volumio.png
 
-
-
 echo "  Creating grub config folder"
 mkdir -p /boot/grub
 
@@ -83,7 +78,6 @@ EOF
 chmod +x /usr/sbin/policy-rc.d
 
 echo "  Installing grub-efi-amd64 to make the 64bit UEFI bootloader"
-
 apt-get update
 apt-get -y install grub-efi-amd64-bin
 grub-mkstandalone --compress=gz -O x86_64-efi -o /boot/efi/BOOT/BOOTX64.EFI -d /usr/lib/grub/x86_64-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes="" /boot/grub/grub.cfg
@@ -91,6 +85,7 @@ if [ ! -e /boot/efi/BOOT/BOOTX64.EFI ]; then
 	echo "Fatal error, no 64bit bootmanager created, aborting..." 
     exit 1
 fi
+
 #we cannot install grub-efi-amd64 and grub-efi-ia32 on the same machine.
 #on the off-chance that we need a 32bit bootloader, we remove amd64 and install ia32 to generate one
 echo "  Uninstalling grub-efi-amd64"
@@ -115,6 +110,7 @@ rm /usr/sbin/policy-rc.d
 
 echo "Copying fstab as a template to be used in initrd"
 cp /etc/fstab /etc/fstab.tmpl
+
 echo "Editing fstab to use UUID=<uuid of boot partition>"
 sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 
@@ -156,7 +152,6 @@ TimeoutSec=300
 WantedBy=multi-user.target
 " > /lib/systemd/system/volumio-kiosk.service
 ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
-
 
 echo "  Allowing volumio to start an xsession"
 sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
