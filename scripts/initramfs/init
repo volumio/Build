@@ -257,8 +257,6 @@ print_msg "Previous update attempt failed, restoring fallbacks"
   fi
   rm /boot/update_process
 fi
-umount /boot
-rm -rf /boot
 
 # if the kernel has been updated, and no error has occurred before completition
 if [ -e "/boot/kernel_update" ]; then
