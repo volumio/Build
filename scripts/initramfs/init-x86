@@ -286,12 +286,15 @@ fi
 umount /mnt/factory
 rm -r /mnt/factory
 
-
+#
+# Step 5: Handling of kernel updates
+# ===========================================================
+#
 # if the update failed before completion
 mkdir boot
 mount -t vfat ${BOOTPART} /boot
 if [ -e "/boot/update_process" ]; then
-print_msg "Previous update attempt failed, restoring fallbacks"
+  print_msg "Previous update attempt failed, restoring fallbacks"
   cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
   cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
   if [-e "/boot/kernel_update" ]; then
@@ -301,9 +304,21 @@ print_msg "Previous update attempt failed, restoring fallbacks"
 fi
 
 # if the kernel has been updated, and no error has occurred before completition
+# Retrieve current UUID of boot and image partition
+# These need to be edited into the new boot configs to make the new update bootable
 if [ -e "/boot/kernel_update" ]; then
-print_msg "unpacking kernel"
+  print_msg "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
+  UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
+  UUID_IMG=$(blkid -s UUID -o value ${IMGPART})
+  cp /boot/syslinux.cfg /boot/syslinux.cfg.old
+  cp /boot/syslinux.tmpl /boot/syslinux.cfg
+  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
+  cp /boot/grub/grub.cfg cp /boot/grub/grub.cfg.old
+  cp /boot/grub/grub.tmpl /boot/grub/grub.cfg
+  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
+  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
   rm /boot/kernel_update
   sync
   umount /boot
@@ -312,7 +327,7 @@ print_msg "unpacking kernel"
 fi
 
 #
-# Step 5: Re-size the data partition (if sentinel file present)
+# Step 6: Re-size the data partition (if sentinel file present)
 # =============================================================
 #
 print_msg "Checking for data partition re-size"
@@ -332,7 +347,7 @@ umount /boot
 rm -r /boot
 
 #
-# Step 6: mount the squashfs (RO) on /mnt/static
+# Step 7: mount the squashfs (RO) on /mnt/static
 # ==============================================
 #
 loop_free=$(losetup -f | sed s#p/#p#)
@@ -347,7 +362,7 @@ mount -t squashfs $loop_free /mnt/static
 VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 
 #
-# Step 7: mount the dynamic (RW) datapart on /mnt/ext
+# Step 8: mount the dynamic (RW) datapart on /mnt/ext
 # ===================================================
 #
 [ -d /mnt/ext ] || mkdir /mnt/ext
@@ -356,7 +371,7 @@ mount -t ext4 ${BOOT_DEVICE}3 /mnt/ext
 [ -d /mnt/ext/union ] || mkdir /mnt/ext/union
 [ -d /mnt/ext/work ] || mkdir /mnt/ext/work
 
-# Step 8: Create the overlay from RO and RW partitions
+# Step 9: Create the overlay from RO and RW partitions
 # ====================================================
 
 mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
@@ -369,9 +384,9 @@ mount --move /mnt/imgpart /mnt/ext/union/imgpart
 
 chmod -R 777 /mnt/ext/union/imgpart
 
-# Step 9: The UUID of the bootpartition could possibly not match the one used in fstab.
-#         This is the case when an new version of the squash file has been created.
-#         This step fixes that 
+# Step 10: The UUID of the bootpartition could possibly not match the one used in fstab.
+#          This is the case when an new version of the squash file has been created.
+#          This step fixes that 
 # ============================================================================================
 UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
 print_msg "Editing fstab to use UUID=<correct uuid of bootpartition>"
