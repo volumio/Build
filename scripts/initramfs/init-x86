@@ -306,17 +306,18 @@ fi
 # if the kernel has been updated, and no error has occurred before completition
 # Retrieve current UUID of boot and image partition
 # These need to be edited into the new boot configs to make the new update bootable
+# This is an update on an existing installation, remove the resize-volumio-datapart sentinel
 if [ -e "/boot/kernel_update" ]; then
   print_msg "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
   UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
   UUID_IMG=$(blkid -s UUID -o value ${IMGPART})
-  cp /boot/syslinux.cfg /boot/syslinux.cfg.old
-  cp /boot/syslinux.tmpl /boot/syslinux.cfg
+  mv /boot/syslinux.cfg /boot/syslinux.cfg.old
+  mv /boot/syslinux.tmpl /boot/syslinux.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
-  cp /boot/grub/grub.cfg cp /boot/grub/grub.cfg.old
-  cp /boot/grub/grub.tmpl /boot/grub/grub.cfg
+  mv /boot/grub/grub.cfg /boot/grub/grub.cfg.old
+  mv /boot/grub/grub.tmpl /boot/grub/grub.cfg
   sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
   sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
   rm /boot/kernel_update
