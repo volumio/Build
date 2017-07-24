@@ -32,15 +32,20 @@ syslinux "${BOOT_PART}"
 echo "  Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
 
-echo "  Creating syslinux.cfg template for Syslinux Legacy BIOS"
+echo "  Creating run-time template for syslinux config"
 echo "DEFAULT volumio
 
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=UUID=${UUID_IMG} bootpart=UUID=${UUID_BOOT} imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
+  APPEND ro imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
   INITRD volumio.initrd
-" > /boot/syslinux.cfg
+" > /boot/syslinux.tmpl
+
+echo "Creating syslinux.cfg from template"
+cp /boot/syslinux.tmpl /boot/syslinux.cfg
+sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
+sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
 
 echo "Installing Grub UEFI"
 echo "  Editing the grub config template"
@@ -65,9 +70,11 @@ mkdir -p /boot/grub
 echo "  Applying Grub Configuration"
 grub-mkconfig -o /boot/grub/grub.cfg
 chmod +w boot/grub/grub.cfg
+echo "Use current grub.cfg as run-time template"
+cp /boot/grub/grub.cfg /boot/grub/grub.tmpl
 
 echo "  Inserting root and boot partition label (building the boot cmdline used in initramfs)"
-# Opting for finding partitions by-LABEL
+# Opting for finding partitions by-UUID
 sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
 
