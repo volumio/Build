@@ -299,8 +299,6 @@ print_msg "Previous update attempt failed, restoring fallbacks"
   fi
   rm /boot/update_process
 fi
-umount /boot
-rm -rf /boot
 
 # if the kernel has been updated, and no error has occurred before completition
 if [ -e "/boot/kernel_update" ]; then
@@ -318,8 +316,8 @@ fi
 # =============================================================
 #
 print_msg "Checking for data partition re-size"
-mkdir boot
-mount -t vfat ${BOOTPART} /boot
+#mkdir boot
+#mount -t vfat ${BOOTPART} /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
   print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
