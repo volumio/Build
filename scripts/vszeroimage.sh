@@ -105,6 +105,8 @@ cp -pdR platform-pv/vszero/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-pv/vszero/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Copying Voltastream0 inittab"
 cp platform-pv/vszero/etc/inittab /mnt/volumio/rootfs/etc/
+echo "Copying Voltastream0 asound.conf (setup ASRC resampling)"
+cp platform-pv/vszero/etc/asound.conf /mnt/volumio/rootfs/etc/
 sync
 
 echo "Preparing to run chroot for more Voltastream0 configuration"
@@ -149,6 +151,14 @@ fi
 echo "Copying Volumio rootfs to Temp Dir"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
+if [ -e /mnt/kernel_current.tar ]; then
+	echo "Volumio Kernel Partition Archive exists - Cleaning it"
+	rm -rf /mnt/kernel_current.tar
+fi
+
+echo "Creating Kernel Partition Archive"
+tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
+
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
@@ -166,9 +176,6 @@ sync
 echo "Unmounting Temp Devices"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
-
-echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
 
 dmsetup remove_all
 losetup -d ${LOOP_DEV}

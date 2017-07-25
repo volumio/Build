@@ -171,6 +171,14 @@ fi
 echo "Copying Volumio rootfs to Temp Dir"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
+if [ -e /mnt/kernel_current.tar ]; then
+	echo "Volumio Kernel Partition Archive exists - Cleaning it"
+	rm -rf /mnt/kernel_current.tar
+fi
+
+echo "Creating Kernel Partition Archive"
+tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
+
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
@@ -188,9 +196,6 @@ sync
 echo "Unmounting Temp Devices"
 sudo umount -l /mnt/volumio/images
 sudo umount -l /mnt/volumio/rootfs/boot
-
-echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
 
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
