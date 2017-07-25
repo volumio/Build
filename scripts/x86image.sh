@@ -82,7 +82,7 @@ sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 cp scripts/x86config.sh /mnt/volumio/rootfs
 if [ ! -d platform-x86 ]; then
   echo "Platform files (packages) not available yet, getting them from the repo"
-  git clone http://github.com/gkkpch/platform-x86
+  git clone http://github.com/volumio/platform-x86
 fi
 if [ -f platform-x86/packages/.next ]; then
   cp platform-x86/packages/experimental/linux-image-*.deb /mnt/volumio/rootfs
