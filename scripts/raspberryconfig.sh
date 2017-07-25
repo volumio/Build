@@ -129,6 +129,7 @@ echo "initramfs volumio.initrd
 gpu_mem=16
 max_usb_current=1
 dtparam=audio=on
+audio_pwm_mode=2
 dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
