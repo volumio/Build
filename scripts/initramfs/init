@@ -178,9 +178,16 @@ if [ -e /dev/sda1 ]; then
   mount -t auto /dev/sda1 /mnt/usb
   #If there is a firmware file inside the usb
   if [ -e /mnt/usb/*.fir ]; then
-	print_msg "Firmware found, updating will take a few minutes, please wait..."
+    print_msg "Firmware found, updating will take a few minutes, please wait..."
+    mkdir /mnt/boot
+    mount -t auto /dev/${BOOTDEV}p1 /mnt/boot
     #when the partitions are mounted we can launch the update script
     volumio-init-updater
+    print_msg "USB Update applied"
+    umount /mnt/boot
+    rm -r /mnt/boot
+    print_msg "Restarting"
+    echo b > /proc/sysrq-trigger
   fi
   if [ -e /mnt/usb/factory_reset ]; then
     print_msg "Factory Reset on USB"
