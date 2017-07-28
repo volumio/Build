@@ -268,7 +268,7 @@ rmdir /mnt/usb
 # Step 4: If there is factory reset or a user-data reset on the boot partition
 #         then re-format data partition.
 # ============================================================================
-#
+# TODO: restore kernel_factory too
 #
 print_msg "Checking for factory or user-data reset on boot device"
 mkdir /mnt/factory
@@ -294,6 +294,7 @@ rm -r /mnt/factory
 #
 # Step 5: Handling of kernel updates
 # ===========================================================
+# TODO: verify procedure, ("file vmlinuz-3.18.25 not found") and grub crashes
 #
 # if the update failed before completion
 mkdir boot
