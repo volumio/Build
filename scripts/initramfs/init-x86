@@ -222,14 +222,19 @@ for devlink in /dev/sd*
 	# only checking the first partition of an additional device!
 	usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g') 
 	if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
-      mount -t auto $(echo ${usb_dev}1) /mnt/usb > /dev/null  2>&1
-      print_msg "Checking " $usb_dev"1 for a volumio rootfs update" 
-      if [ -e /mnt/usb/volumio.fir ]; then
-        print_msg "New rootfs firmware found"
-        print_msg "Updating will take several minutes, please wait...."
-		volumio-init-updater
-	    umount /mnt/usb > /dev/null 2>&1
-	    break
+          mount -t auto $(echo ${usb_dev}1) /mnt/usb > /dev/null  2>&1
+          print_msg "Checking " $usb_dev"1 for a volumio rootfs update" 
+      	    if [ -e /mnt/usb/*.fir ]; then
+               print_msg "New rootfs firmware found"
+               print_msg "Updating will take several minutes, please wait...."
+	       volumio-init-updater
+	       sync
+               print_msg "USB Update applied"
+               umount /mnt/usb > /dev/null 2>&1
+               rm -r /mnt/boot
+               print_msg "Restarting"
+               echo b > /proc/sysrq-trigger
+	       break
       fi
 	  umount /mnt/usb> /dev/null 2>&1
     fi
