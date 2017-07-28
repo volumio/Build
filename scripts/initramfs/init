@@ -183,6 +183,7 @@ if [ -e /dev/sda1 ]; then
     mount -t auto /dev/${BOOTDEV}p1 /mnt/boot
     #when the partitions are mounted we can launch the update script
     volumio-init-updater
+    sync
     print_msg "USB Update applied"
     umount /mnt/boot
     rm -r /mnt/boot
