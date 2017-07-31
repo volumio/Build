@@ -323,9 +323,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm libasound2-dev_1.1.3-5_i386.deb 
 
   echo "Installing MPD 20.6 with Direct DSD Support"
-  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD.deb
-  dpkg -i mpd_0.20.6-1_i386-DSD.deb
-  rm mpd_0.20.6-1_i386-DSD.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD-2.deb
+  dpkg -i mpd_0.20.6-1_i386-DSD-2.deb
+  rm mpd_0.20.6-1_i386-DSD-2.deb
 
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
