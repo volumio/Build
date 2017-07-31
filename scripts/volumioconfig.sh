@@ -413,6 +413,8 @@ chmod 777 /var/lib/mpd/playlists
 echo "Setting mpdignore file"
 echo "@Recycle
 #recycle
+$*
+System Volume Information
 " > /var/lib/mpd/music/.mpdignore
 
 echo "Setting mpc to bind to unix socket"
