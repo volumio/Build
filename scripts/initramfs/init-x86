@@ -276,10 +276,11 @@ mount -t vfat ${BOOT_DEVICE}1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Executing factory reset..."
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${BOOT_DEVICE}3 -L volumio_data
-
-  print_msg "Factory reset executed: part I"
+  print_msg "Factory reset executed: part I - User Data Part"
+  tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
+  print_msg "Factory reset executed: part II - Kernel"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
-  print_msg "Factory reset executed: part II - end"
+  print_msg "Factory reset executed: part III - Squash"
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data..."
@@ -294,7 +295,6 @@ rm -r /mnt/factory
 #
 # Step 5: Handling of kernel updates
 # ===========================================================
-# TODO: verify procedure, ("file vmlinuz-3.18.25 not found") and grub crashes
 #
 # if the update failed before completion
 mkdir boot
