@@ -282,6 +282,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
   print_msg "Factory reset executed: part III - Squash"
   print_msg "Restarting"
+  sync
   echo b > /proc/sysrq-trigger
 fi
 if [ -e "/mnt/factory/user_data" ]; then
