@@ -281,6 +281,8 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Factory reset executed: part II - Kernel"
   cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
   print_msg "Factory reset executed: part III - Squash"
+  print_msg "Restarting"
+  echo b > /proc/sysrq-trigger
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data..."
@@ -312,7 +314,8 @@ fi
 # if the kernel has been updated, and no error has occurred before completition
 # Retrieve current UUID of boot and image partition
 # These need to be edited into the new boot configs to make the new update bootable
-# This is an update on an existing installation, remove the resize-volumio-datapart sentinel
+# This is an update on an existing installation, do not resize the data partition
+# Just remove the sentinel
 if [ -e "/boot/kernel_update" ]; then
   print_msg "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
@@ -326,6 +329,7 @@ if [ -e "/boot/kernel_update" ]; then
   mv /boot/grub/grub.tmpl /boot/grub/grub.cfg
   sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
   sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
+  rm /boot/resize-volumio-datapart
   rm /boot/kernel_update
   sync
   umount /boot
