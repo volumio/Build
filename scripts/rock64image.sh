@@ -119,6 +119,13 @@ echo "Copying rock64 modules and firmware"
 sudo cp -pdR platform-rock64/rock64/lib/modules /mnt/volumio/rootfs/lib/
 sudo cp -pdR platform-rock64/rock64/lib/firmware /mnt/volumio/rootfs/lib/
 
+#TODO: remove this block
+echo "Adding missing alsa dependencies"
+sudo cp -pdR platform-rock64/rock64/usr /mnt/volumio/rootfs/
+
+#TODO: remove this block
+echo "Adding temporary fixes to Rock64 board"
+sudo cp -pdR platform-rock64/rock64/etc /mnt/volumio/rootfs/
 sync
 
 echo "Preparing to run chroot for more rock64 configuration"
