@@ -56,10 +56,7 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-# Kernel 4.4.9 for Pi3 Support
-# see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
-# and https://github.com/Hexxeh/rpi-firmware/issues/118
-KERNEL_VERSION="4.9.31"
+KERNEL_VERSION="4.9.36"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -67,9 +64,9 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
-    "4.9.31")
-      KERNEL_REV="1005"
-      KERNEL_COMMIT="9e6a1a545ef33ac6cc3805845cb3ecac26514a41"
+    "4.9.36")
+      KERNEL_REV="1015"
+      KERNEL_COMMIT="400f6d196503e50b87025b888169f30214bc0f19"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
@@ -129,6 +126,7 @@ echo "initramfs volumio.initrd
 gpu_mem=16
 max_usb_current=1
 dtparam=audio=on
+audio_pwm_mode=2
 dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
