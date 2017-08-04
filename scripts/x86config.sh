@@ -72,6 +72,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 chmod +w boot/grub/grub.cfg
 echo "Use current grub.cfg as run-time template"
 cp /boot/grub/grub.cfg /boot/grub/grub.tmpl
+sed -i "s/${UUID_BOOT}/%%BOOTPART%%/g" /boot/grub/grub.tmpl
 
 echo "  Inserting root and boot partition label (building the boot cmdline used in initramfs)"
 # Opting for finding partitions by-UUID
