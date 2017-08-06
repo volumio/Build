@@ -326,10 +326,11 @@ if [ -e "/boot/kernel_update" ]; then
   mv /boot/syslinux.tmpl /boot/syslinux.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
-  mv /boot/grub/grub.cfg /boot/grub/grub.cfg.old
-  mv /boot/grub/grub.tmpl /boot/grub/grub.cfg
-  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
-  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
+  mv /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.cfg.old
+  mv /boot/efi/BOOT/grub.tmpl /boot/efi/BOOT/grub.cfg
+  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
+  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
   rm /boot/resize-volumio-datapart
   rm /boot/kernel_update
   sync
