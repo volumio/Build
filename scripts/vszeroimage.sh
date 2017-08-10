@@ -103,10 +103,14 @@ cp -R platform-pv/vszero/boot/* /mnt/volumio/rootfs/boot/
 echo "Copying Voltastream0 modules and firmware"
 cp -pdR platform-pv/vszero/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-pv/vszero/lib/firmware /mnt/volumio/rootfs/lib/
-echo "Copying Voltastream0 inittab"
-cp platform-pv/vszero/etc/inittab /mnt/volumio/rootfs/etc/
-echo "Copying Voltastream0 asound.conf (setup ASRC resampling)"
-cp platform-pv/vszero/etc/asound.conf /mnt/volumio/rootfs/etc/
+
+echo "Copying Voltastream0 extra alsa files"
+
+wget https://raw.githubusercontent.com/PolyVection/voltastream0-porting/debian-generic/etc/udev/rules.d/99-mxc_asrc.rules /mnt/volumio/rootfs/etc/udev/rules.d
+wget https://raw.githubusercontent.com/PolyVection/voltastream0-porting/debian-generic/etc/asound.conf /mnt/volumio/rootfs/etc 
+mkdir -p /usr/lib/arm-linux-gnueabihf/alsa-lib
+wget https://raw.githubusercontent.com/PolyVection/voltastream0-porting/debian-generic/usr/lib/arm-linux-gnueabihf/alsa-lib/libasound_module_rate_asrcrate.so /mnt/volumio/rootfs/usr/lib/arm-linux-gnueabihf/alsa-lib/
+ln -s libasound_module_rate_asrcrate.so libasound_module_rate_asrcrate_fast.so
 sync
 
 echo "Preparing to run chroot for more Voltastream0 configuration"
