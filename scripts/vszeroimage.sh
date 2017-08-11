@@ -104,17 +104,8 @@ echo "Copying Voltastream0 modules and firmware"
 cp -pdR platform-pv/vszero/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-pv/vszero/lib/firmware /mnt/volumio/rootfs/lib/
 
-echo "Copying Voltastream0 extra alsa files"
-mkdir -p /usr/lib/arm-linux-gnueabihf/alsa-lib/
-wget -P /mnt/volumio/rootfs/etc/udev/rules.d/ http://raw.githubusercontent.com/PolyVection/voltastream0-porting/debian-generic/etc/udev/rules.d/99-mxc_asrc.rules 
-wget -P /mnt/volumio/rootfs/etc/ http://raw.githubusercontent.com/PolyVection/voltastream0-porting/debian-generic/etc/asound.conf  
-wget -P /mnt/volumio/rootfs/usr/lib/arm-linux-gnueabihf/alsa-lib/ http://raw.githubusercontent.com/PolyVection/voltastream0-porting/debian-generic/usr/lib/arm-linux-gnueabihf/alsa-lib/libasound_module_rate_asrcrate.so 
-ln -s /mnt/volumio/rootfs/usr/lib/arm-linux-gnueabihf/alsa-lib/libasound_module_rate_asrcrate.so /mnt/volumio/rootfs/usr/lib/arm-linux-gnueabihf/alsa-lib/libasound_module_rate_asrcrate_fast.so
-ls -l /mnt/volumio/rootfs/usr/lib/arm-linux-gnueabihf/alsa-lib/
-
-echo "Copying Voltastream0 hotspot.sh script"
-wget -P /mnt/volumio/rootfs/bin http://raw.githubusercontent.com/PolyVection/voltastream0-porting/debian-generic/bin/hotspot.sh  
-
+echo "Copy the Voltastream0 hotspot.sh version"
+cp platform-pv/vszero/bin/hotspot.sh /mnt/volumio/rootfs/bin/
 sync
 
 echo "Preparing to run chroot for more Voltastream0 configuration"
