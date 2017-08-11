@@ -22,7 +22,7 @@ echo "Adding default sound modules"
 #" >> /etc/modules
 
 #echo "#!/bin/sh
-#
+#echo 2 > /proc/irq/45/smp_affinity
 #" > /usr/local/bin/vszero-init.sh
 #chmod +x /usr/local/bin/vszero-init.sh
 
