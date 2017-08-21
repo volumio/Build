@@ -185,6 +185,12 @@ if [ $(uname -m) = armv7l ]; then
      rm libupnp6_1.6.20.jfd5-1_armhf.deb
      rm upmpdcli_1.2.12-1_armhf.deb
 
+     echo "Adding volumio-remote-updater for armv6"
+     wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.2-armhf.deb
+     dpkg -i volumio-remote-updater_1.2-armhf.deb
+     rm volumio-remote-updater_1.2-armhf.deb
+
+
   elif [ $ARCH = armv7 ]; then
      echo "Installing MPD for armv7"
      # First we manually install a newer alsa-lib to achieve Direct DSD support
@@ -212,6 +218,12 @@ if [ $(uname -m) = armv7l ]; then
     rm libupnpp3_0.15.1-1_armhf.deb
     rm libupnp6_1.6.20.jfd5-1_armhf.deb
     rm upmpdcli_1.2.12-1_armhf.deb
+
+    echo "Adding volumio-remote-updater for armv7"
+    wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.2-armv7.deb
+    dpkg -i volumio-remote-updater_1.2-armv7.deb
+    rm volumio-remote-updater_1.2-armv7.deb
+
   fi
   #Remove autostart of upmpdcli
   update-rc.d upmpdcli remove
@@ -241,11 +253,6 @@ if [ $(uname -m) = armv7l ]; then
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
-
-  echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.1-armhf.deb
-  dpkg -i volumio-remote-updater_1.1-armhf.deb
-  rm volumio-remote-updater_1.1-armhf.deb
 
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
@@ -363,10 +370,10 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   wget http://repo.volumio.org/Volumio2/Binaries/x86/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
 
-  echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.1-i386.deb
-  dpkg -i volumio-remote-updater_1.1-i386.deb
-  rm /volumio-remote-updater_1.1-i386.deb
+  echo "Adding volumio-remote-updater for i386"
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.2-i386.deb
+  dpkg -i volumio-remote-updater_1.2-i386.deb
+  rm /volumio-remote-updater_1.2-i386.deb
 
 
 fi
