@@ -180,7 +180,7 @@ if [ -e /mnt/kernel_current.tar ]; then
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
