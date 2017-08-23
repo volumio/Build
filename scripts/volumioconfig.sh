@@ -422,6 +422,8 @@ echo "@Recycle
 #recycle
 $*
 System Volume Information
+$RECYCLE.BIN
+RECYCLER
 " > /var/lib/mpd/music/.mpdignore
 
 echo "Setting mpc to bind to unix socket"
