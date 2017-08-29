@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-pine64.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-rock64.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -32,9 +32,9 @@ dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
-# Note: leave the first 20Mb free for the firmware
+# Note: leave the first 20Mb free for the firmware (effectively needs ~16Mb)
 sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 21 84
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 20 84
 sudo parted -s "${LOOP_DEV}" mkpart primary ext3 84 2500
 sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 sudo parted -s "${LOOP_DEV}" set 1 boot on
@@ -60,24 +60,25 @@ sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
 sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the pine64 kernel/ platform files"
-if [ -d platform-pine64 ]
+echo "Preparing for the rock64 kernel/ platform files"
+if [ -d platform-rock64 ]
 then
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platform-pine64 folder
-    # that will refresh all the odroid platforms, see below
+    # if you really want to re-clone from the repo, then delete the platform-rock64 folder
+    # that will refresh the platform files, see below
 else
-	echo "Clone pine64 files from repo"
-	git clone https://github.com/volumio/platform-pine64.git platform-pine64
+	echo "Get rock64 files from repo"
+	git clone https://github.com/volumio/platform-rock64.git platform-rock64
 	echo "Unpack the platform files"
-    cd platform-pine64
-	tar xfJ pine64.tar.xz
+    cd platform-rock64
+	tar xfJ rock.tar.xz
 	cd ..
 fi
 
 echo "Copying the bootloader"
-sudo dd if=platform-pine64/pine64/u-boot/boot0.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
-sudo dd if=platform-pine64/pine64/u-boot/u-boot-with-dtb.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
+sudo dd if=platform-rock64/rock64/u-boot/idbloader.img of=${LOOP_DEV} seek=64 conv=notrunc
+sudo dd if=platform-rock64/rock64/u-boot/uboot.img of=${LOOP_DEV} seek=16384 conv=notrunc 
+sudo dd if=platform-rock64/rock64/u-boot/trust.img of=${LOOP_DEV} seek=24576 conv=notrunc
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -105,25 +106,30 @@ sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying pine64 boot files"
-mkdir /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/pine64/boot/pine64/Image /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/pine64/boot/pine64/*.dtb /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/pine64/boot/uEnv.txt /mnt/volumio/rootfs/boot
-sudo cp platform-pine64/pine64/boot/Image.version /mnt/volumio/rootfs/boot
-sudo cp platform-pine64/pine64/boot/config* /mnt/volumio/rootfs/boot
 
-echo "Copying pine64 modules and firmware"
-sudo cp -pdR platform-pine64/pine64/lib/modules /mnt/volumio/rootfs/lib/
-sudo cp -pdR platform-pine64/pine64/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying rock64 boot files"
+mkdir /mnt/volumio/rootfs/boot/dtb
+mkdir /mnt/volumio/rootfs/boot/extlinux
+sudo cp platform-rock64/rock64/boot/Image /mnt/volumio/rootfs/boot
+sudo cp platform-rock64/rock64/boot/dtb/*.dtb /mnt/volumio/rootfs/boot/
+sudo cp platform-rock64/rock64/boot/extlinux/* /mnt/volumio/rootfs/boot/extlinux
+sudo cp platform-rock64/rock64/boot/config* /mnt/volumio/rootfs/boot
 
-echo "Confguring ALSA with sane defaults"
-sudo cp platform-pine64/pine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
+echo "Copying rock64 modules and firmware"
+sudo cp -pdR platform-rock64/rock64/lib/modules /mnt/volumio/rootfs/lib/
+sudo cp -pdR platform-rock64/rock64/lib/firmware /mnt/volumio/rootfs/lib/
 
+#TODO: remove this block
+echo "Adding missing alsa dependencies"
+sudo cp -pdR platform-rock64/rock64/usr /mnt/volumio/rootfs/
+
+#TODO: remove this block
+echo "Adding temporary fixes to Rock64 board"
+sudo cp -pdR platform-rock64/rock64/etc /mnt/volumio/rootfs/
 sync
 
-echo "Preparing to run chroot for more pine64 configuration"
-cp scripts/pine64config.sh /mnt/volumio/rootfs
+echo "Preparing to run chroot for more rock64 configuration"
+cp scripts/rock64config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -136,11 +142,11 @@ echo $PATCH > /mnt/volumio/rootfs/patch
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/pine64config.sh
+/rock64config.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/pine64config.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/rock64config.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
@@ -148,15 +154,15 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
 #echo "Copying LIRC configuration files"
-#sudo cp platform-pine64/pine64/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-#sudo cp platform-pine64/pine64/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
-#sudo cp platform-pine64/pine64/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+#sudo cp platform-rock64/rock64/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+#sudo cp platform-rock64/rock64/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+#sudo cp platform-rock64/rock64/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
-echo "==> Pine64 device installed"
+echo "==> rock64 device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platform-pine64
+#sudo rm -r platform-rock64
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -172,24 +178,19 @@ fi
 echo "Copying Volumio rootfs to Temp Dir"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
-if [ -e /mnt/kernel_current.tar.gz ]; then
+if [ -e /mnt/kernel_current.tar ]; then
 	echo "Volumio Kernel Partition Archive exists - Cleaning it"
-	rm -rf /mnt/kernel_current.tar.gz
+	rm -rf /mnt/kernel_current.tar
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar.gz --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
 echo "Creating SquashFS, removing any previous one"
-if [ -e Volumio.sqsh ]; then
-	echo "Volumio Kernel Partition Archive exists - Cleaning it"
-	rm -r Volumio.sqsh
-fi
-
-echo "Creating SquashFS"
+rm -r Volumio.sqsh
 mksquashfs /mnt/squash/* Volumio.sqsh
 
 echo "Squash filesystem created"

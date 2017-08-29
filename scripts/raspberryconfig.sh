@@ -42,7 +42,6 @@ deb-src http://archive.raspberrypi.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
 echo "Adding Raspberrypi.org Repo Key"
-
 wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
 
 echo "Installing R-pi specific binaries"
@@ -55,10 +54,7 @@ echo "Installing Kernel from Rpi-Update"
 touch /boot/start.elf
 mkdir /lib/modules
 
-# Kernel 4.4.9 for Pi3 Support
-# see https://github.com/raspberrypi/firmware/commit/cc6d7bf8b4c03a2a660ff9fdf4083fc165620866
-# and https://github.com/Hexxeh/rpi-firmware/issues/118
-KERNEL_VERSION="4.4.9"
+KERNEL_VERSION="4.9.41"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -66,9 +62,9 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
-    "4.9.31")
-      KERNEL_REV="1005"
-      KERNEL_COMMIT="9e6a1a545ef33ac6cc3805845cb3ecac26514a41"
+    "4.9.41")
+      KERNEL_REV="1023"
+      KERNEL_COMMIT="b9becbbf3f48e39f719ca6785d23c53ee0cdbe49"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
@@ -94,6 +90,9 @@ Pin: release *
 Pin-Priority: -1" > /etc/apt/preferences
 apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
 
+echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & few others firmware upgraging to Pi Foundations packages"
+apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
+
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
@@ -101,63 +100,12 @@ echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
 wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
 
-echo "Adding PI3 & PiZero W Wireless firmware"
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
-
-echo "Adding PI WIFI Wireless dongle firmware"
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /lib/firmware/brcm/
-
 echo "Installing WiringPi from Raspberrypi.org Repo"
 apt-get -y install wiringpi
-
-echo "adding gpio & spi group and permissions"
-groupadd -f --system gpio
-groupadd -f --system spi
-
-echo "adding volumio to gpio group and al"
-usermod -a -G gpio,i2c,spi,input volumio
 
 echo "Configuring boot splash"
 apt-get -y install plymouth plymouth-themes
 plymouth-set-default-theme volumio
-
-echo "Use up-to-date jessie rules for gpio & al."
-read -rd '' Rule_String <<"EOF"
-SUBSYSTEM=="input", GROUP="input", MODE="0660"
-SUBSYSTEM=="i2c-dev", GROUP="i2c", MODE="0660"
-SUBSYSTEM=="spidev", GROUP="spi", MODE="0660"
-SUBSYSTEM=="bcm2835-gpiomem", GROUP="gpio", MODE="0660"
-
-SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c '\
-	chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
-	chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio;\
-	chown -R root:gpio /sys$devpath && chmod -R 770 /sys$devpath\
-'"
-
-KERNEL=="ttyAMA[01]", PROGRAM="/bin/sh -c '\
-	ALIASES=/proc/device-tree/aliases; \
-	if cmp -s $ALIASES/uart0 $ALIASES/serial0; then \
-		echo 0;\
-	elif cmp -s $ALIASES/uart0 $ALIASES/serial1; then \
-		echo 1; \
-	else \
-		exit 1; \
-	fi\
-'", SYMLINK+="serial%c"
-
-KERNEL=="ttyS0", PROGRAM="/bin/sh -c '\
-	ALIASES=/proc/device-tree/aliases; \
-	if cmp -s $ALIASES/uart1 $ALIASES/serial0; then \
-		echo 0; \
-	elif cmp -s $ALIASES/uart1 $ALIASES/serial1; then \
-		echo 1; \
-	else \
-		exit 1; \
-	fi \
-'", SYMLINK+="serial%c"
-EOF
-echo "${Rule_String}" > /etc/udev/rules.d/99-com.rules
 
 echo "Removing unneeded binaries"
 apt-get -y remove rpi-update
@@ -167,12 +115,25 @@ echo "initramfs volumio.initrd
 gpu_mem=16
 max_usb_current=1
 dtparam=audio=on
+audio_pwm_mode=2
 dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
-
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+
+echo "adding gpio & spi group and permissions"
+groupadd -f --system gpio
+groupadd -f --system spi
+
+echo "adding volumio to gpio group and al"
+usermod -a -G gpio,i2c,spi,input volumio
+
+echo "Installing raspberrypi-sys-mods System customizations (& removing few bits)"
+apt-get -y install raspberrypi-sys-mods
+rm /etc/sudoers.d/010_pi-nopasswd
+unlink /etc/systemd/system/multi-user.target.wants/sshswitch.service
+rm /lib/systemd/system/sshswitch.service
 
 echo "Exporting /opt/vc/bin variable"
 export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH

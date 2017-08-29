@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Default build for Debian 32bit
+# Build Architecture Debian 32bit (to be changed to armv8)
 ARCH="armv7"
 
 while getopts ":v:p:a:" opt; do
@@ -14,32 +14,33 @@ while getopts ":v:p:a:" opt; do
     a)
       ARCH=$OPTARG
       ;;
-
   esac
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-bananapi-pro.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-sopine64.img"
+
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
 else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
+echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs"
+
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 # Note: leave the first 20Mb free for the firmware
-parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
-parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
-parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
-parted -s "${LOOP_DEV}" set 1 boot on
-parted -s "${LOOP_DEV}" print
-partprobe "${LOOP_DEV}"
-kpartx -s -a "${LOOP_DEV}"
+sudo parted -s "${LOOP_DEV}" mklabel msdos
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 21 84
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 84 2500
+sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
+sudo parted -s "${LOOP_DEV}" set 1 boot on
+sudo parted -s "${LOOP_DEV}" print
+sudo partprobe "${LOOP_DEV}"
+sudo kpartx -s -a "${LOOP_DEV}"
 
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
@@ -54,38 +55,29 @@ then
 fi
 
 echo "Creating boot and rootfs filesystems"
-mkfs -t vfat -n BOOT "${BOOT_PART}"
-mkfs -F -t ext4 -L volumio "${SYS_PART}"
-mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
+sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
+sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the banana bpi-pro kernel/ platform files"
-if [ -d platform-banana ]
+echo "Preparing for the pine64 kernel/ platform files"
+if [ -d platform-pine64 ]
 then
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platform-banana folder
-    # that will refresh all the bananapi platforms, see below
+    # if you really want to re-clone from the repo, then delete the platform-pine64 folder
+    # that will refresh all the odroid platforms, see below
 else
-	echo "Clone bananapi pro files from repo"
-### Option 1 - Kernel 3.4.104 gkkpch
-#	git clone https://github.com/gkkpch/platform-banana.git platform-banana
-#	echo "Unpack the platform files gkkpch"
-#	cd platform-banana
-#	tar xfJ bpi-pro.tar.xz
-### Option 2 - Kernel 3.4.113 chrismade
-	git clone https://github.com/chrismade/platform-banana-pi.git platform-banana
-	echo "Unpack the platform files chrismade"
-	cd platform-banana
-	tar xvzf kernel_3_4_113_w_olfs.tgz
-        ln -s bananapi bpi-pro
-### End of Options
-	wget https://raw.githubusercontent.com/chrismade/platform-banana-pi/master/bootp01.tgz
-	tar xvzf bootp01.tgz
+	echo "Clone pine64 files from repo"
+	git clone https://github.com/volumio/platform-pine64.git platform-pine64
+	echo "Unpack the platform files"
+    cd platform-pine64
+	tar xfJ pine64.tar.xz
 	cd ..
 fi
 
 echo "Copying the bootloader"
-dd if=platform-banana/bootp01/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+sudo dd if=platform-pine64/pine64/u-boot/boot0so.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+sudo dd if=platform-pine64/pine64/u-boot/u-boot-with-dtb-so.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -93,7 +85,7 @@ if [ -d /mnt ]
 then
 	echo "/mount folder exist"
 else
-	mkdir /mnt
+	sudo mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then
@@ -106,28 +98,32 @@ fi
 
 echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
-mount -t ext4 "${SYS_PART}" /mnt/volumio/images
-mkdir /mnt/volumio/rootfs
-echo "Creating mount point for the boot partition"
-mkdir /mnt/volumio/rootfs/boot
-mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
+sudo mkdir /mnt/volumio/rootfs
+sudo mkdir /mnt/volumio/rootfs/boot
+sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying BPI-PRO boot files"
-cp platform-banana/bpi-pro/boot/uImage /mnt/volumio/rootfs/boot/
-cp platform-banana/bootp01/* /mnt/volumio/rootfs/boot/
-# cp platform-banana/bpi-pro/boot/config* /mnt/volumio/rootfs/boot/
-# mkimage -C none -A arm -T script -d platform-banana/bpi-pro/boot/boot.cmd mnt/volumio/rootfs/boot/boot.scr
+sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
+echo "Copying SOPINE A64 boot files"
+mkdir /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/pine64/boot/pine64/Image /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/pine64/boot/pine64/*.dtb /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/pine64/boot/uEnv.txt /mnt/volumio/rootfs/boot
+sudo cp platform-pine64/pine64/boot/Image.version /mnt/volumio/rootfs/boot
+sudo cp platform-pine64/pine64/boot/config* /mnt/volumio/rootfs/boot
 
-echo "Copying BPI-PRO modules and firmware"
-cp -pdR platform-banana/bpi-pro/lib/modules /mnt/volumio/rootfs/lib/
-cp -pdR platform-banana/bpi-pro/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying SOPINE A64 modules and firmware"
+sudo cp -pdR platform-pine64/pine64/lib/modules /mnt/volumio/rootfs/lib/
+sudo cp -pdR platform-pine64/pine64/lib/firmware /mnt/volumio/rootfs/lib/
+
+echo "Confguring ALSA with sane defaults"
+sudo cp platform-pine64/pine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
 
 sync
 
-echo "Preparing to run chroot for more BPI-PRO configuration"
-cp scripts/bpiproconfig.sh /mnt/volumio/rootfs
+echo "Preparing to run chroot for more SOPINE A64 configuration (equals pine64)"
+cp scripts/pine64config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -140,11 +136,11 @@ echo $PATCH > /mnt/volumio/rootfs/patch
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/bpiproconfig.sh
+/pine64config.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/bpiproconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/pine64config.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
@@ -152,13 +148,15 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
 #echo "Copying LIRC configuration files"
+#sudo cp platform-pine64/pine64/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+#sudo cp platform-pine64/pine64/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+#sudo cp platform-pine64/pine64/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
-
-echo "==> BPI-PRO device installed"
+echo "==> SOPINE A64 device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#rm -r platform-bananapi
+#sudo rm -r platform-pine64
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -168,7 +166,7 @@ if [ -d /mnt/squash ]; then
 	rm -rf /mnt/squash/*
 else
 	echo "Creating Volumio SquashFS Temp Dir"
-	mkdir /mnt/squash
+	sudo mkdir /mnt/squash
 fi
 
 echo "Copying Volumio rootfs to Temp Dir"
@@ -197,11 +195,9 @@ rm -rf /mnt/squash
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 echo "Unmounting Temp Devices"
-umount -l /mnt/volumio/images
-umount -l /mnt/volumio/rootfs/boot
+sudo umount -l /mnt/volumio/images
+sudo umount -l /mnt/volumio/rootfs/boot
 
-dmsetup remove_all
-losetup -d ${LOOP_DEV}
+sudo dmsetup remove_all
+sudo losetup -d ${LOOP_DEV}
 sync
-
-md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

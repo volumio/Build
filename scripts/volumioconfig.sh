@@ -1,5 +1,7 @@
 #!/bin/bash
 
+NODE_VERSION=6.11.0
+
 # This script will be run in chroot under qemu.
 
 echo "Prevent services starting during install, running under chroot"
@@ -110,15 +112,13 @@ if [ $(uname -m) = armv7l ]; then
   wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
   echo "Installing ARM Node Environment"
-  # version 6.3.0
-  cd /
-  wget http://repo.volumio.org/Volumio2/node-v6.9.1-linux-armv6l.tar.xz
-  tar xf node-v6.9.1-linux-armv6l.tar.xz
-  rm /node-v6.9.1-linux-armv6l.tar.xz
-  cd /node-v6.9.1-linux-armv6l
+  wget http://repo.volumio.org/Volumio2/node-v${NODE_VERSION}-linux-armv6l.tar.xz
+  tar xf node-v${NODE_VERSION}-linux-armv6l.tar.xz
+  rm /node-v${NODE_VERSION}-linux-armv6l.tar.xz
+  cd /node-v${NODE_VERSION}-linux-armv6l
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.9.1-linux-armv6l
+  rm -rf /node-v${NODE_VERSION}-linux-armv6l
 
 
   # Symlinking to legacy paths
@@ -127,9 +127,9 @@ if [ $(uname -m) = armv7l ]; then
 
   echo "Installing Volumio Modules"
   cd /volumio
-  wget http://repo.volumio.org/Volumio2/node_modules_arm.tar.gz
-  tar xf node_modules_arm.tar.gz
-  rm node_modules_arm.tar.gz
+  wget http://repo.volumio.org/Volumio2/node_modules_arm-${NODE_VERSION}.tar.gz
+  tar xf node_modules_arm-${NODE_VERSION}.tar.gz
+  rm node_modules_arm-${NODE_VERSION}.tar.gz
 
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
@@ -170,9 +170,9 @@ if [ $(uname -m) = armv7l ]; then
      rm libasound2-dev_1.1.3-5_armhf.deb
 
      echo "Installing MPD 20.6 with Direct DSD Support"
-     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD.deb
-     dpkg -i mpd_0.20.6-1_armv6-DSD.deb
-     rm mpd_0.20.6-1_armv6-DSD.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD-2.deb
+     dpkg -i mpd_0.20.6-1_armv6-DSD-2.deb
+     rm mpd_0.20.6-1_armv6-DSD-2.deb
 
      echo "Installing Upmpdcli for armv6"
      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnpp3_0.15.1-1_armhf.deb
@@ -184,6 +184,12 @@ if [ $(uname -m) = armv7l ]; then
      rm libupnpp3_0.15.1-1_armhf.deb
      rm libupnp6_1.6.20.jfd5-1_armhf.deb
      rm upmpdcli_1.2.12-1_armhf.deb
+
+     echo "Adding volumio-remote-updater for armv6"
+     wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.2-armhf.deb
+     dpkg -i volumio-remote-updater_1.2-armhf.deb
+     rm volumio-remote-updater_1.2-armhf.deb
+
 
   elif [ $ARCH = armv7 ]; then
      echo "Installing MPD for armv7"
@@ -212,6 +218,12 @@ if [ $(uname -m) = armv7l ]; then
     rm libupnpp3_0.15.1-1_armhf.deb
     rm libupnp6_1.6.20.jfd5-1_armhf.deb
     rm upmpdcli_1.2.12-1_armhf.deb
+
+    echo "Adding volumio-remote-updater for armv7"
+    wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.2-armv7.deb
+    dpkg -i volumio-remote-updater_1.2-armv7.deb
+    rm volumio-remote-updater_1.2-armv7.deb
+
   fi
   #Remove autostart of upmpdcli
   update-rc.d upmpdcli remove
@@ -228,7 +240,7 @@ if [ $(uname -m) = armv7l ]; then
   rm /shairport-sync-3.0.2-arm.tar.gz
 
   echo "Volumio Init Updater"
-  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
   echo "Installing Snapcast for multiroom"
 
@@ -241,10 +253,6 @@ if [ $(uname -m) = armv7l ]; then
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
-
-  echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater -P /usr/local/sbin/
-  chmod a+x /usr/local/sbin/volumio-remote-updater
 
   echo "Adding special version for edimax dongle"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
@@ -274,13 +282,13 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing X86 Node Environment"
   cd /
-  wget http://repo.volumio.org/Volumio2/node-v6.3.0-linux-x86.tar.xz
-  tar xf node-v6.3.0-linux-x86.tar.xz
-  rm /node-v6.3.0-linux-x86.tar.xz
-  cd /node-v6.3.0-linux-x86
+  wget http://repo.volumio.org/Volumio2/node-v${NODE_VERSION}-linux-x86.tar.xz
+  tar xf node-v${NODE_VERSION}-linux-x86.tar.xz
+  rm /node-v${NODE_VERSION}-linux-x86.tar.xz
+  cd /node-v${NODE_VERSION}-linux-x86
   cp -rp bin/ include/ lib/ share/ /
   cd /
-  rm -rf /node-v6.3.0-linux-x86
+  rm -rf /node-v${NODE_VERSION}-linux-x86
 
   # Symlinking to legacy paths
   ln -s /bin/node /usr/local/bin/node
@@ -288,9 +296,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing Volumio Modules"
   cd /volumio
-  wget http://repo.volumio.org/Volumio2/node_modules_x86.tar.gz
-  tar xf node_modules_x86.tar.gz
-  rm node_modules_x86.tar.gz
+  wget http://repo.volumio.org/Volumio2/node_modules_x86-${NODE_VERSION}.tar.gz
+  tar xf node_modules_x86-${NODE_VERSION}.tar.gz
+  rm node_modules_x86-${NODE_VERSION}.tar.gz
 
 
   echo "Setting proper ownership"
@@ -322,9 +330,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm libasound2-dev_1.1.3-5_i386.deb 
 
   echo "Installing MPD 20.6 with Direct DSD Support"
-  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD.deb
-  dpkg -i mpd_0.20.6-1_i386-DSD.deb
-  rm mpd_0.20.6-1_i386-DSD.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD-2.deb
+  dpkg -i mpd_0.20.6-1_i386-DSD-2.deb
+  rm mpd_0.20.6-1_i386-DSD-2.deb
 
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
@@ -354,7 +362,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /sc2mpd_1.1.1-1_i386.deb
 
   echo "Volumio Init Updater"
-  wget -P /usr/local/sbin/ http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
 
   echo "Zsync"
@@ -362,9 +370,10 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   wget http://repo.volumio.org/Volumio2/Binaries/x86/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
 
-  echo "Adding volumio-remote-updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater -P /usr/local/sbin/
-  chmod a+x /usr/local/sbin/volumio-remote-updater
+  echo "Adding volumio-remote-updater for i386"
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.2-i386.deb
+  dpkg -i volumio-remote-updater_1.2-i386.deb
+  rm /volumio-remote-updater_1.2-i386.deb
 
 
 fi
@@ -408,6 +417,15 @@ touch /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
+echo "Setting mpdignore file"
+echo "@Recycle
+#recycle
+$*
+System Volume Information
+$RECYCLE.BIN
+RECYCLER
+" > /var/lib/mpd/music/.mpdignore
+
 echo "Setting mpc to bind to unix socket"
 export MPD_HOST=/run/mpd/socket
 
@@ -417,10 +435,6 @@ chmod 777 /etc/modules
 echo "Adding Volumio Parent Service to Startup"
 #systemctl enable volumio.service
 ln -s /lib/systemd/system/volumio.service /etc/systemd/system/multi-user.target.wants/volumio.service
-
-echo "Adding Volumio Remote Updater Service to Startup"
-#systemctl enable volumio-remote-updater.service
-ln -s /lib/systemd/system/volumio-remote-updater.service /etc/systemd/system/multi-user.target.wants/volumio-remote-updater.service
 
 echo "Adding Udisks-glue service to Startup"
 ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.target.wants/udisks-glue.service

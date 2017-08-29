@@ -5,7 +5,6 @@ PATCH=$(cat /patch)
 echo "Initializing.."
 . init.sh
 
-
 echo "Installing the kernel and creating initramfs"
 # Kernel version not known yet
 # Not brilliant, but safe enough as x86.sh only copied one image and one firmware package version
@@ -14,6 +13,7 @@ dpkg -i linux-firmware-*_i386.deb
 
 KRNL=`ls -l /boot |grep vmlinuz | awk -F'vmlinuz-' '{print $2}'`
 cp e1000e.ko /lib/modules/$KRNL/kernel/drivers/net/ethernet/intel/e1000e/
+depmod $KRNL
 
 echo "Creating node/ nodejs symlinks to stay compatible with the armv6/v7 platforms"
 ln -s /usr/bin/nodejs /usr/local/bin/nodejs
@@ -29,24 +29,25 @@ echo "Installing Syslinux Legacy BIOS"
 syslinux -v
 syslinux "${BOOT_PART}"
 
-echo "  Getting the current kernel filename"
+echo "Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
 
-#uncomment for debugging, also edit init-x86 to enable kernel & initrd messages
-#DEBUG="console=ttyS0 console=tty0 ignore_loglevel"
-
-echo "  Creating syslinux.cfg template for Syslinux Legacy BIOS"
+echo "Creating run-time template for syslinux config"
 echo "DEFAULT volumio
 
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=UUID=${UUID_IMG} bootpart=UUID=${UUID_BOOT} imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
+  APPEND ro imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
   INITRD volumio.initrd
-" > /boot/syslinux.cfg
+" > /boot/syslinux.tmpl
 
-echo "Installing Grub UEFI"
-echo "  Editing the grub config template"
+echo "Creating syslinux.cfg from template"
+cp /boot/syslinux.tmpl /boot/syslinux.cfg
+sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
+sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
+
+echo "Editing the Grub UEFI config template"
 # Make grub boot menu transparent
 sed -i "s/menu_color_normal=cyan\/blue/menu_color_normal=white\/black/g" /etc/grub.d/05_debian_theme
 sed -i "s/menu_color_highlight=white\/blue/menu_color_highlight=green\/dark-gray/g" /etc/grub.d/05_debian_theme
@@ -59,54 +60,63 @@ sed -i "s/initrd=\"\$i\"/initrd=\"volumio.initrd\"/g" /etc/grub.d/10_linux
 sed -i "s/LINUX_ROOT_DEVICE=\${GRUB_DEVICE}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
 sed -i "s/LINUX_ROOT_DEVICE=UUID=\${GRUB_DEVICE_UUID}/LINUX_ROOT_DEVICE=imgpart=%%IMGPART%% /g" /etc/grub.d/10_linux
 
-echo "Setting grub image"
+echo "Setting plymouth image"
 cp /usr/share/plymouth/themes/volumio/volumio-logo16.png /boot/volumio.png
 
+echo "Creating Grub config folder"
+mkdir /boot/grub
 
-
-echo "  Creating grub config folder"
-mkdir -p /boot/grub
-
-echo "  Applying Grub Configuration"
+echo "Applying Grub configuration"
 grub-mkconfig -o /boot/grub/grub.cfg
-chmod +w boot/grub/grub.cfg
+chmod +w /boot/grub/grub.cfg
 
-echo "  Inserting root and boot partition label (building the boot cmdline used in initramfs)"
-# Opting for finding partitions by-LABEL
-sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
-sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
+echo "Coyping the new Grub config to the EFI bootloader folder"
+cp /boot/grub/grub.cfg /boot/efi/BOOT/grub.cfg
 
-echo "  Prevent cgmanager starting during install (causing problems)"
+echo "Telling the bootloader to read an external config" 
+echo 'configfile ${cmdpath}/grub.cfg' > /grub-redir.cfg
+
+echo "Using current grub.cfg as run-time template for kernel updates"
+cp /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.tmpl
+sed -i "s/${UUID_BOOT}/%%BOOTPART%%/g" /boot/efi/BOOT/grub.tmpl
+
+echo "Inserting root and boot partition UUIDs (building the boot cmdline used in initramfs)"
+# Opting for finding partitions by-UUID
+sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
+sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
+
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
-echo "  Installing grub-efi-amd64 to make the 64bit UEFI bootloader"
-
+echo "Installing grub-efi-amd64 to make the 64bit UEFI bootloader"
 apt-get update
 apt-get -y install grub-efi-amd64-bin
-grub-mkstandalone --compress=gz -O x86_64-efi -o /boot/efi/BOOT/BOOTX64.EFI -d /usr/lib/grub/x86_64-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes="" /boot/grub/grub.cfg
+grub-mkstandalone --compress=gz -O x86_64-efi -o /boot/efi/BOOT/BOOTX64.EFI "boot/grub/grub.cfg=grub-redir.cfg" -d /usr/lib/grub/x86_64-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes=""
 if [ ! -e /boot/efi/BOOT/BOOTX64.EFI ]; then
 	echo "Fatal error, no 64bit bootmanager created, aborting..." 
     exit 1
 fi
+
 #we cannot install grub-efi-amd64 and grub-efi-ia32 on the same machine.
 #on the off-chance that we need a 32bit bootloader, we remove amd64 and install ia32 to generate one
-echo "  Uninstalling grub-efi-amd64"
+echo "Uninstalling grub-efi-amd64"
 apt-get -y --purge remove grub-efi-amd64-bin
 
-echo "  Installing grub-efi-ia32 to make the 32bit UEFI bootloader"
+echo "Installing grub-efi-ia32 to make the 32bit UEFI bootloader"
 apt-get -y install grub-efi-ia32-bin
-grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI -d /usr/lib/grub/i386-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes="" /boot/grub/grub.cfg 
+grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI "boot/grub/grub.cfg=grub-redir.cfg" -d /usr/lib/grub/i386-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes="" 
 if [ ! -e /boot/efi/BOOT/BOOTIA32.EFI ]; then
 	echo "Fatal error, no 32bit bootmanager created, aborting..." 
     exit 1
 fi
 #and remove it again
-echo "  Uninstalling grub-efi-ia32-bin"
+echo "Uninstalling grub-efi-ia32-bin and cleaning up grub install"
 apt-get -y --purge remove grub-efi-ia32-bin
 apt-get -y --purge remove efibootmgr libefivar0
+rm /grub-redir.cfg
+rm -r /boot/grub
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -115,6 +125,7 @@ rm /usr/sbin/policy-rc.d
 
 echo "Copying fstab as a template to be used in initrd"
 cp /etc/fstab /etc/fstab.tmpl
+
 echo "Editing fstab to use UUID=<uuid of boot partition>"
 sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 
@@ -126,7 +137,7 @@ apt-get -y install plymouth plymouth-themes plymouth-x11
 plymouth-set-default-theme volumio
 
 echo "Setting up in kiosk-mode"
-echo "  Creating chromium kiosk start script"
+echo "Creating chromium kiosk start script"
 echo "#!/bin/bash
 
 xset -dpms
@@ -157,12 +168,33 @@ WantedBy=multi-user.target
 " > /lib/systemd/system/volumio-kiosk.service
 ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
 
+echo "Hide Mouse cursor"
 
-echo "  Allowing volumio to start an xsession"
+echo "#!/bin/sh
+
+if [ -d /etc/X11/xinit/xinitrc.d ]; then
+  for f in /etc/X11/xinit/xinitrc.d/*; do
+    [ -x "$f" ] && . "$f"
+  done
+  unset f
+fi
+
+xrdb -merge ~/.Xresources         # aggiorna x resources db
+
+#xscreensaver -no-splash &         # avvia il demone di xscreensaver
+xsetroot -cursor_name left_ptr &  # setta il cursore di X
+#sh ~/.fehbg &                     # setta lo sfondo con feh
+
+exec openbox-session              # avvia il window manager
+
+exec unclutter &" > /root/.xinitrc
+
+
+echo "Allowing volumio to start an xsession"
 sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
 
 echo "Creating initramfs"
-echo "  Adding custom modules"
+echo "Adding custom modules"
 echo "overlay" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "usbcore" >> /etc/initramfs-tools/modules
@@ -184,27 +216,27 @@ echo "hid" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
 echo "nls_utf8" >> /etc/initramfs-tools/modules
 echo "vfat" >> /etc/initramfs-tools/modules
-echo "  Adding ata modules for various chipsets"
+echo "Adding ata modules for various chipsets"
 cat /ata-modules.x86 >> /etc/initramfs-tools/modules
-echo "  Adding modules for Plymouth"
+echo "Adding modules for Plymouth"
 echo "intel_agp" >> /etc/initramfs-tools/modules
 echo "drm" >> /etc/initramfs-tools/modules
 echo "i915 modeset=1" >> /etc/initramfs-tools/modules
 
-echo "  Copying volumio initramfs updater"
+echo "Copying volumio initramfs updater"
 cd /root/
 mv volumio-init-updater /usr/local/sbin
 
-echo "  Creating initramfs 'volumio.initrd'"
+echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
-echo "  No need to keep the original initrd"
+echo "No need to keep the original initrd"
 DELFILE=`ls -l /boot |grep initrd.img | awk '{print $9}'`
-echo "  Found "$DELFILE", deleting"
+echo "Found "$DELFILE", deleting"
 rm /boot/${DELFILE}
-echo "  No need for the system map either"
+echo "No need for the system map either"
 DELFILE=`ls -l /boot |grep System.map | awk '{print $9}'`
-echo "  Found "$DELFILE", deleting"
+echo "Found "$DELFILE", deleting"
 rm /boot/${DELFILE}
 
 #On The Fly Patch
@@ -226,7 +258,7 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
-echo "  Signalling the init script to re-size the volumio data partition"
+echo "Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
 
 echo "Bootloader configuration and initrd.img complete"

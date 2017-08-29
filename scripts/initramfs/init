@@ -17,21 +17,8 @@ mdev -s
 
 #Defaults which may be overridden by cmdline parameters
 USE_KMSG="yes"
-
-#Hardware specific adaptions
-
-HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
-if [ $HWDEVICE == ODROID-C2 ] ; then
-   exec >/dev/kmsg 2>&1 </dev/console
-fi
-
-# Odroid C1, SparkySBC, Banana PI, Pine64 and Cubox have overlayfs version < V22
-if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ] || [ $HWDEVICE == Freescale ]; then
-   OVERLAY=NOWRKDIR
-   exec >/dev/kmsg 2>&1 </dev/console
-else
-   OVERLAY=WITHWRKDIR
-fi
+HWDEVICE="empty"
+BOOTDEV="mmcblk0"
 
 # Display a message or print directly to /dev/kmsg
 print_msg() {
@@ -79,10 +66,35 @@ do
   use_kmsg)
     USE_KMSG=$value
     ;;
+  bootdev)
+    BOOTDEV=$value
+    ;;
+  hwdevice)
+    HWDEVICE=$value
+    ;;
   esac
 done
 
-print_msg "Booting Volumio for $(cat /proc/cpuinfo | grep Hardware )"
+#Hardware specific adaptions
+
+#When we did not already get the device name from the cmdline, try getting it from cpuinfo
+if [ $HWDEVICE == empty ]; then
+  HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
+fi
+
+if [ $HWDEVICE == ODROID-C2 ]; then
+   exec >/dev/kmsg 2>&1 </dev/console
+fi
+
+# Odroid C1, SparkySBC, Banana PI, Pine64 and Cubox have overlayfs version < V22
+if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ] || [ $HWDEVICE == Freescale ]; then
+   OVERLAY=NOWRKDIR
+   exec >/dev/kmsg 2>&1 </dev/console
+else
+   OVERLAY=WITHWRKDIR
+fi
+
+print_msg "Booting Volumio for for ${HWDEVICE}"
 print_msg "	This script mounts rootfs RO with an overlay RW layer."
 if [ $OVERLAY == WITHWRKDIR ]; then
    # For overlayfs version V22 or higher (modulename 'overlay')
@@ -147,6 +159,13 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   print_msg "Creating factory image, this will take a minute, please wait..."
   cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
   print_msg "Factory image created"
+  print_msg "Creating archive for factory kernel..."
+  mkdir /mnt/factory
+  mount -t vfat /dev/${BOOTDEV}p1 /mnt/factory
+  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
+  cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
+  umount /mnt/factory
+  rm -r /mnt/factory
 elif [ ! -z "${BOOTDELAY}" ]; then
   print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
   sleep ${BOOTDELAY}
@@ -158,15 +177,23 @@ if [ -e /dev/sda1 ]; then
   [ -d /mnt/usb ] || mkdir /mnt/usb
   mount -t auto /dev/sda1 /mnt/usb
   #If there is a firmware file inside the usb
-  if [ -e /mnt/usb/volumio.fir ]; then
-	print_msg "Firmware found, updating will take a few minutes, please wait..."
+  if [ -e /mnt/usb/*.fir ]; then
+    print_msg "Firmware found, updating will take a few minutes, please wait..."
+    mkdir /mnt/boot
+    mount -t auto /dev/${BOOTDEV}p1 /mnt/boot
     #when the partitions are mounted we can launch the update script
     volumio-init-updater
+    sync
+    print_msg "USB Update applied"
+    umount /mnt/boot
+    rm -r /mnt/boot
+    print_msg "Restarting"
+    echo b > /proc/sysrq-trigger
   fi
   if [ -e /mnt/usb/factory_reset ]; then
     print_msg "Factory Reset on USB"
     mkdir /mnt/factory
-    mount -t auto /dev/mmcblk0p1 /mnt/factory
+    mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
     echo " " > /mnt/factory/factory_reset
     umount /mnt/factory
     rm -r /mnt/factory
@@ -198,49 +225,86 @@ VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 #if there is factory file then format data partition
 #
 mkdir /mnt/factory
-mount -t auto /dev/mmcblk0p1 /mnt/factory
+mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Executing factory reset"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
-
-  print_msg "Factory reset executed: part I"
-  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
+  print_msg "Factory reset executed: part I - User DATA Part"
+  tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
+  print_msg "Factory reset executed: part II - Kernel"
+  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh
+  print_msg "Factory reset executed: part III - Squash"
+  print_msg "Factory reset successfully executed"
   sync
-  print_msg "Factory reset executed: part II - end"
-  
-  #Setting 5 second for rebooting after kernel panic (sometimes it happens after factory reset)
-  echo 5 > /proc/sys/kernel/panic
+  rm /mnt/factory/factory_reset
 
+  umount /mnt/factory
+  rm -r /mnt/factory
+  print_msg "Restarting"
+  echo b > /proc/sysrq-trigger
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/mmcblk0p3 -L volumio_data
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
   rm /mnt/factory/user_data
-  
   print_msg "User Data successfully deleted "
 fi
 umount /mnt/factory
 rm -r /mnt/factory
 
+
+# if the update failed before completion
 mkdir boot
-mount -t auto /dev/mmcblk0p1 /boot
+mount -t vfat /dev/${BOOTDEV}p1 /boot
+if [ -e "/boot/update_process" ]; then
+print_msg "Previous update attempt failed, restoring fallbacks"
+  cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
+  cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
+  if [-e "/boot/kernel_update" ]; then
+    rm /boot/kernel_update
+  fi
+  rm /boot/update_process
+fi
+
+# if the kernel has been updated, and no error has occurred before completition
+if [ -e "/boot/kernel_update" ]; then
+print_msg "unpacking kernel"
+  tar xf /mnt/imgpart/kernel_current.tar -C /boot
+  if [ -e "/mnt/imgpart/config.txt.bak" ]; then
+    print_msg "Restoring custom config.txt content"
+    I2S=`sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' /mnt/imgpart/config.txt.bak`
+    echo "\n" >> /boot/config.txt
+    echo "$I2S" >> /boot/config.txt
+    rm /mnt/imgpart/config.txt.bak
+  fi
+  rm /boot/kernel_update
+  sync
+  umount /boot
+  rm -rf /boot
+  echo b > /proc/sysrq-trigger
+fi
+
+# if data partition needs to be resized
+#mount -t auto /dev/${BOOTDEV}p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
 print_msg "Re-sizing Volumio data partition"
-  END="$(parted -s /dev/mmcblk0 unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
-  parted -s /dev/mmcblk0 resizepart 3 ${END}
-  e2fsck -fy /dev/mmcblk0p3
-  resize2fs /dev/mmcblk0p3
+  END="$(parted -s /dev/${BOOTDEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
+  parted -s /dev/${BOOTDEV} resizepart 3 ${END}
+  e2fsck -fy /dev/${BOOTDEV}p3
+  resize2fs /dev/${BOOTDEV}p3
   print_msg "Volumio data partition succesfully resized"
-  parted -s /dev/mmcblk0 unit MB print
+  parted -s /dev/${BOOTDEV} unit MB print
   rm /boot/resize-volumio-datapart
 fi
+
+# clear the mountpoint
 umount /boot
-rm -r /boot
+rm -rf /boot
 
 # 4) mount a filesystem for write access to the static image
 # unclear: memory size? -o size=1024M
 [ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
-mount -t ext4 -o noatime /dev/mmcblk0p3 /mnt/ext
+mount -t ext4 -o noatime /dev/${BOOTDEV}p3 /mnt/ext
 
 [ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn
 [ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union

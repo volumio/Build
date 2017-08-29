@@ -32,14 +32,14 @@ dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
-sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 8 71
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 71 2500
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
-sudo parted -s "${LOOP_DEV}" set 1 boot on
-sudo parted -s "${LOOP_DEV}" print
-sudo partprobe "${LOOP_DEV}"
-sudo kpartx -s -a "${LOOP_DEV}"
+parted -s "${LOOP_DEV}" mklabel msdos
+parted -s "${LOOP_DEV}" mkpart primary fat32 8 71
+parted -s "${LOOP_DEV}" mkpart primary ext3 71 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
+parted -s "${LOOP_DEV}" set 1 boot on
+parted -s "${LOOP_DEV}" print
+partprobe "${LOOP_DEV}"
+kpartx -s -a "${LOOP_DEV}"
 
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
@@ -54,9 +54,9 @@ then
 fi
 
 echo "Creating boot and rootfs filesystems"
-sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
-sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
-sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+mkfs -t vfat -n BOOT "${BOOT_PART}"
+mkfs -F -t ext4 -L volumio "${SYS_PART}"
+mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for the sparky kernel/ platform files"
@@ -74,8 +74,8 @@ else
 fi
 
 echo "Burning the bootloader and u-boot"
-sudo dd if=platform-sparky/sparky/u-boot/bootloader.bin of=${LOOP_DEV} bs=512 seek=4097
-sudo dd if=platform-sparky/sparky/u-boot/u-boot-dtb.img of=${LOOP_DEV} bs=512 seek=6144
+dd if=platform-sparky/sparky/u-boot/bootloader.bin of=${LOOP_DEV} bs=512 seek=4097
+dd if=platform-sparky/sparky/u-boot/u-boot-dtb.img of=${LOOP_DEV} bs=512 seek=6144
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -96,24 +96,27 @@ fi
 
 echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
-sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
-sudo mkdir /mnt/volumio/rootfs
-sudo mkdir /mnt/volumio/rootfs/boot
-sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+mount -t ext4 "${SYS_PART}" /mnt/volumio/images
+mkdir /mnt/volumio/rootfs
+mkdir /mnt/volumio/rootfs/boot
+mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
+cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 
 echo "Copying sparky boot files, kernel, modules and firmware"
-sudo cp platform-sparky/sparky/boot/* /mnt/volumio/rootfs/boot
-sudo cp -pdR platform-sparky/sparky/lib/modules /mnt/volumio/rootfs/lib
-sudo cp -pdR platform-sparky/sparky/lib/firmware /mnt/volumio/rootfs/lib
+cp platform-sparky/sparky/boot/* /mnt/volumio/rootfs/boot
+cp -pdR platform-sparky/sparky/lib/modules /mnt/volumio/rootfs/lib
+cp -pdR platform-sparky/sparky/lib/firmware /mnt/volumio/rootfs/lib
+
+echo "Copying special hotspot.sh version for Sparky"
+cp platform-sparky/sparky/bin/hotspot.sh /mnt/volumio/rootfs/bin
 
 echo "Copying DSP firmware and license from allocom dsp git"
 # doing this here and not in config because cloning under chroot caused issues before"
 git clone http://github.com/allocom/piano-firmware allo
 cp -pdR allo/lib /mnt/volumio/rootfs
-sudo rm -r allo
+rm -r allo
 sync
 
 echo "Preparing to run chroot for more sparky configuration"
@@ -154,11 +157,19 @@ if [ -d /mnt/squash ]; then
 	rm -rf /mnt/squash/*
 else
 	echo "Creating Volumio SquashFS Temp Dir"
-	sudo mkdir /mnt/squash
+	mkdir /mnt/squash
 fi
 
 echo "Copying Volumio rootfs to Temp Dir"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
+
+if [ -e /mnt/kernel_current.tar ]; then
+	echo "Volumio Kernel Partition Archive exists - Cleaning it"
+	rm -rf /mnt/kernel_current.tar
+fi
+
+echo "Creating Kernel Partition Archive"
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
@@ -175,12 +186,9 @@ rm -rf /mnt/squash
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 echo "Unmounting Temp Devices"
-sudo umount -l /mnt/volumio/images
-sudo umount -l /mnt/volumio/rootfs/boot
+umount -l /mnt/volumio/images
+umount -l /mnt/volumio/rootfs/boot
 
-echo "Cleaning build environment"
-rm -rf /mnt/volumio /mnt/boot
-
-sudo dmsetup remove_all
-sudo losetup -d ${LOOP_DEV}
+dmsetup remove_all
+losetup -d ${LOOP_DEV}
 sync
