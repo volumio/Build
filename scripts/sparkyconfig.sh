@@ -56,7 +56,6 @@ echo "(otherwise sparky may not boot due to size of initrd)"
 sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
 echo "Installing winbind here, since it freezes networking"
-apt-get update
 apt-get install -y winbind libnss-winbind
 
 echo "Cleaning APT Cache and remove policy file"

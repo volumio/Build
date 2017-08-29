@@ -57,7 +57,6 @@ fi
 rm /patch
 
 echo "Installing winbind here, since it freezes networking"
-apt-get update
 apt-get install -y winbind libnss-winbind
 
 echo "Cleaning APT Cache and remove policy file"
