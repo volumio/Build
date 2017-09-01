@@ -11,10 +11,6 @@ echo "Installing the kernel and creating initramfs"
 dpkg -i linux-image-*_i386.deb
 dpkg -i linux-firmware-*_i386.deb
 
-KRNL=`ls -l /boot |grep vmlinuz | awk -F'vmlinuz-' '{print $2}'`
-cp e1000e.ko /lib/modules/$KRNL/kernel/drivers/net/ethernet/intel/e1000e/
-depmod $KRNL
-
 echo "Creating node/ nodejs symlinks to stay compatible with the armv6/v7 platforms"
 ln -s /usr/bin/nodejs /usr/local/bin/nodejs
 
@@ -33,12 +29,13 @@ echo "Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
 
 echo "Creating run-time template for syslinux config"
+DEBUG="USE_KMSG=no"
 echo "DEFAULT volumio
 
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
+  APPEND ro vga=792 imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
   INITRD volumio.initrd
 " > /boot/syslinux.tmpl
 
@@ -135,6 +132,10 @@ apt-get -y install fonts-arphic-ukai fonts-arphic-gbsn00lp fonts-unfonts-core
 echo "Configuring boot splash"
 apt-get -y install plymouth plymouth-themes plymouth-x11
 plymouth-set-default-theme volumio
+echo "[Daemon]
+Theme=volumio
+ShowDelay=0
+" > /usr/share/plymouth/plymouthd.defaults
 
 echo "Setting up in kiosk-mode"
 echo "Creating chromium kiosk start script"
@@ -200,6 +201,8 @@ echo "Adding modules for Plymouth"
 echo "intel_agp" >> /etc/initramfs-tools/modules
 echo "drm" >> /etc/initramfs-tools/modules
 echo "i915 modeset=1" >> /etc/initramfs-tools/modules
+echo "nouveau modeset=1" >> /etc/initramfs-tools/modules
+echo "radeon modeset=1" >> /etc/initramfs-tools/modules
 
 echo "Copying volumio initramfs updater"
 cd /root/
