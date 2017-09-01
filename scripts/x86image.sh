@@ -91,7 +91,6 @@ else
   cp platform-x86/packages/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/linux-firmware-*.deb /mnt/volumio/rootfs
 fi
-#cp platform-x86/Intel-e1000e-3.3.4/e1000e.ko /mnt/volumio/rootfs
 
 cp volumio/splash/volumio.png /mnt/volumio/rootfs/boot
 
@@ -128,7 +127,6 @@ chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 EOF
 
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb
-rm /mnt/volumio/rootfs/linux-firmware-*.deb /mnt/volumio/rootfs/e1000e.ko
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
 rm /mnt/volumio/rootfs/ata-modules.x86
 sync
