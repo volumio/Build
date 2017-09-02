@@ -19,6 +19,12 @@ mdev -s
 USE_KMSG="yes"
 HWDEVICE="empty"
 BOOTDEV="mmcblk0"
+#Device/Partition Separator i.e. the character between parentdev and partition index
+DPS="p"
+#default values:
+IMGPART="/dev/${BOOTDEV}${DPS}2"
+DATAPART="/dev/${BOOTDEV}${DPS}3"
+BOOTPART="/dev/${BOOTDEV}${DPS}1"
 
 # Display a message or print directly to /dev/kmsg
 print_msg() {
@@ -68,6 +74,20 @@ do
     ;;
   bootdev)
     BOOTDEV=$value
+    ;;
+  dps)
+    DPS=$value
+    ;;
+  genpnames)
+    IMGPART="/dev/${BOOTDEV}${DPS}2"
+    DATAPART="/dev/${BOOTDEV}${DPS}3"
+    BOOTPART="/dev/${BOOTDEV}${DPS}1"
+    ;;
+  bootpart)
+    BOOTPART=`parse_disk $value`
+    ;;
+  datapart)
+    DATAPART=`parse_disk $value`
     ;;
   hwdevice)
     HWDEVICE=$value
@@ -122,6 +142,9 @@ fi
 
 print_msg IMGPART=${IMGPART}
 print_msg IMGFILE=${IMGFILE}
+print_msg DATAPART=${DATAPART}
+print_msg BOOTPART=${BOOTPART}
+
 if [ ! -z "${BOOTDELAY}" ]; then
   print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
 fi
@@ -161,7 +184,7 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   print_msg "Factory image created"
   print_msg "Creating archive for factory kernel..."
   mkdir /mnt/factory
-  mount -t vfat /dev/${BOOTDEV}p1 /mnt/factory
+  mount -t vfat ${BOOTPART} /mnt/factory
   tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
   cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
   umount /mnt/factory
@@ -171,16 +194,16 @@ elif [ ! -z "${BOOTDELAY}" ]; then
   sleep ${BOOTDELAY}
 fi
 
-print_msg "Checking for USB updates"
+print_msg "Checking for USB updates if you did not boot from USB..."
 [ -e /dev/sda1 ] || mdev -s
-if [ -e /dev/sda1 ]; then
+if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
   [ -d /mnt/usb ] || mkdir /mnt/usb
   mount -t auto /dev/sda1 /mnt/usb
   #If there is a firmware file inside the usb
   if [ -e /mnt/usb/*.fir ]; then
     print_msg "Firmware found, updating will take a few minutes, please wait..."
     mkdir /mnt/boot
-    mount -t auto /dev/${BOOTDEV}p1 /mnt/boot
+    mount -t auto ${BOOTPART} /mnt/boot
     #when the partitions are mounted we can launch the update script
     volumio-init-updater
     sync
@@ -193,7 +216,7 @@ if [ -e /dev/sda1 ]; then
   if [ -e /mnt/usb/factory_reset ]; then
     print_msg "Factory Reset on USB"
     mkdir /mnt/factory
-    mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
+    mount -t auto ${BOOTPART} /mnt/factory
     echo " " > /mnt/factory/factory_reset
     umount /mnt/factory
     rm -r /mnt/factory
@@ -202,7 +225,11 @@ if [ -e /dev/sda1 ]; then
   umount /dev/sda1
   rm -r /mnt/usb
 else
-  print_msg "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
+  if [ "/dev/sda1" == "${BOOTPART}" ]; then
+    print_msg "Not checking for firmware if you boot from USB. Sorry!"
+  else 
+    print_msg "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
+  fi
 fi
 
 
@@ -225,10 +252,10 @@ VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 #if there is factory file then format data partition
 #
 mkdir /mnt/factory
-mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
+mount -t auto ${BOOTPART} /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Executing factory reset"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
   print_msg "Factory reset executed: part I - User DATA Part"
   tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
   print_msg "Factory reset executed: part II - Kernel"
@@ -245,7 +272,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
   rm /mnt/factory/user_data
   print_msg "User Data successfully deleted "
 fi
@@ -255,7 +282,7 @@ rm -r /mnt/factory
 
 # if the update failed before completion
 mkdir boot
-mount -t vfat /dev/${BOOTDEV}p1 /boot
+mount -t vfat ${BOOTPART} /boot
 if [ -e "/boot/update_process" ]; then
 print_msg "Previous update attempt failed, restoring fallbacks"
   cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
@@ -290,8 +317,8 @@ if [ -e "/boot/resize-volumio-datapart" ]; then
 print_msg "Re-sizing Volumio data partition"
   END="$(parted -s /dev/${BOOTDEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s /dev/${BOOTDEV} resizepart 3 ${END}
-  e2fsck -fy /dev/${BOOTDEV}p3
-  resize2fs /dev/${BOOTDEV}p3
+  e2fsck -fy ${DATAPART}
+  resize2fs ${DATAPART}
   print_msg "Volumio data partition succesfully resized"
   parted -s /dev/${BOOTDEV} unit MB print
   rm /boot/resize-volumio-datapart
@@ -304,7 +331,7 @@ rm -rf /boot
 # 4) mount a filesystem for write access to the static image
 # unclear: memory size? -o size=1024M
 [ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
-mount -t ext4 -o noatime /dev/${BOOTDEV}p3 /mnt/ext
+mount -t ext4 -o noatime ${DATAPART} /mnt/ext
 
 [ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn
 [ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union
@@ -325,6 +352,14 @@ mount --move /mnt/static /mnt/ext/union/static
 mount --move /mnt/imgpart /mnt/ext/union/imgpart
 
 chmod -R 777 /mnt/ext/union/imgpart
+
+#idea: Mount /boot already here to that systemd does not have to mount it an we
+# can be flexible. However this should be confirmed by somebody who is more familiar 
+# with systemd and who can tell what fstab is used for in the system
+
+[ -d /mnt/ext/union/boot ] || mkdir -m 777 /mnt/ext/union/boot
+mount -t vfat ${BOOTPART} /mnt/ext/union/boot
+
 
 umount /proc
 umount /sys
