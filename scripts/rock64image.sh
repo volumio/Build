@@ -71,7 +71,7 @@ else
 	git clone https://github.com/volumio/platform-rock64.git platform-rock64
 	echo "Unpack the platform files"
     cd platform-rock64
-	tar xfJ rock.tar.xz
+	tar xfJ rock64.tar.xz
 	cd ..
 fi
 
