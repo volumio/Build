@@ -285,7 +285,7 @@ print_msg "unpacking kernel"
 fi
 
 # if data partition needs to be resized
-mount -t auto /dev/${BOOTDEV}p1 /boot
+#mount -t auto /dev/${BOOTDEV}p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
 print_msg "Re-sizing Volumio data partition"
   END="$(parted -s /dev/${BOOTDEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
