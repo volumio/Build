@@ -169,6 +169,28 @@ WantedBy=multi-user.target
 " > /lib/systemd/system/volumio-kiosk.service
 ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
 
+echo "Hide Mouse cursor"
+
+echo "#!/bin/sh
+
+if [ -d /etc/X11/xinit/xinitrc.d ]; then
+  for f in /etc/X11/xinit/xinitrc.d/*; do
+    [ -x "$f" ] && . "$f"
+  done
+  unset f
+fi
+
+xrdb -merge ~/.Xresources         # aggiorna x resources db
+
+#xscreensaver -no-splash &         # avvia il demone di xscreensaver
+xsetroot -cursor_name left_ptr &  # setta il cursore di X
+#sh ~/.fehbg &                     # setta lo sfondo con feh
+
+exec openbox-session              # avvia il window manager
+
+exec unclutter &" > /root/.xinitrc
+
+
 echo "Allowing volumio to start an xsession"
 sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
 
