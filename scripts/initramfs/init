@@ -55,6 +55,8 @@ parse_disk() {
   fi
 }
 
+DO_GEN=no
+
 for p in ${CMDLINE};
 do
   key=${p%%=*}
@@ -79,9 +81,7 @@ do
     DPS=$value
     ;;
   genpnames)
-    IMGPART="/dev/${BOOTDEV}${DPS}2"
-    DATAPART="/dev/${BOOTDEV}${DPS}3"
-    BOOTPART="/dev/${BOOTDEV}${DPS}1"
+    DO_GEN=yes
     ;;
   bootpart)
     BOOTPART=`parse_disk $value`
@@ -95,6 +95,12 @@ do
   esac
 done
 
+if [ $DO_GEN == yes ]; then
+    print_msg "re-generating partition names..."
+    IMGPART="/dev/${BOOTDEV}${DPS}2"
+    DATAPART="/dev/${BOOTDEV}${DPS}3"
+    BOOTPART="/dev/${BOOTDEV}${DPS}1"
+fi
 #Hardware specific adaptions
 
 #When we did not already get the device name from the cmdline, try getting it from cpuinfo
@@ -358,7 +364,7 @@ chmod -R 777 /mnt/ext/union/imgpart
 # with systemd and who can tell what fstab is used for in the system
 
 [ -d /mnt/ext/union/boot ] || mkdir -m 777 /mnt/ext/union/boot
-mount -t vfat ${BOOTPART} /mnt/ext/union/boot
+mount -t vfat -o defaults,utf8,user,rw,umask=111,dmask=000 ${BOOTPART} /mnt/ext/union/boot
 
 
 umount /proc
