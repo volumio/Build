@@ -134,7 +134,7 @@ var apstopped = 0
 
 function startFlow() {
     try {
-        var conf = fs.statSync('/data/configuration/netconfigured');
+        var netconfigured = fs.statSync('/data/configuration/netconfigured');
     } catch (e) {
         var directhotspot = true;
     }
