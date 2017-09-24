@@ -84,14 +84,17 @@ if [ ! -d platform-x86 ]; then
   echo "Platform files (packages) not available yet, getting them from the repo"
   git clone http://github.com/volumio/platform-x86
 fi
+
 if [ -f platform-x86/packages/.next ]; then
   cp platform-x86/packages/experimental/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/experimental/linux-firmware-*.deb /mnt/volumio/rootfs
+  echo "Adding Intel 3168NGW wifi support"
+#TODO: remove when switching to stretch
+  cp -R platform-x86/packages/iwlwifi-3168-ucode-22.361476.0 /mnt/volumio/rootfs/lib/firmware
 else
   cp platform-x86/packages/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/linux-firmware-*.deb /mnt/volumio/rootfs
 fi
-#cp platform-x86/Intel-e1000e-3.3.4/e1000e.ko /mnt/volumio/rootfs
 
 cp volumio/splash/volumio.png /mnt/volumio/rootfs/boot
 
@@ -128,7 +131,6 @@ chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 EOF
 
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb
-rm /mnt/volumio/rootfs/linux-firmware-*.deb /mnt/volumio/rootfs/e1000e.ko
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
 rm /mnt/volumio/rootfs/ata-modules.x86
 sync
@@ -159,7 +161,7 @@ if [ -e /mnt/kernel_current.tar ]; then
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*

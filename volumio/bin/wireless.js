@@ -17,6 +17,13 @@ var ifconfigHotspot = "ifconfig " + wlan + " 192.168.211.1 up";
 var ifconfigWlan = "ifconfig " + wlan + " up";
 var ifdeconfig = "sudo ip addr flush dev " + wlan + " && sudo ifconfig " + wlan + " down";
 var execSync = require('child_process').execSync;
+try {
+    var conf = fs.readJsonSync('/data/configuration/system_controller/network/config.json');
+    console.log('WIRELESS: Loaded configuration');
+} catch (e) {
+    console.log('WIRELESS: First boot');
+    var conf = fs.readJsonSync('/volumio/app/plugins/system_controller/network/config.json');
+}
 
 function kill(process, callback) {
     var all = process.split(" ");
@@ -71,26 +78,12 @@ function launch(fullprocess, name, sync, callback) {
 
 function startHotspot() {
     stopHotspot(function(err) {
-        var hotspotenabled = true;
-        try {
-            var hotspotjson = fs.readJsonSync('/data/configuration/system_controller/network/config.json', {throws: false});
-        } catch(e) {
-            console.log('First boot, starting Hotspot');
-            launch(ifconfigHotspot, "confighotspot", true, function(err) {
-                console.log("ifconfig " + err);
-                launch(starthostapd,"hotspot" , false, function() {
-                    wstatus("hotspot");
-                });
-            });
-        }
-
-        if (hotspotjson != undefined && hotspotjson.enable_hotspot != undefined && hotspotjson.enable_hotspot.value != undefined && !hotspotjson.enable_hotspot.value) {
+        if (conf != undefined && conf.enable_hotspot != undefined && conf.enable_hotspot.value != undefined && !conf.enable_hotspot.value) {
             console.log('Hotspot is disabled, not starting it');
             launch(ifconfigWlan, "configwlanup", true, function(err) {
                 console.log("ifconfig " + err);
             });
         } else {
-
             launch(ifconfigHotspot, "confighotspot", true, function(err) {
                 console.log("ifconfig " + err);
                 launch(starthostapd,"hotspot" , false, function() {
@@ -141,16 +134,12 @@ var apstopped = 0
 
 function startFlow() {
     try {
-        var wirelessjson = fs.statSync('/data/configuration/netconfigured');
+        var netconfigured = fs.statSync('/data/configuration/netconfigured');
     } catch (e) {
         var directhotspot = true;
     }
-    try {
-        var wirelessjson = fs.readJsonSync('/data/configuration/system_controller/network/config.json', {throws: false});
-    } catch (e) {
-        console.log('');
-    }
-    if (wirelessjson != undefined && wirelessjson.wireless_enabled != undefined && wirelessjson.wireless_enabled.value != undefined && !wirelessjson.wireless_enabled.value) {
+
+    if (conf != undefined && conf.wireless_enabled != undefined && conf.wireless_enabled.value != undefined && !conf.wireless_enabled.value) {
         console.log('Wireless Networking DISABLED, not starting wireless flow');
     } else if (directhotspot){
         startHotspot(function () {
