@@ -56,13 +56,14 @@ modprobe nls_cp437
 modprobe nls_utf8
 modprobe usb_common
 modprobe usbcore
-# The EHCI driver should be loaded before the ones for low speed cpntrollers
-# or some devices may be confused when they are disconencted and reconnected.
+# The EHCI driver should be loaded before the ones for low speed controllers
+# or some devices may be confused when they are disconnected and reconnected.
 modprobe ehci_hcd
 modprobe ehci_pci
 modprobe uhci_hcd
 modprobe ohci_hcd
 modprobe ohci_pci
+modprobe xhci_hcd
 modprobe xhci_pci
 modprobe mmc_core
 modprobe sdhci
@@ -102,6 +103,14 @@ modprobe ata_generic
 print_msg "Waiting for storage devices to become ready"
 sleep 5
 mdev -s
+
+print_msg "Show plymouth with volumio theme"
+echo "[Daemon]
+Theme=volumio
+ShowDelay=0
+" > /usr/share/plymouth/plymouthd.defaults
+# No need to start plymouth daemon (started already), just show splash
+/bin/plymouth --show-splash
 
 # Parse the kernel command line from grub
 CMDLINE="$(cat /proc/cmdline)"
@@ -153,6 +162,9 @@ if [ -z "${IMGFILE}" ]; then
   exec sh
   exit 0
 fi
+
+# set a default for kmsg
+USE_KMSG=yes
 
 print_msg IMGPART=${IMGPART}
 print_msg IMGFILE=${IMGFILE}
@@ -326,10 +338,11 @@ if [ -e "/boot/kernel_update" ]; then
   mv /boot/syslinux.tmpl /boot/syslinux.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
-  mv /boot/grub/grub.cfg /boot/grub/grub.cfg.old
-  mv /boot/grub/grub.tmpl /boot/grub/grub.cfg
-  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/grub/grub.cfg
-  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/grub/grub.cfg
+  mv /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.cfg.old
+  mv /boot/efi/BOOT/grub.tmpl /boot/efi/BOOT/grub.cfg
+  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
+  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
   rm /boot/resize-volumio-datapart
   rm /boot/kernel_update
   sync
@@ -348,11 +361,11 @@ print_msg "Checking for data partition re-size"
 if [ -e "/boot/resize-volumio-datapart" ]; then
   print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
-  parted -s ${BOOT_DEVICE} resizepart 3 ${END}
+  parted -s ${BOOT_DEVICE} resizepart 3 ${END} > /boot/resize-datapart.log
   e2fsck -f ${BOOT_DEVICE}3
-  resize2fs ${BOOT_DEVICE}3
+  resize2fs ${BOOT_DEVICE}3 > /boot/resize-datapart.log
   print_msg "Volumio data partition succesfully resized"
-  parted -s ${BOOT_DEVICE} unit MB print
+  parted -s ${BOOT_DEVICE} unit MB print > /boot/resize-datapart.log
   rm /boot/resize-volumio-datapart
 fi
 umount /boot
@@ -413,6 +426,8 @@ print_msg ${VOLUMIO_VERSION}
 print_msg "Finishing initramfs, switching rootfs and starting the boot process..."
 umount /proc
 umount /sys
+
+/bin/plymouth --newroot=/mnt/ext/union
 
 exec switch_root /mnt/ext/union /sbin/init
 

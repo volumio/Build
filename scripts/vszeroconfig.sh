@@ -30,6 +30,9 @@ echo "Adding default sound modules"
 #/usr/local/bin/vszero-init.sh
 #exit 0" > /etc/rc.local
 
+echo "Enable getty on ttyGS0"
+systemctl enable serial-getty@ttyGS0.service
+
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install u-boot-tools

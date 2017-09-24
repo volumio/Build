@@ -42,7 +42,6 @@ deb-src http://archive.raspberrypi.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
 echo "Adding Raspberrypi.org Repo Key"
-
 wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
 
 echo "Installing R-pi specific binaries"
@@ -56,7 +55,7 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-KERNEL_VERSION="4.9.36"
+KERNEL_VERSION="4.9.41"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -64,9 +63,9 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
-    "4.9.36")
-      KERNEL_REV="1015"
-      KERNEL_COMMIT="400f6d196503e50b87025b888169f30214bc0f19"
+    "4.9.41")
+      KERNEL_REV="1023"
+      KERNEL_COMMIT="b9becbbf3f48e39f719ca6785d23c53ee0cdbe49"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
@@ -92,19 +91,15 @@ Pin: release *
 Pin-Priority: -1" > /etc/apt/preferences
 apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
 
+echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & few others firmware upgraging to Pi Foundations packages"
+apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
+
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
 echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
 wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
-
-echo "Adding PI3 & PiZero W Wireless firmware"
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.txt -P /lib/firmware/brcm/
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43430-sdio.bin -P /lib/firmware/brcm/
-
-echo "Adding PI WIFI Wireless dongle firmware"
-wget http://repo.volumio.org/Volumio2/wireless-firmwares/brcmfmac43143.bin -P /lib/firmware/brcm/
 
 #echo "Adding raspi-config"
 #wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
@@ -272,6 +267,13 @@ rm -rf /piano-firmware-master
 rm /README.md
 rm master.tar.gz
 echo "Allo firmware installed"
+
+echo "Getting TauDAC Firmware"
+wget https://github.com/taudac/modules/archive/rpi-volumio-4.9.41-taudac-modules.tar.gz
+echo "Extracting TauDAC Firmwares"
+tar --strip-components 1 --exclude *.hash -xf rpi-volumio-4.9.41-taudac-modules.tar.gz
+rm rpi-volumio-4.9.41-taudac-modules.tar.gz
+echo "TauDAC Firmware installed"
 
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then

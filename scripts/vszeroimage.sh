@@ -103,16 +103,16 @@ cp -R platform-pv/vszero/boot/* /mnt/volumio/rootfs/boot/
 echo "Copying Voltastream0 modules and firmware"
 cp -pdR platform-pv/vszero/lib/modules /mnt/volumio/rootfs/lib/
 cp -pdR platform-pv/vszero/lib/firmware /mnt/volumio/rootfs/lib/
-echo "Copying Voltastream0 inittab"
-cp platform-pv/vszero/etc/inittab /mnt/volumio/rootfs/etc/
-echo "Copying Voltastream0 asound.conf (setup ASRC resampling)"
-cp platform-pv/vszero/etc/asound.conf /mnt/volumio/rootfs/etc/
+
+echo "Copy the Voltastream0 hotspot.sh version"
+cp platform-pv/vszero/bin/hotspot.sh /mnt/volumio/rootfs/bin/
 sync
 
 echo "Preparing to run chroot for more Voltastream0 configuration"
 cp scripts/vszeroconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
@@ -157,7 +157,7 @@ if [ -e /mnt/kernel_current.tar ]; then
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*

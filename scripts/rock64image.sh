@@ -71,7 +71,7 @@ else
 	git clone https://github.com/volumio/platform-rock64.git platform-rock64
 	echo "Unpack the platform files"
     cd platform-rock64
-	tar xfJ rock.tar.xz
+	tar xfJ rock64.tar.xz
 	cd ..
 fi
 
@@ -184,7 +184,7 @@ if [ -e /mnt/kernel_current.tar ]; then
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
