@@ -5,7 +5,7 @@ export PATH='/usr/bin:/sbin:/bin'
 
 CleanUp() {
 	[ -d /var/tmp  ] && rm -rf /var/tmp/mkinitramfs*
-	[ -n "${TMPDIR}" ] && [ -d "${TMPDIR}" ] && rm -rf "${TMPDIR}"/mkinitramfs* 
+	[ -n "${TMPDIR}" ] && [ -d "${TMPDIR}" ] && rm -rf "${TMPDIR}"/mkinitramfs*
 } # CleanUp
 trap 'CleanUp' 0
 
