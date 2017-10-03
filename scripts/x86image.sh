@@ -131,6 +131,7 @@ chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 EOF
 
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb
+rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-firmware-*.deb
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
 rm /mnt/volumio/rootfs/ata-modules.x86
 sync
