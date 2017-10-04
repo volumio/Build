@@ -24,6 +24,10 @@ echo "Installing additonal packages"
 apt-get update
 apt-get -y install u-boot-tools
 
+wget  https://raw.githubusercontent.com/sparkysbc/downloads/master/wiringSparky.tgz
+tar -xzvf wiringSparky.tgz -C /
+rm wiringSparky.tgz 
+
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlayfs" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
