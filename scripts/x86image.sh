@@ -123,7 +123,7 @@ LOOP_DEV=${LOOP_DEV}
 BOOT_PART=${BOOT_PART}
 " >> /mnt/volumio/rootfs/init.sh
 chmod +x /mnt/volumio/rootfs/init.sh
-
+cat /mnt/volumio/rootfs/init.sh
 
 echo $PATCH > /mnt/volumio/rootfs/patch
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
@@ -131,7 +131,6 @@ chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 EOF
 
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb
-rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-firmware-*.deb
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
 rm /mnt/volumio/rootfs/ata-modules.x86
 sync
@@ -177,6 +176,8 @@ rm -rf /mnt/squash
 
 #copy the squash image inside the boot partition
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
+echo "Signalling the init script to move the backup GPT table to the end of the disk "
+touch /mnt/volumio/images/move-gpt
 sync
 echo "Unmounting Temp Devices"
 sudo umount -l /mnt/volumio/images
