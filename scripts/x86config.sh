@@ -29,15 +29,20 @@ echo "Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
 
 echo "Creating run-time template for syslinux config"
-DEBUG="use_kmsg=yes"
+DEBUG="USE_KMSG=no"
 echo "DEFAULT volumio
 
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro vga=792 imgpart=UUID=${UUID_IMG} bootpart=UUID=${UUID_BOOT} imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
+  APPEND ro imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
   INITRD volumio.initrd
-" > /boot/syslinux.cfg
+" > /boot/syslinux.tmpl
+
+echo "Creating syslinux.cfg from template"
+cp /boot/syslinux.tmpl /boot/syslinux.cfg
+sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
+sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
 
 echo "Editing the Grub UEFI config template"
 # Make grub boot menu transparent
@@ -68,12 +73,14 @@ cp /boot/grub/grub.cfg /boot/efi/BOOT/grub.cfg
 echo "Telling the bootloader to read an external config" 
 echo 'configfile ${cmdpath}/grub.cfg' > /grub-redir.cfg
 
+echo "Using current grub.cfg as run-time template for kernel updates"
+cp /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.tmpl
+sed -i "s/${UUID_BOOT}/%%BOOTPART%%/g" /boot/efi/BOOT/grub.tmpl
+
 echo "Inserting root and boot partition UUIDs (building the boot cmdline used in initramfs)"
 # Opting for finding partitions by-UUID
 sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
-sed -i "/Loading Linux/d" /boot/efi/BOOT/grub.cfg
-sed -i "/Loading initial ramdisk/d" /boot/efi/BOOT/grub.cfg
 
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
@@ -112,6 +119,12 @@ echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
+
+echo "Copying fstab as a template to be used in initrd"
+cp /etc/fstab /etc/fstab.tmpl
+
+echo "Editing fstab to use UUID=<uuid of boot partition>"
+sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 
 echo "Installing Japanese, Korean, Chinese and Taiwanese fonts"
 apt-get -y install fonts-arphic-ukai fonts-arphic-gbsn00lp fonts-unfonts-core
