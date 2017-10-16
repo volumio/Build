@@ -163,6 +163,9 @@ if [ -z "${IMGFILE}" ]; then
   exit 0
 fi
 
+# set a default for kmsg
+USE_KMSG=yes
+
 print_msg IMGPART=${IMGPART}
 print_msg IMGFILE=${IMGFILE}
 print_msg BOOTPART=${BOOTPART}
@@ -190,7 +193,7 @@ print_msg "Initrd initialisation finished"
 #
 
 BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-if [ -e "/mnt/imgpart/move-gpt" ]; then
+if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   print_msg "First time boot, moving the backup GPT table to the end of the disk..."
   gdisk ${BOOT_DEVICE} > /dev/null  2>&1 <<EOF
 x
@@ -198,7 +201,6 @@ e
 w
 y
 EOF
-  rm -rf /mnt/imgpart/move-gpt
   print_msg "Succesfully moved the backup GPT table"
 fi
 
@@ -278,6 +280,7 @@ rmdir /mnt/usb
 # Step 4: If there is factory reset or a user-data reset on the boot partition
 #         then re-format data partition.
 # ============================================================================
+# TODO: restore kernel_factory too
 #
 print_msg "Checking for factory or user-data reset on boot device"
 mkdir /mnt/factory
@@ -321,34 +324,30 @@ if [ -e "/boot/update_process" ]; then
   rm /boot/update_process
 fi
 
-# If the kernel has been updated, and no error has occurred before completion
+# if the kernel has been updated, and no error has occurred before completition
 # Retrieve current UUID of boot and image partition
 # These need to be edited into the new boot configs to make the new update bootable
 # This is an update on an existing installation, do not resize the data partition
 # Just remove the sentinel
-# (The editing in grub.cfg needs to be checked when upgrading to Debian stretch) 
 if [ -e "/boot/kernel_update" ]; then
   print_msg "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
   UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
   UUID_IMG=$(blkid -s UUID -o value ${IMGPART})
-
-  cp /boot/syslinux.cfg /boot/syslinux.cfg.old
-  sed -i "s/imgpart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/imgpart=UUID=${UUID_IMG}/g" /boot/syslinux.cfg
-  sed -i "s/bootpart=UUID=[a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/bootpart=UUID=${UUID_BOOT}/g" /boot/syslinux.cfg
-
-  cp /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.cfg.old
-  sed -i "s/imgpart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
-  sed -i "s/bootpart=UUID=[a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
-  sed -i "s/=root  [a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/=root  ${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
-  sed -i "s/=root [a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/=root ${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
-
+  mv /boot/syslinux.cfg /boot/syslinux.cfg.old
+  mv /boot/syslinux.tmpl /boot/syslinux.cfg
+  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
+  mv /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.cfg.old
+  mv /boot/efi/BOOT/grub.tmpl /boot/efi/BOOT/grub.cfg
+  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
+  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
   rm /boot/resize-volumio-datapart
   rm /boot/kernel_update
   sync
   umount /boot
   rm -rf /boot
-  /bin/sh
   echo b > /proc/sysrq-trigger
 fi
 
@@ -399,6 +398,7 @@ mount -t ext4 ${BOOT_DEVICE}3 /mnt/ext
 
 # Step 9: Create the overlay from RO and RW partitions
 # ====================================================
+
 mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
 
 # Clean up.
@@ -409,23 +409,18 @@ mount --move /mnt/imgpart /mnt/ext/union/imgpart
 
 chmod -R 777 /mnt/ext/union/imgpart
 
-# Step 10: Mount the boot partiton read-write for runtime
+# Step 10: The UUID of the bootpartition could possibly not match the one used in fstab.
+#          This is the case when an new version of the squash file has been created.
+#          This step fixes that 
 # ============================================================================================
-print_msg "Mounting boot partition ${BOOTPART}"
-mount -t vfat -o defaults,utf8,user,rw,umask=111,dmask=000 ${BOOTPART} /mnt/ext/union/boot
-
-
-# Step 11: Run one-off custom script, passing boot device and root
-#  Using a copy of the custom script to avoid permissions problems
-#  chmod +x to ensure executability
-# ================================================================
-if [ -f "/mnt/ext/union/boot/custom.sh" ]; then
-  cp /mnt/ext/union/boot/custom.sh .
-  chmod 777 ./custom.sh
-  ./custom.sh $BOOTDEV /mnt/ext/union
-  rm -rf ./custom .sh
-  rm -rf /mnt/ext/union/boot/custom.sh
+UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
+print_msg "Editing fstab to use UUID=<correct uuid of bootpartition>"
+if [ -e "/mnt/ext/union/etc/fstab.prev" ]; then
+  rm /mnt/ext/union/etc/fstab.prev
 fi
+mv /mnt/ext/union/etc/fstab /mnt/ext/union/etc/fstab.prev
+cp /mnt/ext/union/etc/fstab.tmpl /mnt/ext/union/etc/fstab
+sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /mnt/ext/union/etc/fstab
 
 print_msg ${VOLUMIO_VERSION}
 print_msg "Finishing initramfs, switching rootfs and starting the boot process..."
