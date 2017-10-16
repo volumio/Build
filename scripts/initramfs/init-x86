@@ -343,11 +343,12 @@ if [ -e "/boot/kernel_update" ]; then
   sed -i "s/=root  [a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/=root  ${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
   sed -i "s/=root [a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/=root ${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
 
-  rm -f /boot/resize-volumio-datapart
+  rm /boot/resize-volumio-datapart
   rm /boot/kernel_update
   sync
   umount /boot
   rm -rf /boot
+  /bin/sh
   echo b > /proc/sysrq-trigger
 fi
 
