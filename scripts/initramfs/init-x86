@@ -345,8 +345,6 @@ if [ -e "/boot/kernel_update" ]; then
 
   rm -f /boot/resize-volumio-datapart
   rm /boot/kernel_update
-# mark it for the first boot after the kernel_update
-  touch /boot/update_fstab
   sync
   umount /boot
   rm -rf /boot
@@ -400,7 +398,6 @@ mount -t ext4 ${BOOT_DEVICE}3 /mnt/ext
 
 # Step 9: Create the overlay from RO and RW partitions
 # ====================================================
-#
 mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
 
 # Clean up.
@@ -412,25 +409,15 @@ mount --move /mnt/imgpart /mnt/ext/union/imgpart
 chmod -R 777 /mnt/ext/union/imgpart
 
 # Step 10: Mount the boot partiton read-write for runtime
-# =======================================================
-#
+# ============================================================================================
 print_msg "Mounting boot partition ${BOOTPART}"
-[ -d /mnt/ext/union/boot ] || mkdir -m 777 /mnt/ext/union/boot
 mount -t vfat -o defaults,utf8,user,rw,umask=111,dmask=000 ${BOOTPART} /mnt/ext/union/boot
 
-# Special step to force overlay to write a new fstab in upperdir after kernel_update
-# ==================================================================================
-#
-if [ -e /mnt/ext/union/boot/update_fstab ]; then
-  cp /mnt/ext/union/static/etc/fstab /mnt/ext/union/etc/fstab
-  rm /mnt/ext/union/boot/update_fstab
-fi
 
 # Step 11: Run one-off custom script, passing boot device and root
 #  Using a copy of the custom script to avoid permissions problems
 #  chmod +x to ensure executability
 # ================================================================
-#
 if [ -f "/mnt/ext/union/boot/custom.sh" ]; then
   cp /mnt/ext/union/boot/custom.sh .
   chmod 777 ./custom.sh
