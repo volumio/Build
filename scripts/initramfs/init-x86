@@ -295,6 +295,8 @@ if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Factory reset executed: part III - Squash"
   print_msg "Restarting"
   sync
+  umount /mnt/factory
+  rm -r /mnt/factory
   echo b > /proc/sysrq-trigger
 fi
 if [ -e "/mnt/factory/user_data" ]; then
