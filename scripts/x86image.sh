@@ -130,7 +130,7 @@ chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 /x86config.sh -p
 EOF
 
-rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-image-*.deb
+rm /mnt/volumio/rootfs/linux-image-*.deb
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-firmware-*.deb
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
 rm /mnt/volumio/rootfs/ata-modules.x86
@@ -162,7 +162,7 @@ if [ -e /mnt/kernel_current.tar ]; then
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' --exclude='ldlinux.sys' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
