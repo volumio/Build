@@ -193,7 +193,7 @@ print_msg "Initrd initialisation finished"
 #
 
 BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
+if [ -e "/mnt/imgpart/move-gpt" ]; then
   print_msg "First time boot, moving the backup GPT table to the end of the disk..."
   gdisk ${BOOT_DEVICE} > /dev/null  2>&1 <<EOF
 x
@@ -201,6 +201,7 @@ e
 w
 y
 EOF
+  rm -rf /mnt/imgpart/move-gpt
   print_msg "Succesfully moved the backup GPT table"
 fi
 
@@ -215,8 +216,14 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   print_msg "Creating archive for factory kernel..."
   mkdir /mnt/factory
   mount -t vfat ${BOOT_DEVICE}1 /mnt/factory
-  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
+# exclude ldlinux.sys from kernel tar's to avoid a relocation during kernel-update or factory-reset 
+# (little workaround, as this tar version does not support the --exclude= option)
+  mkdir /mnt/imgpart/boot
+  cp -pR /mnt/factory/* /mnt/imgpart/boot
+  rm /mnt/imgpart/boot/ldlinux.sys
+  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/imgpart/boot .
   cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
+  rm -r /mnt/imgpart/boot
   umount /mnt/factory
   rm -r /mnt/factory
 fi
