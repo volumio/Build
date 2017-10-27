@@ -193,7 +193,7 @@ print_msg "Initrd initialisation finished"
 #
 
 BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
+if [ -e "/mnt/imgpart/move-gpt" ]; then
   print_msg "First time boot, moving the backup GPT table to the end of the disk..."
   gdisk ${BOOT_DEVICE} > /dev/null  2>&1 <<EOF
 x
@@ -201,6 +201,7 @@ e
 w
 y
 EOF
+  rm -rf /mnt/imgpart/move-gpt
   print_msg "Succesfully moved the backup GPT table"
 fi
 
