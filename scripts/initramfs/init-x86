@@ -371,7 +371,7 @@ if [ -e "/boot/resize-volumio-datapart" ]; then
   print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s ${BOOT_DEVICE} resizepart 3 ${END} > /boot/resize-datapart.log
-  e2fsck -f ${BOOT_DEVICE}3
+  e2fsck -f ${BOOT_DEVICE}3 -y
   resize2fs ${BOOT_DEVICE}3 > /boot/resize-datapart.log
   print_msg "Volumio data partition succesfully resized"
   parted -s ${BOOT_DEVICE} unit MB print > /boot/resize-datapart.log
