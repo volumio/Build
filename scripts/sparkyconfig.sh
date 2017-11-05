@@ -20,6 +20,9 @@ tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 #echo "snd-soc-allo-piano-dac-plus
 #snd-soc-allo-piano-dac" >> /etc/modules
 
+echo "Blacklisting noisy module"
+echo "blacklist ctp_gsl3680" > /etc/modprobe.d/blacklist.conf
+
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install u-boot-tools

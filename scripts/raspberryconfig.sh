@@ -268,12 +268,12 @@ rm /README.md
 rm master.tar.gz
 echo "Allo firmware installed"
 
-echo "Getting TauDAC Firmware"
-wget https://github.com/taudac/modules/archive/rpi-volumio-4.9.41-taudac-modules.tar.gz
-echo "Extracting TauDAC Firmwares"
-tar --strip-components 1 --exclude *.hash -xf rpi-volumio-4.9.41-taudac-modules.tar.gz
-rm rpi-volumio-4.9.41-taudac-modules.tar.gz
-echo "TauDAC Firmware installed"
+echo "Getting TauDAC Modules and overlay"
+wget https://github.com/taudac/modules/archive/rpi-volumio-"$KERNEL_VERSION"-taudac-modules.tar.gz
+echo "Extracting TauDAC Modules and overlay"
+tar --strip-components 1 --exclude *.hash -xf rpi-volumio-"$KERNEL_VERSION"-taudac-modules.tar.gz
+rm rpi-volumio-"$KERNEL_VERSION"-taudac-modules.tar.gz
+echo "TauDAC Modules and overlay installed"
 
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then
