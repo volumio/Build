@@ -76,8 +76,8 @@ else
 fi
 
 echo "Copying the bootloader"
-sudo dd if=platform-nanopi/nanopi-a64/u-boot/boot0.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
-sudo dd if=platform-nanopi/nanopi-a64/u-boot/u-boot-with-dtb.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
+sudo dd if=platform-nanopi/nanopi-a64/u-boot/boot0_sdcard.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+sudo dd if=platform-nanopi/nanopi-a64/u-boot/u-boot.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
 sync
 
 echo "Preparing for Volumio rootfs"
