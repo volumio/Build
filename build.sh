@@ -27,7 +27,7 @@ Switches:
   -d        Create Image for Specific Devices. Supported device names:
               pi, udooneo, udooqdl, cuboxi, cubietruck, compulab,
               odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64,
-              bpim2u, bpipro, tinkerboard, sopine64, rock64, voltastream0
+              bpim2u, bpipro, tinkerboard, sopine64, rock64, voltastream0, nanopi64
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -257,6 +257,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
 # this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
     sh scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
+   nanopi64) echo 'Writing NanoPI A64 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/nanopi64limage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   bpim2u) echo 'Writing BPI-M2U Image File'
     check_os_release "arm" "$VERSION" "$DEVICE"
