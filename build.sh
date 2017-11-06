@@ -260,7 +260,7 @@ case "$DEVICE" in
     ;;
    nanopi64) echo 'Writing NanoPI A64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/nanopi64limage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    sh scripts/nanopi64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   bpim2u) echo 'Writing BPI-M2U Image File'
     check_os_release "arm" "$VERSION" "$DEVICE"
