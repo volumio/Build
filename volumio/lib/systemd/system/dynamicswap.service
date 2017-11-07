@@ -1,3 +1,11 @@
+[Unit]
+Description = dynamicswap service
+DefaultDependencies=false
+
+Before=swap.target umount.target
+Conflicts=umount.target
+Wants=swap.target
+
 [Service]
 ExecStart=/bin/dynswap.sh
 StandardOutput=syslog

@@ -3,12 +3,14 @@
 PATCH=$(cat /patch)
 
 # This script will be run in chroot under qemu.
+echo "Initializing.."
+. init.sh
 
 echo "Creating \"fstab\""
 echo "# ROCK64 fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-/dev/mmcblk1p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+UUID=${UUID_BOOT} /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
@@ -16,10 +18,18 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
+echo "Creating boot config"
+echo "label kernel-4.4
+    kernel /Image
+    fdt /rk3328-rock64.dtb
+    initrd /uInitrd
+    append  earlycon=uart8250,mmio32,0xff130000 imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh hwdevice=Rock64 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA}
+" > /boot/extlinux/extlinux.conf 
+
 echo "#!/bin/sh
 sysctl abi.cp15_barrier=2
 " > /usr/local/bin/rock64-init.sh
-#TODO,. add the following to the init scriüp after verification
+#TODO,. add the following to the init script after verification
 #for i in 1 2 3 ; do
 #	echo 4 >/proc/irq/$(awk -F":" "/xhci/ {print \$1}" </proc/interrupts | sed 's/\ //g')/smp_affinity
 #	echo 8 >/proc/irq/$(awk -F":" "/eth0/ {print \$1}" </proc/interrupts | sed 's/\ //g')/smp_affinity
