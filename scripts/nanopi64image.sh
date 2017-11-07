@@ -76,8 +76,8 @@ else
 fi
 
 echo "Copying the bootloader"
-sudo dd if=platform-nanopi/nanopi-a64/u-boot/boot0_sdcard.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=8
-sudo dd if=platform-nanopi/nanopi-a64/u-boot/u-boot.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
+sudo dd if=platform-nanopi/nanopi-a64/u-boot/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+#sudo dd if=platform-nanopi/nanopi-a64/u-boot/u-boot.fex of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -109,7 +109,7 @@ echo "Copying Nanopi64  boot files"
 mkdir /mnt/volumio/rootfs/boot/nanopi-a64
 sudo cp platform-nanopi/nanopi-a64/boot/nanopi-a64/Image /mnt/volumio/rootfs/boot/nanopi-a64
 sudo cp platform-nanopi/nanopi-a64/boot/nanopi-a64/*.dtb /mnt/volumio/rootfs/boot/nanopi-a64
-sudo cp platform-nanopi/nanopi-a64/boot/uEnv.txt /mnt/volumio/rootfs/boot
+sudo cp platform-nanopi/nanopi-a64/boot/uEnv.txt /mnt/volumio/rootfs/boot/uEnv.rename.txt
 sudo cp platform-nanopi/nanopi-a64/boot/Image.version /mnt/volumio/rootfs/boot
 sudo cp platform-nanopi/nanopi-a64/boot/config* /mnt/volumio/rootfs/boot
 
