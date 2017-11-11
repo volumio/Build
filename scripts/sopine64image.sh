@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-sopine64LTS.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-sopine64.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -68,7 +68,7 @@ then
     # that will refresh all the odroid platforms, see below
 else
 	echo "Clone (so)Pine64(LTS) files from repo"
-	git clone https://github.com/gkkpch/platform-pine64.git platform-pine64
+	git clone https://github.com/volumio/platform-pine64.git platform-pine64
 	echo "Unpack the (so)Pine64(LTS) platform files"
     cd platform-pine64
 	tar xfJ sopine64lts.tar.xz
