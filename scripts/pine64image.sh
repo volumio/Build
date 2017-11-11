@@ -60,24 +60,24 @@ sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
 sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the pine64 kernel/ platform files"
+echo "Preparing for the (so)Pine64(LTS) kernel/ platform files"
 if [ -d platform-pine64 ]
 then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platform-pine64 folder
     # that will refresh all the odroid platforms, see below
 else
-	echo "Clone pine64 files from repo"
-	git clone https://github.com/volumio/platform-pine64.git platform-pine64
+	echo "Clone (so)Pine64(LTS) files from repo"
+	git clone https://github.com/gkkpch/platform-pine64.git platform-pine64
 	echo "Unpack the platform files"
     cd platform-pine64
-	tar xfJ pine64.tar.xz
+	tar xfJ sopine64lts.tar.xz
 	cd ..
 fi
 
-echo "Copying the bootloader"
-sudo dd if=platform-pine64/pine64/u-boot/boot0.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
-sudo dd if=platform-pine64/pine64/u-boot/u-boot-with-dtb.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
+echo "Copying the Pine64 bootloader"
+sudo dd if=platform-pine64/sopine64/u-boot/boot0.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
+sudo dd if=platform-pine64/sopine64/u-boot/u-boot-with-dtb.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -105,20 +105,20 @@ sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying pine64 boot files"
+echo "Copying (so)Pine64(LTS) boot files"
 mkdir /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/pine64/boot/pine64/Image /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/pine64/boot/pine64/*.dtb /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/pine64/boot/uEnv.txt /mnt/volumio/rootfs/boot
-sudo cp platform-pine64/pine64/boot/Image.version /mnt/volumio/rootfs/boot
-sudo cp platform-pine64/pine64/boot/config* /mnt/volumio/rootfs/boot
+sudo cp platform-pine64/sopine64/boot/pine64/Image /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/sopine64/boot/pine64/*.dtb /mnt/volumio/rootfs/boot/pine64
+sudo cp platform-pine64/sopine64/boot/uEnv.txt /mnt/volumio/rootfs/boot
+sudo cp platform-pine64/sopine64/boot/Image.version /mnt/volumio/rootfs/boot
+sudo cp platform-pine64/sopine64/boot/config* /mnt/volumio/rootfs/boot
 
-echo "Copying pine64 modules and firmware"
-sudo cp -pdR platform-pine64/pine64/lib/modules /mnt/volumio/rootfs/lib/
-sudo cp -pdR platform-pine64/pine64/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying (so)Pine64(LTS) modules and firmware"
+sudo cp -pdR platform-pine64/sopine64/lib/modules /mnt/volumio/rootfs/lib/
+sudo cp -pdR platform-pine64/sopine64/lib/firmware /mnt/volumio/rootfs/lib/
 
 echo "Confguring ALSA with sane defaults"
-sudo cp platform-pine64/pine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
+sudo cp platform-pine64/sopine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
 
 sync
 
