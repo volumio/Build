@@ -4,7 +4,7 @@ if [ "$DISPLAY" == "" ]; then
 fi
 CMD="lxpanelctl alsastart >/dev/null"
 if [ $EUID -eq 0 ]; then
-    exec su volumio -c "$CMD"
+    exec su volumio --preserve-environment -c "$CMD"
 else
     exec "$CMD"
 fi
