@@ -126,7 +126,7 @@ dtparam=i2c_arm=on
 disable_splash=1" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.lpm_enable=0 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0x3 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait smsc95xx.turbo_mode=N bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_split_enable=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
 
 echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
