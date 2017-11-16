@@ -542,5 +542,11 @@ touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
 touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
 chmod -R 777 /var/lib/dhcpcd5
 
+#####################
+#CPU  Optimizations#-----------------------------------------
+#####################
+
 echo "Setting CPU governor to ondemand"
 echo 'GOVERNOR="ondemand"' > /etc/default/cpufrequtils
+
+ln -s /lib/systemd/system/volumio_cpu_tweak.service /etc/systemd/system/multi-user.target.wants/volumio_cpu_tweak.service

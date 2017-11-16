@@ -93,6 +93,9 @@ cp -rp volumio/usr/*  build/$BUILD/root/usr/
 #SSH
 cp volumio/bin/volumiossh.sh build/$BUILD/root/bin/volumiossh.sh
 chmod a+x build/$BUILD/root/bin/volumiossh.sh
+#CPU TWEAK
+cp volumio/bin/volumio_cpu_tweak build/$BUILD/root/bin/volumio_cpu_tweak
+chmod a+x build/$BUILD/root/bin/volumio_cpu_tweak
 
 echo 'Done Copying Custom Volumio System Files'
 
