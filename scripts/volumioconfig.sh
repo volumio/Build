@@ -170,9 +170,9 @@ if [ $(uname -m) = armv7l ]; then
      rm libasound2-dev_1.1.3-5_armhf.deb
 
      echo "Installing MPD 20.6 with Direct DSD Support"
-     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD-2.deb
-     dpkg -i mpd_0.20.6-1_armv6-DSD-2.deb
-     rm mpd_0.20.6-1_armv6-DSD-2.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.12_armv6.deb
+     dpkg -i mpd_0.20.12_armv6.deb
+     rm mpd_0.20.12_armv6.deb
 
      echo "Installing Upmpdcli for armv6"
      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnpp3_0.15.1-1_armhf.deb
