@@ -198,10 +198,13 @@ if [ $(uname -m) = armv7l ]; then
      echo "Installing alsa-lib 1.1.3"
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-dev_1.1.3-5_armhf.deb
      dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
      dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     dpkg --force-all -i libasound2-dev_1.1.3-5_armhf.deb
      rm libasound2-data_1.1.3-5_all.deb
      rm libasound2_1.1.3-5_armhf.deb
+     rm libasound2-dev_1.1.3-5_armhf.deb
 
      echo "Installing MPD 20.6 with Direct DSD Support"
      wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv7-DSD.deb
