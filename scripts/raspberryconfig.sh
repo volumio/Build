@@ -123,7 +123,8 @@ max_usb_current=1
 dtparam=audio=on
 audio_pwm_mode=2
 dtparam=i2c_arm=on
-disable_splash=1" >> /boot/config.txt
+disable_splash=1
+hdmi_force_hotplug=1" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
 echo "splash quiet plymouth.ignore-serial-consoles console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
