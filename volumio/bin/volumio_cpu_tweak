@@ -14,3 +14,4 @@ if [ "$CORES" -gt 2 ]; then
    echo "Not enough cores to set MPD affinity"
 fi
 
+exit 0
