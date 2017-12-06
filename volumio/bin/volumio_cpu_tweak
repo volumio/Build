@@ -3,15 +3,14 @@
 CORES=`cat /proc/cpuinfo | awk '/^processor/{print $3}' | tail -1`
 MPD_PID=`/bin/pidof mpd`
 
-if [ -f "/boot/rt" ]; then
-    echo "Real-time Kernel Environment"
-    echo "Setting RT Priority for mpd"
-    /usr/bin/chrt -f -p -a 35 $MPD_PID
-else
-        if [ "$CORES" -gt 2 ]; then
-                echo "Setting MPD Affinity"
-                #/usr/bin/taskset -p 3 $MPD_PID
-        else
-                echo "Not enough cores to set MPD affinity"
-        fi
+echo "Real-time Kernel Environment"
+echo "Setting RT Priority for mpd"
+/usr/bin/chrt -f -p -a 35 $MPD_PID
+
+if [ "$CORES" -gt 2 ]; then
+   echo "Setting MPD Affinity"
+   /usr/bin/taskset -p 3 $MPD_PID
+     else
+   echo "Not enough cores to set MPD affinity"
 fi
+
