@@ -92,7 +92,7 @@ cp -rp volumio/opt/vc/bin/* /mnt/volumio/rootfs/opt/vc/bin/
 echo $PATCH > /mnt/volumio/rootfs/patch
 
 if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
-        echo "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        echo "Starting config.js"
         node config.js $PATCH
 fi
 
