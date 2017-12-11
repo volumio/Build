@@ -397,7 +397,7 @@ cp /sbin/findfs "${DESTDIR}/sbin"
 if [ ${DPKG_ARCH} = "i386" ]; then
   cp /sbin/gdisk "${DESTDIR}/sbin"
 # these libs are only for gdisk
-  cp "/usr/${LIB_GNUE}/libstdc++.so.6" "${DESTDIR}${LIB_GNUE}"
+  cp "/usr${LIB_GNUE}/libstdc++.so.6" "${DESTDIR}${LIB_GNUE}"
 fi
 
 echo "Adding all common dependencies"
