@@ -476,8 +476,7 @@ usermod -a -G audio mpd
 
 echo "Setting RT Priority to Audio Group"
 echo '@audio - rtprio 99
-@audio - memlock unlimited
-@audio - nice -10' >> /etc/security/limits.conf
+@audio - memlock unlimited' >> /etc/security/limits.conf
 
 echo "Alsa tuning"
 
