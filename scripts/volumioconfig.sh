@@ -88,6 +88,8 @@ alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
 alias service="sudo /usr/sbin/service"
 alias ifconfig="sudo /sbin/ifconfig"
+# tv-service
+alias tvservice="/opt/vc/bin/tvservice"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
