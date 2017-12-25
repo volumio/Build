@@ -88,6 +88,8 @@ alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
 alias service="sudo /usr/sbin/service"
 alias ifconfig="sudo /sbin/ifconfig"
+# tv-service
+alias tvservice="/opt/vc/bin/tvservice"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
@@ -99,9 +101,6 @@ chmod 777 /etc/hostname
 chmod 777 /etc/hosts
 
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
-
-ln -s '/usr/lib/systemd/system/console-kit-daemon.service' '/etc/systemd/system/getty.target.wants/console-kit-daemon.service'
-
 
 ################
 #Volumio System#---------------------------------------------------
@@ -198,15 +197,18 @@ if [ $(uname -m) = armv7l ]; then
      echo "Installing alsa-lib 1.1.3"
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-dev_1.1.3-5_armhf.deb
      dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
      dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+     dpkg --force-all -i libasound2-dev_1.1.3-5_armhf.deb
      rm libasound2-data_1.1.3-5_all.deb
      rm libasound2_1.1.3-5_armhf.deb
+     rm libasound2-dev_1.1.3-5_armhf.deb
 
      echo "Installing MPD 20.6 with Direct DSD Support"
      wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv7-DSD.deb
      dpkg -i mpd_0.20.6-1_armv7-DSD.deb
-     rm mpd_0.20.6-1_armv7-DSD.deb	
+     rm mpd_0.20.6-1_armv7-DSD.deb
 
     echo "Installing Upmpdcli for armv7"
     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
@@ -546,7 +548,6 @@ chmod -R 777 /var/lib/dhcpcd5
 #CPU  Optimizations#-----------------------------------------
 #####################
 
-echo "Setting CPU governor to ondemand"
-echo 'GOVERNOR="ondemand"' > /etc/default/cpufrequtils
+echo "Setting CPU governor to performance"
+echo 'GOVERNOR="performance"' > /etc/default/cpufrequtils
 
-ln -s /lib/systemd/system/volumio_cpu_tweak.service /etc/systemd/system/multi-user.target.wants/volumio_cpu_tweak.service
