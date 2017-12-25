@@ -55,7 +55,7 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-KERNEL_VERSION="4.9.51"
+KERNEL_VERSION="4.9.65"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -63,9 +63,9 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
       ;; 
-    "4.9.51")
-      KERNEL_REV="1036"
-      KERNEL_COMMIT="913eddd6d23f14ce34ae473a4c080c5c840ed583"
+    "4.9.65")
+      KERNEL_REV="1056"
+      KERNEL_COMMIT="e4b56bb7efe47319e9478cfc577647e51c48e909"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
 esac
@@ -123,10 +123,11 @@ max_usb_current=1
 dtparam=audio=on
 audio_pwm_mode=2
 dtparam=i2c_arm=on
-disable_splash=1" >> /boot/config.txt
+disable_splash=1
+hdmi_force_hotplug=1" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_split_enable=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
 
 echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
@@ -247,6 +248,9 @@ if [ -f "patch.sh" ]; then
 sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
+fi
+if [ -f "install.sh" ]; then
+sh install.sh
 fi
 cd /
 rm -rf ${PATCH}
