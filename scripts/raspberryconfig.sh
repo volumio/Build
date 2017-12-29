@@ -144,6 +144,7 @@ rm /lib/systemd/system/sshswitch.service
 
 echo "Exporting /opt/vc/bin variable"
 export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
+echo "/opt/vc/lib" > /etc/ld.so.conf.d/00-vmcs.conf
 
 echo "Adding custom modules"
 echo "squashfs" >> /etc/initramfs-tools/modules
