@@ -90,6 +90,12 @@ mkdir -p /mnt/volumio/rootfs/opt/vc/bin/
 cp -rp volumio/opt/vc/bin/* /mnt/volumio/rootfs/opt/vc/bin/
 
 echo $PATCH > /mnt/volumio/rootfs/patch
+
+if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
+        echo "Starting config.js"
+        node config.js $PATCH
+fi
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /raspberryconfig.sh -p
