@@ -109,7 +109,7 @@ sync
 
 echo "Preparing to run chroot for more Tinkerboard configuration"
 cp scripts/tinkerconfig.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
+cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
@@ -119,13 +119,19 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 
+echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
+UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
+UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
+" > /mnt/volumio/rootfs/root/init.sh
+chmod +x /mnt/volumio/rootfs/root/init.sh
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /tinkerconfig.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/tinkerconfig.sh
+rm /mnt/volumio/rootfs/root/init.sh /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/tinkerconfig.sh
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
