@@ -19,6 +19,7 @@ mdev -s
 USE_KMSG="yes"
 HWDEVICE="empty"
 BOOTDEV="mmcblk0"
+BOOTCONFIG="empty"
 #Device/Partition Separator i.e. the character between parentdev and partition index
 DPS="p"
 #default values:
@@ -89,6 +90,10 @@ do
   datapart)
     DATAPART=`parse_disk $value`
     ;;
+  bootconfig)
+    #prepend with "/boot/" (add an ending slash to avoid mistakes)
+    BOOTCONFIG=/boot/$value
+    ;;
   hwdevice)
     HWDEVICE=$value
     ;;
@@ -109,7 +114,7 @@ if [ $HWDEVICE == empty ]; then
 fi
 
 if [ $HWDEVICE == ODROID-C2 ]; then
-   exec >/dev/kmsg 2>&1 </dev/console
+  exec >/dev/kmsg 2>&1 </dev/console
 fi
 
 # Odroid C1, SparkySBC, Banana PI, Pine64 and Cubox have overlayfs version < V22
@@ -146,10 +151,19 @@ if [ -z "${IMGFILE}" ]; then
   exit 0
 fi
 
+UUIDFMT=`cat /proc/cmdline | grep "UUID=" -o`
+if [ ! -z "{$UUIDFMT}" ]; then
+  if [ $BOOTCONFIG == empty ]; then
+    print_msg "Error: when using UUIDs for disk parsing, you MUST also add the bootconfig parameter (eg. bootconfig=/extlinux/extlinux.conf)"
+    exec sh
+    exit 0
+  fi
+fi
 print_msg IMGPART=${IMGPART}
 print_msg IMGFILE=${IMGFILE}
 print_msg DATAPART=${DATAPART}
 print_msg BOOTPART=${BOOTPART}
+print_msg BOOTCONFIG=${BOOTCONFIG}
 
 if [ ! -z "${BOOTDELAY}" ]; then
   print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
@@ -163,7 +177,6 @@ for i in 1 2 3 4 5 6
 	  sleep 0.5
       mdev -s
     else
-	  print_msg `blkid ${IMGPART}`
       break
     fi
   done
@@ -290,7 +303,7 @@ rm -r /mnt/factory
 mkdir boot
 mount -t vfat ${BOOTPART} /boot
 if [ -e "/boot/update_process" ]; then
-print_msg "Previous update attempt failed, restoring fallbacks"
+  print_msg "Previous update attempt failed, restoring fallbacks"
   cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
   cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
   if [-e "/boot/kernel_update" ]; then
@@ -301,7 +314,7 @@ fi
 
 # if the kernel has been updated, and no error has occurred before completition
 if [ -e "/boot/kernel_update" ]; then
-print_msg "unpacking kernel"
+  print_msg "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
   if [ -e "/mnt/imgpart/config.txt.bak" ]; then
     print_msg "Restoring custom config.txt content"
@@ -310,6 +323,20 @@ print_msg "unpacking kernel"
     echo "$I2S" >> /boot/config.txt
     rm /mnt/imgpart/config.txt.bak
   fi
+
+# When a new volumio version is loaded, partition UUIDs will have changed.
+# So if the boot cmdline uses "UUID=" format for disk parsing, there will be a mismatch.
+  if [ ! -z "${UUIDFMT}" ]; then
+    print_msg "The boot configuration holds new UUIDs, replace them with ones from the current device partitions."
+    UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
+    UUID_IMG=$(blkid -s UUID -o value ${IMGPART})
+    UUID_DATA=$(blkid -s UUID -o value ${DATAPART})
+    cp $BOOTCONFIG $BOOTCONFIG.old
+    sed -i "s/imgpart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/imgpart=UUID=${UUID_IMG}/g" ${BOOTCONFIG}
+    sed -i "s/datapart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/datapart=UUID=${UUID_DATA}/g" ${BOOTCONFIG}
+    sed -i "s/bootpart=UUID=[a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/bootpart=UUID=${UUID_BOOT}/g" ${BOOTCONFIG}
+  fi
+
   rm /boot/kernel_update
   sync
   umount /boot
@@ -320,7 +347,7 @@ fi
 # if data partition needs to be resized
 #mount -t auto /dev/${BOOTDEV}p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
-print_msg "Re-sizing Volumio data partition"
+  print_msg "Re-sizing Volumio data partition"
   END="$(parted -s /dev/${BOOTDEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s /dev/${BOOTDEV} resizepart 3 ${END}
   e2fsck -fy ${DATAPART}
@@ -360,13 +387,32 @@ mount --move /mnt/imgpart /mnt/ext/union/imgpart
 
 chmod -R 777 /mnt/ext/union/imgpart
 
-#idea: Mount /boot already here to that systemd does not have to mount it an we
-# can be flexible. However this should be confirmed by somebody who is more familiar 
-# with systemd and who can tell what fstab is used for in the system
-
-[ -d /mnt/ext/union/boot ] || mkdir -m 777 /mnt/ext/union/boot
-mount -t vfat -o defaults,utf8,user,rw,umask=111,dmask=000 ${BOOTPART} /mnt/ext/union/boot
-
+# 6) We know the current boot partition parsed from /proc/cmdline
+# Ensure the /boot entry in fstab matches the UUID (or the device) from the cmdline
+# The value in fstab could differ after updating to a new image version in case someone
+# manually edited the bootdevice in cmdline before OR when a UUID is used to find the boot partition.
+UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
+DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "[0-9A-F]{4}-[0-9A-F]{4}" -o`
+if [ ! -z "${DEVFSTAB}" ]; then
+  print_msg "found fstab entry with UUID=${DEVFSTAB} for /boot"
+  if [ ! $UUID_BOOT == $DEVFSTAB ]; then
+    sed -i "s/${DEVFSTAB}/${UUID_BOOT}/g" /mnt/ext/union/etc/fstab
+    print_msg "fstab entry updated to UUID=${DEVFSTAB}"
+  fi
+else
+  DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "^/dev/[a-z]{3,6}[0-9]{1,2}[a-z]{0,1}[0-9]{0,2}" -o`
+  if [ -z "${DEVFSTAB}" ]; then
+#   normally never gets here ;)
+    print_msg "Incompatible fstab, no entry found for /boot"
+    exec sh
+    exit 0
+  fi
+  print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
+  if [ ! $BOOTPART == $DEVFSTAB ]; then
+    sed -i "s/${DEVFSTAB}/${BOOTPART}/g" /mnt/ext/union/etc/fstab
+    print_msg "fstab entry updated to ${DEVFSTAB}"
+  fi
+fi
 
 umount /proc
 umount /sys
