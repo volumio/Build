@@ -163,8 +163,7 @@ if [ -n "$BUILD" ]; then
   fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
-
-
+  rm -rf build/$BUILD/root/volumio/http/www/.git
   echo "Adding os-release infos"
   {
     echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\""
