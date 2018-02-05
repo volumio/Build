@@ -111,7 +111,7 @@ cp -pdR platform-orangepi/${DEVICE}/lib/firmware /mnt/volumio/rootfs/lib
 
 echo "Preparing to run chroot for more OrangePi configuration"
 cp scripts/orangepiconfig.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init_armbian  /mnt/volumio/rootfs/root/init
+cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
