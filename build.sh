@@ -27,7 +27,8 @@ Switches:
   -d        Create Image for Specific Devices. Supported device names:
               pi, udooneo, udooqdl, cuboxi, cubietruck, compulab,
               odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64,
-              bpim2u, bpipro, tinkerboard, sopine64, rock64, voltastream0, nanopi64
+              bpim2u, bpipro, tinkerboard, sopine64, rock64, voltastream0, nanopi64,
+              nanopineo2, nanopineo, nanopineo
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -163,8 +164,7 @@ if [ -n "$BUILD" ]; then
   fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
-
-
+  rm -rf build/$BUILD/root/volumio/http/www/.git
   echo "Adding os-release infos"
   {
     echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\""
@@ -294,6 +294,14 @@ case "$DEVICE" in
   x86) echo 'Writing x86 Image File'
     check_os_release "x86" "$VERSION" "$DEVICE"
     sh scripts/x86image.sh -v "$VERSION" -p "$PATCH";
+    ;;
+  nanopineo2) echo 'Writing NanoPi-NEO2 armv7 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/nanopineo2image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
+  nanopineo) echo 'Writing NanoPi-NEO (Air) Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/nanopineoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
 esac
 
