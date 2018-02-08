@@ -460,6 +460,10 @@ echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
 
+echo "Preventing hotspot services from starting at boot"
+systemctl disable hotspot.service
+systemctl disable dnsmasq.service
+
 echo "Preventing un-needed dhcp servers to start automatically"
 systemctl disable isc-dhcp-server.service
 systemctl disable dhcpd.service
