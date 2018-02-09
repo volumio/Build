@@ -152,7 +152,7 @@ if [ -z "${IMGFILE}" ]; then
 fi
 
 UUIDFMT=`cat /proc/cmdline | grep "UUID=" -o`
-if [ ! -z "{$UUIDFMT}" ]; then
+if [ ! -z "${UUIDFMT}" ]; then
   if [ $BOOTCONFIG == empty ]; then
     print_msg "Error: when using UUIDs for disk parsing, you MUST also add the bootconfig parameter (eg. bootconfig=/extlinux/extlinux.conf)"
     exec sh
