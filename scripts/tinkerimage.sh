@@ -119,6 +119,11 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 
+if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
+        echo "Starting config.js"
+        node config.js $PATCH
+fi
+
 echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
 UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
 UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
