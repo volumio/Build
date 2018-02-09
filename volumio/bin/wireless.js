@@ -146,13 +146,9 @@ function startFlow() {
             console.log("Start ap");
             lesstimer = setInterval(function () {
                 actualTime += pollingTime;
-                console.log('EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
-                console.log(wpaerr)
                 if (wpaerr > 0) {
                     actualTime = totalSecondsForConnection + 1;
                 }
-                console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-                console.log(conf.hotspot_fallback.value)
                 if (actualTime > totalSecondsForConnection && conf != undefined && conf.hotspot_fallback != undefined && conf.hotspot_fallback.value != undefined && conf.hotspot_fallback.value) {
                     console.log("Overtime, starting plan B");
                     apstopped = 1;
@@ -214,11 +210,12 @@ if (process.argv.length < 2) {
     var args = process.argv[2];
     console.log(args);
     try {
-        var conf = fs.readJsonSync('/data/configuration/system_controller/network/config.json');
+        conf = fs.readJsonSync('/data/configuration/system_controller/network/config.json');
         console.log('WIRELESS: Loaded configuration');
+        console.log(JSON.stringify(conf))
     } catch (e) {
         console.log('WIRELESS: First boot');
-        var conf = fs.readJsonSync('/volumio/app/plugins/system_controller/network/config.json');
+        conf = fs.readJsonSync('/volumio/app/plugins/system_controller/network/config.json');
     }
 
     switch (args) {
