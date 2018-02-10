@@ -208,11 +208,13 @@ if (process.argv.length < 2) {
     console.log("Use: start|stop");
 } else {
     var args = process.argv[2];
-    console.log(args);
+    console.log('WIRELESS DAEMON: ' + args);
     try {
         conf = fs.readJsonSync('/data/configuration/system_controller/network/config.json');
         console.log('WIRELESS: Loaded configuration');
-        console.log(JSON.stringify(conf))
+        if (debug) {
+        	console.log('WIRELESS CONF: ' + JSON.stringify(conf))
+	}
     } catch (e) {
         console.log('WIRELESS: First boot');
         conf = fs.readJsonSync('/volumio/app/plugins/system_controller/network/config.json');
