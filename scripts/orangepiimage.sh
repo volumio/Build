@@ -66,7 +66,7 @@ then
 	echo "Platform folder already exists - keeping it"
 else
 	echo "Clone all OrangePi files from repo"
-	git clone https://github.com/pkendall64/platform-orangepi.git platform-orangepi
+	git clone https://github.com/volumio/platform-orangepi.git platform-orangepi
 	echo "Unpack the OrangePi platform files"
 	cd platform-orangepi
 	tar xfJ "${DEVICE}.tar.xz"
