@@ -204,6 +204,11 @@ function stop(callback) {
 }
 
 
+if ( ! fs.existsSync("/sys/class/net/" + wlan + "/operstate") ) {
+    console.log("WIRELESS: No wireless interface, exiting");
+    process.exit(1);
+}
+
 if (process.argv.length < 2) {
     console.log("Use: start|stop");
 } else {
