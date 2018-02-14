@@ -172,66 +172,27 @@ ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 # changing external ethX priority rule for Pi as built-in eth _is_ on USB (smsc95xx driver)
 sed -i 's/KERNEL==\"eth/DRIVERS!=\"smsc95xx\", &/' /etc/udev/rules.d/99-Volumio-net.rules
 
-echo "Installing Wireless drivers for 8192eu, 8812au, 8188eu and mt7610. Many thanks mrengman"
+echo "Installing Wireless drivers for 8188eu, 8192eu, 8812au, mt7610, and mt7612. Many thanks MrEngman"
 MRENGMAN_REPO="http://downloads.fars-robotics.net/wifi-drivers"
 mkdir wifi
 cd wifi
 
-echo "WIFI: 8192EU for armv7"
-wget $MRENGMAN_REPO/8192eu-drivers/8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-tar xf 8192eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
-sh install.sh
-rm -rf *
+for DRIVER in 8188eu 8192eu 8812au mt7610 mt7612
+do
+  echo "WIFI: $DRIVER for armv7"
+  wget $MRENGMAN_REPO/$DRIVER-drivers/$DRIVER-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+  tar xf $DRIVER-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
+  sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
+  sh install.sh
+  rm -rf *
 
-echo "WIFI: 8192EU for armv6"
-wget $MRENGMAN_REPO/8192eu-drivers/8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-tar xf 8192eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
-sh install.sh
-rm -rf *
-
-echo "WIFI: 8812AU for armv7"
-wget $MRENGMAN_REPO/8812au-drivers/8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-tar xf 8812au-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
-sh install.sh
-rm -rf *
-
-echo "WIFI: 8812AU for armv6"
-wget $MRENGMAN_REPO/8812au-drivers/8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-tar xf 8812au-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
-sh install.sh
-rm -rf *
-
-echo "WIFI: 8188EU for armv7"
-wget $MRENGMAN_REPO/8188eu-drivers/8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-tar xf 8188eu-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
-sh install.sh
-rm -rf *
-
-echo "WIFI: 8188EU for armv6"
-wget $MRENGMAN_REPO/8188eu-drivers/8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-tar xf 8188eu-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
-sh install.sh
-rm -rf *
-
-echo "WIFI: MT7610 for armv7"
-wget $MRENGMAN_REPO/mt7610-drivers/mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-tar xf mt7610-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7+/' install.sh
-sh install.sh
-rm -rf *
-
-echo "WIFI: MT7610 for armv6"
-wget $MRENGMAN_REPO/mt7610-drivers/mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-tar xf mt7610-$KERNEL_VERSION-$KERNEL_REV.tar.gz
-sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
-sh install.sh
-rm -rf *
+  echo "WIFI: $DRIVER for armv6"
+  wget $MRENGMAN_REPO/$DRIVER-drivers/$DRIVER-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+  tar xf $DRIVER-$KERNEL_VERSION-$KERNEL_REV.tar.gz
+  sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'+/' install.sh
+  sh install.sh
+  rm -rf *
+done
 
 cd ..
 rm -rf wifi
