@@ -6,7 +6,7 @@
 GRUB_DEFAULT=''
 GRUB_TIMEOUT=0
 GRUB_DISTRIBUTOR="Volumio Audiophile Music player"
-GRUB_CMDLINE_LINUX_DEFAULT=" bootpart=%%BOOTPART%% imgfile=volumio_current.sqsh splash quiet plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 USE_KMSG=no"
+GRUB_CMDLINE_LINUX_DEFAULT=" bootpart=%%BOOTPART%% datapart=%%DATAPART%% imgfile=volumio_current.sqsh splash quiet plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 USE_KMSG=no"
 GRUB_CMDLINE_LINUX=""
 
 # Uncomment to enable BadRAM filtering, modify to suit your needs
