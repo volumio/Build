@@ -396,8 +396,10 @@ cp /sbin/resize2fs "${DESTDIR}/sbin"
 cp /sbin/findfs "${DESTDIR}/sbin"
 if [ ${DPKG_ARCH} = "i386" ]; then
   cp /sbin/gdisk "${DESTDIR}/sbin"
-# these libs are only for gdisk
+  cp /bin/lsblk "${DESTDIR}/sbin"
+# these libs are only for gdisk and lsblk
   cp "/usr/${LIB_GNUE}/libstdc++.so.6" "${DESTDIR}${LIB_GNUE}"
+  cp "${LIB_GNUE}/libsmartcols.so.1" "${DESTDIR}${LIB_GNUE}"
 fi
 
 echo "Adding all common dependencies"

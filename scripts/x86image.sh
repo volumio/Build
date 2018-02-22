@@ -119,8 +119,10 @@ modprobe efivarfs
 
 UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
 UUID_IMG=$(blkid -s UUID -o value ${IMG_PART})
+UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
 echo "UUID_BOOT=${UUID_BOOT}
 UUID_IMG=${UUID_IMG}
+UUID_DATA=${UUID_DATA}
 LOOP_DEV=${LOOP_DEV}
 BOOT_PART=${BOOT_PART}
 " >> /mnt/volumio/rootfs/init.sh
