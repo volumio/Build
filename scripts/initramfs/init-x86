@@ -141,37 +141,37 @@ do
 done
 
 if [ -z "${BOOTPART}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
-  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "Specify the boot, data and squash image partition,  on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 bootpart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
-  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=volumiodata imgfile=/volumio_current.sqs"
   exec sh
   exit 0
 fi
 
 if [ -z "${IMGPART}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
-  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "Specify the boot, data and squash image partition,  on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 bootpart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
-  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=volumiodata imgfile=/volumio_current.sqs"
   exec sh
   exit 0
 fi
 
 if [ -z "${DATAPART}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
-  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "Specify the boot, data and squash image partition,  on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 bootpart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
-  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=volumiodata imgfile=/volumio_current.sqs"
   exec sh
   exit 0
 fi
 
 if [ -z "${IMGFILE}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
-  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "Specify the boot, data and squash image partition,  on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 bootpart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
-  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=volumiodata imgfile=/volumio_current.sqs"
   exec sh
   exit 0
 fi
