@@ -35,7 +35,7 @@ echo "DEFAULT volumio
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% datapart=UUID=%%DATAPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
+  APPEND ro imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
   INITRD volumio.initrd
 " > /boot/syslinux.tmpl
 
@@ -43,7 +43,6 @@ echo "Creating syslinux.cfg from template"
 cp /boot/syslinux.tmpl /boot/syslinux.cfg
 sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
 sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
-sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /boot/syslinux.cfg
 
 echo "Editing the Grub UEFI config template"
 # Make grub boot menu transparent
@@ -77,13 +76,11 @@ echo 'configfile ${cmdpath}/grub.cfg' > /grub-redir.cfg
 echo "Using current grub.cfg as run-time template for kernel updates"
 cp /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.tmpl
 sed -i "s/${UUID_BOOT}/%%BOOTPART%%/g" /boot/efi/BOOT/grub.tmpl
-sed -i "s/${UUID_DATA}/%%DATAPART%%/g" /boot/efi/BOOT/grub.tmpl
 
 echo "Inserting root and boot partition UUIDs (building the boot cmdline used in initramfs)"
 # Opting for finding partitions by-UUID
 sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
-sed -i "s/datapart=%%DATAPART%%/datapart=UUID=${UUID_DATA}/g" /boot/efi/BOOT/grub.cfg
 
 cat > /usr/sbin/policy-rc.d << EOF
 exit 101
@@ -204,7 +201,6 @@ echo "squashfs" >> /etc/initramfs-tools/modules
 echo "usbcore" >> /etc/initramfs-tools/modules
 echo "usb_common" >> /etc/initramfs-tools/modules
 echo "mmc_core" >> /etc/initramfs-tools/modules
-echo "mmc_block" >> /etc/initramfs-tools/modules
 echo "sdhci" >> /etc/initramfs-tools/modules
 echo "sdhci_pci" >> /etc/initramfs-tools/modules
 echo "sdhci_acpi" >> /etc/initramfs-tools/modules
