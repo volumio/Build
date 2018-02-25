@@ -55,7 +55,7 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-KERNEL_VERSION="4.9.65"
+KERNEL_VERSION="4.9.80"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -68,6 +68,11 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="e4b56bb7efe47319e9478cfc577647e51c48e909"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
+    "4.9.80")
+      KERNEL_REV="1092"
+      KERNEL_COMMIT="5c80565c5c0c7f820258c792a98b56f22db2dd03"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
 esac
 
 # using rpi-update relevant to defined kernel version
