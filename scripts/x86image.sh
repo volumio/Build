@@ -89,10 +89,11 @@ if [ -f platform-x86/packages/.next ]; then
   cp platform-x86/packages/experimental/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/experimental/linux-firmware-*.deb /mnt/volumio/rootfs
   echo "Adding Intel 3168NGW wifi support"
-  echo "Adding Intel CherryTrail/BayTrail SST Audio firmware"
+  echo "For stretch, this would be the place to add the non-free firmware package"
 #TODO: evaluate when switching to stretch, especially with kernel version > 4.12.9
   cp -R platform-x86/packages/iwlwifi-3168-ucode-22.361476.0/* /mnt/volumio/rootfs/lib/firmware
   cp -R platform-x86/packages/firmware-intel-sound/* /mnt/volumio/rootfs/lib/firmware
+  cp -R platform-x86/packages/firmware-brcm-wifi/* /mnt/volumio/rootfs/lib/firmware/brcm
 else
   cp platform-x86/packages/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/linux-firmware-*.deb /mnt/volumio/rootfs
@@ -119,8 +120,10 @@ modprobe efivarfs
 
 UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
 UUID_IMG=$(blkid -s UUID -o value ${IMG_PART})
+UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
 echo "UUID_BOOT=${UUID_BOOT}
 UUID_IMG=${UUID_IMG}
+UUID_DATA=${UUID_DATA}
 LOOP_DEV=${LOOP_DEV}
 BOOT_PART=${BOOT_PART}
 " >> /mnt/volumio/rootfs/init.sh
