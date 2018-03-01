@@ -70,7 +70,7 @@ else
 	echo "Clone nanopineo2 files from repo"
     sudo mkdir platform-nanopineo2
     cd platform-nanopineo2
-	wget https://github.com/nikkov/nanopineo2-platform/raw/master/nanopineo2.tar.xz
+	wget https://github.com/volumio/nanopineo2-platform/raw/master/nanopineo2.tar.xz
 	echo "Unpack the platform files"
 	tar xfJ nanopineo2.tar.xz
 	rm nanopineo2.tar.xz
