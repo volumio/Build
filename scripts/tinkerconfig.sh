@@ -23,7 +23,7 @@ echo "label kernel-4.4
     kernel /zImage
     fdt /dtb/rk3288-miniarm.dtb
     initrd /uInitrd
-    append  earlyprintk splash plymouth.ignore-serial-consoles console=tty1 console=ttyS1,115200n8 rw init=/sbin/init imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf
+    append  earlyprintk splash plymouth.ignore-serial-consoles console=tty1 console=ttyS3,115200n8 rw init=/sbin/init imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf
 " > /boot/extlinux/extlinux.conf 
 
 echo "Adding default sound modules"
