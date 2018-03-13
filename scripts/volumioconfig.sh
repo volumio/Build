@@ -190,9 +190,9 @@ if [ $(uname -m) = armv7l ]; then
      rm upmpdcli_1.2.12-1_armhf.deb
 
      echo "Adding volumio-remote-updater for armv6"
-     wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.2-armhf.deb
-     dpkg -i volumio-remote-updater_1.2-armhf.deb
-     rm volumio-remote-updater_1.2-armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armhf.deb
+     dpkg -i volumio-remote-updater_1.3-armhf.deb
+     rm volumio-remote-updater_1.3-armhf.deb
 
 
   elif [ $ARCH = armv7 ]; then
@@ -227,9 +227,9 @@ if [ $(uname -m) = armv7l ]; then
     rm upmpdcli_1.2.12-1_armhf.deb
 
     echo "Adding volumio-remote-updater for armv7"
-    wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.2-armv7.deb
-    dpkg -i volumio-remote-updater_1.2-armv7.deb
-    rm volumio-remote-updater_1.2-armv7.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
+    dpkg -i volumio-remote-updater_1.3-armv7.deb
+    rm volumio-remote-updater_1.3-armv7.deb
 
   fi
   #Remove autostart of upmpdcli
@@ -378,9 +378,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   chmod a+x /usr/bin/zsync
 
   echo "Adding volumio-remote-updater for i386"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.2-i386.deb
-  dpkg -i volumio-remote-updater_1.2-i386.deb
-  rm /volumio-remote-updater_1.2-i386.deb
+  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.3-i386.deb
+  dpkg -i volumio-remote-updater_1.3-i386.deb
+  rm /volumio-remote-updater_1.3-i386.deb
 
 
 fi
