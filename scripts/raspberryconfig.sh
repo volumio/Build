@@ -111,6 +111,12 @@ echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
 wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
 
+# Temporary solution for PI3B+ Wireless firmware
+echo "Getting Raspberry PI B3+ Wireless firmware"
+wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm/brcmfmac43455-sdio.bin -P /lib/firmware/brcm/
+wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm/brcmfmac43455-sdio.clm_blob -P /lib/firmware/brcm/
+wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43455-sdio.txt -P /lib/firmware/brcm/
+
 #echo "Adding raspi-config"
 #wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
 #dpkg -i /raspi/raspi-config_20151019_all.deb
