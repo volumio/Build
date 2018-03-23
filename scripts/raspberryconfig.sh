@@ -46,12 +46,11 @@ wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-k
 
 echo "Installing R-pi specific binaries"
 apt-get update
-apt-get -y install binutils i2c-tools
+apt-get -y install i2c-tools rpi-update
 # Commenting raspi-config, not sure it is really needed
 #apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
 
 echo "Installing Kernel from Rpi-Update"
-sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
 touch /boot/start.elf
 mkdir /lib/modules
 
@@ -116,11 +115,6 @@ echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
 wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
 
-#echo "Adding raspi-config"
-#wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
-#dpkg -i /raspi/raspi-config_20151019_all.deb
-#rm -Rf /raspi
-
 echo "Installing WiringPi from Raspberrypi.org Repo"
 apt-get -y install wiringpi
 
@@ -129,7 +123,7 @@ apt-get -y install plymouth plymouth-themes
 plymouth-set-default-theme volumio
 
 echo "Removing unneeded binaries"
-apt-get -y remove binutils
+apt-get -y remove rpi-update
 
 echo "Writing config.txt file"
 echo "initramfs volumio.initrd
