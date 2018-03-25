@@ -42,7 +42,6 @@ echo ""
 echo "Adding Volumio User"
 groupadd volumio
 useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev,netdev -s /bin/bash -p '$6$tRtTtICB$Ki6z.DGyFRopSDJmLUcf3o2P2K8vr5QxRx5yk3lorDrWUhH64GKotIeYSNKefcniSVNcGHlFxZOqLM6xiDa.M.' volumio
-echo "volumio ALL=(ALL) ALL" >> /etc/sudoers
 
 #Setting Root Password
 echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
@@ -93,8 +92,14 @@ alias tvservice="/opt/vc/bin/tvservice"
 ' >> /etc/bash.bashrc
 
 #Sudoers Nopasswd
+SUDOERS_FILE="/etc/sudoers.d/volumio-user"
 echo 'Adding Safe Sudoers NoPassw permissions'
-echo "volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid,/bin/ln,/usr/bin/unlink,/bin/dd,/usr/bin/dcfldd" >> /etc/sudoers
+cat > ${SUDOERS_FILE} << EOF
+# Add permissions for volumio user
+volumio ALL=(ALL) ALL
+volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid,/bin/ln,/usr/bin/unlink,/bin/dd,/usr/bin/dcfldd
+EOF
+chmod 0440 ${SUDOERS_FILE}
 
 echo volumio > /etc/hostname
 chmod 777 /etc/hostname
@@ -459,6 +464,10 @@ ln -s /lib/systemd/system/volumiossh.service /etc/systemd/system/multi-user.targ
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
+
+echo "Preventing hotspot services from starting at boot"
+systemctl disable hotspot.service
+systemctl disable dnsmasq.service
 
 echo "Preventing un-needed dhcp servers to start automatically"
 systemctl disable isc-dhcp-server.service

@@ -89,8 +89,10 @@ if [ -f platform-x86/packages/.next ]; then
   cp platform-x86/packages/experimental/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/experimental/linux-firmware-*.deb /mnt/volumio/rootfs
   echo "Adding Intel 3168NGW wifi support"
-#TODO: remove when switching to stretch
-  cp -R platform-x86/packages/iwlwifi-3168-ucode-22.361476.0 /mnt/volumio/rootfs/lib/firmware
+  echo "Adding Intel CherryTrail/BayTrail SST Audio firmware"
+#TODO: evaluate when switching to stretch, especially with kernel version > 4.12.9
+  cp -R platform-x86/packages/iwlwifi-3168-ucode-22.361476.0/* /mnt/volumio/rootfs/lib/firmware
+  cp -R platform-x86/packages/firmware-intel-sound/* /mnt/volumio/rootfs/lib/firmware
 else
   cp platform-x86/packages/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/linux-firmware-*.deb /mnt/volumio/rootfs

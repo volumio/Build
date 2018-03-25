@@ -69,7 +69,7 @@ else
 fi
 
 echo "Copying the bootloader"
-dd if=platform-pv/vszero/u-boot/u-boot-dtb.imx of=${LOOP_DEV} seek=1 bs=1k conv=notrunc
+dd if=platform-pv/vszero/u-boot/u-boot-dtb.imx-512Mb of=${LOOP_DEV} seek=1 bs=1k conv=notrunc
 sync
 
 if [ -d /mnt ]
