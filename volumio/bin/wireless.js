@@ -3,6 +3,8 @@
 //Volumio Network Manager - Copyright Michelangelo Guarise - Volumio.org
 
 // Time needed to settle some commands sent to the system like ifconfig
+var debug = false;
+
 var settleTime = 3000;
 var fs = require('fs-extra')
 var thus = require('child_process');
@@ -10,7 +12,6 @@ var wlan = "wlan0";
 var dhcpd = "dhcpd";
 var dhclient = "/usr/bin/sudo /sbin/dhcpcd";
 var justdhclient = "/usr/bin/sudo /sbin/dhcpcd";
-var wpasupp = "wpa_supplicant -d -s -B -Dnl80211,wext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
 var starthostapd = "systemctl start hotspot.service";
 var stophostapd = "systemctl stop hotspot.service";
 var ifconfigHotspot = "ifconfig " + wlan + " 192.168.211.1 up";
@@ -18,7 +19,11 @@ var ifconfigWlan = "ifconfig " + wlan + " up";
 var ifdeconfig = "sudo ip addr flush dev " + wlan + " && sudo ifconfig " + wlan + " down";
 var execSync = require('child_process').execSync;
 var conf = {};
-var debug = false;
+if (debug) {
+	var wpasupp = "wpa_supplicant -d -s -B -Dnl80211,wext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
+} else {
+	var wpasupp = "wpa_supplicant -s -B -Dnl80211,wext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
+}
 
 function kill(process, callback) {
     var all = process.split(" ");

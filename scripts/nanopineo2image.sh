@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-${ARCH}-nanopineo2.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-nanopineo2.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -70,7 +70,7 @@ else
 	echo "Clone nanopineo2 files from repo"
     sudo mkdir platform-nanopineo2
     cd platform-nanopineo2
-	wget https://github.com/nikkov/nanopineo2-platform/raw/master/nanopineo2.tar.xz
+	wget https://github.com/volumio/nanopineo2-platform/raw/master/nanopineo2.tar.xz
 	echo "Unpack the platform files"
 	tar xfJ nanopineo2.tar.xz
 	rm nanopineo2.tar.xz

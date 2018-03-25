@@ -55,7 +55,7 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-KERNEL_VERSION="4.9.65"
+KERNEL_VERSION="4.9.80"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -68,6 +68,16 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="e4b56bb7efe47319e9478cfc577647e51c48e909"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;; 
+    "4.9.80")
+      KERNEL_REV="1098"
+      KERNEL_COMMIT="936a8dc3a605c20058fbb23672d6b47bca77b0d5"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
+    "4.14.26")
+      KERNEL_REV="1099"
+      KERNEL_COMMIT="f1791cacb3e711a523d46de37faa4bbfcca8ab6a"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
 esac
 
 # using rpi-update relevant to defined kernel version
@@ -93,6 +103,11 @@ apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depen
 
 echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & few others firmware upgraging to Pi Foundations packages"
 apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
+
+# Temporary brcm firmware fix solution until we use Stretch
+wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20161130-3%2Brpt3_all.deb
+dpkg -i firmware-brcm80211_20161130-3+rpt3_all.deb
+rm firmware-brcm80211_20161130-3+rpt3_all.deb
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"

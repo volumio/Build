@@ -1,6 +1,7 @@
 [Unit]
 Wants=dhcpd.service
 Wants=dnsmasq.service
+
 [Service]
 Type=idle
 ExecStart=/bin/hotspot.sh start
@@ -10,5 +11,4 @@ Restart=no
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=hotspot
-[Install]
-WantedBy=multi-user.target
+
