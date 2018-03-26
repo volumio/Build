@@ -154,18 +154,28 @@ function startFlow() {
                 if (wpaerr > 0) {
                     actualTime = totalSecondsForConnection + 1;
                 }
-                if (actualTime > totalSecondsForConnection && conf != undefined && conf.hotspot_fallback != undefined && conf.hotspot_fallback.value != undefined && conf.hotspot_fallback.value) {
+                
+                if (actualTime > totalSecondsForConnection) {
                     console.log("Overtime, starting plan B");
-                    apstopped = 1;
-                    clearTimeout(lesstimer);
-                    stopAP(function () {
-                        setTimeout(function () {
-                            startHotspot(function () {
+                    if (conf != undefined && conf.hotspot_fallback != undefined && conf.hotspot_fallback.value != undefined && conf.hotspot_fallback.value) {
+                        console.log('STARTING HOTSPOT');
+                        apstopped = 1;
+                        clearTimeout(lesstimer);
+                        stopAP(function () {
+                            setTimeout(function () {
+                                startHotspot(function () {
 
 
-                            });
-                        }, settleTime);
-                    });
+                                });
+                            }, settleTime);
+                        });
+                    } else {
+                        apstopped = 0;
+                        wstatus("ap");
+                        clearTimeout(lesstimer);
+
+                    }
+
                 } else {
                     var SSID = undefined;
                     var ifconfig = require('wireless-tools/ifconfig');
