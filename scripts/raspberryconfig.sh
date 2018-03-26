@@ -55,7 +55,8 @@ sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexx
 touch /boot/start.elf
 mkdir /lib/modules
 
-KERNEL_VERSION="4.9.80"
+
+KERNEL_VERSION="4.14.29"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -73,9 +74,9 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="936a8dc3a605c20058fbb23672d6b47bca77b0d5"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;;
-    "4.14.26")
-      KERNEL_REV="1099"
-      KERNEL_COMMIT="f1791cacb3e711a523d46de37faa4bbfcca8ab6a"
+    "4.14.29")
+      KERNEL_REV="1101"
+      KERNEL_COMMIT="955fa1d6e8cd8c94ad8a6680a09269d9bd2945c5"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;;
 esac
@@ -184,8 +185,8 @@ ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
 ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
 ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
 
-# changing external ethX priority rule for Pi as built-in eth _is_ on USB (smsc95xx driver)
-sed -i 's/KERNEL==\"eth/DRIVERS!=\"smsc95xx\", &/' /etc/udev/rules.d/99-Volumio-net.rules
+# changing external ethX priority rule for Pi as built-in eth _is_ on USB (smsc95xx or lan78xx drivers)
+sed -i 's/KERNEL==\"eth/DRIVERS!=\"smsc95xx\", DRIVERS!=\"lan78xx\", &/' /etc/udev/rules.d/99-Volumio-net.rules
 
 echo "Installing Wireless drivers for 8188eu, 8192eu, 8812au, mt7610, and mt7612. Many thanks MrEngman"
 MRENGMAN_REPO="http://downloads.fars-robotics.net/wifi-drivers"
