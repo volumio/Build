@@ -171,13 +171,13 @@ fi
 echo "Copying Volumio rootfs to Temp Dir"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
-if [ -e /mnt/kernel_current.tar.gz ]; then
+if [ -e /mnt/kernel_current.tar ]; then
 	echo "Volumio Kernel Partition Archive exists - Cleaning it"
-	rm -rf /mnt/kernel_current.tar.gz
+	rm -rf /mnt/kernel_current.tar
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar.gz --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
