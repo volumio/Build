@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Default build for Debian 32bit (to be changed to armv8)
+# Default build for Debian 32bit
 ARCH="armv7"
 
 while getopts ":v:p:a:" opt; do
@@ -73,10 +73,6 @@ else
 #	cd ..
 fi
 
-#echo "Copying the bootloader"
-#dd if=platform-khadas/vim/uboot/u-boot.bin.sd.bin of=${LOOP_DEV} conv=fsync bs=1 count=442
-#dd if=platform-khadas/vim/uboot/u-boot.bin.sd.bin of=${LOOP_DEV} conv=fsync bs=512 skip=1 seek=1
-#sync
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
@@ -98,6 +94,7 @@ echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
 mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
+echo "Creating mount point for the boot partition"
 mkdir /mnt/volumio/rootfs/boot
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
@@ -111,9 +108,9 @@ echo "Copying firmware"
 cp -pdR platform-aml/s812/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Copying etc files"
 cp -pdR platform-aml/s812/etc/* /mnt/volumio/rootfs/etc
-#echo "Copying usr/bin files"
-#cp -pdR platform-aml/s812/usr/* /mnt/volumio/rootfs/usr
-#sync
+echo "Copying usr/bin files"
+cp -pdR platform-aml/s812/usr/* /mnt/volumio/rootfs/usr
+sync
 
 echo "Preparing to run chroot for more AML configuration"
 cp scripts/aml812armv7config.sh /mnt/volumio/rootfs
@@ -126,6 +123,11 @@ mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
+
+if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
+        echo "Starting config.js"
+        node config.js $PATCH
+fi
 
 echo "Creating s805_autoscript.txt"
 UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
@@ -142,7 +144,6 @@ EOF
 #cleanup
 rm /mnt/volumio/rootfs/aml812armv7config.sh
 rm /mnt/volumio/rootfs/root/init
-rm /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
@@ -153,7 +154,7 @@ echo "==> AML device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platform-aml
+#rm -r platform-aml
 sync
 
 echo "Preparing rootfs base for SquashFS"
