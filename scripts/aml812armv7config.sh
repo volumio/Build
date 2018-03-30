@@ -8,7 +8,7 @@ echo "Creating \"fstab\""
 echo "# Amlogic fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-#UUID=${UUID_BOOT} /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+UUID=${UUID_BOOT} /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
@@ -28,7 +28,6 @@ apt-get -y install u-boot-tools liblircclient0 lirc mc abootimg fbset
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
-#rm /usr/sbin/policy-rc.d
 
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules
