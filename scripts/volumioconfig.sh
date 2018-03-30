@@ -111,7 +111,7 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 ################
 #Volumio System#---------------------------------------------------
 ################
-if [ $(uname -m) = armv7l ]; then
+if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   echo "Arm Environment detected"
   echo ' Adding Raspbian Repo Key'
   wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
