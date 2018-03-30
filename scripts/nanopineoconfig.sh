@@ -26,6 +26,11 @@ tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 #echo "Blacklisting 8723bs_vq0"
 #echo "blacklist 8723bs_vq0" >> /etc/modprobe.d/blacklist-nanopineo2.conf
 
+echo "USB Card Ordering"
+echo "# USB DACs will have device number 5 in whole Volumio device range
+options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
+
+
 echo "Installing additonal packages"
 apt-get update
 apt-get -y install network-manager u-boot-tools liblircclient0 lirc
