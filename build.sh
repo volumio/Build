@@ -157,10 +157,10 @@ if [ -n "$BUILD" ]; then
   echo 'Cloning Volumio Node Backend'
   mkdir "build/$BUILD/root/volumio"
   if [ -n "$PATCH" ]; then
-  echo "Cloning Volumio with all its history"
-  git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
-  else 
-  git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+      echo "Cloning Volumio with all its history"
+      git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+  else
+      git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
@@ -290,6 +290,18 @@ case "$DEVICE" in
   voltastream0) echo 'Writing PV Voltastream0 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/vszeroimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
+  aml805armv7) echo 'Writing Amlogic S805 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/aml805armv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
+  aml812armv7) echo 'Writing Amlogic S812 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/aml812armv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
+  aml9xxxarmv7) echo 'Writing AmlogicS9xxx Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/aml9xxxarmv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   x86) echo 'Writing x86 Image File'
     check_os_release "x86" "$VERSION" "$DEVICE"

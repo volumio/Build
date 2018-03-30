@@ -94,7 +94,7 @@ else
    OVERLAY=WITHWRKDIR
 fi
 
-print_msg "Booting Volumio for for ${HWDEVICE}"
+print_msg "Booting Volumio for ${HWDEVICE}"
 print_msg "	This script mounts rootfs RO with an overlay RW layer."
 if [ $OVERLAY == WITHWRKDIR ]; then
    # For overlayfs version V22 or higher (modulename 'overlay')
