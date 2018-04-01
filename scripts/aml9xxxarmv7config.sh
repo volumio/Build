@@ -3,12 +3,14 @@
 PATCH=$(cat /patch)
 
 # This script will be run in chroot under qemu.
+echo "Initializing.."
+. init.sh
 
 echo "Creating \"fstab\""
-echo "# Amlogic S9xxx fstab" > /etc/fstab
+echo "# Amlogic fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-UUID=${UUID_BOOT} /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+LABEL=BOOT /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
@@ -81,7 +83,7 @@ echo "Creating uInitrd from 'volumio.initrd'"
 mkimage -A arm64 -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 
 echo "Creating s905_autoscript"
-mkimage -A arm -O linux -T script -C none -d /boot/s905_autoscript.txt /boot/s905_autoscript
+mkimage -A arm -O linux -T script -C none -d /boot/s905_autoscript.cmd /boot/s905_autoscript
 
 echo "Removing unnecessary /boot files"
 rm /boot/volumio.initrd

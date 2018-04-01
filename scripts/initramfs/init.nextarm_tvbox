@@ -63,14 +63,27 @@ do
   key=${p%%=*}
   value=${p#*=}
   case $key in
+  bootdelay)
+    BOOTDELAY=$value
+    ;;
+  esac
+done
+
+if [ ! -z "${BOOTDELAY}" ]; then
+  print_msg "Boot delay will be ${BOOTDELAY} seconds to give kernel load a headstart"
+  sleep ${BOOTDELAY}
+fi
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+  case $key in
   imgpart)
     IMGPART=`parse_disk $value`
     ;;
   imgfile)
     IMGFILE=$value
-    ;;
-  bootdelay)
-    BOOTDELAY=$value
     ;;
   use_kmsg)
     USE_KMSG=$value
@@ -99,7 +112,7 @@ do
     ;;
   esac
 done
-
+echo 
 if [ $DO_GEN == yes ]; then
     print_msg "re-generating partition names..."
     IMGPART="/dev/${BOOTDEV}${DPS}2"
@@ -166,10 +179,6 @@ if [ ! -z "${UUIDFMT}" ]; then
   fi
 fi
 
-if [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
-fi
-
 # Retry mdev -s 3 times before throwing the towel
 for i in 1 2 3 4 5 6
   do
@@ -209,9 +218,6 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
   umount /mnt/factory
   rm -r /mnt/factory
-elif [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
-  sleep ${BOOTDELAY}
 fi
 
 print_msg "Checking for USB updates if you did not boot from USB..."
