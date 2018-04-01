@@ -73,7 +73,6 @@ else
 #	cd ..
 fi
 
-
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
 then
@@ -124,18 +123,6 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 
-if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
-        echo "Starting config.js"
-        node config.js $PATCH
-fi
-
-echo "Creating s805_autoscript.txt"
-UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
-UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
-UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
-echo "setenv boot_part imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA}" > /mnt/volumio/rootfs/boot/s805_autoscript.txt
-cat /mnt/volumio/rootfs/boot/txt/s805_autoscript.cmd >> /mnt/volumio/rootfs/boot/s805_autoscript.txt
-
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /aml805armv7config.sh
@@ -143,7 +130,8 @@ EOF
 
 #cleanup
 rm /mnt/volumio/rootfs/aml805armv7config.sh
-rm /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/root/init.sh
+rm /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
