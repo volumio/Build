@@ -137,6 +137,12 @@ fi
 modprobe squashfs
 modprobe nls_cp437
 
+print_msg IMGPART=${IMGPART}
+print_msg IMGFILE=${IMGFILE}
+print_msg DATAPART=${DATAPART}
+print_msg BOOTPART=${BOOTPART}
+print_msg BOOTCONFIG=${BOOTCONFIG}
+
 if [ -z "${IMGPART}" ]; then
   print_msg "Specify the squash image partition after the kernel command ${CMDLINE}"
   print_msg "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
@@ -159,11 +165,6 @@ if [ ! -z "${UUIDFMT}" ]; then
 #    exit 0
   fi
 fi
-print_msg IMGPART=${IMGPART}
-print_msg IMGFILE=${IMGFILE}
-print_msg DATAPART=${DATAPART}
-print_msg BOOTPART=${BOOTPART}
-print_msg BOOTCONFIG=${BOOTCONFIG}
 
 if [ ! -z "${BOOTDELAY}" ]; then
   print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
