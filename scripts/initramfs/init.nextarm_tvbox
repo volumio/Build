@@ -63,14 +63,27 @@ do
   key=${p%%=*}
   value=${p#*=}
   case $key in
+  bootdelay)
+    BOOTDELAY=$value
+    ;;
+  esac
+done
+
+if [ ! -z "${BOOTDELAY}" ]; then
+  print_msg "Boot delay will be ${BOOTDELAY} seconds to give kernel load a headstart"
+  sleep ${BOOTDELAY}
+fi
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+  case $key in
   imgpart)
     IMGPART=`parse_disk $value`
     ;;
   imgfile)
     IMGFILE=$value
-    ;;
-  bootdelay)
-    BOOTDELAY=$value
     ;;
   use_kmsg)
     USE_KMSG=$value
@@ -99,7 +112,7 @@ do
     ;;
   esac
 done
-
+echo 
 if [ $DO_GEN == yes ]; then
     print_msg "re-generating partition names..."
     IMGPART="/dev/${BOOTDEV}${DPS}2"
@@ -137,6 +150,12 @@ fi
 modprobe squashfs
 modprobe nls_cp437
 
+print_msg IMGPART=${IMGPART}
+print_msg IMGFILE=${IMGFILE}
+print_msg DATAPART=${DATAPART}
+print_msg BOOTPART=${BOOTPART}
+print_msg BOOTCONFIG=${BOOTCONFIG}
+
 if [ -z "${IMGPART}" ]; then
   print_msg "Specify the squash image partition after the kernel command ${CMDLINE}"
   print_msg "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
@@ -158,15 +177,6 @@ if [ ! -z "${UUIDFMT}" ]; then
 #    exec sh
 #    exit 0
   fi
-fi
-print_msg IMGPART=${IMGPART}
-print_msg IMGFILE=${IMGFILE}
-print_msg DATAPART=${DATAPART}
-print_msg BOOTPART=${BOOTPART}
-print_msg BOOTCONFIG=${BOOTCONFIG}
-
-if [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
 fi
 
 # Retry mdev -s 3 times before throwing the towel
@@ -208,9 +218,6 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
   umount /mnt/factory
   rm -r /mnt/factory
-elif [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
-  sleep ${BOOTDELAY}
 fi
 
 print_msg "Checking for USB updates if you did not boot from USB..."

@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-aml9xxx-armv7.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-aml9xxxarmv7.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -68,15 +68,10 @@ then
 	git pull
 	cd ..
 else
-	echo "Clone all Khadas files from repo"
+	echo "Clone all AML files from repo"
 	git clone https://github.com/150balbes/platform-aml.git platform-aml
 #	cd ..
 fi
-
-#echo "Copying the bootloader"
-#dd if=platform-aml/s9xxx/uboot/u-boot.bin.sd.bin of=${LOOP_DEV} conv=fsync bs=1 count=442
-#dd if=platform-aml/s9xxx/uboot/u-boot.bin.sd.bin of=${LOOP_DEV} conv=fsync bs=512 skip=1 seek=1
-#sync
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
@@ -104,19 +99,19 @@ mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying Khadas boot files"
+echo "Copying boot files"
 cp -pdR platform-aml/s9xxx/boot/* /mnt/volumio/rootfs/boot
-echo "Copying Khadas modules"
+echo "Copying modules"
 cp -pdR platform-aml/s9xxx/lib/modules /mnt/volumio/rootfs/lib/
-echo "Copying Khadas firmware"
+echo "Copying firmware"
 cp -pdR platform-aml/s9xxx/lib/firmware /mnt/volumio/rootfs/lib/
-echo "Copying Khadas etc files"
+echo "Copying etc files"
 cp -pdR platform-aml/s9xxx/etc/* /mnt/volumio/rootfs/etc
-echo "Copying Khadas usr/bin files"
+echo "Copying usr/bin files"
 cp -pdR platform-aml/s9xxx/usr/* /mnt/volumio/rootfs/usr
 sync
 
-echo "Preparing to run chroot for more VIM configuration"
+echo "Preparing to run chroot for more AML configuration"
 cp scripts/aml9xxxarmv7config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm_tvbox /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
@@ -128,18 +123,6 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 
-if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
-        echo "Starting config.js"
-        node config.js $PATCH
-fi
-
-echo "Creating s905_autoscript.txt"
-UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
-UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
-UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
-echo "setenv boot_part imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA}" > /mnt/volumio/rootfs/boot/s905_autoscript.txt
-cat /mnt/volumio/rootfs/boot/txt/s905_autoscript.cmd >> /mnt/volumio/rootfs/boot/s905_autoscript.txt
-
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /aml9xxxarmv7config.sh
@@ -147,14 +130,15 @@ EOF
 
 #cleanup
 rm /mnt/volumio/rootfs/aml9xxxarmv7config.sh
-rm /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/root/init.sh
+rm /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-echo "==> Amlogic s9xxx device installed"
+echo "==> AML device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
