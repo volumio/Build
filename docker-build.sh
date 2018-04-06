@@ -12,7 +12,7 @@ DOCKER="docker"
 
 DPATH=$(which "${DOCKER}" 2> /dev/null)
 FOUND=$?
-RUNDATE=$(date -I)
+RUNDATE=$(date "+%Y-%m-%d")
 
 if [ "${FOUND}" != "0" ]; then
 	echo "You need to have ${DOCKER} installed to be able to perform a Docker based build"
