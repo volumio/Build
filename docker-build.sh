@@ -29,6 +29,6 @@ if [ $# -lt 2 ]; then
 	exit 2
 fi
 
-${DOCKER} run --name=volumio-build --privileged --tty \
+${DOCKER} run -it --rm --name=volumio-build --privileged \
 	-v ${PWD}:/build piffio/volumio-build \
 	$@ | tee docker-build-${RUNDATE}.log
