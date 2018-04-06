@@ -1,6 +1,6 @@
 language: bash
 
-sudo: false
+sudo: required
 
 addons:
   apt:
@@ -9,8 +9,12 @@ addons:
     packages:
     - shellcheck
 
+services:
+ - docker
+
 script:
  - find . -iname "*.sh" -exec shellcheck "{}" \;
+ - ./docker-build.sh -b arm -d pi -v 2.$(git rev-list HEAD --count)
 
 matrix:
   fast_finish: true
