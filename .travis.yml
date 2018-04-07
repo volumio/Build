@@ -14,6 +14,25 @@ services:
 
 env:
  - ARCH=arm BOARD=pi
+ - ARCH=arm BOARD=sparky
+ - ARCH=arm BOARD=bbb
+ - ARCH=arm BOARD=bpim2u
+ - ARCH=armv7 BOARD=cuboxi
+ - ARCH=armv7 BOARD=odroidc1
+ - ARCH=armv7 BOARD=odroidc2
+ - ARCH=armv7 BOARD=odroidxu4
+ - ARCH=armv7 BOARD=odroidx2
+ - ARCH=armv7 BOARD=udooneo
+ - ARCH=armv7 BOARD=udooqdl
+ - ARCH=armv7 BOARD=pine64
+ - ARCH=armv7 BOARD=nanopi64
+ - ARCH=armv7 BOARD=bpipro
+ - ARCH=armv7 BOARD=tinkerboard
+ - ARCH=armv7 BOARD=sopine64
+ - ARCH=armv7 BOARD=rock64
+ - ARCH=armv7 BOARD=voltastream0
+ - ARCH=armv7 BOARD=nanopineo
+ - ARCH=armv7 BOARD=nanopineo2
  - ARCH=x86 BOARD=x86
 
 script:
