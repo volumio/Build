@@ -12,9 +12,13 @@ addons:
 services:
  - docker
 
+env:
+ - ARCH=arm BOARD=pi
+ - ARCH=x86 BOARD=x86
+
 script:
  - find . -iname "*.sh" -exec shellcheck "{}" \;
- - ./docker-build.sh -b arm -d pi -v 2.$(git rev-list HEAD --count)
+ - ./docker-build.sh -b ${ARCH} -d ${BOARD} -v 2.$(git rev-list HEAD --count)
 
 matrix:
   fast_finish: true
