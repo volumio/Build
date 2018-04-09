@@ -9,7 +9,28 @@ echo "Installing the kernel and creating initramfs"
 # Kernel version not known yet
 # Not brilliant, but safe enough as x86.sh only copied one image and one firmware package version
 dpkg -i linux-image-*_i386.deb
-dpkg -i linux-firmware-*_i386.deb
+
+echo "Installing firmware"
+if [ ! -f ./.next ]; then
+  dpkg -i linux-firmware-*_i386.deb
+else
+  #TODO temporary! remove (or add) this to (from) the recipes, depending how the stecth port goes
+    apt-get remove -y firmware-linux-nonfree
+    apt-get remove -y firmware-atheros 
+    apt-get remove -y firmware-ralink
+    apt-get remove -y firmware-realtek
+    apt-get remove -y firmware-iwlwifi 
+    apt-get remove -y firmware-brcm80211 
+    apt-get remove -y firmware-linux
+  #now install
+  #TODO depending on stretch port the following could go back to multistrap recipes
+  for f in ./firmware*.deb ; do
+  echo "Installing firmware " $f
+  dpkg -i --force-all $f
+  done
+  tar xvf broadcom-nvram.tar.xz
+fi
+ls -LR /lib/firmware
 
 echo "Creating node/ nodejs symlinks to stay compatible with the armv6/v7 platforms"
 ln -s /usr/bin/nodejs /usr/local/bin/nodejs

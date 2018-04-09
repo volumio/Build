@@ -86,15 +86,15 @@ if [ ! -d platform-x86 ]; then
 fi
 
 if [ -f platform-x86/packages/.next ]; then
+  touch /mnt/volumio/rootfs/.next
   cp platform-x86/packages/experimental/linux-image-*.deb /mnt/volumio/rootfs
-  cp platform-x86/packages/experimental/linux-firmware-*.deb /mnt/volumio/rootfs
-  echo "Adding Intel 3168NGW wifi support"
-  echo "For stretch, this would be the place to add the non-free firmware package"
-#TODO: evaluate when switching to stretch, especially with kernel version > 4.12.9
-  cp -R platform-x86/packages/iwlwifi-3168-ucode-22.361476.0/* /mnt/volumio/rootfs/lib/firmware
-  cp -R platform-x86/packages/firmware-intel-sound/* /mnt/volumio/rootfs/lib/firmware
-  cp -R platform-x86/packages/firmware-brcm-wifi/* /mnt/volumio/rootfs/lib/firmware/brcm
+  cp -R platform-x86/packages/experimental/firmware/firmware*.deb /mnt/volumio/rootfs
+  cp platform-x86/packages/experimental/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz /mnt/volumio/rootfs
+  cp -R platform-x86/packages/experimental/UCM/* /mnt/volumio/rootfs/usr/share/alsa/ucm/
+  ls -lR /mnt/volumio/rootfs/usr/share/alsa/ucm/
 else
+  echo "Adding Intel 3168NGW wifi support"
+  cp -R platform-x86/packages/iwlwifi-3168-ucode-22.361476.0/* /mnt/volumio/rootfs/lib/firmware
   cp platform-x86/packages/linux-image-*.deb /mnt/volumio/rootfs
   cp platform-x86/packages/linux-firmware-*.deb /mnt/volumio/rootfs
 fi
@@ -137,6 +137,7 @@ EOF
 
 rm /mnt/volumio/rootfs/linux-image-*.deb
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-firmware-*.deb
+rm /mnt/volumio/rootfs/firmware*.deb /mnt/volumio/rootfs/broadcom-nvram.tar.xz
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/x86config.sh
 rm /mnt/volumio/rootfs/ata-modules.x86
 sync
