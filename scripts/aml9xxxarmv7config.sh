@@ -25,6 +25,8 @@ exit 0" > /etc/rc.local
 
 echo "Adding default sound modules and wifi"
 echo "dhd
+snd_soc_pcm5102
+snd_soc_odroid_dac
 " >> /etc/modules
 
 echo "Installing additonal packages"
