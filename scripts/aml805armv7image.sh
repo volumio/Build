@@ -69,7 +69,7 @@ then
 	cd ..
 else
 	echo "Clone all AML files from repo"
-	git clone https://github.com/150balbes/platform-aml.git platform-aml
+	git clone --depth 1 https://github.com/150balbes/platform-aml.git platform-aml
 #	cd ..
 fi
 

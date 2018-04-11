@@ -68,7 +68,7 @@ then
     # that will refresh the platform files, see below
 else
 	echo "Get rock64 files from repo"
-	git clone https://github.com/volumio/platform-rock64.git platform-rock64
+	git clone --depth 1 https://github.com/volumio/platform-rock64.git platform-rock64
 	echo "Unpack the platform files"
     cd platform-rock64
 	tar xfJ rock64.tar.xz
