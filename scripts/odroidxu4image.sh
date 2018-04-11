@@ -72,7 +72,7 @@ then
 	cd ..
 else
 	echo "Clone all Odroid files from repo"
-	git clone https://github.com/gkkpch/Platform-Odroid.git platform-odroid
+	git clone --depth 1 https://github.com/gkkpch/Platform-Odroid.git platform-odroid
 	echo "Unpack the XU4 platform files"
     cd platform-odroid
     tar xfJ odroidxu4.tar.xz

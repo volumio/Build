@@ -68,7 +68,7 @@ then
     # that will refresh all the odroid platforms, see below
 else
 	echo "Clone  Nanopi64 files from repo"
-	git clone https://github.com/gkkpch/platform-nanopi platform-nanopi
+	git clone --depth 1 https://github.com/gkkpch/platform-nanopi platform-nanopi
 	echo "Unpack the platform files"
     cd  platform-nanopi
 	tar xfJ nanopi-a64.tar.xz
