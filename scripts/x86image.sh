@@ -92,6 +92,9 @@ if [ -f platform-x86/packages/.next ]; then
   cp platform-x86/packages/experimental/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz /mnt/volumio/rootfs
   cp -R platform-x86/packages/experimental/UCM/* /mnt/volumio/rootfs/usr/share/alsa/ucm/
   ls -lR /mnt/volumio/rootfs/usr/share/alsa/ucm/
+#TODO: not checked with other Intel SST bytrt/cht audio boards yet, needs more input
+  cp platform-x86/packages/experimental/bytcr-init/bytcr-init.sh /mnt/volumio/rootfs/usr/local/bin/
+  chmod +x /mnt/volumio/rootfs/usr/local/bin/bytcr-init.sh
 else
   echo "Adding Intel 3168NGW wifi support"
   cp -R platform-x86/packages/iwlwifi-3168-ucode-22.361476.0/* /mnt/volumio/rootfs/lib/firmware

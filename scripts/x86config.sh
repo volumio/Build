@@ -29,6 +29,10 @@ else
   dpkg -i --force-all $f
   done
   tar xvf broadcom-nvram.tar.xz
+  echo "Setting sane defaults for baytrail/cherrytrail soundcards"
+echo "#!/bin/sh -e
+/usr/local/bin/bytcr-init.sh
+exit 0" > /etc/rc.local
 fi
 ls -LR /lib/firmware
 
