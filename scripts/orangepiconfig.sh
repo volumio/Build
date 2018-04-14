@@ -64,6 +64,15 @@ echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
 
+echo "adding gpio group and udev rules"
+groupadd -f --system gpio
+usermod -aG gpio volumio
+touch /etc/udev/rules.d/99-gpio.rules
+echo "SUBSYSTEM==\"gpio\", ACTION==\"add\", RUN=\"/bin/sh -c '
+        chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
+        chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH\
+'\"" > /etc/udev/rules.d/99-gpio.rules
+
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
