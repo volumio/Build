@@ -56,7 +56,7 @@ touch /boot/start.elf
 mkdir /lib/modules
 
 
-KERNEL_VERSION="4.14.29"
+KERNEL_VERSION="4.14.37"
 
 case $KERNEL_VERSION in
     "4.4.9")
