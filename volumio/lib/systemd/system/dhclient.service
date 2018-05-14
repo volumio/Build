@@ -1,8 +1,0 @@
-[Unit]
-Description=Wireless Services DHCP
-BindsTo=wireless.service
-
-[Service]
-Type=forking
-ExecStart=/sbin/dhclient -v -nw -w wlan0
-KillMode=mixed
