@@ -61,7 +61,7 @@ then
     # that will refresh all the pv platforms, see below
 else
 	echo "Clone Polyvection files from repo"
-	git clone https://github.com/volumio/platform-pv.git platform-pv
+	git clone --depth 1 https://github.com/volumio/platform-pv.git platform-pv
 	echo "Unpack the Voltastream Zero platform files"
 	cd platform-pv
 	tar xfJ vszero.tar.xz

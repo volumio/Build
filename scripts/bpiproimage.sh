@@ -73,7 +73,7 @@ else
 #	cd platform-banana
 #	tar xfJ bpi-pro.tar.xz
 ### Option 2 - Kernel 3.4.113 chrismade
-	git clone https://github.com/chrismade/platform-banana-pi.git platform-banana
+	git clone --depth 1 https://github.com/chrismade/platform-banana-pi.git platform-banana
 	echo "Unpack the platform files chrismade"
 	cd platform-banana
 	tar xvzf kernel_3_4_113_w_olfs.tgz
