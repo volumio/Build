@@ -60,8 +60,9 @@ cp volumio/etc/systemd/journald.conf build/$BUILD/root/etc/systemd/journald.conf
 #Volumio SystemD Services
 cp -r volumio/lib build/$BUILD/root/
 # Netplug
-cp -rp volumio/etc/netplug build/$BUILD/root/etc/
-chmod +x build/$BUILD/root/etc/netplug/netplug
+# removed , we are using ifplugd
+#cp -rp volumio/etc/netplug build/$BUILD/root/etc/
+#chmod +x build/$BUILD/root/etc/netplug/netplug
 # Network
 cp -r volumio/etc/network/* build/$BUILD/root/etc/network
 # Wpa Supplicant
@@ -96,6 +97,8 @@ chmod a+x build/$BUILD/root/bin/volumiossh.sh
 #CPU TWEAK
 cp volumio/bin/volumio_cpu_tweak build/$BUILD/root/bin/volumio_cpu_tweak
 chmod a+x build/$BUILD/root/bin/volumio_cpu_tweak
+#LAN HOTPLUG
+cp volumio/etc/default/ifplugd build/$BUILD/root/etc/default/ifplugd
 
 echo 'Done Copying Custom Volumio System Files'
 
