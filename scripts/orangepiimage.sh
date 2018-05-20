@@ -3,22 +3,23 @@
 # Default build for Debian 32bit
 ARCH="armv7"
 
-while getopts ":v:p:a:" opt; do
+while getopts ":d:v:p:" opt; do
   case $opt in
+    d)
+      DEVICE=$OPTARG
+      ;;
     v)
       VERSION=$OPTARG
       ;;
     p)
       PATCH=$OPTARG
       ;;
-    a)
-      ARCH=$OPTARG
-      ;;
+
   esac
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-aml812armv7.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-${DEVICE}.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -26,8 +27,7 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs"
-
+echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
@@ -60,18 +60,22 @@ mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the AML kernel and platform files"
-if [ -d platform-aml ]
+echo "Preparing for the OrangePi kernel/platform files"
+if [ -d platform-orangepi ]
 then
-	echo "Pull from repo"
-	cd platform-aml
-	git pull
-	cd ..
+	echo "Platform folder already exists - keeping it"
 else
-	echo "Clone all AML files from repo"
-	git clone --depth 1 https://github.com/150balbes/platform-aml.git platform-aml
-#	cd ..
+	echo "Clone all OrangePi files from repo"
+	git clone https://github.com/volumio/platform-orangepi.git platform-orangepi
+	echo "Unpack the OrangePi platform files"
+	cd platform-orangepi
+	tar xfJ "${DEVICE}.tar.xz"
+	cd ..
 fi
+
+echo "Burning the bootloader and u-boot"
+dd if=platform-orangepi/${DEVICE}/u-boot/u-boot-sunxi-with-spl.bin of=${LOOP_DEV} bs=1024 seek=8 conv=notrunc
+sync
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
@@ -86,7 +90,7 @@ then
 	rm -rf /mnt/volumio/*
 else
 	echo "Creating Volumio Temp Directory"
-	mkdir /mnt/volumio
+	sudo mkdir /mnt/volumio
 fi
 
 echo "Creating mount point for the images partition"
@@ -98,22 +102,16 @@ mkdir /mnt/volumio/rootfs/boot
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying boot files"
-cp -pdR platform-aml/s812/boot/* /mnt/volumio/rootfs/boot
-echo "Copying modules"
-cp -pdR platform-aml/s812/lib/modules /mnt/volumio/rootfs/lib/
-echo "Copying firmware"
-cp -pdR platform-aml/s812/lib/firmware /mnt/volumio/rootfs/lib/
-echo "Copying etc files"
-cp -pdR platform-aml/s812/etc/* /mnt/volumio/rootfs/etc
-echo "Copying usr/bin files"
-cp -pdR platform-aml/s812/usr/* /mnt/volumio/rootfs/usr
-sync
+cp -pdR build/armv7/root/* /mnt/volumio/rootfs
 
-echo "Preparing to run chroot for more AML configuration"
-cp scripts/aml812armv7config.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init.nextarm_tvbox /mnt/volumio/rootfs/root/init
+echo "Copying OrangePi boot files, kernel, modules and firmware"
+cp -dR platform-orangepi/${DEVICE}/boot /mnt/volumio/rootfs
+cp -pdR platform-orangepi/${DEVICE}/lib/modules /mnt/volumio/rootfs/lib
+cp -pdR platform-orangepi/${DEVICE}/lib/firmware /mnt/volumio/rootfs/lib
+
+echo "Preparing to run chroot for more OrangePi configuration"
+cp scripts/orangepiconfig.sh /mnt/volumio/rootfs
+cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
@@ -125,24 +123,25 @@ echo $PATCH > /mnt/volumio/rootfs/patch
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/aml812armv7config.sh
+/orangepiconfig.sh
 EOF
 
 #cleanup
-rm /mnt/volumio/rootfs/aml812armv7config.sh
-rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/root/init.sh
-rm /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
+rm /mnt/volumio/rootfs/orangepiconfig.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-echo "==> AML device installed"
+#echo "Copying LIRC configuration files"
+
+
+echo "==> OrangePi device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#rm -r platform-aml
+#rm -r platform-orangepi
 sync
 
 echo "Preparing rootfs base for SquashFS"
@@ -164,7 +163,7 @@ if [ -e /mnt/kernel_current.tar ]; then
 fi
 
 echo "Creating Kernel Partition Archive"
-tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
+tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
 
 echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
@@ -187,3 +186,5 @@ umount -l /mnt/volumio/rootfs/boot
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

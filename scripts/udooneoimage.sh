@@ -71,7 +71,7 @@ then
 
 else
 	echo "Clone all UDOO files from repo"
-	git clone https://github.com/volumio/platform-udoo.git platform-udoo
+	git clone --depth 1 https://github.com/volumio/platform-udoo.git platform-udoo
 	echo "Unpack the UDOO  platform files"
     cd platform-udoo
 	tar xfJ udoo-neo.tar.xz

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NODE_VERSION=6.11.0
+NODE_VERSION=8.11.1
 
 # This script will be run in chroot under qemu.
 
@@ -547,12 +547,6 @@ ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 
 echo "Removing Avahi Service for UDISK-SSH"
 rm /etc/avahi/services/udisks.service
-
-echo "Creating DHCPCD folder structure"
-mkdir /var/lib/dhcpcd5
-touch /var/lib/dhcpcd5/dhcpcd-wlan0.lease
-touch /var/lib/dhcpcd5/dhcpcd-eth0.lease
-chmod -R 777 /var/lib/dhcpcd5
 
 #####################
 #CPU  Optimizations#-----------------------------------------

@@ -21,7 +21,7 @@ then
 	echo "Platform folder already exists - keeping it"
 else
 	echo "Clone all BBB files from repo"
-	git clone https://github.com/volumio/platform-bbb.git platform-bbb
+	git clone --depth 1 https://github.com/volumio/platform-bbb.git platform-bbb
 fi
 
 BUILDDATE=$(date -I)
