@@ -164,7 +164,6 @@ if [ -n "$BUILD" ]; then
   fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
-  rm -rf build/$BUILD/root/volumio/http/www/.git
   echo "Adding os-release infos"
   {
     echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\""
@@ -172,6 +171,7 @@ if [ -n "$BUILD" ]; then
     echo "VOLUMIO_BE_VERSION=\"$(git --git-dir "build/$BUILD/root/volumio/.git" rev-parse HEAD)\""
     echo "VOLUMIO_ARCH=\"${BUILD}\""
   } >> "build/$BUILD/root/etc/os-release"
+  rm -rf build/$BUILD/root/volumio/http/www/.git
   if [ ! "$BUILD" = x86 ]; then
     chroot "build/$BUILD/root" /bin/bash -x <<'EOF'
 su -
@@ -302,6 +302,10 @@ case "$DEVICE" in
   aml9xxxarmv7) echo 'Writing AmlogicS9xxx Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/aml9xxxarmv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
+  orangepione|orangepilite|orangepipc) echo 'Writing OrangePi Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/orangepiimage.sh -v "$VERSION" -p "$PATCH" -d "$DEVICE"
     ;;
   x86) echo 'Writing x86 Image File'
     check_os_release "x86" "$VERSION" "$DEVICE"
