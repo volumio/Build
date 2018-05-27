@@ -295,6 +295,17 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 
   umount /mnt/factory
   rm -r /mnt/factory
+
+# In case UUIDs are used: New data partition also means UUID has changed, fix it
+  if [ ! -z "${UUIDFMT}" ]; then
+    mkdir boot
+    mount -t vfat ${BOOTPART} /boot
+    UUID_DATA=$(blkid -s UUID -o value ${DATAPART})
+    cp $BOOTCONFIG $BOOTCONFIG.old
+    sed -i "s/datapart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/datapart=UUID=${UUID_DATA}/g" ${BOOTCONFIG}
+    umount /boot
+    rm -r /boot
+  fi
   print_msg "Restarting"
   echo b > /proc/sysrq-trigger
 fi
