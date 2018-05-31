@@ -15,6 +15,9 @@ mknod /dev/tty c 5 0
 
 mdev -s
 
+#######TODO: replace or delete the following when the restart issue for Tinkerboard has been solved
+echo 5 > /proc/sys/kernel/panic
+
 #Defaults which may be overridden by cmdline parameters
 USE_KMSG="yes"
 HWDEVICE="empty"
@@ -303,6 +306,8 @@ if [ -e "/mnt/factory/factory_reset" ]; then
     UUID_DATA=$(blkid -s UUID -o value ${DATAPART})
     cp $BOOTCONFIG $BOOTCONFIG.old
     sed -i "s/datapart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/datapart=UUID=${UUID_DATA}/g" ${BOOTCONFIG}
+    rm /boot/resize-volumio-datapart
+    sync
     umount /boot
     rm -r /boot
   fi
@@ -444,6 +449,9 @@ else
     print_msg "fstab entry updated to ${DEVFSTAB}"
   fi
 fi
+
+#######TODO: replace or delete the following when the restart issue for Tinkerboard has been solved
+echo 0 > /proc/sys/kernel/panic
 
 umount /proc
 umount /sys
