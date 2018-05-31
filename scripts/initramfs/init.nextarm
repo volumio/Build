@@ -365,16 +365,27 @@ if [ -e "/boot/kernel_update" ]; then
 fi
 
 # if data partition needs to be resized
-#mount -t auto /dev/${BOOTDEV}p1 /boot
 if [ -e "/boot/resize-volumio-datapart" ]; then
+  DATADEV=$(echo $DATAPART | grep -o mmcblk)
+  if [ ! -z "${DATADEV}" ]; then
+    DATADEV=$(echo ${DATAPART} | awk -F'/' '{print substr($3,0,7)}')
+  else
+    DATADEV=$(echo $DATAPART | grep -o sd)
+    if [ ! -z "${DATADEV}" ]; then
+	  DATADEV=$(echo ${DATAPART} | awk -F'/' '{print substr($3,0,3)}')
+    else
+      print_msg "Unexpected boot device, aborting"
+	  exec sh
+    fi
+  fi
   print_msg "Re-sizing Volumio data partition"
-  END="$(parted -s /dev/${BOOTDEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
-  parted -s /dev/${BOOTDEV} resizepart 3 ${END}
+  END="$(parted -s /dev/${DATADEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
+  parted -s /dev/${DATADEV} resizepart 3 ${END}
   e2fsck -fy ${DATAPART}
   #force resize as we did just run e2fsck. Resize2fs seems ro not detect this occasionally
   resize2fs -f ${DATAPART}
   print_msg "Volumio data partition succesfully resized"
-  parted -s /dev/${BOOTDEV} unit MB print
+  parted -s /dev/${DATADEV} unit MB print
   rm /boot/resize-volumio-datapart
 fi
 
