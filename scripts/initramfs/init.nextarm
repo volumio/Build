@@ -319,6 +319,18 @@ if [ -e "/mnt/factory/user_data" ]; then
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
   rm /mnt/factory/user_data
   print_msg "User Data successfully deleted "
+# In case UUIDs are used: New data partition also means UUID has changed, fix it
+  if [ ! -z "${UUIDFMT}" ]; then
+    mkdir boot
+    mount -t vfat ${BOOTPART} /boot
+    UUID_DATA=$(blkid -s UUID -o value ${DATAPART})
+    cp $BOOTCONFIG $BOOTCONFIG.old
+    sed -i "s/datapart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/datapart=UUID=${UUID_DATA}/g" ${BOOTCONFIG}
+    rm /boot/resize-volumio-datapart
+    sync
+    umount /boot
+    rm -r /boot
+  fi
 fi
 umount /mnt/factory
 rm -r /mnt/factory
@@ -379,7 +391,7 @@ if [ -e "/boot/resize-volumio-datapart" ]; then
     if [ ! -z "${DATADEV}" ]; then
 	  DATADEV=$(echo ${DATAPART} | awk -F'/' '{print substr($3,0,3)}')
     else
-      print_msg "Unexpected boot device, aborting"
+      print_msg "Unexpected data device, DATAPART=${DATAPART}, aborting"
 	  exec sh
     fi
   fi
