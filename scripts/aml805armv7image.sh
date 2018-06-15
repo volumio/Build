@@ -109,6 +109,8 @@ echo "Copying etc files"
 cp -pdR platform-aml/s805/etc/* /mnt/volumio/rootfs/etc
 echo "Copying usr/bin files"
 cp -pdR platform-aml/s805/usr/* /mnt/volumio/rootfs/usr
+echo "Copying volumio fix"
+cp -pdR platform-aml/s805/volumio/* /mnt/volumio/rootfs/volumio
 sync
 
 echo "Preparing to run chroot for more AML configuration"
