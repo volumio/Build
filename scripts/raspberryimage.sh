@@ -92,14 +92,34 @@ cp -rp volumio/opt/vc/bin/* /mnt/volumio/rootfs/opt/vc/bin/
 echo $PATCH > /mnt/volumio/rootfs/patch
 
 if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
-        echo "Starting config.js"
-        node config.js $PATCH
+        if [ -f "VARIANT" ]; then
+                VARIANT=$(cat "VARIANT")
+        	echo "Configuring variant $VARIANT"
+                rm VARIANT
+                echo "Starting config.js for variant $VARIANT"
+                node config.js $PATCH $VARIANT
+        else
+        	echo "Starting config.js"
+       		node config.js $PATCH
+        fi
 fi
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /raspberryconfig.sh -p
 EOF
+
+if [ "$PATCH" != "volumio" ]; then
+  PATCHPATH=/mnt/volumio/rootfs/${PATCH}
+  if [ -f "${PATCHPATH}/variant.js" ]; then
+    node ${PATCHPATH}/variant.js $PATCH ${PATCHPATH}
+  fi
+  rm -rf ${PATCHPATH}
+fi
+rm /mnt/volumio/rootfs/patch
+
+
+
 
 echo "Base System Installed"
 rm /mnt/volumio/rootfs/raspberryconfig.sh /mnt/volumio/rootfs/root/init
