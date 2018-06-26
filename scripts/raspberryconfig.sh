@@ -232,9 +232,9 @@ if [ -f "install.sh" ]; then
 sh install.sh
 fi
 cd /
-#rm -rf ${PATCH}
+rm -rf ${PATCH}
 fi
-#rm /patch
+rm /patch
 
 
 if [ "$PATCH" = "volumio" ]; then
