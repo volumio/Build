@@ -130,6 +130,9 @@ echo "Copying Firmwares"
 
 sync
 
+echo "Finalizing Rootfs creation"
+sh scripts/finalize.sh
+
 echo "Creating RootFS Base for SquashFS"
 
 if [ -d /mnt/squash ]; then
