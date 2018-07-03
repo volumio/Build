@@ -258,6 +258,11 @@ tar --strip-components 1 --exclude *.hash -xf rpi-volumio-"$KERNEL_VERSION"-taud
 rm rpi-volumio-"$KERNEL_VERSION"-taudac-modules.tar.gz
 echo "TauDAC Modules and overlay installed"
 
+echo "Getting Volumio driver"
+wget http://repo.volumio.org/Volumio2/Firmwares/ess-volumio/ess-volumio-$KERNEL_VERSION-v7+.tar.gz
+tar xf ess-volumio-$KERNEL_VERSION-v7+.tar.gz --no-same-owner
+rm ess-volumio-$KERNEL_VERSION-v7+.tar.gz
+
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then
 
