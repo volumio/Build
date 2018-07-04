@@ -138,6 +138,9 @@ echo "==> Voltastream Zero device installed"
 
 sync
 
+echo "Finalizing Rootfs creation"
+sh scripts/finalize.sh
+
 echo "Preparing rootfs base for SquashFS"
 
 if [ -d /mnt/squash ]; then
