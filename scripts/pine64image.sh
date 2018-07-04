@@ -159,6 +159,9 @@ echo "==> Pine64 device installed"
 #sudo rm -r platform-pine64
 sync
 
+echo "Finalizing Rootfs creation"
+sh scripts/finalize.sh
+
 echo "Preparing rootfs base for SquashFS"
 
 if [ -d /mnt/squash ]; then

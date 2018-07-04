@@ -156,6 +156,9 @@ umount -l /mnt/volumio/rootfs/sys
 sync
 echo "Odroid-XU4 device installed"
 
+echo "Finalizing Rootfs creation"
+sh scripts/finalize.sh
+
 echo "Preparing rootfs base for SquashFS"
 
 if [ -d /mnt/squash ]; then
