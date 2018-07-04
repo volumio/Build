@@ -165,6 +165,9 @@ echo "==> BPI-M2U device installed"
 #sudo rm -r platform-bananapi
 sync
 
+echo "Finalizing Rootfs creation"
+sh scripts/finalize.sh
+
 echo "Preparing rootfs base for SquashFS"
 
 if [ -d /mnt/squash ]; then
