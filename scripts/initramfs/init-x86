@@ -401,17 +401,16 @@ fi
 # =============================================================
 #
 print_msg "Checking for data partition re-size"
-#mkdir boot
-#mount -t vfat ${BOOTPART} /boot
-if [ -e "/boot/resize-volumio-datapart" ]; then
+# Re-sizing is not necessary when we already reached maximum (shows with decimals less than 1MB).
+FREESIZE="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $3}' | awk -F 'MB' '{print $1}')"
+if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s ${BOOT_DEVICE} resizepart 3 ${END} > /boot/resize-datapart.log
-  e2fsck -f ${DATAPART} -y
-  resize2fs ${DATAPART} > /boot/resize-datapart.log
+  e2fsck -f ${BOOT_DEVICE}3 -y >> /boot/resize-datapart.log
+  resize2fs ${BOOT_DEVICE}3 >> /boot/resize-datapart.log
   print_msg "Volumio data partition succesfully resized"
-  parted -s ${BOOT_DEVICE} unit MB print > /boot/resize-datapart.log
-  rm /boot/resize-volumio-datapart
+  parted -s ${BOOT_DEVICE} unit MB print >> /boot/resize-datapart.log
 fi
 umount /boot
 rm -r /boot

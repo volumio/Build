@@ -290,7 +290,4 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
-echo "Signalling the init script to re-size the volumio data partition"
-touch /boot/resize-volumio-datapart
-
 echo "Bootloader configuration and initrd.img complete"
