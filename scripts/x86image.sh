@@ -182,9 +182,6 @@ rm -rf /mnt/squash
 
 #copy the squash image inside the boot partition
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
-
-echo "Signalling the init script to move the backup GPT table to the end of the disk "
-touch /mnt/volumio/images/move-gpt
 sync
 
 echo "Unmounting Temp Devices"

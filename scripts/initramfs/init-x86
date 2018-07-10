@@ -188,20 +188,20 @@ print_msg "Initrd initialisation finished"
 #
 # Step 1: As the image likely has been dd'ed to a bigger disk, 
 #         the backup GPT table is not at the end of the disk.
-# 		  Fix it before doing anything else (only at first boot)
+# 		  Fix it before doing anything else.
 # ==============================================================
 #
 
 BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-if [ -e "/mnt/imgpart/move-gpt" ]; then
-  print_msg "First time boot, moving the backup GPT table to the end of the disk..."
+GPTSIZEMISMATCH="$(sudo fdisk -l ${BOOT_DEVICE} 2>&1 | grep 'GPT PMBR size mismatch')"
+if [ -z "${GPTSIZEMISMATCH}" ]; then
+  print_msg "GPT PMBR size mismatch, moving the backup GPT table to the end of the disk..."
   gdisk ${BOOT_DEVICE} > /dev/null  2>&1 <<EOF
 x
 e
 w
 y
 EOF
-  rm -rf /mnt/imgpart/move-gpt
   print_msg "Succesfully moved the backup GPT table"
   sync
 fi
