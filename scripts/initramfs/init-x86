@@ -367,7 +367,7 @@ fi
 #
 print_msg "Checking for data partition re-size"
 # Re-sizing is not necessary when we already reached maximum (shows with decimals less than 1MB).
-FREESIZE="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $3}' | awk -F 'MB' '{print $1}')"
+FREESIZE="$(parted -s ${BOOT_DEVICE} unit MB print free | tail -n 2 | grep Free | awk '{print $3}' | awk -F 'MB' '{print $1}')"
 if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
