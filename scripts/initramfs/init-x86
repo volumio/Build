@@ -188,21 +188,22 @@ print_msg "Initrd initialisation finished"
 #
 # Step 1: As the image likely has been dd'ed to a bigger disk, 
 #         the backup GPT table is not at the end of the disk.
-# 		  Fix it before doing anything else (only at first boot)
+# 		  Fix it before doing anything else.
 # ==============================================================
 #
 
 BOOT_DEVICE=$(echo ${BOOTPART} | sed 's/[0-9]*//g') 
-if [ -e "/mnt/imgpart/move-gpt" ]; then
-  print_msg "First time boot, moving the backup GPT table to the end of the disk..."
+GPTSIZEMISMATCH="$(sudo fdisk -l ${BOOT_DEVICE} 2>&1 | grep 'GPT PMBR size mismatch')"
+if [ -z "${GPTSIZEMISMATCH}" ]; then
+  print_msg "GPT PMBR size mismatch, moving the backup GPT table to the end of the disk..."
   gdisk ${BOOT_DEVICE} > /dev/null  2>&1 <<EOF
 x
 e
 w
 y
 EOF
-  rm -rf /mnt/imgpart/move-gpt
   print_msg "Succesfully moved the backup GPT table"
+  sync
 fi
 
 #
@@ -365,17 +366,16 @@ fi
 # =============================================================
 #
 print_msg "Checking for data partition re-size"
-#mkdir boot
-#mount -t vfat ${BOOTPART} /boot
-if [ -e "/boot/resize-volumio-datapart" ]; then
+# Re-sizing is not necessary when we already reached maximum (shows with decimals less than 1MB).
+FREESIZE="$(parted -s ${BOOT_DEVICE} unit MB print free | tail -n 2 | grep Free | awk '{print $3}' | awk -F 'MB' '{print $1}')"
+if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s ${BOOT_DEVICE} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s ${BOOT_DEVICE} resizepart 3 ${END} > /boot/resize-datapart.log
-  e2fsck -f ${BOOT_DEVICE}3 -y
-  resize2fs ${BOOT_DEVICE}3 > /boot/resize-datapart.log
+  e2fsck -f ${BOOT_DEVICE}3 -y >> /boot/resize-datapart.log
+  resize2fs ${BOOT_DEVICE}3 >> /boot/resize-datapart.log
   print_msg "Volumio data partition succesfully resized"
-  parted -s ${BOOT_DEVICE} unit MB print > /boot/resize-datapart.log
-  rm /boot/resize-volumio-datapart
+  parted -s ${BOOT_DEVICE} unit MB print >> /boot/resize-datapart.log
 fi
 umount /boot
 rm -r /boot
