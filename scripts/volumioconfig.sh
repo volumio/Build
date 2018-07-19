@@ -11,6 +11,18 @@ exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
+echo "Configuring dpkg to not include Manual pages and docs"
+echo "path-exclude /usr/share/doc/*
+# we need to keep copyright files for legal reasons
+path-include /usr/share/doc/*/copyright
+path-exclude /usr/share/man/*
+path-exclude /usr/share/groff/*
+path-exclude /usr/share/info/*
+# lintian stuff is small, but really unnecessary
+path-exclude /usr/share/lintian/*
+path-exclude /usr/share/linda/*" > /etc/dpkg/dpkg.cfg.d/01_nodoc
+
+
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
 /var/lib/dpkg/info/dash.preinst install
