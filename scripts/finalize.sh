@@ -1,11 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 
+BASEDIR=/mnt/volumio/rootfs
 echo "Computing Volumio folder Hash Checksum"
 HASH=`/usr/bin/md5deep -r -l -s -q /mnt/volumio/rootfs/volumio | sort | md5sum | tr -d "-" | tr -d " \t\n\r"`
 echo "VOLUMIO_HASH=\"${HASH}\"" >> /mnt/volumio/rootfs/etc/os-release
 
 echo "Cleanup to save space"
+
+echo "Cleaning docs"
 find /mnt/volumio/rootfs/usr/share/doc -depth -type f ! -name copyright|xargs rm || true
 find /mnt/volumio/rootfs/usr/share/doc -empty|xargs rmdir || true
+
+echo "Cleaning man and caches"
 rm -rf /mnt/volumio/rootfs/usr/share/man/* /mnt/volumio/rootfs/usr/share/groff/* /mnt/volumio/rootfs/usr/share/info/*
 rm -rf /mnt/volumio/rootfs/usr/share/lintian/* /mnt/volumio/rootfs/usr/share/linda/* /mnt/volumio/rootfs/var/cache/man/*
+
+echo "Stripping binaries"
+DIRECTORIES=($BASEDIR/lib/ $BASEDIR/bin/ $BASEDIR/usr/sbin $BASEDIR/usr/local/bin/)
+for DIR in "${DIRECTORIES[@]}"; do
+  echo "$DIR Pre strip size " $(du -sh0 "$DIR" | awk '{print $1}')
+  find "$DIR" -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+  echo "$DIR Post strip size " $(du -sh0 "$DIR" | awk '{print $1}')
+done
