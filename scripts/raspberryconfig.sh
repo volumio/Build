@@ -37,8 +37,8 @@ options snd-usb-audio index=5
 options snd_bcm2835 index=0" >> /etc/modprobe.d/alsa-base.conf
 
 echo "Adding Raspberrypi.org Repo"
-echo "deb http://archive.raspberrypi.org/debian/ jessie main ui
-deb-src http://archive.raspberrypi.org/debian/ jessie main ui
+echo "deb http://archive.volumio.org/debian/ jessie main ui
+deb-src http://archive.volumio.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
 echo "Adding Raspberrypi.org Repo Key"
