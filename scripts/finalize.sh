@@ -16,9 +16,17 @@ rm -rf /mnt/volumio/rootfs/usr/share/man/* /mnt/volumio/rootfs/usr/share/groff/*
 rm -rf /mnt/volumio/rootfs/usr/share/lintian/* /mnt/volumio/rootfs/usr/share/linda/* /mnt/volumio/rootfs/var/cache/man/*
 
 echo "Stripping binaries"
-DIRECTORIES=($BASEDIR/lib/ $BASEDIR/bin/ $BASEDIR/usr/sbin $BASEDIR/usr/local/bin/)
-for DIR in "${DIRECTORIES[@]}"; do
-  echo "$DIR Pre strip size " $(du -sh0 "$DIR" | awk '{print $1}')
-  find "$DIR" -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
-  echo "$DIR Post strip size " $(du -sh0 "$DIR" | awk '{print $1}')
-done
+
+## GOOD WAY TO DO IT, BUT NOT AVAILABLE IN SH SHELL
+#DIRECTORIES=($BASEDIR/lib/ $BASEDIR/bin/ $BASEDIR/usr/sbin $BASEDIR/usr/local/bin/)
+#for DIR in "${DIRECTORIES[@]}"; do
+#  echo "$DIR Pre strip size " $(du -sh0 "$DIR" | awk '{print $1}')
+#  find "$DIR" -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+#  echo "$DIR Post strip size " $(du -sh0 "$DIR" | awk '{print $1}')
+#done
+
+
+find $BASEDIR/lib/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+find $BASEDIR/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+find $BASEDIR/usr/sbin -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+find $BASEDIR/usr/local/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
