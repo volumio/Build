@@ -41,8 +41,16 @@ echo "deb http://archive.volumio.org/debian/ jessie main ui
 deb-src http://archive.volumio.org/debian/ jessie main ui
 " >> /etc/apt/sources.list.d/raspi.list
 
-echo "Adding Raspberrypi.org Repo Key"
-wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
+
+echo "Adding archive.volumio.org PGP Keys"
+curl -s http://archive.volumio.org/debian/raspberrypi.gpg.key | sudo apt-key add -
+curl -s http://archive.volumio.org/raspbian/raspbian.public.key | sudo apt-key add -
+
+#echo "Adding Raspberrypi.org Repo Key"
+#wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
+#echo "TEMP FIX FOR APT MIRROR"
+#echo "APT::Get::AllowUnauthenticated "true";" > /etc/apt/apt.conf.d/98tempfix
+
 
 echo "Installing R-pi specific binaries"
 apt-get update
