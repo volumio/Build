@@ -109,6 +109,7 @@ sync
 
 echo "Preparing to run chroot for more Tinkerboard configuration"
 cp scripts/tinkerconfig.sh /mnt/volumio/rootfs
+cp scripts/install-kiosk.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
