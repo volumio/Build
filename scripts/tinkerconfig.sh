@@ -58,6 +58,12 @@ echo "Copying volumio initramfs updater"
 cd /root/
 mv volumio-init-updater /usr/local/sbin
 
+
+echo "Installing Kiosk"
+sh /install-kiosk.sh
+
+echo "Kiosk installed"
+rm /install-kiosk.sh
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
 echo "No Patch To Apply"
