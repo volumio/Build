@@ -55,6 +55,8 @@ TimeoutSec=300
 [Install]
 WantedBy=multi-user.target
 " > /lib/systemd/system/volumio-kiosk.service
+
+echo "Enabling kiosk"
 /bin/ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
 
 echo "  Allowing volumio to start an xsession"
@@ -80,4 +82,5 @@ echo '[{"value": false,"id":"section_hdmi_settings","attribute_name": "hidden"}]
 echo "Setting HDMI UI enabled by default"
 /usr/bin/jq '.hdmi_enabled.value = true' /volumio/app/plugins/system_controller/system/config.json > /hdmi && mv /hdmi /volumio/app/plugins/system_controller/system/config.json
 /usr/bin/jq '.hdmi_enabled.type = "boolean"' /volumio/app/plugins/system_controller/system/config.json > /hdmi && mv /hdmi /volumio/app/plugins/system_controller/system/config.json
-systemctl enable volumio-kiosk.service
+
+
