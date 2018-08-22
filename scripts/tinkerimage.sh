@@ -121,8 +121,16 @@ mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 
 if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
-        echo "Starting config.js"
-        node config.js $PATCH
+        if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
+                UIVARIANT=$(cat "UIVARIANT")
+        	echo "Configuring variant $UIVARIANT"
+                echo "Starting config.js for variant $UIVARIANT"
+                node config.js $PATCH $UIVARIANT
+                echo $UIVARIANT > /mnt/volumio/rootfs/UIVARIANT
+        else
+        	echo "Starting config.js"
+       		node config.js $PATCH
+        fi
 fi
 
 echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
@@ -138,6 +146,13 @@ EOF
 
 #cleanup
 rm /mnt/volumio/rootfs/root/init.sh /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/tinkerconfig.sh
+
+UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT
+if [ -f "${UIVARIANT_FILE}" ]; then
+    echo "Starting variant.js"
+    node variant.js
+    rm $UIVARIANT_FILE
+fi
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev

@@ -45,9 +45,10 @@ apt-get update
 #apt-get -y install u-boot-tools liblircclient0 lirc
 apt-get -y install u-boot-tools
 
-echo "Cleaning APT Cache and remove policy file"
-rm -f /var/lib/apt/lists/*archive*
-apt-get clean
+
+echo "Configuring boot splash"
+apt-get -y install plymouth plymouth-themes
+plymouth-set-default-theme volumio
 
 echo "Adding custom modules overlay, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules
