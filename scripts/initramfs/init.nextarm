@@ -353,12 +353,22 @@ fi
 if [ -e "/boot/kernel_update" ]; then
   print_msg "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
+  BACKUP=""
   if [ -e "/mnt/imgpart/config.txt.bak" ]; then
+### DT overlay and config backup from RPi
+    BACKUP="/mnt/imgpart/config.txt.bak"
+	CONFIGORG="/boot/config.txt"
+  elif [ -e "/mnt/imgpart/hw_intf.conf.bak" ]; then
+### DT overlay backup from Tinkerboard
+    BACKUP="/mnt/imgpart/hw_intf.conf.bak"
+	CONFIGORG="/boot/hw_intf.conf"
+  fi
+  if [ ! -z $BACKUP ]; then
     print_msg "Restoring custom config.txt content"
-    I2S=`sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' /mnt/imgpart/config.txt.bak`
-    echo "" >> /boot/config.txt
-    echo "$I2S" >> /boot/config.txt
-    rm /mnt/imgpart/config.txt.bak
+    I2S=`sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' ${BACKUP}`
+    echo "" >> $CONFIGORG
+    echo "$I2S" >> $CONFIGORG
+    cp ${BACKUP} ${BACKUP}.saved
   fi
 
 # When a new volumio version is loaded, partition UUIDs will have changed.
@@ -461,9 +471,6 @@ else
     print_msg "fstab entry updated to ${DEVFSTAB}"
   fi
 fi
-
-#######TODO: replace or delete the following when the restart issue for Tinkerboard has been solved
-echo 0 > /proc/sys/kernel/panic
 
 umount /proc
 umount /sys
