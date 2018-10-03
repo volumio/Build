@@ -400,17 +400,6 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
 fi
 
-echo "Installing Upmpdcli Streaming Modules"
-wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-gmusic_1.2.12-1_all.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-qobuz_1.2.12-1_all.deb
-wget http://repo.volumio.org/Packages/Upmpdcli/upmpdcli-tidal_1.2.12-1_all.deb
-dpkg -i upmpdcli-gmusic_1.2.12-1_all.deb
-dpkg -i upmpdcli-qobuz_1.2.12-1_all.deb
-dpkg -i upmpdcli-tidal_1.2.12-1_all.deb
-rm /upmpdcli-gmusic_1.2.12-1_all.deb
-rm /upmpdcli-qobuz_1.2.12-1_all.deb
-rm /upmpdcli-tidal_1.2.12-1_all.deb
-
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
