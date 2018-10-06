@@ -26,6 +26,15 @@ path-exclude /usr/share/linda/*" > /etc/dpkg/dpkg.cfg.d/01_nodoc
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
 /var/lib/dpkg/info/dash.preinst install
+
+if [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
+  echo "Fix for cgmanager not starting on x86"
+  sed -i -e 's/# Required-Start:    mountkernfs/# Required-Start:/g' /etc/init.d/cgmanager
+  dpkg --configure --force-all cgmanager
+  sed -i -e 's/# Required-Start:    mountkernfs/# Required-Start:/g' /etc/init.d/cgmanager
+fi
+
+echo "Configuring packages"
 dpkg --configure -a
 
 # Reduce locales to just one beyond C.UTF-8
