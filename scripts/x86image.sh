@@ -126,11 +126,31 @@ BOOT_PART=${BOOT_PART}
 " >> /mnt/volumio/rootfs/init.sh
 chmod +x /mnt/volumio/rootfs/init.sh
 
-
 echo $PATCH > /mnt/volumio/rootfs/patch
+
+if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
+        if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
+                UIVARIANT=$(cat "UIVARIANT")
+                echo "Configuring variant $UIVARIANT"
+                echo "Starting config.js for variant $UIVARIANT"
+                node config.js $PATCH $UIVARIANT
+                echo $UIVARIANT > /mnt/volumio/rootfs/UIVARIANT
+        else
+                echo "Starting config.js"
+                node config.js $PATCH
+        fi
+fi
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 /x86config.sh -p
 EOF
+
+UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT
+if [ -f "${UIVARIANT_FILE}" ]; then
+    echo "Starting variant.js"
+    node variant.js
+    rm $UIVARIANT_FILE
+fi
 
 rm /mnt/volumio/rootfs/linux-image-*.deb
 rm /mnt/volumio/rootfs/init.sh /mnt/volumio/rootfs/linux-firmware-*.deb

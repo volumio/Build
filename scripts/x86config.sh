@@ -251,14 +251,17 @@ PATCHPATH=/${PATCH}
 cd $PATCHPATH
 #Check the existence of patch script
 if [ -f "patch.sh" ]; then
-chmod a+x patch.sh
 sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
+fi
+if [ -f "install.sh" ]; then
+sh install.sh
 fi
 cd /
 rm -rf ${PATCH}
 fi
 rm /patch
+
 
 echo "Bootloader configuration and initrd.img complete"
