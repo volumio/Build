@@ -91,16 +91,20 @@ cp -rp volumio/opt/vc/bin/* /mnt/volumio/rootfs/opt/vc/bin/
 
 echo $PATCH > /mnt/volumio/rootfs/patch
 
+if [ -f "/mnt/volumio/rootfs/etc/os-release" ]; then
+	. "/mnt/volumio/rootfs/etc/os-release"
+fi
+
 if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
         if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
                 UIVARIANT=$(cat "UIVARIANT")
         	echo "Configuring variant $UIVARIANT"
                 echo "Starting config.js for variant $UIVARIANT"
-                node config.js $PATCH $UIVARIANT
+                node config.js $PATCH $VOLUMIO_ARCH $UIVARIANT
                 echo $UIVARIANT > /mnt/volumio/rootfs/UIVARIANT
         else
         	echo "Starting config.js"
-       		node config.js $PATCH
+                node config.js $PATCH $VOLUMIO_ARCH
         fi
 fi
 
