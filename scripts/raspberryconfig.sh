@@ -71,12 +71,12 @@ case $KERNEL_VERSION in
       KERNEL_REV="884"
       KERNEL_COMMIT="15ffab5493d74b12194e6bfc5bbb1c0f71140155"
       FIRMWARE_COMMIT="9108b7f712f78cbefe45891bfa852d9347989529"
-      ;; 
+      ;;
     "4.9.65")
       KERNEL_REV="1056"
       KERNEL_COMMIT="e4b56bb7efe47319e9478cfc577647e51c48e909"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
-      ;; 
+      ;;
     "4.9.80")
       KERNEL_REV="1098"
       KERNEL_COMMIT="936a8dc3a605c20058fbb23672d6b47bca77b0d5"
@@ -133,7 +133,7 @@ wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20161130-3+rp
 dpkg -i firmware-brcm80211_20161130-3+rpt4_all.deb
 rm firmware-brcm80211_20161130-3+rpt4_all.deb
 
-if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
+if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
 echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
@@ -163,7 +163,8 @@ dtparam=audio=on
 audio_pwm_mode=2
 dtparam=i2c_arm=on
 disable_splash=1
-hdmi_force_hotplug=1" >> /boot/config.txt
+hdmi_force_hotplug=1
+framebuffer_depth=32" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
 echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
@@ -269,7 +270,7 @@ wget --no-check-certificate  https://github.com/allocom/piano-firmware/archive/m
 echo "Extracting Allo Firmwares"
 tar xf master.tar.gz
 cp -rp /piano-firmware-master/* /
-rm -rf /piano-firmware-master 
+rm -rf /piano-firmware-master
 rm /README.md
 rm master.tar.gz
 echo "Allo firmware installed"
