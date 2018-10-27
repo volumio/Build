@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NODE_VERSION=8.11.1
+NODE_VERSION=8.12.0
 
 # This script will be run in chroot under qemu.
 
