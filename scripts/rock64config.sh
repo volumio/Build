@@ -29,31 +29,17 @@ echo "label kernel-4.4
 echo "#!/bin/sh
 sysctl abi.cp15_barrier=2
 " > /usr/local/bin/rock64-init.sh
-#TODO,. add the following to the init script after verification
-#for i in 1 2 3 ; do
-#	echo 4 >/proc/irq/$(awk -F":" "/xhci/ {print \$1}" </proc/interrupts | sed 's/\ //g')/smp_affinity
-#	echo 8 >/proc/irq/$(awk -F":" "/eth0/ {print \$1}" </proc/interrupts | sed 's/\ //g')/smp_affinity
-#done
-#echo 7 >/sys/class/net/eth0/queues/rx-0/rps_cpus
-#echo 32768 >/proc/sys/net/core/rps_sock_flow_entries
-#echo 32768 >/sys/class/net/eth0/queues/rx-0/rps_flow_cnt
-#exit 0
-#
-#
 
 chmod +x /usr/local/bin/rock64-init.sh
+chmod +x /usr/local/sbin/enable_dtoverlay
 
 echo "#!/bin/sh -e
 /usr/local/bin/rock64-init.sh
 exit 0" > /etc/rc.local
 
-echo "Adding default sound modules"
-#echo "
-#" >> /etc/modules
-
 echo "Installing additonal packages"
 apt-get update
-apt-get -y install u-boot-tools liblircclient0 lirc
+apt-get -y install device-tree-compiler u-boot-tools liblircclient0 lirc
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -80,6 +66,9 @@ if [ -f "patch.sh" ]; then
 sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
+fi
+if [ -f "install.sh" ]; then
+sh install.sh
 fi
 cd /
 rm -rf ${PATCH}
