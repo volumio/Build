@@ -57,6 +57,9 @@ sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
 fi
+if [ -f "install.sh" ]; then
+sh install.sh
+fi
 cd /
 rm -rf ${PATCH}
 fi

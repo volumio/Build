@@ -71,10 +71,14 @@ sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
 fi
+if [ -f "install.sh" ]; then
+sh install.sh
+fi
 cd /
 rm -rf ${PATCH}
 fi
 rm /patch
+
 
 #echo "Changing to 'modules=dep'"
 #echo "(otherwise NanoPi-NEO2 won't boot due to uInitrd 4MB limit)"

@@ -64,7 +64,7 @@ touch /boot/start.elf
 mkdir /lib/modules
 
 
-KERNEL_VERSION="4.14.62"
+KERNEL_VERSION="4.14.71"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -97,7 +97,11 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="911147a3276beee09afc4237e1b7b964e61fb88a"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;;
-
+    "4.14.71")
+      KERNEL_REV="1145"
+      KERNEL_COMMIT="c919d632ddc2a88bcb87b7d0cddd61446d1a36bf"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
 esac
 
 # using rpi-update relevant to defined kernel version
@@ -125,9 +129,9 @@ echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & 
 apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
 
 # Temporary brcm firmware fix solution until we use Stretch
-wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20161130-3%2Brpt3_all.deb
-dpkg -i firmware-brcm80211_20161130-3+rpt3_all.deb
-rm firmware-brcm80211_20161130-3+rpt3_all.deb
+wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20161130-3+rpt4_all.deb
+dpkg -i firmware-brcm80211_20161130-3+rpt4_all.deb
+rm firmware-brcm80211_20161130-3+rpt4_all.deb
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
@@ -153,7 +157,7 @@ apt-get -y remove binutils
 
 echo "Writing config.txt file"
 echo "initramfs volumio.initrd
-gpu_mem=16
+gpu_mem=32
 max_usb_current=1
 dtparam=audio=on
 audio_pwm_mode=2
