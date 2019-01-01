@@ -104,11 +104,10 @@ mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying cuboxi boot files, Kernel, Modules and Firmware"
-cp platform-cuboxi/cuboxi/boot/* /mnt/volumio/rootfs/boot
+echo "Copying cuboxi boot files, Kernel, Modules and Headerfiles"
+cp -R platform-cuboxi/cuboxi/boot/* /mnt/volumio/rootfs/boot
 cp -pdR platform-cuboxi/cuboxi/lib/modules /mnt/volumio/rootfs/lib
-cp -pdR platform-cuboxi/cuboxi/lib/firmware /mnt/volumio/rootfs/lib
-tar cfJ /mnt/volumio/rootfs/usr/linux-headers.tar.xz platform-cuboxi/cuboxi/usr/include 
+cp platform-cuboxi/cuboxi/usr/src/* /mnt/volumio/rootfs/usr/src
 
 cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4329-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
 cp platform-cuboxi/cuboxi/nvram-fw/brcmfmac4330-sdio.txt /mnt/volumio/rootfs/lib/firmware/brcm/
@@ -132,7 +131,22 @@ wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volum
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
+
 echo $PATCH > /mnt/volumio/rootfs/patch
+
+if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
+        if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
+                UIVARIANT=$(cat "UIVARIANT")
+                echo "Configuring variant $UIVARIANT"
+                echo "Starting config.js for variant $UIVARIANT"
+                node config.js $PATCH $UIVARIANT
+                echo $UIVARIANT > /mnt/volumio/rootfs/UIVARIANT
+        else
+                echo "Starting config.js"
+                node config.js $PATCH
+        fi
+fi
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /cuboxiconfig.sh
