@@ -1,5 +1,6 @@
 #!/bin/bash
 
+HARDWARE=`/bin/cat /mnt/volumio/rootfs/etc/os-release | grep "VOLUMIO_HARDWARE" | cut -d \\" -f2 | tr -d "\n"`
 BASEDIR=/mnt/volumio/rootfs
 echo "Computing Volumio folder Hash Checksum"
 HASH=`/usr/bin/md5deep -r -l -s -q /mnt/volumio/rootfs/volumio | sort | md5sum | tr -d "-" | tr -d " \t\n\r"`
@@ -10,6 +11,8 @@ echo "Cleanup to save space"
 echo "Cleaning docs"
 find /mnt/volumio/rootfs/usr/share/doc -depth -type f ! -name copyright|xargs rm || true
 find /mnt/volumio/rootfs/usr/share/doc -empty|xargs rmdir || true
+
+if [ $HARDWARE != "x86" ]; then
 
 echo "Cleaning man and caches"
 rm -rf /mnt/volumio/rootfs/usr/share/man/* /mnt/volumio/rootfs/usr/share/groff/* /mnt/volumio/rootfs/usr/share/info/*
@@ -30,3 +33,12 @@ find $BASEDIR/lib/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/usr/sbin -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/usr/local/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+
+else
+  echo "X86 Environmant detected, not cleaning"
+  find $BASEDIR/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+find $BASEDIR/usr/sbin -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+find $BASEDIR/usr/local/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
+
+
+fi
