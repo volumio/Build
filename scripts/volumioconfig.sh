@@ -259,28 +259,27 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   #Remove autostart of upmpdcli
   update-rc.d upmpdcli remove
 
-
   echo "Installing Shairport-Sync"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
+  tar xf shairport-sync-3.0.2-arm.tar.gz
+  rm /shairport-sync-3.0.2-arm.tar.gz
+  
+  echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
   tar xf shairport-sync-metadata-reader-arm.tar.gz
   rm /shairport-sync-metadata-reader-arm.tar.gz
 
-  echo "Installing Shairport-Sync Metadata Reader"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
-  tar xf shairport-sync-3.0.2-arm.tar.gz
-  rm /shairport-sync-3.0.2-arm.tar.gz
-
   echo "Volumio Init Updater"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
+  
   echo "Installing Snapcast for multiroom"
-
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
   chmod a+x /usr/sbin/snapserver
   chmod a+x /usr/sbin/snapclient
 
-  echo "Zsync"
+  echo "Installing Zsync"
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
@@ -305,13 +304,13 @@ wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
   apt-get clean
   rm -rf tmp/*
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
-  echo 'X86 Environment Detected'
+  echo 'x86 Environment Detected'
 
   # cleanup
   apt-get clean
   rm -rf tmp/*
 
-  echo "Installing X86 Node Environment"
+  echo "Installing x86 Node Environment"
   cd /
   wget http://repo.volumio.org/Volumio2/node-v${NODE_VERSION}-linux-x86.tar.xz
   tar xf node-v${NODE_VERSION}-linux-x86.tar.xz
@@ -396,7 +395,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
 
-  echo "Zsync"
+  echo "Installing Zsync"
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/x86/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
