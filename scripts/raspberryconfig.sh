@@ -168,7 +168,9 @@ dtparam=audio=on
 audio_pwm_mode=2
 dtparam=i2c_arm=on
 disable_splash=1
-hdmi_force_hotplug=1" >> /boot/config.txt
+hdmi_force_hotplug=1
+
+#include userconfig.txt" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
 echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
