@@ -408,6 +408,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
 fi
 
+echo "Setting proper permissions for ping"
+chmod u+s /bin/ping
+
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
 mkdir /mnt/NAS
