@@ -118,29 +118,52 @@ cp platform-odroid/odroidxu4/boot/zImage /mnt/volumio/rootfs/boot
 
 echo "Copying modules and firmware and inittab"
 cp -pdR platform-odroid/odroidxu4/lib/modules /mnt/volumio/rootfs/lib/
-cp -pdR platform-odroid/odroidxu4/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Copying modified securetty (oDroid-XU4 console)"
 cp platform-odroid/odroidxu4/etc/securetty /mnt/volumio/rootfs/etc/
 
 echo "Preparing to run chroot for more OdroidXU configuration"
 cp scripts/odroidxu4config.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
+cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
-echo "Adding fancontrol"
-mkdir /mnt/volumio/rootfs/opt/fan-control
-cp platform-odroid/odroidxu4/opt/fan-control/odroid-xu3-fan-control.sh /mnt/volumio/rootfs/opt/fan-control
-cp platform-odroid/odroidxu4/opt/fan-control/odroid-xu3-fan-control.service /mnt/volumio/rootfs/opt/fan-control
 
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
+
 echo $PATCH > /mnt/volumio/rootfs/patch
+
+echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
+UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
+UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
+" > /mnt/volumio/rootfs/root/init.sh
+chmod +x /mnt/volumio/rootfs/root/init.sh
+
+if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
+        if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
+                UIVARIANT=$(cat "UIVARIANT")
+                echo "Configuring variant $UIVARIANT"
+                echo "Starting config.js for variant $UIVARIANT"
+                node config.js $PATCH $UIVARIANT
+                echo $UIVARIANT > /mnt/volumio/rootfs/UIVARIANT
+        else
+                echo "Starting config.js"
+                node config.js $PATCH
+        fi
+fi
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /odroidxu4config.sh
 EOF
+
+UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT
+if [ -f "${UIVARIANT_FILE}" ]; then
+    echo "Starting variant.js"
+    node variant.js
+    rm $UIVARIANT_FILE
+fi
 
 #cleanup
 rm /mnt/volumio/rootfs/odroidxu4config.sh /mnt/volumio/rootfs/root/init
@@ -149,9 +172,6 @@ echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
-
-#TODO echo "Copying inittab"
-#TODO cp platform-odroid/odroidxu4/etc/inittab /mnt/volumio/etc/
 
 sync
 echo "Odroid-XU4 device installed"

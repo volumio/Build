@@ -152,6 +152,13 @@ su -
 /cuboxiconfig.sh
 EOF
 
+UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT
+if [ -f "${UIVARIANT_FILE}" ]; then
+    echo "Starting variant.js"
+    node variant.js
+    rm $UIVARIANT_FILE
+fi
+
 #cleanup
 rm /mnt/volumio/rootfs/cuboxiconfig.sh /mnt/volumio/rootfs/root/init
 
