@@ -459,16 +459,12 @@ if [ ! -z "${DEVFSTAB}" ]; then
   fi
 else
   DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "^/dev/[a-z]{3,6}[0-9]{1,2}[a-z]{0,1}[0-9]{0,2}" -o`
-  if [ -z "${DEVFSTAB}" ]; then
-#   normally never gets here ;)
-    print_msg "Incompatible fstab, no entry found for /boot"
-    exec sh
-    exit 0
-  fi
-  print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
-  if [ ! $BOOTPART == $DEVFSTAB ]; then
-    sed -i "s/${DEVFSTAB}/${BOOTPART}/g" /mnt/ext/union/etc/fstab
-    print_msg "fstab entry updated to ${DEVFSTAB}"
+  if [ ! -z "${DEVFSTAB}" ]; then
+    print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
+    if [ ! $BOOTPART == $DEVFSTAB ]; then
+      sed -i "s/${DEVFSTAB}/${BOOTPART}/g" /mnt/ext/union/etc/fstab
+      print_msg "fstab entry updated to ${DEVFSTAB}"
+    fi
   fi
 fi
 
