@@ -197,10 +197,10 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
      rm libasound2_1.1.3-5_armhf.deb
      rm libasound2-dev_1.1.3-5_armhf.deb
 
-     echo "Installing MPD 20.6 with Direct DSD Support"
-     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv6-DSD-2.deb
-     dpkg -i mpd_0.20.6-1_armv6-DSD-2.deb
-     rm mpd_0.20.6-1_armv6-DSD-2.deb
+     echo "Installing MPD 20.18"
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_armv6.deb
+     dpkg -i mpd_0.20.18-1_armv6.deb
+     rm mpd_0.20.18-1_armv6.deb
 
      echo "Installing Upmpdcli for armv6"
      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv6/libupnpp3_0.15.1-1_armhf.deb
@@ -234,10 +234,10 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
      rm libasound2_1.1.3-5_armhf.deb
      rm libasound2-dev_1.1.3-5_armhf.deb
 
-     echo "Installing MPD 20.6 with Direct DSD Support"
-     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_armv7-DSD.deb
-     dpkg -i mpd_0.20.6-1_armv7-DSD.deb
-     rm mpd_0.20.6-1_armv7-DSD.deb
+     echo "Installing MPD 20.18"
+     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_armv7.deb
+     dpkg -i mpd_0.20.18-1_armv7.deb
+     rm mpd_0.20.18-1_armv7.deb
 
     echo "Installing Upmpdcli for armv7"
     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
@@ -259,28 +259,27 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   #Remove autostart of upmpdcli
   update-rc.d upmpdcli remove
 
-
   echo "Installing Shairport-Sync"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
+  tar xf shairport-sync-3.0.2-arm.tar.gz
+  rm /shairport-sync-3.0.2-arm.tar.gz
+  
+  echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
   tar xf shairport-sync-metadata-reader-arm.tar.gz
   rm /shairport-sync-metadata-reader-arm.tar.gz
 
-  echo "Installing Shairport-Sync Metadata Reader"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
-  tar xf shairport-sync-3.0.2-arm.tar.gz
-  rm /shairport-sync-3.0.2-arm.tar.gz
-
   echo "Volumio Init Updater"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
+  
   echo "Installing Snapcast for multiroom"
-
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
   chmod a+x /usr/sbin/snapserver
   chmod a+x /usr/sbin/snapclient
 
-  echo "Zsync"
+  echo "Installing Zsync"
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/arm/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
@@ -305,13 +304,13 @@ wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
   apt-get clean
   rm -rf tmp/*
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
-  echo 'X86 Environment Detected'
+  echo 'x86 Environment Detected'
 
   # cleanup
   apt-get clean
   rm -rf tmp/*
 
-  echo "Installing X86 Node Environment"
+  echo "Installing x86 Node Environment"
   cd /
   wget http://repo.volumio.org/Volumio2/node-v${NODE_VERSION}-linux-x86.tar.xz
   tar xf node-v${NODE_VERSION}-linux-x86.tar.xz
@@ -360,10 +359,10 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm libasound2_1.1.3-5_i386.deb
   rm libasound2-dev_1.1.3-5_i386.deb 
 
-  echo "Installing MPD 20.6 with Direct DSD Support"
-  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.6-1_i386-DSD-2.deb
-  dpkg -i mpd_0.20.6-1_i386-DSD-2.deb
-  rm mpd_0.20.6-1_i386-DSD-2.deb
+  echo "Installing MPD 20.18"
+  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_i386.deb
+  dpkg -i mpd_0.20.18-1_i386.deb
+  rm mpd_0.20.18-1_i386.deb
 
   echo "Installing Upmpdcli"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
@@ -396,7 +395,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
 
-  echo "Zsync"
+  echo "Installing Zsync"
   rm /usr/bin/zsync
   wget http://repo.volumio.org/Volumio2/Binaries/x86/zsync -P /usr/bin/
   chmod a+x /usr/bin/zsync
@@ -408,6 +407,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
 
 fi
+
+echo "Setting proper permissions for ping"
+chmod u+s /bin/ping
 
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
