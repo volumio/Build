@@ -2,12 +2,7 @@ language: bash
 
 sudo: false
 
-addons:
-  apt:
-    sources:
-    - debian-sid
-    packages:
-    - shellcheck
+language: shell
 
 script:
  - find . -iname "*.sh" -exec shellcheck "{}" \;
