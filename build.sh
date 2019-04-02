@@ -6,6 +6,7 @@
 #
 # Dependencies:
 # parted squashfs-tools dosfstools multistrap qemu binfmt-support qemu-user-static kpartx
+set -eo pipefail
 
 #Set fonts for Help.
 NORM=$(tput sgr0)
@@ -37,7 +38,7 @@ Switches:
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
          ./build.sh -b arm -d pi -v 2.0 -l reponame
-"
+  "
   exit 1
 }
 
@@ -106,7 +107,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 if [ -z "${VARIANT}" ]; then
-   VARIANT="volumio"
+  VARIANT="volumio"
 fi
 
 if [ -n "$BUILD" ]; then
@@ -143,7 +144,12 @@ if [ -n "$BUILD" ]; then
 
   mkdir "build/$BUILD"
   mkdir "build/$BUILD/root"
-  multistrap -a "$ARCH" -f "$CONF"
+
+  if ! multistrap -a "$ARCH" -f "$CONF"
+  then
+    echo multistrap failed. Exitting
+    exit 1
+  fi
   if [ ! "$BUILD" = x86 ]; then
     echo "Build for arm/armv7/armv8 platform, copying qemu"
     cp /usr/bin/qemu-arm-static "build/$BUILD/root/usr/bin/"
@@ -157,10 +163,10 @@ if [ -n "$BUILD" ]; then
   echo 'Cloning Volumio Node Backend'
   mkdir "build/$BUILD/root/volumio"
   if [ -n "$PATCH" ]; then
-      echo "Cloning Volumio with all its history"
-      git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+    echo "Cloning Volumio with all its history"
+    git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   else
-      git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+    git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
@@ -226,7 +232,7 @@ case "$DEVICE" in
     ;;
   odroidc2) echo 'Writing Odroid-C2 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
-# this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
+    # this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
     sh scripts/odroidc2image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   odroidxu4) echo 'Writing Odroid-XU4 Image File'
@@ -255,10 +261,10 @@ case "$DEVICE" in
     ;;
   pine64) echo 'Writing Pine64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
-# this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
+    # this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
     sh scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
-   nanopi64) echo 'Writing NanoPI A64 Image File'
+    nanopi64) echo 'Writing NanoPI A64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/nanopi64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
