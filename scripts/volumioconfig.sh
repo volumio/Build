@@ -413,8 +413,8 @@ chmod u+s /bin/ping
 
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
-mkdir /mnt/NAS
-mkdir /media
+mkdir -p /mnt/NAS
+mkdir -p /media
 ln -s /media /mnt/USB
 
 #Internal Storage Folder
