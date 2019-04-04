@@ -45,11 +45,11 @@ Example: Build a Raspberry PI image from scratch, version 2.0 :
 #$1 = ${BUILD} $2 = ${VERSION} $3 = ${DEVICE}"
 function check_os_release {
   ARCH_BUILD=$1
-  HAS_VERSION=$(grep -c VOLUMIO_VERSION "build/${ARCH_BUILD}/root/etc/os-release")
   VERSION=$2
   DEVICE=$3
+  HAS_VERSION="grep -c VOLUMIO_VERSION build/${ARCH_BUILD}/root/etc/os-release"
 
-  if [ "$HAS_VERSION" -ne "0" ]; then
+  if $HAS_VERSION; then
     # os-release already has a VERSION number
     # cut the last 2 lines in case other devices are being built from the same rootfs
     head -n -2 "build/${ARCH_BUILD}/root/etc/os-release" > "build/${ARCH_BUILD}/root/etc/tmp-release"
@@ -206,7 +206,7 @@ VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
   umount -l "build/$BUILD/root/proc"
   umount -l "build/$BUILD/root/sys"
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
-  umount -l "build/$BUILD/root/run/cgmanager/fs"
+ [ -d "build/$BUILD/root/run/cgmanager/fs" ] && umount -l "build/$BUILD/root/run/cgmanager/fs"
   sh scripts/configure.sh -b "$BUILD"
 fi
 
