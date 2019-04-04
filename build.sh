@@ -325,6 +325,11 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/nanopineoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  "") echo 'No device specified'
+    ;;
+  *) echo Unknown/Unsupported device: $DEVICE
+    exit 1
+    ;;
 esac
 
 #When the tar is created we can build the docker layer
