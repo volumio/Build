@@ -226,8 +226,11 @@ case "$DEVICE" in
     ;;
   odroidc2) echo 'Writing Odroid-C2 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
-# this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
     sh scripts/odroidc2image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
+  odroidn2) echo 'Writing Odroid-N2 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/odroidn2image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   odroidxu4) echo 'Writing Odroid-XU4 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
