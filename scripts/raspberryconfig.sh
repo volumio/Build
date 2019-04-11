@@ -265,7 +265,7 @@ fi
 rm /patch
 
 
-if [ "$PATCH" = "volumio" ]; then
+if [ "$PATCH" = "volumio" ] || [ "$PATCH" = "my-volumio" ]; then
 
 echo "Adding third party Firmware"
 cd /
