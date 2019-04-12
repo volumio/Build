@@ -45,9 +45,9 @@ echo "Installing additonal packages"
 #apt-get update
 #apt-get -y install u-boot-tools liblircclient0 lirc
 
-echo "Cleaning APT Cache and remove policy file"
-rm -f /var/lib/apt/lists/*archive*
-apt-get clean
+# echo "Cleaning APT Cache and remove policy file"
+# rm -f /var/lib/apt/lists/*archive*
+# apt-get clean
 
 echo "Adding custom modules overlay, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules
@@ -87,6 +87,12 @@ rm /patch
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
+
+# echo "Install e2fsporgs from stretch"
+# # apt-get remove -y e2fsprogs
+# echo "deb http://deb.debian.org/debian stretch main" | sudo tee /etc/apt/sources.list.d/stretch.list
+# apt-get update && apt-get install -y e2fsprogs
+# sudo rm -f /etc/apt/sources.list.d/stretch.list
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
