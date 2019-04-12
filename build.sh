@@ -13,7 +13,8 @@ NORM=$(tput sgr0)
 BOLD=$(tput bold)
 REV=$(tput smso)
 
-ARCH=none
+ARCH=""
+SUITE="buster"
 #Help function
 function HELP {
   echo "
@@ -120,6 +121,7 @@ if [ -n "$BUILD" ]; then
     ARCH="armhf"
     BUILD="armv7"
     echo "Building ARMV7 Base System with Debian"
+    CONF="recipes/$BUILD-$SUITE.conf"
   elif [ "$BUILD" = armv8 ] || [ "$BUILD" = armv8-dev ]; then
     ARCH="arm64"
     BUILD="armv8"
