@@ -282,6 +282,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/tinkerimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  primo) echo 'Writing Volumio Primo Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/primoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
   sopine64) echo 'Writing Sopine64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/sopine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
