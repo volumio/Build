@@ -77,7 +77,7 @@ fi
 
 echo "Copying the bootloader"
 sudo dd if=platform-rock64/rock64/u-boot/idbloader.img of=${LOOP_DEV} seek=64 conv=notrunc
-sudo dd if=platform-rock64/rock64/u-boot/uboot.img of=${LOOP_DEV} seek=16384 conv=notrunc 
+sudo dd if=platform-rock64/rock64/u-boot/uboot.img of=${LOOP_DEV} seek=16384 conv=notrunc
 sudo dd if=platform-rock64/rock64/u-boot/trust.img of=${LOOP_DEV} seek=24576 conv=notrunc
 sync
 
@@ -225,3 +225,5 @@ sudo umount -l /mnt/volumio/rootfs/boot
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
