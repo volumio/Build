@@ -1,0 +1,2 @@
+KERNEL=="pcmC*D0c", DRIVERS=="usb", ACTION=="add", RUN+="/bin/bash -c '/usr/local/bin/volumio scanaudioinputs'"
+KERNEL=="pcmC*D0c", DRIVERS=="usb", ACTION=="remove", RUN+="/bin/bash -c '/usr/local/bin/volumio scanaudioinputs'"
