@@ -105,6 +105,7 @@ else
 fi
 modprobe squashfs
 modprobe nls_cp437
+modprobe fuse
 
 if [ -z "${IMGPART}" ]; then
   print_msg "Specify the squash image partition after the kernel command ${CMDLINE}"
