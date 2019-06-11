@@ -43,6 +43,7 @@ echo "Adding custom modules overlay, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
+echo "fuse" >> /etc/initramfs-tools/modules
 
 echo "Copying volumio initramfs updater"
 cd /root/
