@@ -32,10 +32,9 @@ echo "Adding default sound modules"
 #" >> /etc/modules
 
 echo "USB Card Ordering"
-echo "
-options snd-usb-audio nrpacks=1
-# USB DACs will have device number 5 in whole Volumio device range
-options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
+echo "# USB DACs will have device number 5 in whole Volumio device range
+# For tinkerboard, we specify that internal USB audio should be at device 1
+options snd-usb-audio index=1,5 vid=0x0bda pid=0x481a" >> /etc/modprobe.d/alsa-base.conf
 
 echo "#!/bin/sh
 echo 2 > /proc/irq/45/smp_affinity
