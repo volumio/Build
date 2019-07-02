@@ -237,6 +237,13 @@ cd wifi
 
 for DRIVER in 8188eu 8192eu 8812au mt7610 mt7612
 do
+  echo "WIFI: $DRIVER for armv7l"
+  wget $MRENGMAN_REPO/$DRIVER-drivers/$DRIVER-$KERNEL_VERSION-v7l-$KERNEL_REV.tar.gz
+  tar xf $DRIVER-$KERNEL_VERSION-v7l-$KERNEL_REV.tar.gz
+  sed -i 's/^kernel=.*$/kernel='"$KERNEL_VERSION"'-v7l+/' install.sh
+  sh install.sh
+  rm -rf *
+
   echo "WIFI: $DRIVER for armv7"
   wget $MRENGMAN_REPO/$DRIVER-drivers/$DRIVER-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
   tar xf $DRIVER-$KERNEL_VERSION-v7-$KERNEL_REV.tar.gz
@@ -330,6 +337,7 @@ apt-get install -y winbind libnss-winbind
 echo "Finalising drivers installation with depmod on $KERNEL_VERSION+ and $KERNEL_VERSION-v7+"
 depmod $KERNEL_VERSION+
 depmod $KERNEL_VERSION-v7+
+depmod $KERNEL_VERSION-v7l+
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
