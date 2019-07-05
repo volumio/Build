@@ -59,13 +59,15 @@ apt-get -y install binutils i2c-tools
 #apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
 
 echo "Installing Kernel from Rpi-Update"
-sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
+sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/volumio/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
 #### FIX FOR CHECK PARTITION FUNCTION ON RPI-UPDATE, WHICH DOES NOT WORK WELL IN QEMU ENVIRONMENT
 # We rename the check partition function
-sed -i -e 's/function check_partition/function checks_partition/' /usr/bin/rpi-update
+#echo "Temporary fix for rpi_update"
+#sudo sed -i -e 's/function check_partition/function checks_partition/' /usr/bin/rpi-update
 # We comment the check partition function
-sed -i -e 's/check_partition/echo "Commented check_partition"/' /usr/bin/rpi-update
+#sudo sed -i -e 's/check_partition/echo "Commented check_partition"/' /usr/bin/rpi-update
 
+cat /usr/bin/rpi-update
 
 touch /boot/start.elf
 mkdir /lib/modules
@@ -122,13 +124,13 @@ case $KERNEL_VERSION in
 esac
 
 # using rpi-update relevant to defined kernel version
-echo y | SKIP_BACKUP=1 WANT_PI4=1 rpi-update $KERNEL_COMMIT
+echo y | SKIP_BACKUP=1 WANT_PI4=1 IGNORE_PARTITION_CHECK=1 rpi-update $KERNEL_COMMIT
 
 echo "Getting actual kernel revision with firmware revision backup"
 cp /boot/.firmware_revision /boot/.firmware_revision_kernel
 
 echo "Updating bootloader files *.elf *.dat *.bin"
-echo y | SKIP_KERNEL=1 WANT_PI4=1 rpi-update $FIRMWARE_COMMIT
+echo y | SKIP_KERNEL=1 WANT_PI4=1 IGNORE_PARTITION_CHECK=1 rpi-update $FIRMWARE_COMMIT
 
 echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
 # these packages critically update kernel & firmware files and break Volumio
