@@ -141,10 +141,10 @@ apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depen
 echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & few others firmware upgraging to Pi Foundations packages"
 apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
 
-# Temporary brcm firmware fix solution until we use Stretch
-wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20161130-3+rpt4_all.deb
-dpkg -i firmware-brcm80211_20161130-3+rpt4_all.deb
-rm firmware-brcm80211_20161130-3+rpt4_all.deb
+# Temporary brcm firmware fix solution until we use Buster 
+wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20190114-1+rpt2_all.deb
+dpkg -i firmware-brcm80211_20190114-1+rpt2_all.deb
+rm firmware-brcm80211_20190114-1+rpt2_all.deb
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
@@ -152,11 +152,6 @@ wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2
 echo "Adding support for dtoverlay=pi3-disable-wifi on 4.4.9 kernel"
 wget -P /boot/overlays/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/overlays/pi3-disable-wifi.dtbo
 fi
-
-#echo "Adding raspi-config"
-#wget -P /raspi http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
-#dpkg -i /raspi/raspi-config_20151019_all.deb
-#rm -Rf /raspi
 
 echo "Installing WiringPi from Raspberrypi.org Repo"
 apt-get -y install wiringpi
