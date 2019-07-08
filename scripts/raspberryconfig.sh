@@ -126,6 +126,10 @@ cp /boot/.firmware_revision /boot/.firmware_revision_kernel
 echo "Updating bootloader files *.elf *.dat *.bin"
 echo y | SKIP_KERNEL=1 WANT_PI4=1 SKIP_CHECK_PARTITION=1 UPDATE_SELF=0 /usr/bin/rpi-update $FIRMWARE_COMMIT
 
+echo "Blacklisting unwanted USB wifi drivers"
+blacklist rtl8192cu >> /etc/modprobe.d/blacklist-rtl8192cu.conf
+blacklist rtl8xxxu >> /etc/modprobe.d/blacklist-rtl8xxxu.conf
+
 echo "Blocking unwanted libraspberrypi0, raspberrypi-bootloader, raspberrypi-kernel installs"
 # these packages critically update kernel & firmware files and break Volumio
 # may be triggered by manual or plugin installs explicitly or through dependencies like chromium, sense-hat, picamera,...
