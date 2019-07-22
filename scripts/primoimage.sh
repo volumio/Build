@@ -55,23 +55,23 @@ mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the Primo (tinkerboard) rockchip kernel/ platform files"
-if [ -d platform-primo ]
+echo "Preparing for the primo rockchip kernel/ platform files"
+if [ -d platform-asus ]
 then
 	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platform-primo folder
-    # that will refresh all the primo platforms, see below
+    # if you really want to re-clone from the repo, then delete the platform-asus folder
+    # that will refresh all the asus platforms, see below
 else
-	echo "Clone primo files from repo"
-	git clone --depth 1 https://github.com/volumio/platform-primo.git platform-primo
-	echo "Unpack the Volumio Primo platform files"
-	cd platform-primo
-	tar xfJ primo.tar.xz
+	echo "Clone asus files from repo"
+	git clone --depth 1 https://github.com/volumio/platform-asus.git platform-asus
+	echo "Unpack the Primo platform files"
+	cd platform-asus
+	tar xfJ tinkerboard.tar.xz
 	cd ..
 fi
 
 echo "Copying the bootloader"
-dd if=platform-primo/primo/u-boot/u-boot.img of=${LOOP_DEV} seek=64 conv=notrunc
+dd if=platform-asus/tinkerboard/u-boot/u-boot.img of=${LOOP_DEV} seek=64 conv=notrunc
 sync
 
 if [ -d /mnt ]
@@ -100,15 +100,15 @@ mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying Primo boot files"
-cp -R platform-primo/primo/boot/* /mnt/volumio/rootfs/boot/
+cp -R platform-asus/tinkerboard/boot/* /mnt/volumio/rootfs/boot/
 
-echo "Copying Primo modules and firmware"
-cp -pdR platform-primo/primo/lib/modules /mnt/volumio/rootfs/lib/
-cp -pdR platform-primo/primo/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying Tinkerboard modules and firmware"
+cp -pdR platform-asus/tinkerboard/lib/modules /mnt/volumio/rootfs/lib/
+cp -pdR platform-asus/tinkerboard/lib/firmware /mnt/volumio/rootfs/lib/
 sync
 
 echo "Preparing to run chroot for more Primo configuration"
-cp scripts/primoconfig.sh /mnt/volumio/rootfs
+cp scripts/tinkerconfig.sh /mnt/volumio/rootfs
 cp scripts/install-kiosk.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
@@ -159,7 +159,7 @@ umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-echo "==> Volumio Primo device installed"
+echo "==> Tinkerboard device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
@@ -211,3 +211,5 @@ umount -l /mnt/volumio/rootfs/boot
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

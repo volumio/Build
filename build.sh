@@ -333,6 +333,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/motivoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  primo) echo 'Writing Primo Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/primoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
 esac
 
 #When the tar is created we can build the docker layer
