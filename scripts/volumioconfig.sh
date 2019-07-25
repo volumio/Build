@@ -288,6 +288,10 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
   chmod a+x /usr/sbin/hostapd-edimax
 
+  echo "Adding special version for kernel 4.19"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-2.8 -P /usr/sbin/
+  chmod a+x /usr/sbin/hostapd-2.8
+
   echo "interface=wlan0
 ssid=Volumio
 channel=4

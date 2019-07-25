@@ -112,6 +112,10 @@ modprobe squashfs
 modprobe nls_cp437
 modprobe fuse
 
+if [ $HWDEVICE == motivo ]; then
+   modprobe panel-feiyang-fy07024di26a30d
+fi
+
 if [ -z "${IMGPART}" ]; then
   print_msg "Specify the squash image partition after the kernel command ${CMDLINE}"
   print_msg "example: kernel... imgpart=/dev/sda2 imgfile=/gentoo.sqs"
@@ -235,6 +239,12 @@ VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 #
 mkdir /mnt/factory
 mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
+
+if [ $HWDEVICE == motivo ]; then
+  print_msg "Showing boot logo" 
+  /bin/busybox lzop -d -c /mnt/factory/motivosplash > /dev/fb0
+fi
+
 if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Executing factory reset"
   mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
