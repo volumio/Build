@@ -108,7 +108,7 @@ cp -pdR platform-asus/tinkerboard/lib/firmware /mnt/volumio/rootfs/lib/
 sync
 
 echo "Preparing to run chroot for more Primo configuration"
-cp scripts/tinkerconfig.sh /mnt/volumio/rootfs
+cp scripts/primoconfig.sh /mnt/volumio/rootfs
 cp scripts/install-kiosk.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
