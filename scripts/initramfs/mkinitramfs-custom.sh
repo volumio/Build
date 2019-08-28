@@ -420,6 +420,10 @@ cp /sbin/mkfs.ext4 "${DESTDIR}/sbin"
 cp /sbin/e2fsck "${DESTDIR}/sbin"
 cp /sbin/resize2fs "${DESTDIR}/sbin"
 cp /sbin/findfs "${DESTDIR}/sbin"
+if [ -f /usr/bin/i2crw1 ]; then
+  echo "Adding i2crw1..."
+  cp /usr/bin/i2crw1 "${DESTDIR}/bin"
+fi
 if [ ${DPKG_ARCH} = "i386" ]; then
   cp /sbin/gdisk "${DESTDIR}/sbin"
 # these libs are only for gdisk
