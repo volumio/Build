@@ -72,8 +72,6 @@ do_reboot() {
       echo "" > /boot/executereboot
       umount /boot
       rm -r /boot
-      echo "Attempting a reboot anyway..."
-      echo b > /proc/sysrq-trigger
       ;;
     mcu)
       echo "Immediately rebooting via mcu control..."
