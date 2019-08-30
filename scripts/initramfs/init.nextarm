@@ -423,7 +423,8 @@ if [ -e "/boot/kernel_update" ]; then
   sync
   umount /boot
   rm -rf /boot
-  echo b > /proc/sysrq-trigger
+  do_reboot
+  #echo b > /proc/sysrq-trigger
 fi
 
 # if data partition needs to be resized
