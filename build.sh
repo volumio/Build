@@ -337,6 +337,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/primoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  vim1) echo 'Writing VIM1 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/vim1image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
 esac
 
 #When the tar is created we can build the docker layer
