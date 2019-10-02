@@ -166,7 +166,8 @@ if [ -n "$BUILD" ]; then
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
   echo 'Cloning Volumio3 UI'
   git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www3"
-
+  rm -rf build/$BUILD/root/volumio/http/www/.git
+  rm -rf build/$BUILD/root/volumio/http/www3/.git
   echo "Adding os-release infos"
   {
     echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\""
@@ -174,7 +175,7 @@ if [ -n "$BUILD" ]; then
     echo "VOLUMIO_BE_VERSION=\"$(git --git-dir "build/$BUILD/root/volumio/.git" rev-parse HEAD)\""
     echo "VOLUMIO_ARCH=\"${BUILD}\""
   } >> "build/$BUILD/root/etc/os-release"
-  rm -rf build/$BUILD/root/volumio/http/www/.git
+  
   if [ ! "$BUILD" = x86 ]; then
     chroot "build/$BUILD/root" /bin/bash -x <<'EOF'
 su -
