@@ -71,6 +71,7 @@ echo "Installing Tinkerboard Bluetooth Utils and Firmware"
 wget http://repo.volumio.org/Volumio2/Firmwares/rtl_bt_tinkerboard.tar.gz
 tar xf rtl_bt_tinkerboard.tar.gz -C /
 rm rtl_bt_tinkerboard.tar.gz
+systemctl enable tinkerbt.service
 
 echo "Installing additonal packages"
 apt-get update
