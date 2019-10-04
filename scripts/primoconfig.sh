@@ -67,6 +67,11 @@ echo "#!/bin/sh -e
 /usr/local/bin/detect-primo.sh
 exit 0" > /etc/rc.local
 
+echo "Installing Tinkerboard Bluetooth Utils and Firmware"
+wget http://repo.volumio.org/Volumio2/Firmwares/rtl_bt_tinkerboard.tar.gz
+tar xf rtl_bt_tinkerboard.tar.gz -C /
+rm rtl_bt_tinkerboard.tar.gz
+
 echo "Installing additonal packages"
 apt-get update
 #apt-get -y install u-boot-tools liblircclient0 lirc
