@@ -47,7 +47,7 @@ See the list at the end of this README
 
 #### Modifications for Building on a Ubuntu or Debian Buster host
 
-This regards **multistrap** (used for building the rootfs) and the use of  **mkinitramfs.sh**.
+This regards **multistrap** (used for building the rootfs) and the use of  **mkinitramfs-custom.sh** (jessie) or **mkinitramfs-volumio.sh** (buster).
 
 **Multistrap**
 This does not work OOTB in Debian Buster and Ubuntu, please patch 
@@ -162,15 +162,15 @@ others may work at once or with minor adaptions
 ### List of modifications for Debian Buster (currently only for X86)
 
 #### build.sh
-- add a new option to allow building for other Debian suites.  
-Currently only buster or omit the option to build for jessie (default)
+- add a new option (-s)  to allow building for other Debian suites.  
+Currently only buster can be used, or omit the option to build for jessie (default)
 - add a comment (as a warning) just before the call to multistrap, pointing to issues on Debian Buster and Ubuntu host platforms, referring to this README.md for further info.
 - depending on OS version, either call the jessie or buster device image script  
 Currently supported:  
 x86**b**-image.sh (calls x86**b**-config.sh)
 
 #### recipes
-- added two new recipes: x86-buster.conf and x86-dev-buster.conf
+- added two new recipes: **x86-buster.conf** and **x86-dev-buster.conf**
 - removed **base-files** and **base-passwd** from the recipes, they get added automatically
 
 #### volumioconfig.sh
