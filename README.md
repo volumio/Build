@@ -76,7 +76,7 @@ Look for the line with "AllowInsecureRepositories=true"" and add an extra line a
 	..
 	 
 **mkinitramfs.sh**
-This script is know to fail on Ubuntu and Debian Buster, trying to locate the rootfs device.
+This script is known to fail on Ubuntu and Debian Buster, trying to locate the rootfs device.
 This only happens with <device>config.sh scripts which change the initramfs config from MODULES=most to **MODULES=dep**.
 As Modules=dep does not seem to add relevant additional module anyway, replace the usage of MODULES=dep to **MODULES=list**, which will only add the modules as specified in the list. The standard dependencies get added anyway. Tested with a number of these scripts, they all work.
 
@@ -162,30 +162,31 @@ others may work at once or with minor adaptions
 ### List of modifications for Debian Buster (currently only for X86)
 
 #### build.sh
-: - add a new option to allow building for other Debian suites. Currently only buster or omit the option to build for jessie (default)
+- add a new option to allow building for other Debian suites.  
+Currently only buster or omit the option to build for jessie (default)
 - add a comment (as a warning) just before the call to multistrap, pointing to issues on Debian Buster and Ubuntu host platforms, referring to this README.md for further info.
-- depending on OS version, either call the jessie or buster device image script
-Currently supported:
+- depending on OS version, either call the jessie or buster device image script  
+Currently supported:  
 x86**b**-image.sh (calls x86**b**-config.sh)
 
 #### recipes
-: - added two new recipes: x86-buster.conf and x86-dev-buster.conf
+- added two new recipes: x86-buster.conf and x86-dev-buster.conf
 - removed **base-files** and **base-passwd** from the recipes, they get added automatically
 
-#### volumioconfig.sh####
-: - fetch OS version
+#### volumioconfig.sh
+- fetch OS version
 - the dash.preinst script was removed according to:
-			https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=890073
-	action:  when OS version = buster, then skip "/var/lib/dpkg/info/dash.preinst install"
+			https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=890073  
+Action:  when OS version = buster, then skip "/var/lib/dpkg/info/dash.preinst install"
 	
 		if [ ! $OS_VERSION_ID = 10 ]; then
 		  /var/lib/dpkg/info/dash.preinst install
 		fi
 
-: - The configuration of package **base-files** depends on package **base-passwd**.
-However, base-files gets bootstrapped before base-pwasswd
-(This is not a result of removing them from the recipe, it has no influence)
-Solution: create a valid /etc/passwd before confioguring anything else.
+- The configuration of package **base-files** depends on package **base-passwd**.  
+However, base-files gets bootstrapped before base-passwd  
+(This is not a result of removing them from the recipe, it has no influence)  
+Solution: create a valid /etc/passwd before confioguring anything else.  
 Use the pre install script for that, to be found in /var/lib/dpgg/info:
 
 		if [ $OS_VERSION_ID = 10 ]; then
@@ -196,7 +197,7 @@ Use the pre install script for that, to be found in /var/lib/dpgg/info:
 - depending on OS version, install volumio-specific packages
 
 #### init-x86
-: - adding a function to update UUID's, avoiding code being repeated
+- adding a function to update UUID's, avoiding code being repeated
 - adding "datapart" option to /proc/cmdline
 - modprobe modules for nvme and emmc support
 - fixing a problem with moving the backup GPT table
@@ -204,46 +205,31 @@ Use the pre install script for that, to be found in /var/lib/dpgg/info:
 
 #### x86image.sh
 
-: - building for buster
-updated/ additional packages (new kernel etc.)
-currently adding up-to-date firmware from a tarball
-todo: remove the use of the firmware tarball
-todo: add the relevant firmware packages during multistrap
+- building for buster  
+updated/ additional packages (new kernel etc.)  
+currently adding up-to-date firmware from a tarball  
+todo: remove the use of the firmware tarball  
+todo: add the relevant firmware packages during multistrap  
 
 #### x86config.sh
-: - remove firmware package (.deb) install, unpack tarball instead (see x86image.sh)
-- syslinux.tmpl
+- remove firmware package (.deb) install, unpack tarball instead (see x86image.sh)
+- syslinux.tmpl  
 add "net.ifnames=0 biosdevname=0" and "datapart=" to /proc/cmdline
-- grub.tmpl and /etc/default/grub"
+- grub.tmpl and /etc/default/grub"  
 add "net.ifnames=0 biosdevname=0" and "datapart=" to /proc/cmdline
 - adding nvme, emmc modules to /etc/initramfs-tools/modules list
 
 #### mkinitramfs-custom.sh
-: - the current "jessie" mkinitramfs-custom.sh version fails in hook-function ""zz-busybox".
-It appears to be incompatible with a buster build.
-Rewritten based on core code of the original mkinitramfs script from buster's initramfs-tools package.
-NOTE: the previous version used "cp" to copy volumio-specific binary packages, along with a copy of their library dependencies.
-With buster, this method is not waterproof and results in an unusable initramfs.
-Instead of "cp", the new version shall always use "copy_exec", which automatically adds the necessary dependencies. 
+- the current "jessie" mkinitramfs-custom.sh version fails in hook-function ""zz-busybox".  
+It appears to be incompatible with a buster build.  
+Rewritten based on core code of the original mkinitramfs script from buster's initramfs-tools package.  
+NOTE: the previous version used "cp" to copy volumio-specific binary packages, along with a copy of their library dependencies.  
+With buster, this method is not waterproof and results in an unusable initramfs.  
+Instead of "cp", the new version shall always use "copy_exec", which automatically adds the necessary dependencies.   
 
-TODO: mkinitramfs-custom.sh is not suitable for multiple kernels yet.
+TODO: mkinitramfs-custom.sh is not suitable for multiple kernels yet.  
 Therefore a PI won't work at the moment, this is WIP!!
 
 #### End of Buster modifications
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
