@@ -26,6 +26,7 @@ where switches are :
              **pi**, **odroidc1/2/xu4/x2**, **udooneo**, **udooqdl**, **cuboxi**, **pine64**, **sparky**, **bbb**, **bpipro**, bpim2u, cubietruck, compulab, **x86**
  * -l `<repo>` Create docker layer. Give a Docker Repository name as the argument.
  * -v `<vers>` Version
+ * -s `<buster>` Allows building for Debian suite 'buster'. Omit this option when building for Debian jessie
 
 Example: Build a Raspberry PI image from scratch, version 2.0 : 
 ```
@@ -40,6 +41,46 @@ Example: Build the architecture for x86 first and the image version MyVersion in
 
 ./build.sh -d x86 -v MyVersion
 ```
+
+#### Updates for Debian Buster
+See the list at the end of this README
+
+#### Modifications for Building on a Ubuntu or Debian Buster host
+
+This regards **multistrap** (used for building the rootfs) and the use of  **mkinitramfs-custom.sh** (jessie) or **mkinitramfs-volumio.sh** (buster).
+
+== Multistrap     
+This does not work OOTB in Debian Buster and Ubuntu, please patch 
+
+- Ubuntu
+Add the following 3 lines to the **build.sh** script, just before calling the multistrap script (code as follows):
+
+	..
+	..
+	mkdir -p "build/$BUILD/root/etc/apt/trusted.gpg.d"
+	apt-key --keyring "build/$BUILD/root/etc/apt/trusted.gpg.d/debian.gpg"  adv --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-key 7638D0442B90D010
+	apt-key --keyring "build/$BUILD/root/etc/apt/trusted.gpg.d/debian.gpg"  adv --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-key CBF8D6FD518E17E1
+	multistrap -a "$ARCH" -f "$CONF"
+	..
+	..
+
+- Debian Buster
+The above does not work for Debian, but instead patch "/usr/sbin/multistrap".
+Look for the line with "AllowInsecureRepositories=true"" and add an extra line above it to allow unauthenticated packages, it should read like this:
+
+	..
+	..
+	$config_str .= " -o Apt::Get::AllowUnauthenticated=true;"
+	$config_str .= " -o Acquire::AllowInsecureRepositories=true";
+	..
+	..
+	 
+== mkinitramfs.sh  
+This script is known to fail on Ubuntu and Debian Buster, trying to locate the rootfs device.  
+This only happens with <device>config.sh scripts which change the initramfs config from MODULES=most to **MODULES=dep**.  
+As Modules=dep does not seem to add relevant additional module anyway, replace the usage of MODULES=dep to **MODULES=list**, which will only add the modules as specified in the list.  
+The standard dependencies get added anyway.  
+Tested with a number of these scripts, they all work.
 
 #### Sources 
 
@@ -119,3 +160,78 @@ using symbolic links
 
 others may work at once or with minor adaptions
 *
+
+### List of modifications for Debian Buster (currently only for X86)
+
+#### build.sh
+- add a new option (-s)  to allow building for other Debian suites.  
+Currently only buster can be used, or omit the option to build for jessie (default)
+- add a comment (as a warning) just before the call to multistrap, pointing to issues on Debian Buster and Ubuntu host platforms, referring to this README.md for further info.
+- depending on OS version, either call the jessie or buster device image script  
+Currently supported:  
+x86**b**-image.sh (calls x86**b**-config.sh)
+
+#### recipes
+- added two new recipes: **x86-buster.conf** and **x86-dev-buster.conf**
+- removed **base-files** and **base-passwd** from the recipes, they get added automatically
+
+#### volumioconfig.sh
+- fetch OS version
+- the dash.preinst script was removed according to:
+			https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=890073  
+Action:  when OS version = buster, then skip "/var/lib/dpkg/info/dash.preinst install"
+	
+		if [ ! $OS_VERSION_ID = 10 ]; then
+		  /var/lib/dpkg/info/dash.preinst install
+		fi
+
+- The configuration of package **base-files** depends on package **base-passwd**.  
+However, base-files gets bootstrapped before base-passwd  
+(This is not a result of removing them from the recipe, it has no influence)  
+Solution: create a valid /etc/passwd before confioguring anything else.  
+Use the pre install script for that, to be found in /var/lib/dpgg/info:
+
+		if [ $OS_VERSION_ID = 10 ]; then
+		  echo "Working around a debian buster package dependency issue"
+		  /var/lib/dpkg/info/base-passwd.preinst install
+		fi
+- Skip installation of alsa-utils, mpd and shairport-sync as they are in  buster.
+- for existing jessie, install volumio-specific packages
+
+#### init-x86
+- adding a function to update UUID's, avoiding code being repeated
+- adding "datapart" option to /proc/cmdline
+- modprobe modules for nvme and emmc support
+- fixing a problem with moving the backup GPT table
+- always resize the data partition when the disk is not fully used (not just on first boot)
+
+#### x86image.sh
+
+- building for buster  
+updated/ additional packages (new kernel etc.)  
+currently adding up-to-date firmware from a tarball  
+todo: remove the use of the firmware tarball  
+todo: add the relevant firmware packages during multistrap  
+
+#### x86config.sh
+- remove firmware package (.deb) install, unpack tarball instead (see x86image.sh)
+- syslinux.tmpl  
+add "net.ifnames=0 biosdevname=0" and "datapart=" to /proc/cmdline
+- grub.tmpl and /etc/default/grub"  
+add "net.ifnames=0 biosdevname=0" and "datapart=" to /proc/cmdline
+- adding nvme, emmc modules to /etc/initramfs-tools/modules list
+
+#### mkinitramfs-custom.sh
+- the current "jessie" mkinitramfs-custom.sh version fails in hook-function ""zz-busybox".  
+It appears to be incompatible with a buster build.  
+Rewritten based on core code of the original mkinitramfs script from buster's initramfs-tools package.  
+NOTE: the previous version used "cp" to copy volumio-specific binary packages, along with a copy of their library dependencies.  
+With buster, this method is not waterproof and results in an unusable initramfs.  
+Instead of "cp", the new version shall always use "copy_exec", which automatically adds the necessary dependencies.   
+
+TODO: mkinitramfs-custom.sh is not suitable for multiple kernels yet.  
+Therefore a PI won't work at the moment, this is WIP!!
+
+#### End of Buster modifications
+ 
+
