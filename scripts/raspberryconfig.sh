@@ -162,6 +162,9 @@ wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20190114-1+rp
 dpkg -i firmware-brcm80211_20190114-1+rpt2_all.deb
 rm firmware-brcm80211_20190114-1+rpt2_all.deb
 
+echo "Installing Bluetooth Utils"
+apt-get install -y pi-bluetooth
+
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
