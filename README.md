@@ -47,12 +47,12 @@ See the list at the end of this README
 
 #### Modifications for Building on a Ubuntu or Debian Buster host
 
-This regards **multistrap** (used for building the rootfs) and the use of  **mkinhitramfs.sh**.
+This regards **multistrap** (used for building the rootfs) and the use of  **mkinitramfs.sh**.
 
 **Multistrap**
 This does not work OOTB in Debian Buster and Ubuntu, please patch 
 
-#####Ubuntu
+##### Ubuntu
 Add the following 3 lines to the **build.sh** script, just before calling the multistrap script (code as follows):
 
 	..
@@ -64,7 +64,7 @@ Add the following 3 lines to the **build.sh** script, just before calling the mu
 	..
 	..
 
-#####Debian Buster
+##### Debian Buster
 The above does not work for Debian, but instead patch "/usr/sbin/multistrap".
 Look for the line with "AllowInsecureRepositories=true"" and add an extra line above it to allow unauthenticated packages, it should read like this:
 
@@ -161,18 +161,18 @@ others may work at once or with minor adaptions
 
 ### List of modifications for Debian Buster (currently only for X86)
 
-####build.sh
+#### build.sh
 : - add a new option to allow building for other Debian suites. Currently only buster or omit the option to build for jessie (default)
 - add a comment (as a warning) just before the call to multistrap, pointing to issues on Debian Buster and Ubuntu host platforms, referring to this README.md for further info.
 - depending on OS version, either call the jessie or buster device image script
 Currently supported:
 x86**b**-image.sh (calls x86**b**-config.sh)
 
-####recipes
+#### recipes
 : - added two new recipes: x86-buster.conf and x86-dev-buster.conf
 - removed **base-files** and **base-passwd** from the recipes, they get added automatically
 
-####volumioconfig.sh####
+#### volumioconfig.sh####
 : - fetch OS version
 - the dash.preinst script was removed according to:
 			https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=890073
@@ -195,14 +195,14 @@ Use the pre install script for that, to be found in /var/lib/dpgg/info:
 - depending on OS version, skip Shairport-Sync
 - depending on OS version, install volumio-specific packages
 
-####init-x86
+#### init-x86
 : - adding a function to update UUID's, avoiding code being repeated
 - adding "datapart" option to /proc/cmdline
 - modprobe modules for nvme and emmc support
 - fixing a problem with moving the backup GPT table
 - always resize the data partition when the disk is not fully used (not just on first boot)
 
-####x86image.sh
+#### x86image.sh
 
 : - building for buster
 updated/ additional packages (new kernel etc.)
@@ -210,7 +210,7 @@ currently adding up-to-date firmware from a tarball
 todo: remove the use of the firmware tarball
 todo: add the relevant firmware packages during multistrap
 
-####x86config.sh
+#### x86config.sh
 : - remove firmware package (.deb) install, unpack tarball instead (see x86image.sh)
 - syslinux.tmpl
 add "net.ifnames=0 biosdevname=0" and "datapart=" to /proc/cmdline
@@ -218,7 +218,7 @@ add "net.ifnames=0 biosdevname=0" and "datapart=" to /proc/cmdline
 add "net.ifnames=0 biosdevname=0" and "datapart=" to /proc/cmdline
 - adding nvme, emmc modules to /etc/initramfs-tools/modules list
 
-####mkinitramfs-custom.sh
+#### mkinitramfs-custom.sh
 : - the current "jessie" mkinitramfs-custom.sh version fails in hook-function ""zz-busybox".
 It appears to be incompatible with a buster build.
 Rewritten based on core code of the original mkinitramfs script from buster's initramfs-tools package.
@@ -229,7 +229,7 @@ Instead of "cp", the new version shall always use "copy_exec", which automatical
 TODO: mkinitramfs-custom.sh is not suitable for multiple kernels yet.
 Therefore a PI won't work at the moment, this is WIP!!
 
-####End of Buster modifications
+#### End of Buster modifications
  
 
 
