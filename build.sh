@@ -35,6 +35,8 @@ Switches:
   -p <dir>  Optionally patch the builder. <dir> should contain a tree of
             files you want to replace within the build tree. Experts only.
 
+  -s <suite> Allows building for Debian Buster, when omitted it defaults to 'Debian jessie'
+
 Example: Build a Raspberry PI image from scratch, version 2.0 :
          ./build.sh -b arm -d pi -v 2.0 -l reponame
 "
@@ -58,14 +60,13 @@ function check_os_release {
   echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> "build/${ARCH_BUILD}/root/etc/os-release"
 }
 
-
 #Check the number of arguments. If none are passed, print help and exit.
 NUMARGS=$#
 if [ "$NUMARGS" -eq 0 ]; then
   HELP
 fi
 
-while getopts b:v:d:l:p:t:e FLAG; do
+while getopts b:v:d:l:p:t:e:s: FLAG; do
   case $FLAG in
     b)
       BUILD=$OPTARG
@@ -89,6 +90,9 @@ while getopts b:v:d:l:p:t:e FLAG; do
       ;;
     t)
       VARIANT=$OPTARG
+	  ;;
+    s)
+      SUITE=$OPTARG
       ;;
     /?) #unrecognized option - show help
       echo -e \\n"Option -${BOLD}$OPTARG${NORM} not allowed."
@@ -110,7 +114,18 @@ if [ -z "${VARIANT}" ]; then
 fi
 
 if [ -n "$BUILD" ]; then
-  CONF="recipes/$BUILD.conf"
+  if [ ! -z "${SUITE}" ] && [ ! "${SUITE}" = buster ]; then
+	echo "Invalid Debian distro option '${SUITE}', currently only 'buster' is supported"
+    echo "(or omit the '-s' option to default to 'jessie')"
+    exit
+  fi
+
+  if [ -z "${SUITE}" ]; then
+    CONF="recipes/$BUILD.conf"
+  else
+	CONF="recipes/$BUILD-$SUITE.conf"
+  fi
+  
   if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
     ARCH="armhf"
     BUILD="arm"
@@ -131,6 +146,7 @@ if [ -n "$BUILD" ]; then
     echo "Unexpected Base System architecture '$BUILD' - aborting."
     exit
   fi
+
   if [ -d "build/$BUILD" ]; then
     echo "Build folder exists, cleaning it"
     rm -rf "build/$BUILD"
@@ -143,13 +159,17 @@ if [ -n "$BUILD" ]; then
 
   mkdir "build/$BUILD"
   mkdir "build/$BUILD/root"
+  #
+  # NOTE: In case you are running the build scripts on a host platform **other than Debian jessie**, please consult the README.md
+  # In case of Debian Buster or Ubuntu you **WILL** need patches in either this script or in "/usr/bin/multistrap", depending on your particular build host.
+  #
   multistrap -a "$ARCH" -f "$CONF"
   if [ ! "$BUILD" = x86 ]; then
     echo "Build for arm/armv7/armv8 platform, copying qemu"
     cp /usr/bin/qemu-arm-static "build/$BUILD/root/usr/bin/"
   fi
   cp scripts/volumioconfig.sh "build/$BUILD/root"
-
+  
   mount /dev "build/$BUILD/root/dev" -o bind
   mount /proc "build/$BUILD/root/proc" -t proc
   mount /sys "build/$BUILD/root/sys" -t sysfs
@@ -204,7 +224,7 @@ VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
   umount -l "build/$BUILD/root/proc"
   umount -l "build/$BUILD/root/sys"
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
-  umount -l "build/$BUILD/root/run/cgmanager/fs"
+  # Check: umount -l "build/$BUILD/root/run/cgmanager/fs"
   sh scripts/configure.sh -b "$BUILD"
 fi
 
@@ -320,8 +340,13 @@ case "$DEVICE" in
     ;;
   x86) echo 'Writing x86 Image File'
     check_os_release "x86" "$VERSION" "$DEVICE"
-    sh scripts/x86image.sh -v "$VERSION" -p "$PATCH";
-    ;;
+	OS_VERSION_ID=$(cat build/x86/root/etc/os-release | grep ^VERSION_ID | tr -d 'VERSION_ID="')
+    if [ "${OS_VERSION_ID}" = 10 ]; then
+      sh scripts/x86b-image.sh -v "$VERSION" -p "$PATCH";
+    else
+	  sh scripts/x86image.sh -v "$VERSION" -p "$PATCH";
+    fi
+	;;
   nanopineo2) echo 'Writing NanoPi-NEO2 armv7 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/nanopineo2image.sh -v "$VERSION" -p "$PATCH" -a armv7
