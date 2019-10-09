@@ -152,7 +152,7 @@ Pin-Priority: -1
 Package: raspberrypi-kernel
 Pin: release *
 Pin-Priority: -1" > /etc/apt/preferences
-apt-mark hold raspberrypi-kernel raspberrypi-bootloader   #libraspberrypi0 depends on raspberrypi-bootloader
+apt-mark hold raspberrypi-kernel raspberrypi-bootloader #libraspberrypi0 depends on raspberrypi-bootloader
 
 echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & few others firmware upgraging to Pi Foundations packages"
 apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
@@ -161,9 +161,6 @@ apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-real
 wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20190114-1+rpt2_all.deb
 dpkg -i firmware-brcm80211_20190114-1+rpt2_all.deb
 rm firmware-brcm80211_20190114-1+rpt2_all.deb
-
-echo "Installing Bluetooth Utils"
-apt-get install -y pi-bluetooth
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
@@ -207,6 +204,9 @@ apt-get -y install raspberrypi-sys-mods
 rm /etc/sudoers.d/010_pi-nopasswd
 unlink /etc/systemd/system/multi-user.target.wants/sshswitch.service
 rm /lib/systemd/system/sshswitch.service
+
+echo "Installing Bluetooth Utils"
+apt-get install -y bluez bluez-firmware pi-bluetooth
 
 echo "Exporting /opt/vc/bin variable"
 export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
