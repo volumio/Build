@@ -59,6 +59,36 @@ parse_disk() {
   fi
 }
 
+do_reboot() {
+
+  case $REBOOTMODE in
+    normal)
+      echo b > /proc/sysrq-trigger
+      ;;
+    file)
+      echo "Rebooting via mcu control at next system start..."
+      mkdir /boot
+      mount -t vfat ${BOOTPART} /boot
+      echo "" > /boot/executereboot
+      umount /boot
+      rm -r /boot
+      ;;
+    mcu)
+      echo "Immediately rebooting via mcu control..."
+      /bin/i2crw1 w 33 25 1
+      ;;
+    manual)
+      echo "Manual reboot, dropping to a shell..."
+      sh
+      exit 0
+      ;;
+    *)
+      echo "Invalid reboot mode option in kernel cmd parameters, using normal reboot..."
+      echo b > /proc/sysrq-trigger
+      ;;
+  esac
+}
+
 DO_GEN=no
 
 for p in ${CMDLINE};
@@ -99,6 +129,9 @@ do
     ;;
   hwdevice)
     HWDEVICE=$value
+    ;;
+  rebootmode)
+    REBOOTMODE=$value
     ;;
   esac
 done
@@ -236,7 +269,8 @@ if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
     umount /mnt/boot
     rm -r /mnt/boot
     print_msg "Restarting"
-    echo b > /proc/sysrq-trigger
+    do_reboot
+    #echo b > /proc/sysrq-trigger
   fi
   if [ -e /mnt/usb/factory_reset ]; then
     print_msg "Factory Reset on USB"
@@ -312,7 +346,8 @@ if [ -e "/mnt/factory/factory_reset" ]; then
     rm -r /boot
   fi
   print_msg "Restarting"
-  echo b > /proc/sysrq-trigger
+  do_reboot
+  #echo b > /proc/sysrq-trigger
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
@@ -388,7 +423,8 @@ if [ -e "/boot/kernel_update" ]; then
   sync
   umount /boot
   rm -rf /boot
-  echo b > /proc/sysrq-trigger
+  do_reboot
+  #echo b > /proc/sysrq-trigger
 fi
 
 # if data partition needs to be resized
@@ -459,12 +495,16 @@ if [ ! -z "${DEVFSTAB}" ]; then
   fi
 else
   DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "^/dev/[a-z]{3,6}[0-9]{1,2}[a-z]{0,1}[0-9]{0,2}" -o`
-  if [ ! -z "${DEVFSTAB}" ]; then
-    print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
-    if [ ! $BOOTPART == $DEVFSTAB ]; then
-      sed -i "s/${DEVFSTAB}/${BOOTPART}/g" /mnt/ext/union/etc/fstab
-      print_msg "fstab entry updated to ${DEVFSTAB}"
-    fi
+  if [ -z "${DEVFSTAB}" ]; then
+#   normally never gets here ;)
+    print_msg "Incompatible fstab, no entry found for /boot"
+    exec sh
+    exit 0
+  fi
+  print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
+  if [ ! $BOOTPART == $DEVFSTAB ]; then
+    sed -i "s/${DEVFSTAB}/${BOOTPART}/g" /mnt/ext/union/etc/fstab
+    print_msg "fstab entry updated to ${DEVFSTAB}"
   fi
 fi
 

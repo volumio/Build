@@ -5,7 +5,7 @@ Copyright Michelangelo Guarise - 2016
 #### Requirements
 
 ```
-git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support qemu-utils
+git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support qemu-utils md5deep
 ```
 
 #### How to

@@ -263,7 +263,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
   tar xf shairport-sync-3.0.2-arm.tar.gz
   rm /shairport-sync-3.0.2-arm.tar.gz
-  
+
   echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
   tar xf shairport-sync-metadata-reader-arm.tar.gz
@@ -272,7 +272,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   echo "Volumio Init Updater"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
-  
+
   echo "Installing Snapcast for multiroom"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
@@ -288,6 +288,10 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
   chmod a+x /usr/sbin/hostapd-edimax
 
+  echo "Adding special version for kernel 4.19"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-2.8 -P /usr/sbin/
+  chmod a+x /usr/sbin/hostapd-2.8
+
   echo "interface=wlan0
 ssid=Volumio
 channel=4
@@ -298,7 +302,7 @@ wpa=2
 wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP
 wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
-  chmod -R 777 /etc/hostapd-edimax.conf
+  chmod -R 777 /etc/hostapd/hostapd-edimax.conf
 
   echo "Cleanup"
   apt-get clean
@@ -347,7 +351,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing MPD for i386"
   # First we manually install a newer alsa-lib to achieve Direct DSD support
-  
+
   echo "Installing alsa-lib 1.1.3"
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
@@ -357,7 +361,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   dpkg --force-all -i libasound2-dev_1.1.3-5_i386.deb
   rm libasound2-data_1.1.3-5_all.deb
   rm libasound2_1.1.3-5_i386.deb
-  rm libasound2-dev_1.1.3-5_i386.deb 
+  rm libasound2-dev_1.1.3-5_i386.deb
 
   echo "Installing MPD 20.18"
   wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_i386.deb
@@ -379,12 +383,12 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
   tar xf shairport-sync-3.0.2-i386.tar.gz
   rm /shairport-sync-3.0.2-i386.tar.gz
-  
+
   echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-i386.tar.gz
   tar xf shairport-sync-metadata-reader-i386.tar.gz
   rm /shairport-sync-metadata-reader-i386.tar.gz
-  
+
 
   echo "Installing LINN Songcast module"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
@@ -413,8 +417,8 @@ chmod u+s /bin/ping
 
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
-mkdir /mnt/NAS
-mkdir /media
+mkdir -p /mnt/NAS
+mkdir -p /media
 ln -s /media /mnt/USB
 
 #Internal Storage Folder

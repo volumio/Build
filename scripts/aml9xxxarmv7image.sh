@@ -27,7 +27,6 @@ else
 fi
 
 echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs"
-
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
@@ -125,6 +124,19 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 
+if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
+        if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
+                UIVARIANT=$(cat "UIVARIANT")
+                echo "Configuring variant $UIVARIANT"
+                echo "Starting config.js for variant $UIVARIANT"
+                node config.js $PATCH $UIVARIANT
+                echo $UIVARIANT > /mnt/volumio/rootfs/UIVARIANT
+        else
+                echo "Starting config.js"
+                node config.js $PATCH
+        fi
+fi
+
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
 /aml9xxxarmv7config.sh
@@ -192,3 +204,5 @@ umount -l /mnt/volumio/rootfs/boot
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

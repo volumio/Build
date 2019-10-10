@@ -264,6 +264,23 @@ if ! command -v ldd >/dev/null 2>&1 ; then
 	exit 1
 fi
 
+## FIX FOR EXISTING SYMLINKS
+
+if [ -f "${DESTDIR}/etc/fstab" ]; then
+    echo "Removing old fstab file"
+    rm ${DESTDIR}/etc/mtab
+fi
+
+if [ -f "${DESTDIR}/sbin/mount.ntfs-3g" ]; then
+    echo "Removing old ntfs 3g file"
+    rm ${DESTDIR}/sbin/mount.ntfs-3g
+fi
+
+if [ -f "${DESTDIR}/sbin/mount.ntfs" ]; then
+    echo "Removing old ntfs file"
+    rm ${DESTDIR}/sbin/mount.ntfs
+fi
+
 # fstab and mtab
 touch "${DESTDIR}/etc/fstab"
 ln -s /proc/mounts "${DESTDIR}/etc/mtab"
@@ -345,10 +362,11 @@ fi
 
 touch "$outfile"
 outfile="$(readlink -f "$outfile")"
-versions="$(ls -t /lib/modules | cat | head -n2)"
+versions="$(ls -t /lib/modules | sort | cat | head -n3)"
+
 v_version=$(echo ${versions} | awk '{print $1}')
 o_version=$(echo ${versions} | awk '{print $2}')
-
+l_version=$(echo ${versions} | awk '{print $3}')
 
 
 
@@ -385,6 +403,14 @@ if [ ! ${o_version} = "" ]; then
   cp -rf "${DESTDIR_OTHER}/lib/modules/${o_version}" "${DESTDIR_REAL}/lib/modules/${o_version}"
 fi
 
+if [ ! ${l_version} = "" ]; then
+  DESTDIR=${DESTDIR_OTHER}
+  version=${l_version}
+  echo "Version: ${l_version}"
+  build_initramfs
+  cp -rf "${DESTDIR_OTHER}/lib/modules/${l_version}" "${DESTDIR_REAL}/lib/modules/${l_version}"
+fi
+
 DESTDIR=${DESTDIR_REAL}
 
 echo "Adding findfs/ parted/ mkfs.ext4/ e2fsck to initramfs"
@@ -394,6 +420,10 @@ cp /sbin/mkfs.ext4 "${DESTDIR}/sbin"
 cp /sbin/e2fsck "${DESTDIR}/sbin"
 cp /sbin/resize2fs "${DESTDIR}/sbin"
 cp /sbin/findfs "${DESTDIR}/sbin"
+if [ -f /usr/bin/i2crw1 ]; then
+  echo "Adding i2crw1..."
+  cp /usr/bin/i2crw1 "${DESTDIR}/bin"
+fi
 if [ ${DPKG_ARCH} = "i386" ]; then
   cp /sbin/gdisk "${DESTDIR}/sbin"
 # these libs are only for gdisk

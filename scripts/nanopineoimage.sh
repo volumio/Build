@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-${ARCH}-nanopineo.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-nanopineo.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -207,3 +207,5 @@ sudo umount -l /mnt/volumio/rootfs/boot
 sudo dmsetup remove_all
 sudo losetup -d ${LOOP_DEV}
 sync
+
+md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

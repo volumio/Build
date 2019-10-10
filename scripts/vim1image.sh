@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Default build for Raspbian
-ARCH="arm"
+# Default build for Debian 32bit
+ARCH="armv7"
 
 while getopts ":v:p:a:" opt; do
   case $opt in
@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-sparky.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-vim1.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -26,15 +26,15 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
+echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
-
+# Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary fat32 8 71
-parted -s "${LOOP_DEV}" mkpart primary ext3 71 2500
+parted -s "${LOOP_DEV}" mkpart primary fat32 1 64
+parted -s "${LOOP_DEV}" mkpart primary ext3 65 2500
 parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
@@ -59,31 +59,25 @@ mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the sparky kernel/ platform files"
-if [ -d platform-sparky ]
+echo "Preparing for the AML kernel and platform files"
+if [ -d platform-aml ]
 then
-	echo "Platform folder already exists - keeping it"
-    # if you really want to re-clone from the repo, then delete the platforms-sparky folder
-else
-	echo "Clone all sparky files from repo"
-	git clone --depth 1 https://github.com/volumio/platform-sparky.git platform-sparky
-	echo "Unpack the sparky platform files"
-    cd platform-sparky
-	tar xfJ sparky.tar.xz
+	echo "Pull from repo"
+	cd platform-aml
+	git pull
 	cd ..
+else
+	echo "Clone all AML files from repo"
+	git clone --depth 1 https://github.com/volumio/platform-aml.git platform-aml
+#	cd ..
 fi
-
-echo "Burning the bootloader and u-boot"
-dd if=platform-sparky/sparky/u-boot/bootloader.bin of=${LOOP_DEV} bs=512 seek=4097
-dd if=platform-sparky/sparky/u-boot/u-boot-dtb.img of=${LOOP_DEV} bs=512 seek=6144
-sync
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
 then
 	echo "/mount folder exist"
 else
-	sudo mkdir /mnt
+	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then
@@ -91,46 +85,45 @@ then
 	rm -rf /mnt/volumio/*
 else
 	echo "Creating Volumio Temp Directory"
-	sudo mkdir /mnt/volumio
+	mkdir /mnt/volumio
 fi
 
 echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
 mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
+echo "Creating mount point for the boot partition"
 mkdir /mnt/volumio/rootfs/boot
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
+echo "Copying boot files"
+cp -pdR platform-aml/s9xxx/boot/* /mnt/volumio/rootfs/boot
+echo "Copying modules"
+cp -pdR platform-aml/s9xxx/lib/modules /mnt/volumio/rootfs/lib/
+echo "Copying firmware"
+cp -pdR platform-aml/s9xxx/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying etc files"
+cp -pdR platform-aml/s9xxx/etc/* /mnt/volumio/rootfs/etc
+echo "Copying usr/bin files"
+cp -pdR platform-aml/s9xxx/usr/* /mnt/volumio/rootfs/usr
+echo "Copying VIM1 DTB"
+cp -rp /mnt/volumio/rootfs/boot/DTB/kvim.dtb /mnt/volumio/rootfs/boot/dtb.img
 
-echo "Copying sparky boot files, kernel, modules and firmware"
-cp platform-sparky/sparky/boot/* /mnt/volumio/rootfs/boot
-cp -pdR platform-sparky/sparky/lib/modules /mnt/volumio/rootfs/lib
-cp -pdR platform-sparky/sparky/lib/firmware /mnt/volumio/rootfs/lib
-
-echo "Copying special hotspot.sh version for Sparky"
-cp platform-sparky/sparky/bin/hotspot.sh /mnt/volumio/rootfs/bin
-
-echo "Copying DSP firmware and license from allocom dsp git"
-# doing this here and not in config because cloning under chroot caused issues before"
-git clone http://github.com/allocom/piano-firmware allo
-cp -pdR allo/lib /mnt/volumio/rootfs
-rm -r allo
 sync
 
-echo "Preparing to run chroot for more sparky configuration"
-cp scripts/sparkyconfig.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
+echo "Preparing to run chroot for more AML configuration"
+cp scripts/vim1config.sh /mnt/volumio/rootfs
+cp scripts/initramfs/init.nextarm_tvbox /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
-
-
 echo $PATCH > /mnt/volumio/rootfs/patch
 
 if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
@@ -146,32 +139,26 @@ if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
         fi
 fi
 
-
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/sparkyconfig.sh
+/vim1config.sh
 EOF
 
-UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT
-if [ -f "${UIVARIANT_FILE}" ]; then
-    echo "Starting variant.js"
-    node variant.js
-    rm $UIVARIANT_FILE
-fi
-
 #cleanup
-rm /mnt/volumio/rootfs/sparkyconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/vim1config.sh
+rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/root/init.sh
+rm /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-echo "==> sparky device installed"
+echo "==> AML device installed"
 
 #echo "Removing temporary platform files"
 #echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platforms-sparky
+#rm -r platform-aml
 sync
 
 echo "Finalizing Rootfs creation"
@@ -209,7 +196,7 @@ echo "Squash filesystem created"
 echo "Cleaning squash environment"
 rm -rf /mnt/squash
 
-#copy the squash image inside the image partition
+#copy the squash image inside the boot partition
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 echo "Unmounting Temp Devices"

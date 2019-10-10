@@ -73,11 +73,6 @@ tar xf rtl_bt_tinkerboard.tar.gz -C /
 rm rtl_bt_tinkerboard.tar.gz
 systemctl enable tinkerbt.service
 
-echo "Installing updated Realtek firmwares"
-wget http://repo.volumio.org/Volumio2/Firmwares/firmware-realtek_20190114-2_all.deb
-sudo dpkg -i firmware-realtek_20190114-2_all.deb
-rm firmware-realtek_20190114-2_all.deb
-
 echo "Installing additonal packages"
 apt-get update
 #apt-get -y install u-boot-tools liblircclient0 lirc
