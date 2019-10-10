@@ -6,7 +6,6 @@
 #
 # Dependencies:
 # parted squashfs-tools dosfstools multistrap qemu binfmt-support qemu-user-static kpartx
-set -eo pipefail
 
 #Set fonts for Help.
 NORM=$(tput sgr0)
@@ -38,18 +37,18 @@ Switches:
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
          ./build.sh -b arm -d pi -v 2.0 -l reponame
-  "
+"
   exit 1
 }
 
 #$1 = ${BUILD} $2 = ${VERSION} $3 = ${DEVICE}"
 function check_os_release {
   ARCH_BUILD=$1
+  HAS_VERSION=$(grep -c VOLUMIO_VERSION "build/${ARCH_BUILD}/root/etc/os-release")
   VERSION=$2
   DEVICE=$3
-  HAS_VERSION="grep -c VOLUMIO_VERSION build/${ARCH_BUILD}/root/etc/os-release"
 
-  if $HAS_VERSION; then
+  if [ "$HAS_VERSION" -ne "0" ]; then
     # os-release already has a VERSION number
     # cut the last 2 lines in case other devices are being built from the same rootfs
     head -n -2 "build/${ARCH_BUILD}/root/etc/os-release" > "build/${ARCH_BUILD}/root/etc/tmp-release"
@@ -107,7 +106,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 if [ -z "${VARIANT}" ]; then
-  VARIANT="volumio"
+   VARIANT="volumio"
 fi
 
 if [ -n "$BUILD" ]; then
@@ -144,12 +143,7 @@ if [ -n "$BUILD" ]; then
 
   mkdir "build/$BUILD"
   mkdir "build/$BUILD/root"
-
-  if ! multistrap -a "$ARCH" -f "$CONF"
-  then
-    echo multistrap failed. Exitting
-    exit 1
-  fi
+  multistrap -a "$ARCH" -f "$CONF"
   if [ ! "$BUILD" = x86 ]; then
     echo "Build for arm/armv7/armv8 platform, copying qemu"
     cp /usr/bin/qemu-arm-static "build/$BUILD/root/usr/bin/"
@@ -163,10 +157,10 @@ if [ -n "$BUILD" ]; then
   echo 'Cloning Volumio Node Backend'
   mkdir "build/$BUILD/root/volumio"
   if [ -n "$PATCH" ]; then
-    echo "Cloning Volumio with all its history"
-    git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+      echo "Cloning Volumio with all its history"
+      git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   else
-    git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+      git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   fi
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
@@ -210,7 +204,7 @@ VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
   umount -l "build/$BUILD/root/proc"
   umount -l "build/$BUILD/root/sys"
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
- [ -d "build/$BUILD/root/run/cgmanager/fs" ] && umount -l "build/$BUILD/root/run/cgmanager/fs"
+  umount -l "build/$BUILD/root/run/cgmanager/fs"
   sh scripts/configure.sh -b "$BUILD"
 fi
 
@@ -268,10 +262,10 @@ case "$DEVICE" in
     ;;
   pine64) echo 'Writing Pine64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    # this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
+# this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
     sh scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
-    nanopi64) echo 'Writing NanoPI A64 Image File'
+   nanopi64) echo 'Writing NanoPI A64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/nanopi64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
@@ -347,10 +341,6 @@ case "$DEVICE" in
   vim1) echo 'Writing VIM1 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/vim1image.sh -v "$VERSION" -p "$PATCH" -a armv7
-  "") echo 'No device specified'
-    ;;
-  *) echo Unknown/Unsupported device: $DEVICE
-    exit 1
     ;;
 esac
 
