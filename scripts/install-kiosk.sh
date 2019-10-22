@@ -45,9 +45,8 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /data/volumiokiosk/Defa
 sed -i 's/"exit_type":"Crashed"/"exit_type":"None"/' /data/volumiokiosk/Default/Preferences
 openbox-session &
 sleep 4
-while true; do
   /usr/bin/chromium-browser --kiosk --touch-events --disable-touch-drag-drop --disable-overlay-scrollbar --enable-touchview --enable-pinch --window-size=800,480 --window-position=0,0 --disable-session-crashed-bubble --disable-infobars --no-first-run --no-sandbox --user-data-dir='/data/volumiokiosk' --disable-translate --show-component-extension-options --ignore-gpu-blacklist --disable-background-networking --use-gl=egl --enable-remote-extensions --enable-native-gpu-memory-buffers --disable-quic --enable-fast-unload --enable-tcp-fast-open --disable-gpu-compositing --force-gpu-rasterization --enable-zero-copy --app=http://localhost:3000
-done" > /opt/volumiokiosk.sh
+" > /opt/volumiokiosk.sh
 /bin/chmod +x /opt/volumiokiosk.sh
 
 echo "Creating Systemd Unit for Kiosk"
