@@ -60,9 +60,7 @@ Type=simple
 User=root
 Group=root
 Nice=9
-CPUSchedulingPolicy=idle
-CPUSchedulingPriority=1
-ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh
+ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh -- -keeptty
 # Give a reasonable amount of time for the server to start up/shut down
 TimeoutSec=300
 [Install]
