@@ -58,7 +58,6 @@ After=volumio.service
 Type=simple
 User=root
 Group=root
-Nice=9
 ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh -- -keeptty
 # Give a reasonable amount of time for the server to start up/shut down
 TimeoutSec=300
@@ -86,17 +85,3 @@ echo '{"localhost": "http://127.0.0.1:3000"}' > /volumio/http/www/app/local-conf
 if [ -d "/volumio/http/www3" ]; then
   echo '{"localhost": "http://127.0.0.1:3000"}' > /volumio/http/www3/app/local-config.json
 fi
-
-echo "Hide Mouse cursor if not moved"
-
-echo "#!/bin/sh
-if [ -d /etc/X11/xinit/xinitrc.d ]; then
-  for f in /etc/X11/xinit/xinitrc.d/*; do
-    [ -x "$f" ] && . "$f"
-  done
-  unset f
-fi
-xrdb -merge ~/.Xresources
-xsetroot -cursor_name left_ptr &
-exec openbox-session
-exec unclutter &" > /root/.xinitrc
