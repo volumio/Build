@@ -124,6 +124,7 @@ cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying nanopineo2 boot & kernel config files"
 cp platform-nanopi/nanopi-neo2/boot/Image /mnt/volumio/rootfs/boot
 cp platform-nanopi/nanopi-neo2/boot/*.dtb /mnt/volumio/rootfs/boot
+cp platform-nanopi/nanopi-neo2/boot/sun50i-h5-nanopi-neo2-i2s-generic.dtb /mnt/volumio/rootfs/boot/sun50i-h5-nanopi-neo2.dtb
 cp platform-nanopi/nanopi-neo2/boot/config* /mnt/volumio/rootfs/boot
 cp platform-nanopi/nanopi-neo2/boot/boot.cmd /mnt/volumio/rootfs/boot
 
@@ -132,7 +133,7 @@ mkimage -C none -A arm -T script -d platform-nanopi/nanopi-neo2/boot/boot.cmd /m
 
 echo "Copying nanopineo2 modules"
 cp -pdR platform-nanopi/nanopi-neo2/lib/modules /mnt/volumio/rootfs/lib/
-
+cp -pdR platform-nanopi/nanopi-neo2/lib/firmware /mnt/volumio/rootfs/lib/
 sync
 
 echo "Preparing to run chroot for more nanopi neo2 configuration"
