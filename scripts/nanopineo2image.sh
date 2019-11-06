@@ -124,6 +124,8 @@ cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying nanopineo2 boot & kernel config files"
 cp platform-nanopi/nanopi-neo2/boot/Image /mnt/volumio/rootfs/boot
 cp platform-nanopi/nanopi-neo2/boot/*.dtb /mnt/volumio/rootfs/boot
+echo "Setting i2s-generic dtb version as default..."
+cp /mnt/volumio/rootfs/boot/sun50i-h5-nanopi-neo2.dtb /mnt/volumio/rootfs/boot/sun50i-h5-nanopi-neo2-org-default.dts
 cp platform-nanopi/nanopi-neo2/boot/sun50i-h5-nanopi-neo2-i2s-generic.dtb /mnt/volumio/rootfs/boot/sun50i-h5-nanopi-neo2.dtb
 cp platform-nanopi/nanopi-neo2/boot/config* /mnt/volumio/rootfs/boot
 cp platform-nanopi/nanopi-neo2/boot/boot.cmd /mnt/volumio/rootfs/boot
