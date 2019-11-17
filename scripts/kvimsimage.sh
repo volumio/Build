@@ -160,9 +160,9 @@ echo "Adding vim-specific cards.json"
 cp -r platform-khadas/vims/volumio/app/ /mnt/volumio/rootfs/volumio
 
 echo "Preparing to run chroot for more Khadas ${MODEL} configuration"
-cp scripts/kvim1config.sh /mnt/volumio/rootfs
+cp scripts/kvimsconfig.sh /mnt/volumio/rootfs
 #TODO: change init script
-cp scripts/initramfs/init.nextarm_tvbox /mnt/volumio/rootfs/root/init
+cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 
 #copy the scripts for updating from usb
@@ -196,11 +196,11 @@ sync
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/kvim1config.sh
+/kvimsconfig.sh
 EOF
 
 echo "Removing chroot files"
-rm /mnt/volumio/rootfs/kvim1config.sh
+rm /mnt/volumio/rootfs/kvimsconfig.sh
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/root/init.sh
 rm /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
 

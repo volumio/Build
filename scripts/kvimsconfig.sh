@@ -10,13 +10,17 @@ echo "Creating \"fstab\""
 echo "# Amlogic fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-LABEL=BOOT /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+UUID=${UUID_BOOT} /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
+
+sed -i "s/%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/boot.ini
+sed -i "s/%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/boot.ini
+sed -i "s/%%DATAPART%%/datapart=UUID=${UUID_DATA}/g" /boot/boot.ini
 
 echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
@@ -28,8 +32,8 @@ echo "#!/bin/sh -e
 echo heartbeat > /sys/class/leds/sys_led/trigger
 exit 0" > /etc/rc.local
 
-#TODO: perhaps add fancontrol
-# not really needed for VIM3L, in fact: it should be forbidden to add such a loud thing to a volumio device ;)
+#TODO: perhaps add fancontrol, though this is really "not done" for an audiophile device
+# not really needed for VIM3L, 
 # .....but as the VIM3L HTPC kit already has one ....)
 
 echo "Adding default wifi"
