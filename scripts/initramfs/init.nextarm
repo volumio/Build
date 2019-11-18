@@ -142,6 +142,12 @@ if [ $DO_GEN == yes ]; then
     DATAPART="/dev/${BOOTDEV}${DPS}3"
     BOOTPART="/dev/${BOOTDEV}${DPS}1"
 fi
+
+# Setting default boot delay of 5 seconds
+if [ -z "$BOOTDELAY" ]; then
+  BOOTDELAY=5
+fi
+
 #Hardware specific adaptions
 
 #When we did not already get the device name from the cmdline, try getting it from cpuinfo
@@ -172,6 +178,7 @@ else
 fi
 modprobe squashfs
 modprobe nls_cp437
+modprobe fuse
 
 if [ -z "${IMGPART}" ]; then
   print_msg "Specify the squash image partition after the kernel command ${CMDLINE}"
