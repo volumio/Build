@@ -137,16 +137,8 @@ if [ -z "${outfile}" ]; then
 	usage_error
 fi
 
-touch "$outfile"
-outfile="$(readlink -f "$outfile")"
 
-# And by "version" we really mean path to kernel modules
-# This is braindead, and exists to preserve the interface with mkinitrd
-if [ ${#} -ne 1 ]; then
-	version="$(uname -r)"
-else
-	version="${1}"
-fi
+build_initramfs(){
 
 case "${version}" in
 /lib/modules/*/[!/]*)
@@ -206,31 +198,6 @@ fi
 if [ ! -e "${MODULESDIR}/modules.dep" ]; then
 	depmod "${version}"
 fi
-
-# Prepare to clean up temporary files on exit
-DESTDIR=
-__TMPCPIOGZ=
-__TMPEARLYCPIO=
-clean_on_exit() {
-	if [ "${keep}" = "y" ]; then
-		echo "Working files in ${DESTDIR:-<not yet created>}, early initramfs in ${__TMPEARLYCPIO:-<not yet created>} and overlay in ${__TMPCPIOGZ:-<not yet created>}"
-	else
-		for path in "${DESTDIR}" "${__TMPCPIOGZ}" "${__TMPEARLYCPIO}"; do
-			test -z "${path}" || rm -rf "${path}"
-		done
-	fi
-}
-trap clean_on_exit EXIT
-trap "exit 1" INT TERM	# makes the EXIT trap effective even when killed
-
-# Create temporary directory and files for initramfs contents
-[ -n "${TMPDIR}" ] && [ ! -w "${TMPDIR}" ] && unset TMPDIR
-DESTDIR="$(mktemp -d "${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX")" || exit 1
-chmod 755 "${DESTDIR}"
-__TMPCPIOGZ="$(mktemp "${TMPDIR:-/var/tmp}/mkinitramfs-OL_XXXXXX")" || exit 1
-__TMPEARLYCPIO="$(mktemp "${TMPDIR:-/var/tmp}/mkinitramfs-FW_XXXXXX")" || exit 1
-
-DPKG_ARCH=$(dpkg --print-architecture)
 
 # Export environment for hook scripts.
 #
@@ -342,12 +309,14 @@ ln -s /proc/mounts "${DESTDIR}/etc/mtab"
 # module-init-tools
 copy_exec /sbin/modprobe /sbin
 copy_exec /sbin/rmmod /sbin
-mkdir -p "${DESTDIR}/etc/modprobe.d" "${DESTDIR}/lib/modprobe.d"
-for file in /etc/modprobe.d/*.conf /lib/modprobe.d/*.conf ; do
-	if test -e "$file" || test -L "$file" ; then
-		copy_file config "$file"
-	fi
-done
+#mkdir -p "${DESTDIR}/etc/modprobe.d" "${DESTDIR}/lib/modprobe.d"
+#for file in /etc/modprobe.d/*.conf /lib/modprobe.d/*.conf ; do
+#	if test -e "$file" || test -L "$file" ; then
+#		copy_file config "$file"
+#	fi
+#done
+mkdir -p "${DESTDIR}/etc/modprobe.d"
+cp -a /etc/modprobe.d/* "${DESTDIR}/etc/modprobe.d/"
 
 # workaround: libgcc always needed on old-abi arm
 if [ "$DPKG_ARCH" = arm ] || [ "$DPKG_ARCH" = armeb ]; then
@@ -405,6 +374,71 @@ if [ "$DPKG_ARCH" = armhf ]; then
 	fi
 fi
 
+[ "${verbose}" = y ] && echo "Building cpio ${outfile} initramfs"
+if [ -s "${__TMPEARLYCPIO}" ]; then
+	cat "${__TMPEARLYCPIO}" >"${outfile}" || exit 1
+else
+	#truncate
+	> "${outfile}"
+fi
+
+}
+
+
+
+# ===================== Start build process
+
+touch "$outfile"
+outfile="$(readlink -f "$outfile")"
+versions="$(ls -t /lib/modules | sort | cat | head -n3)"
+
+v_version=$(echo ${versions} | awk '{print $1}')
+o_version=$(echo ${versions} | awk '{print $2}')
+l_version=$(echo ${versions} | awk '{print $3}')
+
+#Create DESTDIR
+[ -n "${TMPDIR}" ] && [ ! -w "${TMPDIR}" ] && unset TMPDIR
+DESTDIR_REAL="$(mktemp -d ${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX)" || exit 1
+chmod 755 "${DESTDIR_REAL}"
+DESTDIR_OTHER="$(mktemp -d ${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX)" || exit 1
+chmod 755 "${DESTDIR_OTHER}"
+
+
+# __TMPCPIOGZ="$(mktemp ${TMPDIR:-/var/tmp}/mkinitramfs-OL_XXXXXX)" || exit 1
+# __TMPEARLYCPIO="$(mktemp ${TMPDIR:-/var/tmp}/mkinitramfs-FW_XXXXXX)" || exit 1
+
+DPKG_ARCH=`dpkg --print-architecture`
+
+if [ ${DPKG_ARCH} = "armhf" ]; then
+	LIB_GNUE="/lib/arm-linux-gnueabihf"
+elif [ ${DPKG_ARCH} = "i386" ]; then
+	LIB_GNUE="/lib/i386-linux-gnu"
+fi 
+
+DESTDIR=${DESTDIR_REAL}
+version=${v_version}
+echo "Version: ${v_version}"
+build_initramfs
+
+if [ ! ${o_version} = "" ]; then
+  DESTDIR=${DESTDIR_OTHER}
+  version=${o_version}
+  echo "Version: ${o_version}"
+  build_initramfs
+  cp -rf "${DESTDIR_OTHER}/lib/modules/${o_version}" "${DESTDIR_REAL}/lib/modules/${o_version}"
+fi
+
+if [ ! ${l_version} = "" ]; then
+  DESTDIR=${DESTDIR_OTHER}
+  version=${l_version}
+  echo "Version: ${l_version}"
+  build_initramfs
+  cp -rf "${DESTDIR_OTHER}/lib/modules/${l_version}" "${DESTDIR_REAL}/lib/modules/${l_version}"
+fi
+
+DESTDIR=${DESTDIR_REAL}
+
+
 # ===================== Finishing with Volumio-specific additions to the initramfs file structure
 
 echo "Volumio custom: adding findfs/ parted/ mkfs.ext4/ e2fsck to initramfs..."
@@ -413,9 +447,14 @@ copy_exec /sbin/findfs /sbin
 copy_exec /sbin/mkfs.ext4 /sbin
 copy_exec /sbin/e2fsck /sbin
 copy_exec /sbin/resize2fs /sbin
+if [ -f /usr/bin/i2crw1 ]; then
+  echo "Adding i2crw1..."
+  copy_exec /usr/bin/i2crw1 /sbin
+fi
 
 if [ ${DPKG_ARCH} = "i386" ]; then
 	echo "Volumio custom: adding gdisk/ lsblk to initramfs..."
+	copy_exec /sbin/fdisk /sbin
 	copy_exec /sbin/gdisk /sbin
 	copy_exec /bin/lsblk /sbin
     echo "Volumio custom: adding x86-specific dmidecode to initramfs..." 
@@ -427,15 +466,6 @@ chmod +x /usr/local/sbin/volumio-init-updater
 copy_exec /usr/local/sbin/volumio-init-updater /sbin
 
 # ===================== Building an initrd image from the initramfs file structure
-
-[ "${verbose}" = y ] && echo "Building cpio ${outfile} initramfs"
-
-if [ -s "${__TMPEARLYCPIO}" ]; then
-	cat "${__TMPEARLYCPIO}" >"${outfile}" || exit 1
-else
-	# truncate
-	true > "${outfile}"
-fi
 
 (
 # preserve permissions if root builds the image, see #633582
