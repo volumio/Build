@@ -196,7 +196,7 @@ if [ -n "$BUILD" ]; then
     echo "VOLUMIO_ARCH=\"${BUILD}\""
   } >> "build/$BUILD/root/etc/os-release"
   
-  if [ ! "$BUILD" = x86 ]; then
+  if [ "$BUILD" = x86 ]; then
     chroot "build/$BUILD/root" /bin/bash -x <<'EOF'
 su -
 ./volumioconfig.sh
@@ -342,6 +342,7 @@ case "$DEVICE" in
     check_os_release "x86" "$VERSION" "$DEVICE"
 	OS_VERSION_ID=$(cat build/x86/root/etc/os-release | grep ^VERSION_ID | tr -d 'VERSION_ID="')
     if [ "${OS_VERSION_ID}" = 10 ]; then
+      echo "...for Debian buster..."
       sh scripts/x86b-image.sh -v "$VERSION" -p "$PATCH";
     else
 	  sh scripts/x86image.sh -v "$VERSION" -p "$PATCH";

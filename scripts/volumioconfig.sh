@@ -48,6 +48,17 @@ if [ $OS_VERSION_ID = 10 ]; then
   /var/lib/dpkg/info/base-passwd.preinst install
 fi
 
+echo "===> TODO: when building on jessie AMD64, qemu-static will crash while processing triggers for armhf package libgdk-pixbuf-2.0"
+echo "     qemu-user-static 2.1 in jessie too old for this???"
+# Only valid for armhf, check if we really need it
+# remove its "postinst" trigger script for the time being.... 
+if [ $OS_VERSION_ID = 10 ]; then
+	if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
+		echo "     Removing postinst script trigger"
+    	rm /var/lib/dpkg/info/libgdk-pixbuf2.0-*.triggers
+	fi
+fi
+
 echo "Configuring packages"
 dpkg --configure -a
 
@@ -192,7 +203,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   cd /
 
   ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
-  echo $ARCH
+
   echo "Installing custom MPD depending on system architecture"
 
   if [ $ARCH = arm ]; then

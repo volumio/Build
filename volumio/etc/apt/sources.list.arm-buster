@@ -1,0 +1,2 @@
+deb http://archive.volumio.org/raspbian/ jessie main contrib non-free rpi
+deb-src http://archive.volumio.org/raspbian/ jessie main contrib non-free rpi

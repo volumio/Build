@@ -88,15 +88,16 @@ cp platform-x86/packages-buster/linux-image-*.deb /mnt/volumio/rootfs
 echo "Copying the latest firmware into /lib/firmware"
 tar xfJ platform-x86/packages-buster/linux-firmware-buster.tar.xz -C /mnt/volumio/rootfs
 
+echo "Copying the default grub config"
+#default is grub for jessie, overwrite with buster requiremenmts 
+cp platform-x86/packages-buster/grub/grub /mnt/volumio/rootfs/etc/default/
+
 echo "Copying firmware additions"
 tar xf platform-x86/packages-buster/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz -C /mnt/volumio/rootfs
-
+cp platform-x86/packages-buster/firmware-cfg80211/* /mnt/volumio/rootfs/lib/firmware
+ 
 echo "Copying Alsa Use Case Manager files"
 cp -R platform-x86/packages-buster/UCM/* /mnt/volumio/rootfs/usr/share/alsa/ucm/
-
-cat /mnt/volumio/rootfs/etc/apt/sources.list
-echo "deb http://deb.debian.org/debian/ buster main contrib non-free
-deb-src http://deb.debian.org/debian/ buster main contrib non-free" > /mnt/volumio/rootfs/etc/apt/sources.list
 
 #TODO: not checked with other Intel SST bytrt/cht audio boards yet, needs more input
 mkdir -p /mnt/volumio/rootfs/usr/local/bin/
@@ -105,8 +106,8 @@ chmod +x /mnt/volumio/rootfs/usr/local/bin/bytcr-init.sh
 
 cp volumio/splash/volumio.png /mnt/volumio/rootfs/boot
 
-cp scripts/initramfs/init-x86 /mnt/volumio/rootfs/root/init
-cp scripts/initramfs/mkinitramfs-volumio.sh /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-volumio.sh
+cp scripts/initramfs/init-x86-buster /mnt/volumio/rootfs/root/init
+cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
 
 cp volumio/etc/ata-modules.x86 /mnt/volumio/rootfs/ata-modules.x86
 

@@ -1,2 +1,0 @@
-deb http://ftp.nl.debian.org/debian/ jessie main contrib non-free
-deb-src http://ftp.nl.debian.org/debian/ jessie main contrib non-free

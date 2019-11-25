@@ -33,13 +33,16 @@ echo "Getting the current kernel filename"
 KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
 
 echo "Creating run-time template for syslinux config"
-DEBUG="use_kmsg=no"
+# keep "splash" as default, just remove "quiet" when debugging is required
+# no: print initramfs messages to stdout, display according to loglevel & quiet option
+#DEBUG="splash quiet loglevel=0"
+DEBUG="loglevel=0 quiet splash"
 echo "DEFAULT volumio
 
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND net.ifnames=0 biosdevname=0 imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% datapart=UUID=%%DATAPART%% imgfile=volumio_current.sqsh splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=7 ${DEBUG}
+  APPEND net.ifnames=0 biosdevname=0 imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% datapart=UUID=%%DATAPART%% imgfile=volumio_current.sqsh plymouth.ignore-serial-consoles vt.global_cursor_default=0 ${DEBUG}
   INITRD volumio.initrd
 " > /boot/syslinux.tmpl
 
@@ -240,12 +243,9 @@ echo "Copying volumio initramfs updater"
 cd /root/
 mv volumio-init-updater /usr/local/sbin
 
-VERSION=`echo ${KRNL} | awk -F "vmlinuz-" '{print $2}'`
-echo "Creating initramfs 'volumio.initrd' with kernel ${VERSION}..."
 cp /root/init /usr/share/initramfs-tools/
-#TODO replace mkinitramfs.sh
-mkinitramfs-volumio.sh -v -o /tmp/initramfs-tmp ${VERSION}
-cp /tmp/initramfs-tmp /boot/volumio.initrd
+# (Add -v for verbose output from mkinitramfs)
+mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
 echo "No need to keep the original initrd"
 DELFILE=`ls -l /boot |grep initrd.img | awk '{print $9}'`

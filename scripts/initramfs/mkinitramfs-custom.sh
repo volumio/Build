@@ -467,59 +467,18 @@ copy_exec /usr/local/sbin/volumio-init-updater /sbin
 
 # ===================== Building an initrd image from the initramfs file structure
 
-(
-# preserve permissions if root builds the image, see #633582
-[ "$(id -ru)" != 0 ] && cpio_owner_root="-R 0:0"
 
-# if SOURCE_DATE_EPOCH is set, try and create a reproducible image
-if [ -n "${SOURCE_DATE_EPOCH}" ]; then
-	# ensure that no timestamps are newer than $SOURCE_DATE_EPOCH
-	find "${DESTDIR}" -newermt "@${SOURCE_DATE_EPOCH}" -print0 | \
-		xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
+#Manage the destdir folder, removing the auto-generated scripts
+rm -rf "${DESTDIR}/scripts"
+cp /root/init "${DESTDIR}"
 
-	# --reproducible requires cpio >= 2.12
-	cpio_reproducible="--reproducible"
-fi
-
+#Creation of the initrd image
+echo "Creating initrd image"
+cd ${DESTDIR}
 OPTS="-o"
 [ "${verbose}" = y ] && OPTS="-v ${OPTS}"
-
-# work around lack of "set -o pipefail" for the following pipe:
-# cd "${DESTDIR}" && find . | LC_ALL=C sort | cpio --quiet $cpio_owner_root $cpio_reproducible -o -H newc | gzip >>"${outfile}" || exit 1
-ec1=1
-ec2=1
-ec3=1
-exec 3>&1
-eval "$(
-	# http://cfaj.freeshell.org/shell/cus-faq-2.html
-	exec 4>&1 >&3 3>&-
-	cd  "${DESTDIR}"
-	{
-		find . 4>&-; echo "ec1=$?;" >&4
-	} | {
-		LC_ALL=C sort
-	} | {
-		# shellcheck disable=SC2086
-		cpio --quiet $cpio_owner_root $cpio_reproducible ${OPTS} -H newc 4>&-; echo "ec2=$?;" >&4
-	} | ${compress} >>"${outfile}"
-	echo "ec3=$?;" >&4
-)"
-if [ "$ec1" -ne 0 ]; then
-	echo "E: mkinitramfs failure find $ec1 cpio $ec2 $compress $ec3" >&2
-	exit "$ec1"
-fi
-if [ "$ec2" -ne 0 ]; then
-	echo "E: mkinitramfs failure cpio $ec2 $compress $ec3" >&2
-	exit "$ec2"
-fi
-if [ "$ec3" -ne 0 ]; then
-	echo "E: mkinitramfs failure $compress $ec3" >&2
-	exit "$ec3"
-fi
-) || exit 1
-
-if [ -s "${__TMPCPIOGZ}" ]; then
-	cat "${__TMPCPIOGZ}" >>"${outfile}" || exit 1
-fi
-
+#TODO: verbose option overridden, remove when finished with mkinitramfs-custom.sh
+OPTS="-vo"
+find . -print0 | cpio --quiet ${OPTS} -0 --format=newc | gzip -9 > /boot/volumio.initrd
 exit 0
+

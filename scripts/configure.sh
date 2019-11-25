@@ -11,17 +11,24 @@ while getopts ":b:" opt; do
   esac
 done
 
+OS_VERSION_ID=$(cat build/${BUILD}/root/etc/os-release | grep ^VERSION_ID | tr -d 'VERSION_ID="')
+if [ $OS_VERSION_ID = 10 ]; then
+   BSUITE=${BUILD}"-buster"
+else
+   BSUITE=${BUILD}
+fi
+
 echo 'Copying Custom Volumio System Files'
 #Apt conf file
-if [ "$BUILD" = arm ] || [ "$BUILD" = armv7 ] || [ "$BUILD" = armv8 ]; then
+if [ "$BUILD" = arm ] || [ "$BUILD" = armv7 ]; then
   echo 'Copying ARM related configuration files'
-  cp volumio/etc/apt/sources.list.$BUILD build/$BUILD/root/etc/apt/sources.list
+  cp volumio/etc/apt/sources.list.$BSUITE build/$BUILD/root/etc/apt/sources.list
   echo 'Setting time for ARM devices with fakehwclock to build time'
   date -u '+%Y-%m-%d %H:%M:%S' > build/$BUILD/root/etc/fake-hwclock.data
 elif [ "$BUILD" = x86 ]; then
   echo 'Copying X86 related Configuration files'
   #APT sources file
-  cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
+  cp volumio/etc/apt/sources.list.$BSUITE build/$BUILD/root/etc/apt/sources.list
 #Grub2 conf file
   cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
   cp volumio/splash/volumio.png build/$BUILD/root/boot
