@@ -67,7 +67,7 @@ touch /boot/start.elf
 mkdir /lib/modules
 
 
-KERNEL_VERSION="4.19.79"
+KERNEL_VERSION="4.19.86"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -128,6 +128,11 @@ case $KERNEL_VERSION in
     "4.19.79")
       KERNEL_REV="1273"
       KERNEL_COMMIT="985bc5353e4f5fe5a11c8b6c4c646dc7165bbc21"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
+    "4.19.86")
+      KERNEL_REV="1283"
+      KERNEL_COMMIT="b9ecbe8d0e3177afed08c54fc938938100a0b73f"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;;
 esac
