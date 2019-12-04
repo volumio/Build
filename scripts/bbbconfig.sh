@@ -46,17 +46,21 @@ sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
 fi
+if [ -f "install.sh" ]; then
+sh install.sh
+fi
 cd /
 rm -rf ${PATCH}
 fi
 rm /patch
+
 
 # Retrieve choosen kernel version
 uname_r=$(sed -n 's/^uname_r=//p' /boot/uEnv.txt)
 # Update kernel dependencies
 depmod -a ${uname_r}
 
-sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
 
 echo "Installing winbind here, since it freezes networking"
 apt-get update
