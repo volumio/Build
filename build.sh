@@ -249,7 +249,7 @@ case "$DEVICE" in
     sh scripts/sparkyimage.sh -v "$VERSION" -p "$PATCH" -a arm
     ;;
   bbb) echo 'Writing BeagleBone Black Image File'
-    check_os_release "arm" "$VERSION" "$DEVICE"
+    check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/bbbimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   udooneo) echo 'Writing UDOO NEO Image File'
