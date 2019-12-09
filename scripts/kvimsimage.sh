@@ -87,15 +87,28 @@ else
 fi
 
 echo "Installing u-boot"
-if [ "$MODEL" = kvim1 ]; then
-	echo "   for khadas vim1..."
+
+case $MODEL in
+  kvim1)
+    echo "   for khadas vim1..."
 	dd if=platform-khadas/vims/uboot/u-boot.vim1.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
 	dd if=platform-khadas/vims/uboot/u-boot.vim1.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync > /dev/null 2>&1
-else
+	;;
+  kvim2)
+	echo "   for khadas vim2..."
+	dd if=platform-khadas/vims/uboot/u-boot.vim2.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
+	dd if=platform-khadas/vims/uboot/u-boot.vim2.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync > /dev/null 2>&1;;
+  kvim3)
+	echo "   for khadas vim3..."
+	dd if=platform-khadas/vims/uboot/u-boot.vim3.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
+	dd if=platform-khadas/vims/uboot/u-boot.vim3.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync > /dev/null 2>&1;;
+  kvim3l)
 	echo "   for khadas vim3l..."
 	dd if=platform-khadas/vims/uboot/u-boot.vim3l.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
 	dd if=platform-khadas/vims/uboot/u-boot.vim3l.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync > /dev/null 2>&1
-fi
+	;;
+esac
+
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
@@ -136,17 +149,13 @@ cp -Rp platform-khadas/vims/lib/modules /mnt/volumio/rootfs/lib/
 echo "Copying general firmware"
 cp -Rp platform-khadas/vims/lib/firmware /mnt/volumio/rootfs/lib/
 echo "Adding services"
-cp -Rp platform-khadas/vims/lib/systemd/ /mnt/volumio/rootfs/lib
+mkdir -p /mnt/volumio/rootfs/lib/systemd/system
+cp platform-khadas/vims/lib/systemd/system/bluetooth-khadas.service /mnt/volumio/rootfs/lib/systemd/system
+if [ ! "$MODEL" = kvim1 ];then
+	cp platform-khadas/vims/lib/systemd/system/fan.service /mnt/volumio/rootfs/lib/systemd/system
+fi	
 echo "Adding usr/local/bin & usr/bin files"
 cp -Rp platform-khadas/vims/usr/* /mnt/volumio/rootfs/usr
-
-echo "Adding emmc utility scripts"
-cp platform-khadas/vims/opt/mmc_boots /mnt/volumio/rootfs/usr/bin
-cp platform-khadas/vims/opt/mmcdisk /mnt/volumio/rootfs/usr/bin
-cp platform-khadas/vims/opt/mmc_install_from_sd /mnt/volumio/rootfs/usr/bin
-chmod +x /mnt/volumio/rootfs/usr/bin/mmc_boots
-chmod +x /mnt/volumio/rootfs/usr/bin/mmcdisk 
-chmod +x /mnt/volumio/rootfs/usr/bin/mmc_install_from_sd 
 
 echo "Adding specific wlan firmware" 
 cp -r platform-khadas/vims/hwpacks/wlan-firmware/brcm/ /mnt/volumio/rootfs/lib/firmware
@@ -155,13 +164,25 @@ echo "Adding Meson video firmware"
 cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/video /mnt/volumio/rootfs/lib/firmware/
 cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/meson /mnt/volumio/rootfs/lib/firmware/
 
+echo "Adding Wifi & Bluetooth firmware and helpers"
+cp platform-khadas/vims/hwpacks/bluez/hciattach-armhf /mnt/volumio/rootfs/usr/local/bin/hciattach
+cp platform-khadas/vims/hwpacks/bluez/brcm_patchram_plus-armhf /mnt/volumio/rootfs/usr/local/bin/brcm_patchram_plus
+if [ "$MODEL" = kvim3 ] || [ "$MODEL" = kvim3l ]; then
+
+	echo "   fixing AP6359SA and AP6398S using the same chipid and rev for VIM3/VIM3L"
+	mv /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_apsta_ap6398s.bin /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_apsta.bin
+	mv /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_ap6398s.bin /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag.bin
+	mv /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6398s.txt /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6359sa.txt
+	mv /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0_ap6398s.hcd /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0.hcd
+fi
+
 #TODO: remove when volumio has been updated
 echo "Adding vim-specific cards.json"
 cp -r platform-khadas/vims/volumio/app/ /mnt/volumio/rootfs/volumio
 
 echo "Preparing to run chroot for more Khadas ${MODEL} configuration"
 cp scripts/kvimsconfig.sh /mnt/volumio/rootfs
-#TODO: change init script
+cp scripts/install-kiosk.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 
@@ -189,7 +210,7 @@ fi
 echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
 UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
 UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
-" > /mnt/volumio/rootfs/root/init.sh
+MODEL=${MODEL}" > /mnt/volumio/rootfs/root/init.sh
 chmod +x /mnt/volumio/rootfs/root/init.sh
 sync
 

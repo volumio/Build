@@ -45,9 +45,47 @@ echo "
 # USB DACs will have device number 5 in whole Volumio device range
 options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
 
-echo "Installing additonal packages"
+echo "Installing additional packages"
 apt-get update
-apt-get -y install u-boot-tools mc abootimg fbset bluez-firmware bluetooth bluez bluez-tools device-tree-compiler
+apt-get -y install u-boot-tools mc abootimg fbset bluez-firmware bluetooth bluez bluez-tools device-tree-compiler linux-base
+
+echo "Enabling KVIM Bluetooth stack"
+ln -sf /lib/firmware /etc/firmware
+ln -s /lib/systemd/system/bluetooth-khadas.service /etc/systemd/system/multi-user.target.wants/bluetooth-khadas.service
+if [ ! "$MODEL" = kvim1 ]; then
+	ln -s /lib/systemd/system/fan.service /etc/systemd/system/multi-user.target.wants/fan.service
+fi
+
+#echo "Bluetooth Audio Sink/ Media configuration"
+#echo "[General]" > /etc/bluetooth/audio.conf
+#echo "Enable=Source,Sink,Media,Socket" >> /etc/bluetooth/audio.conf
+#echo "HFP=true" >> /etc/bluetooth/audio.conf
+#echo "Class=0x00041C" >> /etc/bluetooth/audio.conf
+
+#echo "Various device conf"
+#echo "[General]" > /etc/bluetooth/main.conf
+#echo "Name = Volumio" >> /etc/bluetooth/main.conf
+#echo "Class = 0x00041C" >> /etc/bluetooth/main.conf
+#echo "DiscoverableTimeout = 0" >> /etc/bluetooth/main.conf
+#echo "Discoverable = true" >> /etc/bluetooth/main.conf
+#echo "PairableTimeout = 0" >> /etc/bluetooth/main.conf
+#echo "AutoConnectTimeout = 0" >> /etc/bluetooth/main.conf
+
+#echo "Setting default Bluetooth Name"
+#echo "Volumio" > /etc/machine-info
+#chmod 777 /etc/machine-info
+
+#echo "volumio ALL=(ALL) NOPASSWD: /bin/hciconfig" >> /etc/sudoers
+
+echo "Configuring boot splash"
+apt-get -y install plymouth plymouth-themes
+plymouth-set-default-theme volumio
+
+echo "Installing Kiosk"
+sh /install-kiosk.sh
+
+echo "Kiosk installed"
+rm /install-kiosk.sh
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*

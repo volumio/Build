@@ -249,7 +249,7 @@ case "$DEVICE" in
     sh scripts/sparkyimage.sh -v "$VERSION" -p "$PATCH" -a arm
     ;;
   bbb) echo 'Writing BeagleBone Black Image File'
-    check_os_release "armv7" "$VERSION" "$DEVICE"
+    check_os_release "arm" "$VERSION" "$DEVICE"
     sh scripts/bbbimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   udooneo) echo 'Writing UDOO NEO Image File'
@@ -342,13 +342,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/vim1image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
-  kvim1) echo 'Writing VIM1 Image File'
+  kvim1|kvim2|kvim3|kvim3l) echo 'Writing VIM1 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/kvimsimage.sh -v "$VERSION" -p "$PATCH" -a armv7 -m ${DEVICE}
-	;;
-  kvim3l) echo 'Writing VIM3L Image File'
-    check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/kvimsimage.sh -v "$VERSION" -p "$PATCH" -a armv7 -m ${DEVICE}
+
     ;;
 esac
 
