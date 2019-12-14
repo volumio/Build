@@ -15,9 +15,6 @@ mknod /dev/tty c 5 0
 
 mdev -s
 
-#######TODO: replace or delete the following when the restart issue for Tinkerboard has been solved
-echo 5 > /proc/sys/kernel/panic
-
 #Defaults which may be overridden by cmdline parameters
 USE_KMSG="yes"
 HWDEVICE="empty"
@@ -29,6 +26,27 @@ DPS="p"
 IMGPART="/dev/${BOOTDEV}${DPS}2"
 DATAPART="/dev/${BOOTDEV}${DPS}3"
 BOOTPART="/dev/${BOOTDEV}${DPS}1"
+BOOTDELAY=5
+REBOOTMODE=normal
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+  case $key in
+    bootdelay)
+	  BOOTDELAY=$value
+	  ;;
+  esac
+done
+
+if [ ! -z "$BOOTDELAY" ]; then
+  sleep $BOOTDELAY
+  mdev -s
+fi
+
+#######TODO: replace or delete the following when the restart issue for Tinkerboard has been solved
+echo 5 > /proc/sys/kernel/panic
 
 # Display a message or print directly to /dev/kmsg
 print_msg() {
@@ -57,6 +75,7 @@ parse_disk() {
     # $1 is unrecognized.
     echo "unknown-disk"
   fi
+
 }
 
 do_reboot() {
@@ -97,7 +116,18 @@ do
   value=${p#*=}
   case $key in
   imgpart)
-    IMGPART=`parse_disk $value`
+
+  for i in 1 2 3 4 5 
+	do
+	  IMGPART=`parse_disk $value`
+	  if [ -z "${IMGPART}" ]; then
+		print_msg  "Image partition not ready, retry $1"
+		sleep 1
+		mdev -s
+	  else
+		break
+      fi
+    done
     ;;
   imgfile)
     IMGFILE=$value
@@ -141,11 +171,6 @@ if [ $DO_GEN == yes ]; then
     IMGPART="/dev/${BOOTDEV}${DPS}2"
     DATAPART="/dev/${BOOTDEV}${DPS}3"
     BOOTPART="/dev/${BOOTDEV}${DPS}1"
-fi
-
-# Setting default boot delay of 5 seconds
-if [ -z "$BOOTDELAY" ]; then
-  BOOTDELAY=5
 fi
 
 #Hardware specific adaptions
@@ -202,15 +227,12 @@ if [ ! -z "${UUIDFMT}" ]; then
     exit 0
   fi
 fi
+
 print_msg IMGPART=${IMGPART}
 print_msg IMGFILE=${IMGFILE}
 print_msg DATAPART=${DATAPART}
 print_msg BOOTPART=${BOOTPART}
 print_msg BOOTCONFIG=${BOOTCONFIG}
-
-if [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
-fi
 
 # Retry mdev -s 3 times before throwing the towel
 for i in 1 2 3 4 5 6
@@ -254,9 +276,6 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   umount /mnt/factory
   rm -r /mnt/factory
   sync
-elif [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
-  sleep ${BOOTDELAY}
 fi
 
 print_msg "Checking for USB updates if you did not boot from USB..."
