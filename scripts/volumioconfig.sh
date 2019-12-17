@@ -260,9 +260,9 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   update-rc.d upmpdcli remove
 
   echo "Installing Shairport-Sync"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
-  tar xf shairport-sync-3.0.2-arm.tar.gz
-  rm /shairport-sync-3.0.2-arm.tar.gz
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_3.3.5-arm.deb
+  dpkg -i shairport-sync_3.3.5-arm.deb
+  rm shairport-sync_3.3.5-arm.deb
 
   echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
@@ -495,6 +495,10 @@ systemctl disable dhcpd.service
 echo "Linking Volumio Command Line Client"
 ln -s /volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh /usr/local/bin/volumio
 chmod a+x /usr/local/bin/volumio
+
+echo "Adding Shairport-Sync User"
+getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
+getent passwd shairport-sync &> /dev/null || useradd -r -M -g shairport-sync -s /usr/bin/nologin -G audio shairport-sync >/dev/null
 
 #####################
 #Audio Optimizations#-----------------------------------------

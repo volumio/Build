@@ -1,0 +1,14 @@
+[Unit]
+Description=Shairport Sync - AirPlay Audio Receiver
+After=sound.target
+Requires=avahi-daemon.service
+After=avahi-daemon.service
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/shairport-sync --configfile=/tmp/shairport-sync.conf
+User=shairport-sync
+Group=shairport-sync
+
+[Install]
