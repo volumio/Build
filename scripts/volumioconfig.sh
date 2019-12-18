@@ -380,9 +380,9 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   rm /libupnp6_1.6.20.jfd5-1_i386.deb
 
   echo "Installing Shairport-Sync"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
-  tar xf shairport-sync-3.0.2-i386.tar.gz
-  rm /shairport-sync-3.0.2-i386.tar.gz
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync_3.3.5-i386.deb
+  dpkg -i shairport-sync_3.3.5-i386.deb
+  rm shairport-sync_3.3.5-i386.deb
 
   echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-i386.tar.gz
