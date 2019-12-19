@@ -168,17 +168,15 @@ echo "Adding Wifi & Bluetooth firmware and helpers"
 cp platform-khadas/vims/hwpacks/bluez/hciattach-armhf /mnt/volumio/rootfs/usr/local/bin/hciattach
 cp platform-khadas/vims/hwpacks/bluez/brcm_patchram_plus-armhf /mnt/volumio/rootfs/usr/local/bin/brcm_patchram_plus
 if [ "$MODEL" = kvim3 ] || [ "$MODEL" = kvim3l ]; then
-
 	echo "   fixing AP6359SA and AP6398S using the same chipid and rev for VIM3/VIM3L"
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_apsta_ap6398s.bin /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_apsta.bin
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_ap6398s.bin /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag.bin
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6398s.txt /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6359sa.txt
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0_ap6398s.hcd /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0.hcd
+	cp /platform-khadas/vims/var/lib/alsa/asound.state.vim3-3l /mnt/volumio/rootfs/var/lib/alsa/asound.state
+else
+	cp /platform-khadas/vims/var/lib/alsa/asound.state.vim1-2 /mnt/volumio/rootfs/var/lib/alsa/asound.state
 fi
-
-#TODO: remove when volumio has been updated
-echo "Adding vim-specific cards.json"
-cp -r platform-khadas/vims/volumio/app/ /mnt/volumio/rootfs/volumio
 
 echo "Preparing to run chroot for more Khadas ${MODEL} configuration"
 cp scripts/kvimsconfig.sh /mnt/volumio/rootfs
