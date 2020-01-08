@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -eo
 # Build Architecture Debian 32bit
 ARCH="armv7"
 

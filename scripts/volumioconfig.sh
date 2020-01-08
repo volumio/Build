@@ -1,6 +1,8 @@
 #!/bin/bash
+set -eo
 
 NODE_VERSION=8.11.1
+OS_VERSION_ID=$(cat /etc/os-release | grep ^VERSION_ID | tr -d 'VERSION_ID="')
 
 # This script will be run in chroot under qemu.
 
@@ -25,7 +27,13 @@ path-exclude /usr/share/linda/*" > /etc/dpkg/dpkg.cfg.d/01_nodoc
 
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
-/var/lib/dpkg/info/dash.preinst install
+
+# the dash.preinst script was removed from Debian buster according to:
+#     https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=890073
+if [ ! $OS_VERSION_ID = 10 ]; then
+  echo "Workaround for Dash.preinst"
+  /var/lib/dpkg/info/dash.preinst install
+fi
 
 #if [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
 #  echo "Fix for cgmanager not starting on x86"
@@ -33,6 +41,25 @@ export LC_ALL=C LANGUAGE=C LANG=C
 #  dpkg --configure --force-all cgmanager
 #  sed -i -e 's/# Required-Start:    mountkernfs/# Required-Start:/g' /etc/init.d/cgmanager
 #fi
+
+if [ $OS_VERSION_ID = 10 ]; then
+# configuration of package base-files depends on package base-passwd.
+# But for some reason, base-files gets bootstrapped before base-passwd.
+# Create a valid /etc/passwd before configuring anything else.
+  echo "Working around a debian buster package dependency issue"
+  /var/lib/dpkg/info/base-passwd.preinst install
+fi
+
+echo "===> TODO: when building on jessie AMD64, qemu-static will crash while processing triggers for armhf package libgdk-pixbuf-2.0"
+echo "     qemu-user-static 2.1 in jessie too old for this???"
+# Only valid for armhf, check if we really need it
+# remove its "postinst" trigger script for the time being....
+if [ $OS_VERSION_ID = 10 ]; then
+	if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
+		echo "     Removing postinst script trigger"
+    	rm /var/lib/dpkg/info/libgdk-pixbuf2.0-*.triggers
+	fi
+fi
 
 echo "Configuring packages"
 dpkg --configure -a
@@ -178,14 +205,14 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   cd /
 
   ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
-  echo $ARCH
+
   echo "Installing custom MPD depending on system architecture"
 
   if [ $ARCH = arm ]; then
 
      echo "Installing MPD for armv6"
      # First we manually install a newer alsa-lib to achieve Direct DSD support
-
+     : '
      echo "Installing alsa-lib 1.1.3"
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2_1.1.3-5_armhf.deb
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv6/libasound2-data_1.1.3-5_all.deb
@@ -217,12 +244,11 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
      wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armhf.deb
      dpkg -i volumio-remote-updater_1.3-armhf.deb
      rm volumio-remote-updater_1.3-armhf.deb
-
-
+	 '
   elif [ $ARCH = armv7 ]; then
      echo "Installing MPD for armv7"
      # First we manually install a newer alsa-lib to achieve Direct DSD support
-
+	 : '
      echo "Installing alsa-lib 1.1.3"
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
@@ -239,31 +265,32 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
      dpkg -i mpd_0.20.18-1_armv7.deb
      rm mpd_0.20.18-1_armv7.deb
 
-    echo "Installing Upmpdcli for armv7"
-    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
-    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
-    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
-    dpkg -i libupnpp3_0.15.1-1_armhf.deb
-    dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
-    dpkg -i upmpdcli_1.2.12-1_armhf.deb
-    rm libupnpp3_0.15.1-1_armhf.deb
-    rm libupnp6_1.6.20.jfd5-1_armhf.deb
-    rm upmpdcli_1.2.12-1_armhf.deb
+     echo "Installing Upmpdcli for armv7"
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
+     wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
+     dpkg -i libupnpp3_0.15.1-1_armhf.deb
+     dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+     dpkg -i upmpdcli_1.2.12-1_armhf.deb
+     rm libupnpp3_0.15.1-1_armhf.deb
+     rm libupnp6_1.6.20.jfd5-1_armhf.deb
+     rm upmpdcli_1.2.12-1_armhf.deb
 
-    echo "Adding volumio-remote-updater for armv7"
-    wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
-    dpkg -i volumio-remote-updater_1.3-armv7.deb
-    rm volumio-remote-updater_1.3-armv7.deb
-
+     echo "Adding volumio-remote-updater for armv7"
+     wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
+     dpkg -i volumio-remote-updater_1.3-armv7.deb
+     rm volumio-remote-updater_1.3-armv7.deb
+	 '
   fi
   #Remove autostart of upmpdcli
   update-rc.d upmpdcli remove
 
+  : '
   echo "Installing Shairport-Sync"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
   tar xf shairport-sync-3.0.2-arm.tar.gz
   rm /shairport-sync-3.0.2-arm.tar.gz
-  
+
   echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
   tar xf shairport-sync-metadata-reader-arm.tar.gz
@@ -272,7 +299,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   echo "Volumio Init Updater"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
-  
+
   echo "Installing Snapcast for multiroom"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
@@ -288,6 +315,10 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
   chmod a+x /usr/sbin/hostapd-edimax
 
+  echo "Adding special version for kernel 4.19"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-2.8 -P /usr/sbin/
+  chmod a+x /usr/sbin/hostapd-2.8
+  '
   echo "interface=wlan0
 ssid=Volumio
 channel=4
@@ -298,13 +329,14 @@ wpa=2
 wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP
 wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
-  chmod -R 777 /etc/hostapd-edimax.conf
+  chmod -R 777 /etc/hostapd/hostapd-edimax.conf
 
   echo "Cleanup"
   apt-get clean
   rm -rf tmp/*
+
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
-  echo 'x86 Environment Detected'
+  echo "x86 Environment Detected"
 
   # cleanup
   apt-get clean
@@ -330,7 +362,6 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   tar xf node_modules_x86-${NODE_VERSION}.tar.gz
   rm node_modules_x86-${NODE_VERSION}.tar.gz
 
-
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
 
@@ -345,66 +376,81 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   echo "Installing Custom Packages"
   cd /
 
-  echo "Installing MPD for i386"
+# MPD and alsa-lib are in Debian buster
+  if [ ! $OS_VERSION_ID = 10 ]; then
+    echo "Installing MPD for i386"
   # First we manually install a newer alsa-lib to achieve Direct DSD support
-  
-  echo "Installing alsa-lib 1.1.3"
-  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
-  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
-  wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-dev_1.1.3-5_i386.deb
-  dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
-  dpkg --force-all -i libasound2_1.1.3-5_i386.deb
-  dpkg --force-all -i libasound2-dev_1.1.3-5_i386.deb
-  rm libasound2-data_1.1.3-5_all.deb
-  rm libasound2_1.1.3-5_i386.deb
-  rm libasound2-dev_1.1.3-5_i386.deb 
+    echo "Installing alsa-lib 1.1.3"
+    wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-dev_1.1.3-5_i386.deb
+    dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+    dpkg --force-all -i libasound2_1.1.3-5_i386.deb
+    dpkg --force-all -i libasound2-dev_1.1.3-5_i386.deb
+    rm libasound2-data_1.1.3-5_all.deb
+    rm libasound2_1.1.3-5_i386.deb
+    rm libasound2-dev_1.1.3-5_i386.deb
 
-  echo "Installing MPD 20.18"
-  wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_i386.deb
-  dpkg -i mpd_0.20.18-1_i386.deb
-  rm mpd_0.20.18-1_i386.deb
+    echo "Installing MPD 20.18"
+    wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_i386.deb
+    dpkg -i mpd_0.20.18-1_i386.deb
+    rm mpd_0.20.18-1_i386.deb
+  fi
 
-  echo "Installing Upmpdcli"
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnp6_1.6.20.jfd5-1_i386.deb
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnpp3_0.15.1-1_i386.deb
-  dpkg -i libupnpp3_0.15.1-1_i386.deb
-  dpkg -i libupnp6_1.6.20.jfd5-1_i386.deb
-  dpkg -i upmpdcli_1.2.12-1_i386.deb
-  rm /libupnpp3_0.15.1-1_i386.deb
-  rm /upmpdcli_1.2.12-1_i386.deb
-  rm /libupnp6_1.6.20.jfd5-1_i386.deb
+  if [ ! $OS_VERSION_ID = 10 ]; then
+  	echo "Installing Upmpdcli"
+  	wget http://repo.volumio.org/Packages/Upmpdcli/x86/upmpdcli_1.2.12-1_i386.deb
+  	wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnp6_1.6.20.jfd5-1_i386.deb
+  	wget http://repo.volumio.org/Packages/Upmpdcli/x86/libupnpp3_0.15.1-1_i386.deb
+  	dpkg -i libupnpp3_0.15.1-1_i386.deb
+  	dpkg -i libupnp6_1.6.20.jfd5-1_i386.deb
+  	dpkg -i upmpdcli_1.2.12-1_i386.deb
+  	rm /libupnpp3_0.15.1-1_i386.deb
+	rm /upmpdcli_1.2.12-1_i386.deb
+	rm /libupnp6_1.6.20.jfd5-1_i386.deb
+  else
+    echo "===> TODO: add missing upmpdcli for buster"
+  fi
 
-  echo "Installing Shairport-Sync"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
-  tar xf shairport-sync-3.0.2-i386.tar.gz
-  rm /shairport-sync-3.0.2-i386.tar.gz
-  
-  echo "Installing Shairport-Sync Metadata Reader"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-i386.tar.gz
-  tar xf shairport-sync-metadata-reader-i386.tar.gz
-  rm /shairport-sync-metadata-reader-i386.tar.gz
-  
+# Shairport-Sync is in the Debian buster repo
+  if [ ! $OS_VERSION_ID = 10 ]; then
+    echo "Installing Shairport-Sync"
+    wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
+    tar xf shairport-sync-3.0.2-i386.tar.gz
+    rm /shairport-sync-3.0.2-i386.tar.gz
+  fi
 
-  echo "Installing LINN Songcast module"
-  wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
-  dpkg -i sc2mpd_1.1.1-1_i386.deb
-  rm /sc2mpd_1.1.1-1_i386.deb
+  if [ ! $OS_VERSION_ID = 10 ]; then
+	echo "Installing Shairport-Sync Metadata Reader"
+	wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-i386.tar.gz
+  	tar xf shairport-sync-metadata-reader-i386.tar.gz
+  	rm /shairport-sync-metadata-reader-i386.tar.gz
 
-  echo "Volumio Init Updater"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
-  chmod a+x /usr/local/sbin/volumio-init-updater
+  	echo "Installing LINN Songcast module"
+  	wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb
+  	dpkg -i sc2mpd_1.1.1-1_i386.deb
+  	rm /sc2mpd_1.1.1-1_i386.deb
+  else
+    echo "===> TODO: add missing Shairport-Sync Metadata Reader, LINN Songcast for buster"
+  fi
 
-  echo "Installing Zsync"
-  rm /usr/bin/zsync
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/zsync -P /usr/bin/
-  chmod a+x /usr/bin/zsync
+  if [ ! $OS_VERSION_ID = 10 ]; then
+	echo "Volumio Init Updater"
+    wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
+    chmod a+x /usr/local/sbin/volumio-init-updater
 
-  echo "Adding volumio-remote-updater for i386"
-  wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.3-i386.deb
-  dpkg -i volumio-remote-updater_1.3-i386.deb
-  rm /volumio-remote-updater_1.3-i386.deb
+    echo "Installing Zsync"
+    rm /usr/bin/zsync
+    wget http://repo.volumio.org/Volumio2/Binaries/x86/zsync -P /usr/bin/
+    chmod a+x /usr/bin/zsync
 
+    echo "Adding volumio-remote-updater for i386"
+    wget http://repo.volumio.org/Volumio2/Binaries/x86/volumio-remote-updater_1.3-i386.deb
+    dpkg -i volumio-remote-updater_1.3-i386.deb
+    rm /volumio-remote-updater_1.3-i386.deb
+  else
+    echo "===> TODO: add missing Volumio Init Updater, Zsync and Volumio Remote Updater for buster"
+  fi
 
 fi
 
@@ -413,8 +459,8 @@ chmod u+s /bin/ping
 
 echo "Creating Volumio Folder Structure"
 # Media Mount Folders
-mkdir /mnt/NAS
-mkdir /media
+mkdir -p /mnt/NAS
+mkdir -p /media
 ln -s /media /mnt/USB
 
 #Internal Storage Folder
@@ -481,10 +527,12 @@ update-rc.d mpd remove
 systemctl enable mpd.service
 
 echo "Preventing hotspot services from starting at boot"
+echo "===> TODO: check hotspot.service error for buster"
 systemctl disable hotspot.service
 systemctl disable dnsmasq.service
 
 echo "Preventing un-needed dhcp servers to start automatically"
+echo "===> TODO: check dhcpd.service error for buster"
 systemctl disable isc-dhcp-server.service
 systemctl disable dhcpd.service
 
@@ -513,6 +561,7 @@ echo '#' > /var/lib/alsa/asound.state
 chmod 777 /var/lib/alsa/asound.state
 
 echo "Fixing UPNP L16 Playback issue"
+echo "===> TODO: check protocolinfo.txtrepl error for buster"
 grep -v '^@ENABLEL16' /usr/share/upmpdcli/protocolinfo.txt > /usr/share/upmpdcli/protocolinfo.txtrepl && mv /usr/share/upmpdcli/protocolinfo.txtrepl /usr/share/upmpdcli/protocolinfo.txt
 
 #####################
@@ -560,7 +609,8 @@ chmod 666 /etc/resolv.conf.*
 ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 
 echo "Removing Avahi Service for UDISK-SSH"
-rm /etc/avahi/services/udisks.service
+echo "===> TODO: check UDISK-SSH error for buster"
+rm -f /etc/avahi/services/udisks.service
 
 #####################
 #CPU  Optimizations#-----------------------------------------

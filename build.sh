@@ -125,6 +125,7 @@ if [ -n "$BUILD" ]; then
   elif [ "$BUILD" = armv8 ] || [ "$BUILD" = armv8-dev ]; then
     ARCH="arm64"
     BUILD="armv8"
+    CONF="recipes/$BUILD-$SUITE.conf"
     echo "Building ARMV8 (arm64) Base System with Debian"
   elif [ "$BUILD" = x86 ] || [ "$BUILD" = x86-dev ]; then
     echo 'Building X86 Base System with Debian'
@@ -147,6 +148,12 @@ if [ -n "$BUILD" ]; then
   mkdir "build/$BUILD"
   mkdir "build/$BUILD/root"
 
+  echo "Importing keys for multistrap"
+  mkdir -p "build/$BUILD/root/etc/apt/trusted.gpg.d"
+  # apt-key --keyring "build/$BUILD/root/etc/apt/trusted.gpg.d/debian.gpg"  \
+  #   adv --batch --keyserver keys.gnupg.net --recv-key 0x04EE7237B7D453EC # Debian 9
+  apt-key --keyring "build/$BUILD/root/etc/apt/trusted.gpg.d/debian.gpg"  \
+  adv --batch --keyserver keys.gnupg.net --recv-key 0xDC30D7C23CBBABEE   # Debian 10
   if ! multistrap -a "$ARCH" -f "$CONF"
   then
     echo multistrap failed. Exitting
@@ -269,7 +276,7 @@ case "$DEVICE" in
     # this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
     sh scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
-    nanopi64) echo 'Writing NanoPI A64 Image File'
+  nanopi64) echo 'Writing NanoPI A64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/nanopi64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
@@ -318,6 +325,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/orangepiimage.sh -v "$VERSION" -p "$PATCH" -d "$DEVICE"
     ;;
+  rockpis) echo 'Writing ROCK Pi S Image File'
+      check_os_release "armv8" "$VERSION" "$DEVICE"
+      sh scripts/rockpisimage.sh -v "$VERSION" -p "$PATCH" -d "$DEVICE" -a armv8
+      ;;
   x86) echo 'Writing x86 Image File'
     check_os_release "x86" "$VERSION" "$DEVICE"
     sh scripts/x86image.sh -v "$VERSION" -p "$PATCH";

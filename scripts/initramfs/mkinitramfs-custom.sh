@@ -473,20 +473,12 @@ build_initramfs() {
 
 }
 
-
-
-
-
-
-
-
+# ===================== Start build process
 touch "$outfile"
 outfile="$(readlink -f "$outfile")"
 versions="$(ls -t /lib/modules | cat | head -n2)"
 v_version=$(echo ${versions} | awk '{print $1}')
 o_version=$(echo ${versions} | awk '{print $2}')
-
-
 
 
 #Create DESTDIR
@@ -496,10 +488,6 @@ chmod 755 "${DESTDIR_REAL}"
 DESTDIR_OTHER="$(mktemp -d ${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX)" || exit 1
 chmod 755 "${DESTDIR_OTHER}"
 
-
-
-# __TMPCPIOGZ="$(mktemp ${TMPDIR:-/var/tmp}/mkinitramfs-OL_XXXXXX)" || exit 1
-# __TMPEARLYCPIO="$(mktemp ${TMPDIR:-/var/tmp}/mkinitramfs-FW_XXXXXX)" || exit 1
 
 DPKG_ARCH=`dpkg --print-architecture`
 

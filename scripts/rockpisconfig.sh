@@ -1,14 +1,19 @@
 #!/bin/bash
-set -eo
+
 PATCH=$(cat /patch)
 
 # This script will be run in chroot under qemu.
+echo "Getting UUIDS"
+. init.sh
+echo "/dev/mmcblk0p1 : uudi: ${UUID_BOOT}"
+echo "/dev/mmcblk0p2 : uudi: ${UUID_IMG}"
+echo "/dev/mmcblk0p3 : uudi: ${UUID_DATA}"
 
 echo "Creating \"fstab\""
-echo "# NanoPi-NEO 2 fstab" > /etc/fstab
+echo "# ROCK Pi S fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
+/dev/mmcblk0p1    /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
 tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0
 tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
@@ -16,40 +21,23 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
-ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
-echo $ARCH
+# echo "Creating Rockchip boot config"
+# echo "label kernel-4.4
+#     kernel /zImage
+#     fdt /dtb/rockchip/rockpi-s-linux.dtb
+#     initrd /uInitrd
+#     append  earlyprintk imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf
+# "> /boot/extlinux/extlinux.conf
 
-if [ $ARCH = armv7 ]; then
-  echo "Armv7 Environment detected"
-  echo "#!/bin/sh
-sysctl abi.cp15_barrier=2
-" > /usr/local/bin/nanopineo2-init.sh
-  chmod +x /usr/local/bin/nanopineo2-init.sh
-
-  echo "#!/bin/sh -e
-  /usr/local/bin/nanopineo2-init.sh
-  exit 0" > /etc/rc.local
-fi
-
-#echo "Adding default sound modules and wifi"
-#echo "sunxi_codec
-#sunxi_i2s
-#sunxi_sndcodec
-#8723bs
-#" >> /etc/modules
-
-#echo "Blacklisting 8723bs_vq0"
-#echo "blacklist 8723bs_vq0" >> /etc/modprobe.d/blacklist-nanopineo2.conf
+apt-get update
+apt-get -y install u-boot-tools liblircclient0 lirc aptitude bc
 
 echo "Installing additonal packages"
-# apt-get -y install u-boot-tools lirc
+apt-get install -qq -y dialog debconf-utils lsb-release aptitude
 
-# echo "Cleaning APT Cache and remove policy file"
-# rm -f /var/lib/apt/lists/*archive*
-# apt-get clean
-
-echo "Adding custom modules overlay, squashfs and nls_cp437"
+echo "Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules
+echo "overlayfs" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
 
@@ -70,28 +58,23 @@ sh patch.sh
 else
 echo "Cannot Find Patch File, aborting"
 fi
-if [ -f "install.sh" ]; then
-sh install.sh
-fi
 cd /
 rm -rf ${PATCH}
 fi
 rm /patch
 
-
-#echo "Changing to 'modules=dep'"
-#echo "(otherwise NanoPi-NEO2 won't boot due to uInitrd 4MB limit)"
-#sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
-
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
 
-# echo "Install e2fsporgs from stretch"
-# # apt-get remove -y e2fsprogs
-# echo "deb http://deb.debian.org/debian stretch main" | sudo tee /etc/apt/sources.list.d/stretch.list
-# apt-get update && apt-get install -y e2fsprogs
-# sudo rm -f /etc/apt/sources.list.d/stretch.list
+echo "adding gpio group and udev rules"
+groupadd -f --system gpio
+usermod -aG gpio volumio
+touch /etc/udev/rules.d/99-gpio.rules
+echo "SUBSYSTEM==\"gpio\", ACTION==\"add\", RUN=\"/bin/sh -c '
+        chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
+        chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH\
+'\"" > /etc/udev/rules.d/99-gpio.rules
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -104,3 +87,9 @@ touch /boot/resize-volumio-datapart
 
 echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
+
+echo "Creating uInitrd from 'volumio.initrd'"
+mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+mkimage -A arm -T script -C none -d /boot/boot.cmd /boot/boot.scr
+echo "Cleaning up"
+# rm /boot/volumio.initrd
