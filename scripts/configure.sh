@@ -40,6 +40,8 @@ cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
 cp volumio/etc/dhcp/dhcpd.conf build/$BUILD/root/etc/dhcp/dhcpd.conf
 #Samba conf file
 cp volumio/etc/samba/smb.conf build/$BUILD/root/etc/samba/smb.conf
+#Set a samba password for the volumio user
+smbpasswd -a volumio <<< $'volumio\nvolumio\n'
 #Udev confs file (NET)
 cp -r volumio/etc/udev build/$BUILD/root/etc/
 #Udisks-glue for USB
