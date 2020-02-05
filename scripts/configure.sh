@@ -1,25 +1,36 @@
-#!/bin/sh
+#!/bin/bash
 ##
 #Volumio system Configuration Script
 ##
+
+set -eo pipefail
+function exit_error()
+{
+  log "Volumio config failed" "err" "$(basename "$0")"
+}
+
+trap exit_error INT ERR
+
 
 while getopts ":b:" opt; do
   case $opt in
     b)
       BUILD=$OPTARG
       ;;
+    *)
+      log "Unknown $OPTARG passed to configure.sh" "err"
   esac
 done
 
-echo 'Copying Custom Volumio System Files'
+log 'Copying Custom Volumio System Files' "info"
 #Apt conf file
 if [ "$BUILD" = arm ] || [ "$BUILD" = armv7 ] || [ "$BUILD" = armv8 ]; then
-  echo 'Copying ARM related configuration files'
+  log 'Copying ARM sources configuration files'
   cp volumio/etc/apt/sources.list.$BUILD build/$BUILD/root/etc/apt/sources.list
-  echo 'Setting time for ARM devices with fakehwclock to build time'
+  log 'Setting time for ARM devices with fakehwclock to build time'
   date -u '+%Y-%m-%d %H:%M:%S' > build/$BUILD/root/etc/fake-hwclock.data
 elif [ "$BUILD" = x86 ]; then
-  echo 'Copying X86 related Configuration files'
+  log 'Copying X86 related Configuration files'
   #APT sources file
   cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
 #Grub2 conf file
@@ -28,9 +39,13 @@ elif [ "$BUILD" = x86 ]; then
 #FSTAB File
   cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
 else
-  echo 'Unexpected Build Architecture, aborting...'
+  log 'Unexpected Build Architecture, aborting...' "err"
   exit 1
 fi
+
+log "Copying misc config to rootfs"
+oops
+
 #Edimax Power Saving Fix + Alsa modprobe
 cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/
 #Hosts file
@@ -100,9 +115,9 @@ chmod a+x build/$BUILD/root/bin/volumio_cpu_tweak
 #LAN HOTPLUG
 cp volumio/etc/default/ifplugd build/$BUILD/root/etc/default/ifplugd
 
-echo 'Done Copying Custom Volumio System Files'
+log 'Done Copying Custom Volumio System Files' "okay"
 
-echo "Stripping binaries and libraries to save space"
+log "Stripping binaries and libraries to save space"
 
 #echo "Size before strip"$( du -sh build/$BUILD/root/ )
 #find build/$BUILD/root/usr/lib -type f -name \*.a  -exec strip --strip-debug {} ';'
