@@ -2,7 +2,8 @@
 
 # Some general helpers for the Volumio Build system
 
-# Terminal colours
+
+# Terminal colors if supported
 if test -t 1; then # if terminal
 	ncolors=$(which tput > /dev/null && tput colors) # supports color
 	if test -n "$ncolors" && test $ncolors -ge 8; then
@@ -25,9 +26,6 @@ fi
 # Make logging a bit more legible and intuitive
 log()
 {
-	# log function parameters to install.log
-  # [[ -n $DEST ]] && echo "Displaying message: $@" >> $DEST/debug/output.log
-
   local tmp=""
   [[ -n $3 ]] && tmp="[${yellow} $3 ${normal}]"
 
