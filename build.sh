@@ -292,121 +292,121 @@ fi
 
 
 ## Prepare Images
-
+start_img=$(date +%s)
 case "$DEVICE" in
   pi) log 'Writing Raspberry Pi Image File' "info"
     check_os_release "arm" "$VERSION" "$DEVICE"
-    sh scripts/raspberryimage.sh -v "$VERSION" -p "$PATCH"
+    bash scripts/raspberryimage.sh -v "$VERSION" -p "$PATCH"
     ;;
   cuboxi) log 'Writing Cubox-i Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/cuboxiimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/cuboxiimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   odroidc1) log 'Writing Odroid-C1/C1+ Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/odroidc1image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/odroidc1image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   odroidc2) log 'Writing Odroid-C2 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/odroidc2image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/odroidc2image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   odroidn2) log 'Writing Odroid-N2 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/odroidn2image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/odroidn2image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   odroidxu4) log 'Writing Odroid-XU4 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/odroidxu4image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/odroidxu4image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   odroidx2) log 'Writing Odroid-X2 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/odroidx2image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/odroidx2image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   sparky) log 'Writing Sparky Image File' "info"
     check_os_release "arm" "$VERSION" "$DEVICE"
-    sh scripts/sparkyimage.sh -v "$VERSION" -p "$PATCH" -a arm
+    bash scripts/sparkyimage.sh -v "$VERSION" -p "$PATCH" -a arm
     ;;
   bbb) log 'Writing BeagleBone Black Image File' "info"
     check_os_release "arm" "$VERSION" "$DEVICE"
-    sh scripts/bbbimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/bbbimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   udooneo) log 'Writing UDOO NEO Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/udooneoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/udooneoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   udooqdl) log 'Writing UDOO Quad/Dual Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/udooqdlimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/udooqdlimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   pine64) log 'Writing Pine64 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
     # this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
-    sh scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   nanopi64) log 'Writing NanoPI A64 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/nanopi64image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/nanopi64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   bpim2u) log 'Writing BPI-M2U Image File' "info"
     check_os_release "arm" "$VERSION" "$DEVICE"
-    sh scripts/bpim2uimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/bpim2uimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   bpipro) log 'Writing Banana PI PRO Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/bpiproimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/bpiproimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   armbian_*)
     log 'Writing armbian-based Image File' "info"
     check_os_release "arm" "$VERSION" "$DEVICE"
-    sh scripts/armbianimage.sh -v "$VERSION" -d "$DEVICE" -p "$PATCH"
+    bash scripts/armbianimage.sh -v "$VERSION" -d "$DEVICE" -p "$PATCH"
     ;;
   tinkerboard) log 'Writing Ausus Tinkerboard Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/tinkerimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/tinkerimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   sopine64) log 'Writing Sopine64 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/sopine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/sopine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   rock64) log 'Writing Rock64 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/rock64image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/rock64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   voltastream0) log 'Writing PV Voltastream0 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/vszeroimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/vszeroimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   aml805armv7) log 'Writing Amlogic S805 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/aml805armv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/aml805armv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   aml812armv7) log 'Writing Amlogic S812 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/aml812armv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/aml812armv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   aml9xxxarmv7) log 'Writing AmlogicS9xxx Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/aml9xxxarmv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/aml9xxxarmv7image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   orangepione|orangepilite|orangepipc) log 'Writing OrangePi Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/orangepiimage.sh -v "$VERSION" -p "$PATCH" -d "$DEVICE"
+    bash scripts/orangepiimage.sh -v "$VERSION" -p "$PATCH" -d "$DEVICE"
     ;;
   rockpis) log 'Writing ROCK Pi S Image File' "info"
     check_os_release "armv8" "$VERSION" "$DEVICE"
-    sh scripts/rockpisimage.sh -v "$VERSION" -p "$PATCH" -d "$DEVICE" -a armv8
+    bash scripts/rockpisimage.sh -v "$VERSION" -p "$PATCH" -d "$DEVICE" -a armv8
     ;;
   x86) log 'Writing x86 Image File' "info"
     check_os_release "x86" "$VERSION" "$DEVICE"
-    sh scripts/x86image.sh -v "$VERSION" -p "$PATCH";
+    bash scripts/x86image.sh -v "$VERSION" -p "$PATCH";
     ;;
   nanopineo2) log 'Writing NanoPi-NEO2 armv7 Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/nanopineo2image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/nanopineo2image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   nanopineo) log 'Writing NanoPi-NEO (Air) Image File' "info"
     check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/nanopineoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    bash scripts/nanopineoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   "") log 'No device specified' "wrn"
     ;;
@@ -414,6 +414,15 @@ case "$DEVICE" in
     exit 1
     ;;
 esac
+
+end_img=$(date +%s)
+time_it $end_img $start_img
+log "Image ${IMG_FILE} Created" "okay" "$time_str"
+
+end_build=$(date +%s)
+time_it $end_build $start
+
+log "Done BUILD: ${standout}${BUILD}${normal} DEVICE: ${standout}${DEVICE}${normal} VERSION ${standout}${VERSION}${normal}" "okay" "$time_str"
 
 #When the tar is created we can build the docker layer
 if [ "$CREATE_DOCKER_LAYER" = 1 ]; then
