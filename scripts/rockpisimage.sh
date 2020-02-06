@@ -1,5 +1,14 @@
-#!/bin/sh
+#!/bin/bash
+
 set -eo
+
+function exit_error()
+{
+  log "Volumio imagebuilder failed" "$(basename "$0")" "err"
+}
+
+trap exit_error INT ERR
+
 # Default build for Debian 32bit
 ARCH="armv7"
 
@@ -17,23 +26,21 @@ while getopts ":d:v:p:a:" opt; do
     a)
       ARCH=$OPTARG
       ;;
+      *)
+      log "Unknown flag ${OPTARG}" "err" "$(basename "$0")"
   esac
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-${DEVICE}.img"
+IMG_FILE="Volumio_${VERSION}-${BUILDDATE}-${DEVICE}.img"
+export IMG_FILE
 
-if [ "$ARCH" = arm ]; then
-  DISTRO="Raspbian"
-else
-  DISTRO="Debian 32bit"
-fi
-
-echo "Creating Image File ${IMG_FILE} with $DISTRO $ARCH rootfs"
+log "Creating Image File ${IMG_FILE} with $ARCH rootfs" "info"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
-echo "Creating Image Bed"
+log "Creating Image Bed"
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
+
 # Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel msdos
 parted -s "${LOOP_DEV}" mkpart primary fat32 20 84
@@ -47,78 +54,79 @@ kpartx -s -a "${LOOP_DEV}"
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
 DATA_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
-echo "Using: " ${BOOT_PART}
-echo "Using: " ${SYS_PART}
-echo "Using: " ${DATA_PART}
+
 if [ ! -b "${BOOT_PART}" ]
 then
-	echo "${BOOT_PART} doesn't exist"
+	log "${BOOT_PART} doesn't exist" "err"
 	exit 1
 fi
 
-echo "Creating boot and rootfs filesystems"
+log "Creating boot and rootfs filesystems" "info"
 mkfs -t vfat -n BOOT "${BOOT_PART}"
 mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the ROCK Pi S kernel/platform files"
+log "Preparing for the ROCK Pi S kernel/platform files" "info"
 if [ -d platform-rockpis ]
 then
-	echo "Platform folder already exists - keeping it"
+	log "Platform folder already exists - keeping it"
 else
-	echo "Clone all ROCK Pi S files from repo"
+	log "Clone all ROCK Pi S files from repo"
 	# git clone https://github.com/ashthespy/platform-rockpis.git platform-rockpis
-  cp ../../platform-rockpis/rockpi-s.tar.xz
-	echo "Unpack the ROCK Pi S platform files"
+  cp ../../platform-rockpis/rockpi-s.tar.xz ./platform-rockpis
+	log "Unpack the ROCK Pi S platform files"
 	cd platform-rockpis
 	tar xfJ "rockpi-s.tar.xz"
   mv rockpi-s rockpis
 	cd ..
 fi
 
-echo "Burning the bootloader and u-boot"
+log "Burning the bootloader and u-boot" "info"
 sudo dd if=platform-rockpis/rockpis/u-boot/idbloader.bin of=${LOOP_DEV} seek=64 conv=notrunc status=none
 sudo dd if=platform-rockpis/rockpis/u-boot/uboot.img of=${LOOP_DEV} seek=16384 conv=notrunc status=none
 sudo dd if=platform-rockpis/rockpis/u-boot/trust.bin of=${LOOP_DEV} seek=24576 conv=notrunc status=none
 sync
 
-echo "Preparing for Volumio rootfs"
+log "Preparing for Volumio rootfs" "info"
 if [ -d /mnt ]
 then
-	echo "/mount folder exist"
+	log "/mount folder exist"
 else
 	mkdir /mnt
 fi
+
 if [ -d /mnt/volumio ]
 then
-	echo "Volumio Temp Directory Exists - Cleaning it"
+	log "Volumio Temp Directory Exists - Cleaning it"
 	rm -rf /mnt/volumio/*
 else
-	echo "Creating Volumio Temp Directory"
+	log "Creating Volumio Temp Directory"
 	sudo mkdir /mnt/volumio
 fi
 
-echo "Creating mount point for the images partition"
+log "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
 mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
-echo "Creating mount point for the boot partition"
+log "Creating mount point for the boot partition"
 mkdir /mnt/volumio/rootfs/boot
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
-echo "Copying Volumio RootFs"
+log "Copying Volumio RootFs" "info"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 
-echo "Copying ROCK Pi S boot files, kernel, modules and firmware"
+log "Copying ROCK Pi S boot files, kernel, modules and firmware"
 cp -dR platform-rockpis/${DEVICE}/boot /mnt/volumio/rootfs
 cp -pdR platform-rockpis/${DEVICE}/lib/modules /mnt/volumio/rootfs/lib
 cp -pdR platform-rockpis/${DEVICE}/lib/firmware /mnt/volumio/rootfs/lib
 
-echo "Preparing to run chroot for more ROCK Pi S configuration"
+log "Preparing to run chroot for more ROCK Pi S configuration" "info"
+start_chroot_final=$(date +%s)
 cp scripts/rockpisconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/helpers.sh /mnt/volumio/rootfs
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
@@ -127,7 +135,7 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 echo $PATCH > /mnt/volumio/rootfs/patch
 
-echo "Grab UUIDS"
+log "Grab UUIDS"
 echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
 UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
 UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
@@ -141,61 +149,59 @@ EOF
 
 #cleanup
 rm /mnt/volumio/rootfs/rockpisconfig.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/helpers.sh
 
-echo "Unmounting Temp devices"
+end_chroot_final=$(date +%s)
+time_it $end_chroot_final $start_chroot_final
+log "Finished chroot image configuration" "okay" "$time_str"
+
+log "Unmounting chroot tmp devices" "info"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-#echo "Copying LIRC configuration files"
-
-
-echo "==> ROCK Pi S device installed"
-
-#echo "Removing temporary platform files"
-#echo "(you can keep it safely as long as you're sure of no changes)"
-#rm -r platform-orangepi
 sync
 
-echo "Finalizing Rootfs creation"
+log "Finalizing Rootfs creation" "info"
 sh scripts/finalize.sh
+log "Rootfs created" "okay"
 
-echo "Preparing rootfs base for SquashFS"
+log "Preparing rootfs base for SquashFS" "info"
 
 if [ -d /mnt/squash ]; then
-	echo "Volumio SquashFS Temp Dir Exists - Cleaning it"
+	log "Volumio SquashFS Temp Dir Exists - Cleaning it"
 	rm -rf /mnt/squash/*
 else
-	echo "Creating Volumio SquashFS Temp Dir"
+	log "Creating Volumio SquashFS Temp Dir"
 	mkdir /mnt/squash
 fi
 
-echo "Copying Volumio rootfs to Temp Dir"
+log "Copying Volumio rootfs to Temp Dir"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
 if [ -e /mnt/kernel_current.tar ]; then
-	echo "Volumio Kernel Partition Archive exists - Cleaning it"
+	log "Volumio Kernel Partition Archive exists - Cleaning it"
 	rm -rf /mnt/kernel_current.tar
 fi
 
-echo "Creating Kernel Partition Archive"
+log "Creating Kernel Partition Archive"
 tar cf /mnt/kernel_current.tar  -C /mnt/squash/boot/ .
 
-echo "Removing the Kernel"
+log "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
-echo "Creating SquashFS, removing any previous one"
+log "Creating SquashFS, removing any previous one" "info"
 rm -r Volumio.sqsh
 mksquashfs /mnt/squash/* Volumio.sqsh
 
-echo "Squash filesystem created"
-echo "Cleaning squash environment"
+log "Squash filesystem created" "okay"
 rm -rf /mnt/squash
 
+log "Preparing boot partition" "info"
 #copy the squash image inside the boot partition
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
-echo "Unmounting Temp Devices"
+log "Unmounting Temp Devices" "okay"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
 
@@ -203,4 +209,5 @@ dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
 
+log "Hashing image" "info"
 md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
