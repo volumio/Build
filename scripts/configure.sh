@@ -44,7 +44,6 @@ else
 fi
 
 log "Copying misc config to rootfs"
-oops
 
 #Edimax Power Saving Fix + Alsa modprobe
 cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/

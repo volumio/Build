@@ -30,13 +30,14 @@ DISTRO_NAME="$(lsb_release -s -c)"
 
 log "Preapring to run Debconf in chroot" "info"
 log "Prevent services starting during install, running under chroot"
-cat > /usr/sbin/policy-rc.d << EOF
+cat <<-EOF > /usr/sbin/policy-rc.d
 exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
 log "Configuring dpkg to not include Manual pages and docs"
-echo "path-exclude /usr/share/doc/*
+cat <<-EOF > /etc/bash.bashrc
+path-exclude /usr/share/doc/*
 # we need to keep copyright files for legal reasons
 path-include /usr/share/doc/*/copyright
 path-exclude /usr/share/man/*
@@ -44,7 +45,8 @@ path-exclude /usr/share/groff/*
 path-exclude /usr/share/info/*
 # lintian stuff is small, but really unnecessary
 path-exclude /usr/share/lintian/*
-path-exclude /usr/share/linda/*" > /etc/dpkg/dpkg.cfg.d/01_nodoc
+path-exclude /usr/share/linda/*"
+EOF
 
 
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
@@ -63,7 +65,7 @@ fi
 log "Configuring packages" "info"
 #TODO do we need to log full output
 # shellcheck disable=SC2069
-if ! dpkg --configure -a  2>&1 > /dev/null
+if ! dpkg --configure --pending  2>&1 > /dev/null
 # if ! { dpkg --configure -a  > /dev/null; } 2>&1
 then
   log "Failed configuring packages!" "err"
@@ -220,10 +222,15 @@ ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
 log "Installing custom for ${ARCH} and ${DISTRO_VER}" "info"
 cd /
 
-log "Installing Nodejs"
+log "Prepare external source lists"
+cat <<-EOF > /etc/apt/sources.list.d/nodesource.list
+deb https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
+deb-src https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
+EOF
 
 
-log "!unimplemented!" "wrn"
+apt-get udpate && apt-get -y install nodejs
+
 #TODO: Refactor this!
 # Binaries
 # Nodejs
@@ -253,13 +260,14 @@ chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
 log "Setting mpdignore file"
-echo "@Recycle
+cat <<-EOF > /var/lib/mpd/music/.mpdignore
+@Recycle
 #recycle
 $*
 System Volume Information
 $RECYCLE.BIN
 RECYCLER
-" > /var/lib/mpd/music/.mpdignore
+EOF
 
 log "Setting mpc to bind to unix socket"
 export MPD_HOST=/run/mpd/socket
@@ -336,16 +344,19 @@ log "Tuning LAN"
 echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
 
 log "Disabling IPV6"
-echo "#disable ipv6" | tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
+cat <<-EOF >> /etc/sysctl.conf
+#disable ipv6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
 
 log "Creating Wireless service"
 ln -s /lib/systemd/system/wireless.service /etc/systemd/system/multi-user.target.wants/wireless.service
 
 log "Configuring hostapd"
-echo "interface=wlan0
+cat <<-EOF >> /etc/hostapd/hostapd.conf
+interface=wlan0
 ssid=Volumio
 channel=4
 driver=nl80211
@@ -355,7 +366,7 @@ wpa=2
 wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP
 wpa_passphrase=volumio2
-" >> /etc/hostapd/hostapd.conf
+EOF
 
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
 chmod -R 777 /etc/hostapd
@@ -364,10 +375,13 @@ log "Empty resolv.conf.head for custom DNS settings"
 touch /etc/resolv.conf.head
 
 log "Setting fallback DNS with OpenDNS nameservers"
-echo "# OpenDNS nameservers
+cat <<-EOF > /etc/resolv.conf.tail.tmpl
+# OpenDNS nameservers
 nameserver 208.67.222.222
-nameserver 208.67.220.220" > /etc/resolv.conf.tail.tmpl
+nameserver 208.67.220.220" >
 chmod 666 /etc/resolv.conf.*
+EOF
+
 ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 
 log "Removing Avahi Service for UDISK-SSH"
@@ -385,8 +399,8 @@ echo 'GOVERNOR="performance"' > /etc/default/cpufrequtils
 #####################
 
 log "Configuring xbindkeys"
-
-echo '"/usr/local/bin/volumio toggle"
+cat <<-EOF > /etc/xbindkeysrc
+"/usr/local/bin/volumio toggle"
     XF86AudioPlay
 "/usr/local/bin/volumio previous"
     XF86AudioPrev
@@ -397,7 +411,9 @@ echo '"/usr/local/bin/volumio toggle"
 "/usr/local/bin/volumio volume minus"
     XF86AudioLowerVolume
 "/usr/local/bin/volumio volume plus"
-XF86AudioRaiseVolume' > /etc/xbindkeysrc
+XF86AudioRaiseVolume'
+EOF
+
 
 log "Enabling xbindkeys"
 ln -s /lib/systemd/system/xbindkeysrc.service /etc/systemd/system/multi-user.target.wants/xbindkeysrc.service

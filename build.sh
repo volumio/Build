@@ -230,19 +230,19 @@ if [ -n "$BUILD" ]; then
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
 
   log "Adding Volumio revision information to os-release"
-  {
-    echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\""
-    echo "VOLUMIO_FE_VERSION=\"$(git --git-dir "build/$BUILD/root/volumio/http/www/.git" rev-parse HEAD)\""
-    echo "VOLUMIO_BE_VERSION=\"$(git --git-dir "build/$BUILD/root/volumio/.git" rev-parse HEAD)\""
-    echo "VOLUMIO_ARCH=\"${BUILD}\""
-  } >> "build/$BUILD/root/etc/os-release"
+  cat <<-EOF >> "build/$BUILD/root/etc/os-release"
+	VOLUMIO_BUILD_VERSION=$(git rev-parse HEAD)
+	VOLUMIO_FE_VERSION=$(git --git-dir "build/$BUILD/root/volumio/http/www/.git" rev-parse HEAD)
+	VOLUMIO_BE_VERSION=$(git --git-dir "build/$BUILD/root/volumio/.git" rev-parse HEAD)
+	VOLUMIO_ARCH=${BUILD}
+	EOF
   rm -rf build/$BUILD/root/volumio/http/www/.git
 
   if [ ! "$BUILD" = x86 ]; then
-    chroot "build/$BUILD/root" /bin/bash -x <<'EOF'
-su -
-./volumioconfig.sh
-EOF
+    chroot "build/$BUILD/root" /bin/bash -x <<-EOF
+	su -
+	./volumioconfig.sh
+	EOF
   else
     echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' > /proc/sys/fs/binfmt_misc/register
     chroot "build/$BUILD/root" /volumioconfig.sh
@@ -254,10 +254,12 @@ EOF
   CUR_DATE=$(date)
   #Write some Version information
   log "Writing system information"
-  echo "VOLUMIO_VARIANT=\"${VARIANT}\"
-VOLUMIO_TEST=\"FALSE\"
-VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
-  " >> "build/${BUILD}/root/etc/os-release"
+  cat <<-EOF >  "build/${BUILD}/root/etc/os-release"
+	VOLUMIO_VARIANT=\"${VARIANT}\"
+	VOLUMIO_TEST=\"FALSE\"
+	VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
+	EOF
+
 
   log "Unmounting Temp devices"
   umount -l "build/$BUILD/root/dev"
