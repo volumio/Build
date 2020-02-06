@@ -2,7 +2,6 @@
 
 # Some general helpers for the Volumio Build system
 
-
 # Terminal colors if supported
 if test -t 1; then # if terminal
 	ncolors=$(which tput > /dev/null && tput colors) # supports color
