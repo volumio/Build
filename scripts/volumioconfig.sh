@@ -4,6 +4,7 @@
 
 set -eo pipefail
 # Reimport helpers in chroot
+# shellcheck source=./scripts/helpers.sh
 source /helpers.sh
 
 function exit_error()
@@ -24,7 +25,7 @@ check_dependency() {
   fi
 }
 
-NODE_VERSION=12.x
+NODE_VERSION=node_12.x
 DISTRO_VER="$(lsb_release -s -r)"
 DISTRO_NAME="$(lsb_release -s -c)"
 
@@ -228,8 +229,8 @@ deb https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
 deb-src https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
 EOF
 
-
-apt-get udpate && apt-get -y install nodejs
+apt-get update
+apt-get -y install nodejs
 
 #TODO: Refactor this!
 # Binaries
