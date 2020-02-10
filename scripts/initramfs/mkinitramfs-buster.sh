@@ -150,7 +150,8 @@ build_initramfs() {
   # And by "version" we really mean path to kernel modules
   # This is braindead, and exists to preserve the interface with mkinitrd
   if [ ${#} -ne 1 ]; then
-    version="$(uname -r)"
+    echo "No version provided."
+    exit 2
   else
     version="${1}"
   fi
@@ -473,5 +474,86 @@ build_initramfs() {
     cat "${__TMPCPIOGZ}" >>"${outfile}" || exit 1
   fi
 
-  exit 0
 }
+
+## Prepare a initramfs for Volumio.initrd
+build_volumio_initramfs() {
+  log "Creating Volumio intramsfs" "info"
+  mapfile -t versions < <(ls -t /lib/modules | sort)
+  # Pick how many kernels we want to add
+  # (Future proofing for Rpi 5,6,7 etc..) ¯\_(ツ)_/¯
+
+  num_ker_max=3
+
+  log "Found ${#versions[@]} kernel versions"
+  for ver in "${!versions[@]}"
+  do
+    log "Building intramsfs for Kernel[${ver}]: ${versions[ver]}" "info"
+    build_initramfs ${versions[ver]}
+    log "initramfs built for Kernel[${ver}]: ${versions[ver]} at ${DESTDIR}" "okay"
+    if [[ $ver -eq 0 ]]; then
+      # The first initramfs location
+      DESTDIR_VOL=${DESTDIR}
+    elif [[ $ver -ge 0 ]]; then
+      log "Copying modules from ${DESTDIR} to ${DESTDIR_VOL}"
+      cp -rf "${DESTDIR}/lib/modules/${versions[ver]}" \
+        "${DESTDIR_VOL}/lib/modules/${versions[ver]}"
+    fi
+    if [[ $ver -gt $num_ker_max-1 ]]; then
+      log "Using only ${num_ker_max} kernels" "wrn"
+      break
+    fi
+  done
+  # Set correct final tmp/mkinitramfs_XXXXXX
+  DESTDIR=${DESTDIR_VOL}
+
+  # Add in VolumioOS customisation
+  log "Addig Volumio specific binaries" "info"
+  # Add VolumioOS binaries
+  volbins=('/sbin/parted' '/sbin/findfs' '/sbin/mkfs.ext4' \
+      '/sbin/e2fsck' '/sbin/resize2fs' \
+    '/usr/bin/i2crw1')
+  if [[ ${DPKG_ARCH} = 'i386' ]]; then
+    log "Adding x86 specific binaries (gdisk/lsblk/dmidecode..etc)"
+    volbins+=('/sbin/fdisk' '/sbin/gdisk' '/bin/lsblk' '/usr/sbin/dmidecode')
+  fi
+
+  for bin in "${volbins[@]}"; do
+    if [[ -f ${bin} ]]; then
+      log "Adding $bin to /sbin"
+      copy_exec $bin /sbin
+    else
+      log "$bin not found!" "wrn"
+    fi
+  done
+
+  if [[ -f '/usr/local/sbin/volumio-init-updater' ]]; then
+    log "Adding volumio-init-updater to initramfs"
+    chomod +x /usr/local/sbin/volumio-init-updater
+    copy_exec /usr/local/sbin/volumio-init-updater /sbin
+  else
+    log "volumio-init-updater not found!" "wrn"
+  fi
+}
+
+
+## Create initrd image from initramsfs
+build_initrd() {
+  log "Creating volumio.initrd Image" "info"
+  # Remove auto-generated scripts
+  rm -rf "${DESTDIR}/scripts"
+  cp /root/init "${DESTDIR}"
+  cd "${DESTDIR}"
+  OPTS="-o"
+  [ "${verbose}" = y ] && OPTS="-v ${OPTS}"
+  find . -print0 | cpio --quiet ${OPTS} -0 --format=newc | gzip -9 > /boot/volumio.initrd
+  # Check size
+  log "Created: /boot/volumio.initrd" "okay"
+  log "Debug info:"
+  ls -lah /boot/volumio.initrd
+  du -sh /boot
+}
+
+
+build_volumio_initramfs
+build_initrd
