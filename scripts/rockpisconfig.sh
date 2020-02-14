@@ -3,7 +3,7 @@
 set -eo pipefail
 
 # This script will be run in chroot under qemu.
-# Reimport helpers in chroot
+# Re import helpers in chroot
 # shellcheck source=./scripts/helpers.sh
 source /helpers.sh
 export -f log
