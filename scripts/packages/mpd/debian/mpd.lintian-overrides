@@ -1,4 +1,0 @@
-# update-rc.d is only called on upgrade, which is not forbidden and actually makes sense here
-preinst-calls-updaterc.d mpd
-# not setting -e on purpose
-maintainer-script-ignores-errors preinst

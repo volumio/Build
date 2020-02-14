@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -eo
 while getopts ":v:p:" opt; do
   case $opt in
     v)
@@ -24,7 +24,7 @@ dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
 
 sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 0 64
+sudo parted -s "${LOOP_DEV}" mkpart primary fat32 0 64 # Might need to be made bigger!
 sudo parted -s "${LOOP_DEV}" mkpart primary ext3 64 2500
 sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2500 2800
 sudo parted -s "${LOOP_DEV}" set 1 boot on
@@ -79,7 +79,7 @@ echo "Entering Chroot Environment"
 cp scripts/raspberryconfig.sh /mnt/volumio/rootfs
 
 cp scripts/initramfs/init /mnt/volumio/rootfs/root
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/initramfs/mkinitramfs-buster.sh /mnt/volumio/rootfs/usr/local/sbin
 
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc

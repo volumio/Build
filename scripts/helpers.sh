@@ -26,7 +26,7 @@ fi
 log()
 {
   local tmp=""
-  [[ -n $3 ]] && tmp="[${yellow} $3 ${normal}]"
+  [[ -n $3 ]] && tmp="${normal}[${yellow} $3 ${normal}]"
 
   case $2 in
     err)
@@ -37,8 +37,8 @@ log()
       echo -e "[${magenta}${bold} warn ${normal}] $1 $tmp"
       ;;
 
-    ext)
-      echo -e "[${green}${bold} o.k. ${normal}] ${blue} $1 ${normal} $tmp"
+    dbg)
+      echo -e "[${standout} dbg ${normal}] ${blue} $1 ${normal} $tmp"
       ;;
 
     info)
@@ -61,6 +61,10 @@ log()
   esac
 }
 
+# Check if device/path is mounted
+# where: -r = --raw, -n = --noheadings, -o = --output
+# return exit codes: 0 = found, 1 = not found
+isMounted() { findmnt -rno SOURCE,TARGET "$1" >/dev/null;}
 
 time_it() {
 	time=$(( $1-$2 ))
