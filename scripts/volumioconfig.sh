@@ -500,6 +500,9 @@ echo "Adding Shairport-Sync User"
 getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
 getent passwd shairport-sync &> /dev/null || useradd -r -M -g shairport-sync -s /usr/bin/nologin -G audio shairport-sync >/dev/null
 
+echo "Adding cap_net_raw privileges, to allow BLE communications"
+setcap cap_net_raw+eip /bin/node
+
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
