@@ -539,7 +539,7 @@ build_volumio_initramfs() {
 
 ## Create initrd image from initramsfs
 build_initrd() {
-  log "Creating volumio.initrd Image" "info"
+  log "Creating volumio.initrd Image from ${DESTDIR}" "info"
   # Remove auto-generated scripts
   rm -rf "${DESTDIR}/scripts"
   cp /root/init "${DESTDIR}"
