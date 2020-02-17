@@ -26,6 +26,12 @@ fi
 log()
 {
   local tmp=""
+	if [[ $chr == yes ]]; then
+		char="--"
+	 else
+		 char=".."
+	 fi
+
   [[ -n $3 ]] && tmp="${normal}[${yellow} $3 ${normal}]"
 
   case $2 in
@@ -42,7 +48,7 @@ log()
       ;;
 
     info)
-      echo -e "[${green} .... ${normal}]${cyan} $1 $tmp ${normal}"
+      echo -e "[${green} $char$char ${normal}]${cyan} $1 $tmp ${normal}"
       ;;
 
     okay)
@@ -50,7 +56,7 @@ log()
       ;;
 
 		"")
-			echo -e "[${green} .. ${normal}] $1 $tmp "
+			echo -e "[${green} $char ${normal}] $1 $tmp "
 			;;
 
     *)
