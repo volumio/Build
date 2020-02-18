@@ -159,8 +159,7 @@ end_chroot_final=$(date +%s)
 time_it $end_chroot_final $start_chroot_final
 log "Finished chroot image configuration" "okay" "$time_str"
 
-log "Finalizing Rootfs creation" "info"
-
+log "Finalizing Rootfs (Cleaning, Stripping, Hash)" "info"
 # shellcheck source=./scripts/volumio/finalize.sh
 source ${SRC}/scripts/volumio/finalize.sh
 
@@ -208,8 +207,8 @@ cp $SRC/Volumio.sqsh $VOLMNT/images/volumio_current.sqsh
 sync
 
 log "Unmounting devices" "info"
-unmount -l $VOLMNT/images
-unmount -l $ROOTFSMNT/boot
+umount -l $VOLMNT/images
+umount -l $ROOTFSMNT/boot
 
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
