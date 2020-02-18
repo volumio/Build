@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-## Setup for Radxa Rock Pi S board
+## Setup for Radxa Rock Pi S
 
 ## WIP, this should be refactored out to a higher level.
 # Base system
@@ -13,7 +13,6 @@ DEVICENAME="ROCK Pi S"
 DEVICEBASE="rockpis"
 DEVICEREPO="https://github.com/ashthespy/platform-rockpis.git"
 
-
 ### What features do we want to target
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
@@ -21,16 +20,16 @@ VOLINITUPDATER=no
 
 # Modules that will be added to intramsfs
 MODULES=("overlay" "overlayfs" "squashfs" "nls_cp437")
-
 # Packages that will be installed
-# PACKAGES=("winbind" "u-boot-tools")
-PACKAGES=("winbind" )
-# Copy the device specific files (Image/DTS/etc..)
+PACKAGES=("winbind" "u-boot-tools")
 
+
+### Device customisation
+# Copy the device specific files (Image/DTS/etc..)
 write_device_files() {
-  cp -dR ${platform_dir}/${DEVICE}/boot ${rootfsmnt}
-  cp -pdR ${platform_dir}/${DEVICE}/lib/modules ${rootfsmnt}/lib
-  cp -pdR ${platform_dir}/${DEVICE}/lib/firmware ${rootfsmnt}/lib
+  cp -dR ${platform_dir}/${DEVICE}/boot ${ROOTFSMNT}
+  cp -pdR ${platform_dir}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib
+  cp -pdR ${platform_dir}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib
 }
 
 write_device_bootloader(){
@@ -39,16 +38,15 @@ write_device_bootloader(){
   dd if="${platform_dir}/${DEVICE}/u-boot/trust.bin" of=${LOOP_DEV} seek=24576 conv=notrunc status=none
 }
 
-
-device_tweaks(){
+# Will be called by the image builder for any customisation
+device_image_tweaks(){
   :
 }
 
-
-# Pre initramfs
+# Will be run in chroot - Pre initramfs
 device_chroot_tweaks_pre() {
-  log "Performing device_chroot_tweaks_pre" "info"
-  log "adding gpio group and udev rules"
+  log "Performing device_chroot_tweaks_pre" "ext"
+  log "Adding gpio group and udev rules"
   groupadd -f --system gpio
   usermod -aG gpio volumio
   #TODO: Refactor to cat
@@ -59,8 +57,7 @@ device_chroot_tweaks_pre() {
     '\"" > /etc/udev/rules.d/99-gpio.rules
 }
 
-# Post initramfs
+# Will be run in chroot - Post initramfs
 device_chroot_tweaks_post(){
-  log "Performing device_chroot_tweaks_post" "info"
-  mkimage -A $ARCH -T script -C none -d /boot/boot.cmd /boot/boot.scr
+  :
 }

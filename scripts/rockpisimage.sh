@@ -10,7 +10,7 @@ function exit_error()
 trap exit_error INT ERR
 
 # Default build for Debian 32bit
-ARCH="armv7"
+ARCH="armv8"
 
 while getopts ":d:v:p:a:" opt; do
   case $opt in
@@ -125,7 +125,7 @@ log "Preparing to run chroot for more ROCK Pi S configuration" "info"
 start_chroot_final=$(date +%s)
 cp scripts/rockpisconfig.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/initramfs/mkinitramfs-buster.sh /mnt/volumio/rootfs/usr/local/sbin
 cp scripts/helpers.sh /mnt/volumio/rootfs
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater

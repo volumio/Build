@@ -485,7 +485,7 @@ build_volumio_initramfs() {
 
   num_ker_max=3
 
-  log "Found ${#versions[@]} kernel versions"
+  log "Found ${#versions[@]} kernel version(s)"
   for ver in "${!versions[@]}"
   do
     log "Building intramsfs for Kernel[${ver}]: ${versions[ver]}" "info"
@@ -549,9 +549,7 @@ build_initrd() {
   find . -print0 | cpio --quiet ${OPTS} -0 --format=newc | gzip -9 > /boot/volumio.initrd
   # Check size
   log "Created: /boot/volumio.initrd" "okay"
-  log "Debug info:"
-  ls -lah /boot/volumio.initrd
-  du -sh /boot
+  log "Boot partition info:" "dbg" "$(du -sh /boot)"
 }
 
 

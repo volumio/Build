@@ -6,8 +6,8 @@ set -eo pipefail
 # Re import helpers in chroot
 # shellcheck source=./scripts/helpers.sh
 source /helpers.sh
-chr=yes
-export chr
+CHROOT=yes
+export CHROOT
 export -f log
 export -f time_it
 
@@ -77,13 +77,21 @@ rm /usr/sbin/policy-rc.d
 log "Signaling the init script to re-size the Volumio data partition"
 touch /boot/resize-volumio-datapart
 
+log "Running device_chroot_tweaks_pre" "cfg"
+device_chroot_tweaks_pre
+
 log "Creating initramfs 'volumio.initrd'" "info"
 mkinitramfs-buster.sh -o /tmp/initramfs-tmp
 log "Finished creating initramfs" "okay"
 
+log "Running device_chroot_tweaks_post" "cfg"
 device_chroot_tweaks_post
 
 if [[ ! $BUILD == "x86" ]]; then
   log "Creating uInitrd from 'volumio.initrd'" "info"
-  mkimage -A $ARCH -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+  mkimage -v -A $ARCH -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+  if [[ -f /boot/boot.cmd ]]; then
+    log "Creating boot.scr"
+    mkimage -A $ARCH -T script -C none -d /boot/boot.cmd /boot/boot.scr
+  fi
 fi
