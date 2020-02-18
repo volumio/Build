@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034
 ## Setup for Radxa Rock Pi S
 
 ## WIP, this should be refactored out to a higher level.
 # Base system
-BASE=Debian
-ARCH=arm64
-BUILD=armv8 #
+BASE="Debian"
+ARCH="arm64"
+BUILD="armv8"
 
 ### Device information
 DEVICENAME="ROCK Pi S"
@@ -27,15 +28,15 @@ PACKAGES=("winbind" "u-boot-tools")
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
 write_device_files() {
-  cp -dR ${platform_dir}/${DEVICE}/boot ${ROOTFSMNT}
-  cp -pdR ${platform_dir}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib
-  cp -pdR ${platform_dir}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib
+  cp -dR ${PLTDIR}/${DEVICE}/boot ${ROOTFSMNT}
+  cp -pdR ${PLTDIR}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib
+  cp -pdR ${PLTDIR}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib
 }
 
 write_device_bootloader(){
-  dd if="${platform_dir}/${DEVICE}/u-boot/idbloader.bin" of=${LOOP_DEV} seek=64 conv=notrunc status=none
-  dd if="${platform_dir}/${DEVICE}/u-boot/uboot.img" of=${LOOP_DEV} seek=16384 conv=notrunc status=none
-  dd if="${platform_dir}/${DEVICE}/u-boot/trust.bin" of=${LOOP_DEV} seek=24576 conv=notrunc status=none
+  dd if="${PLTDIR}/${DEVICE}/u-boot/idbloader.bin" of=${LOOP_DEV} seek=64 conv=notrunc status=none
+  dd if="${PLTDIR}/${DEVICE}/u-boot/uboot.img" of=${LOOP_DEV} seek=16384 conv=notrunc status=none
+  dd if="${PLTDIR}/${DEVICE}/u-boot/trust.bin" of=${LOOP_DEV} seek=24576 conv=notrunc status=none
 }
 
 # Will be called by the image builder for any customisation
