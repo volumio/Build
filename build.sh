@@ -118,7 +118,7 @@ if [ "$NUMARGS" -eq 0 ]; then
   HELP
 fi
 
-while getopts b:v:d:l:p:t:e:h: FLAG; do
+while getopts b:v:d:p:t:e:h: FLAG; do
   case $FLAG in
     b)
       BUILD=$OPTARG
@@ -129,11 +129,11 @@ while getopts b:v:d:l:p:t:e:h: FLAG; do
     v)
       VERSION=$OPTARG
       ;;
-    l)
-      #Create docker layer
-      CREATE_DOCKER_LAYER=1
-      DOCKER_REPOSITORY_NAME=$OPTARG
-      ;;
+    # l)
+    #   #Create docker layer
+    #   CREATE_DOCKER_LAYER=1
+    #   DOCKER_REPOSITORY_NAME=$OPTARG
+      # ;;
     p)
       PATCH=$OPTARG
       ;;
@@ -406,7 +406,7 @@ $([[ -n $VERSION ]] && echo "${yellow}VERSION=${standout}${VERSION}${normal} ")\
 ${normal}" "okay" "$time_str"
 
 
-# Looks to be an artifact of some customization of a build script - lets ignore it for now.
+# Lets ignore this for now.
 # #When the tar is created we can build the docker layer
 # if [ "$CREATE_DOCKER_LAYER" = 1 ]; then
 #   log 'Creating docker layer' "info"
