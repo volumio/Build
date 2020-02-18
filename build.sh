@@ -55,27 +55,30 @@ Example: Build a Raspberry PI image from scratch, version 2.0 :
 }
 
 mount_chroot() {
-  log "Mounting temp devices for chroot" "info"
-  mount /proc "$rootfs/proc" -t proc
-  mount /sys "$rootfs/sys" -t sysfs
-  mount chdev "$rootfs/dev" -t devtmpfs || mount --bind /dev "$rootfs/dev"
-  mount chpts "$rootfs/dev/pts" -t devpts
+  local base=$1
+  log "Mounting temp devices for chroot at ${base}" "info"
+  mount /proc "${base}/proc" -t proc
+  mount /sys "${base}/sys" -t sysfs
+  mount chdev "${base}/dev" -t devtmpfs || mount --bind /dev "${base}/dev"
+  mount chpts "${base}/dev/pts" -t devpts
 
-  # mount /dev "$rootfs/dev" -o bind
-  # Change the prompt so we know
-  export PS1="(chroot) $PS1"
+  # Lets record this, might come in handy.
+  CHROOT=yes
+  export CHROOT
 }
 
 unmount_chroot(){
-  log "Unmounting chroot temporary devices"
-  umount -l "$rootfs/dev"  || log "umount dev failed" "wrn"
-  umount -l "$rootfs/proc" || log "umount proc failed" "wrn"
-  umount -l "$rootfs/sys"  || log "umount sys failed" "wrn"
+  local base=$1
+  log "Unmounting chroot temporary devices at ${base}"
+  umount -l "${base}/dev"  || log "umount dev failed" "wrn"
+  umount -l "${base}/proc" || log "umount proc failed" "wrn"
+  umount -l "${base}/sys"  || log "umount sys failed" "wrn"
 
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
-  if [[ -d "$rootfs/run/cgmanager/fs" ]]; then
-    umount -l "$rootfs/run/cgmanager/fs" || log "unmount cgmanager failed" "wrn"
+  if [[ -d "${base}/run/cgmanager/fs" ]]; then
+    umount -l "${base}/run/cgmanager/fs" || log "unmount cgmanager failed" "wrn"
   fi
+  CHROOT=no
 }
 
 exit_error () {
@@ -83,7 +86,7 @@ exit_error () {
   # Check if there are any mounts that need cleaning up
   # If dev is mounted, the rest should also be mounted (right?)
   if isMounted "$rootfs/dev"; then
-    unmount_chroot
+    unmount_chroot $rootfs
   fi
 }
 
@@ -214,7 +217,7 @@ if [ -n "$BUILD" ]; then
 
   log "Creating rootfs in <./build/$BUILD/root>"
 
-  #### Build stage 0
+  #### Build stage 0 - Multistrap
   ### Multistrap
   log "Setting up Multistrap environment" "info"
   log "Preparing rootfs apt-config"
@@ -259,7 +262,7 @@ if [ -n "$BUILD" ]; then
   cp scripts/volumio/volumioconfig.sh "$rootfs"
   cp scripts/helpers.sh "$rootfs"
 
-  mount_chroot
+  mount_chroot ${rootfs}
 
   log 'Cloning Volumio Node Backend'
   mkdir "$rootfs/volumio"
@@ -276,10 +279,10 @@ if [ -n "$BUILD" ]; then
 
   log "Adding Volumio revision information to os-release"
   cat <<-EOF >> "$rootfs/etc/os-release"
-	VOLUMIO_BUILD_VERSION=$(git rev-parse HEAD)
-	VOLUMIO_FE_VERSION=$(git --git-dir "$rootfs/volumio/http/www/.git" rev-parse HEAD)
-	VOLUMIO_BE_VERSION=$(git --git-dir "$rootfs/volumio/.git" rev-parse HEAD)
-	VOLUMIO_ARCH=${BUILD}
+	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
+	VOLUMIO_FE_VERSION="$(git --git-dir "$rootfs/volumio/http/www/.git" rev-parse HEAD)"
+	VOLUMIO_BE_VERSION="$(git --git-dir "$rootfs/volumio/.git" rev-parse HEAD)"
+	VOLUMIO_ARCH="${BUILD}"
 	EOF
   # Clean up git repo
   rm -rf $rootfs/volumio/http/www/.git
@@ -302,12 +305,12 @@ if [ -n "$BUILD" ]; then
   #Write some Version information
   log "Writing system information"
   cat <<-EOF >>  "build/${BUILD}/root/etc/os-release"
-	VOLUMIO_VARIANT=\"${VARIANT}\"
-	VOLUMIO_TEST=\"FALSE\"
-	VOLUMIO_BUILD_DATE=\"${CUR_DATE}\"
+	VOLUMIO_VARIANT="${VARIANT}"
+	VOLUMIO_TEST="FALSE"
+	VOLUMIO_BUILD_DATE="${CUR_DATE}"
 	EOF
 
-  unmount_chroot
+  unmount_chroot ${rootfs}
 
   end_chroot=$(date +%s)
   time_it $end_chroot $start_chroot
@@ -334,7 +337,7 @@ else
 fi
 
 
-## Stage two Device specific
+#### Build stage 1 - Device specific image creation
 
 if [[ -n "$DEVICE" ]]; then
   DEV_CONFIG="$SRC/recipes/boards/${DEVICE}.sh"
@@ -344,12 +347,19 @@ if [[ -n "$DEVICE" ]]; then
     log "Preparing an image for ${DEVICE} using $BASE - $BUILD"
     if [[ $use_rootfs_tarball == yes ]]; then
       log "Trying to use prior base system" "info"
+      if [[ -d $SRC/build/$BUILD ]]; then
+        log "Using prior Base system"
+      else
       rootfs_tarball="$SRC/build/$BUILD"_rootfs
       [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
+      log "Using prior Base tarball"
       mkdir ./build/${BUILD}
       pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" \
         | lz4 -dc \
         | tar xp --xattrs -C ./build/${BUILD}
+      fi
+      rootfs="$SRC/build/$BUILD/root"
+
     fi
   else
     log "No configuration found for $DEVICE" "err"
@@ -366,14 +376,15 @@ if [[ -n "$DEVICE" ]]; then
     PATCH='volumio'
   fi
 
-  ## Stage two Image creation
   # Prepare Images
   start_img=$(date +%s)
   BUILDDATE=$(date -I)
   IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-${DEVICE}.img"
-  
-  # shellcheck source=./scripts/makeimage.sh
+
+  # shellcheck source=scripts/makeimage.sh
   source $SRC/scripts/makeimage.sh
+  # # shellcheck source=scripts/rockpisimage.sh
+  # source $SRC/scripts/rockpisimage.sh
 
   end_img=$(date +%s)
   time_it $end_img $start_img
