@@ -26,17 +26,20 @@ fi
 log()
 {
   local tmp=""
-	if [[ $chr == yes ]]; then
+	local char=".."
+	if [[ $CHROOT == yes ]]; then
 		char="--"
-	 else
-		 char=".."
-	 fi
+  fi
 
   [[ -n $3 ]] && tmp="${normal}[${yellow} $3 ${normal}]"
 
   case $2 in
     err)
       echo -e "[${red} ${bold}error ${normal}]${red} $1 ${normal}$tmp"
+      ;;
+
+    cfg)
+      echo -e "[${cyan} ${bold}cfg ${normal}]${yellow} $1 ${normal}$tmp"
       ;;
 
     wrn)

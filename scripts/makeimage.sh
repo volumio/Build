@@ -7,14 +7,15 @@ exit_error () {
   log "Imagebuilder script failed!!" "err"
   # Check if there are any mounts that need cleaning up
   # If dev is mounted, the rest should also be mounted (right?)
-  if isMounted "$rootfs/dev"; then
-    unmount_chroot
+  if isMounted "$ROOTFSMNT/dev"; then
+    unmount_chroot ${ROOTFSMNT}
   fi
 
   # dmsetup remove_all
-  log "Cleaning loop device $LOOP_DEV"
-  losetup -d ${LOOP_DEV}
-  dmsetup remove ${LOOP_DEV}
+  log "Cleaning loop device $LOOP_DEV" "wrn"
+  losetup -j $IMG_FILE
+  dmsetup remove ${LOOP_DEV} && \
+    losetup -d ${LOOP_DEV}
   log "Deleting image file"
   rm ${IMG_FILE}
 }
@@ -25,22 +26,23 @@ log "Stage [2]: Creating Image" "info"
 log "Image file: ${IMG_FILE}"
 VOLMNT=/mnt/volumio
 #TOOD Pick the parition scheme(size?) from board conf
-#TODO boot partition might need to be bigger, rPi arleady is touch and go
+#TODO boot partition might need to be bigger, rPi already is touch and go
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 LOOP_DEV=$(losetup -f --show ${IMG_FILE})
 
+# Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary fat32 0 64
-parted -s "${LOOP_DEV}" mkpart primary ext3 64 2500
-parted -s "${LOOP_DEV}" mkpart primary ext3 2500 2800
+parted -s "${LOOP_DEV}" mkpart primary fat32 20 84
+parted -s "${LOOP_DEV}" mkpart primary ext3 84 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
 kpartx -a "${LOOP_DEV}" -s
 
-BOOT_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
-IMG_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
-DATA_PART=`echo /dev/mapper/"$( echo $LOOP_DEV | sed -e 's/.*\/\(\w*\)/\1/' )"p3`
+BOOT_PART=/dev/mapper/"$(awk -F'/' '{print $NF}'<<< $LOOP_DEV)"p1
+IMG_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<< $LOOP_DEV)"p2
+DATA_PART=/dev/mapper/"$(awk -F'/' '{print $NF}'<<< $LOOP_DEV)"p3
 
 if [[ ! -b "$BOOT_PART" ]]; then
   log "$BOOT_PART doesn't exist" "err"
@@ -65,21 +67,22 @@ fi
 
 # Create mount point for image partitions
 log "Creating mount point for the images partition"
-rootfsmnt=$VOLMNT/rootfs
+ROOTFSMNT=$VOLMNT/rootfs
 mkdir $VOLMNT/images
-mkdir -p $rootfsmnt/boot
+mkdir -p $ROOTFSMNT/boot
 # Boot is vfat
 
 mount -t ext4 "${IMG_PART}" $VOLMNT/images
-mount -t vfat "${BOOT_PART}" $rootfsmnt/boot
+mount -t vfat "${BOOT_PART}" $ROOTFSMNT/boot
 
 #TODO -pPR?
-cp -pdR $rootfs/* $rootfsmnt
+log "Copying Volumio RootFs" "info"
+cp -pdR $rootfs/* $ROOTFSMNT
 
 # Refactor this to support more binaries
 if [[ $VOLINITUPDATER == yes ]]; then
   log "Fetching volumio-init-updater"
-  wget -P $rootfsmnt/usr/local/sbin http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
+  wget -P $ROOTFSMNT/usr/local/sbin http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
 fi
 
@@ -106,7 +109,7 @@ write_device_bootloader
 
 # Device specific tweaks
 log "Performing ${DEVICE} specific tweaks"
-device_tweaks
+device_image_tweaks
 
 # Ensure all filesystems oprations are completed before entering chroot again
 sync
@@ -114,10 +117,10 @@ sync
 #### Build stage 2 - Device specific chroot config
 log "Preparing to run chroot for more ${DEVICE} configuration" "info"
 start_chroot_final=$(date +%s)
-cp $SRC/scripts/initramfs/init.nextarm $rootfsmnt/root/init
-cp $SRC/scripts/initramfs/mkinitramfs-buster.sh $rootfsmnt/usr/local/sbin
-cp $SRC/scripts/volumio/chrootconfig.sh $rootfsmnt
-echo $PATCH > $rootfsmnt/patch
+cp $SRC/scripts/initramfs/init.nextarm $ROOTFSMNT/root/init
+cp $SRC/scripts/initramfs/mkinitramfs-buster.sh $ROOTFSMNT/usr/local/sbin
+cp $SRC/scripts/volumio/chrootconfig.sh $ROOTFSMNT
+echo $PATCH > $ROOTFSMNT/patch
 
 # Copy across custom bits and bobs from device config
 # This is in the hope that <./recipes/boards/${DEVICE}>
@@ -125,7 +128,7 @@ echo $PATCH > $rootfsmnt/patch
 
 #TODO: Should we just copy the
 # whole thing into the chroot to make life easier?
-cat <<-EOF > $rootfsmnt/chroot_device_config.sh
+cat <<-EOF > $ROOTFSMNT/chroot_device_config.sh
 DEVICENAME="${DEVICENAME}"
 ARCH="${ARCH}"
 MODULES=($(printf '\"%s\" ' "${MODULES[@]}"))
@@ -134,7 +137,7 @@ $(declare -f device_chroot_tweaks_pre)
 $(declare -f device_chroot_tweaks_post)
 EOF
 
-mount_chroot
+mount_chroot ${ROOTFSMNT}
 ## Enter chroot for last leg of config
 # log "Grab UUIDS"
 # echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
@@ -144,12 +147,14 @@ mount_chroot
 # chmod +x /mnt/volumio/rootfs/root/init.sh
 
 log "Calling final chroot config script"
-chroot $rootfsmnt /bin/bash -x <<'EOF'
+chroot $ROOTFSMNT /bin/bash -x <<'EOF'
 su -
 /chrootconfig.sh
 EOF
 # Clean up chroot stuff
-unmount_chroot
+rm ${ROOTFSMNT:?}/*.sh ${ROOTFSMNT}/root/init
+
+unmount_chroot ${ROOTFSMNT}
 end_chroot_final=$(date +%s)
 time_it $end_chroot_final $start_chroot_final
 log "Finished chroot image configuration" "okay" "$time_str"
@@ -174,7 +179,7 @@ else
   mkdir $SQSHMNT
 fi
 log "Copying Volumio rootfs to SquashFS Dir"
-cp -rp $rootfsmnt/* $SQSHMNT
+cp -rp $ROOTFSMNT/* $SQSHMNT
 
 
 log "Creating Kernel Partition Archive" "info"
@@ -204,7 +209,7 @@ sync
 
 log "Unmounting devices" "info"
 unmount -l $VOLMNT/images
-unmount -l $rootfsmnt/boot
+unmount -l $ROOTFSMNT/boot
 
 dmsetup remove_all
 losetup -d ${LOOP_DEV}

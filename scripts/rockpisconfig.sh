@@ -44,10 +44,10 @@ squashfs
 nls_cp437
 EOF
 
-if [[ -f /root/volumio-init-updater ]]; then
-  log "Copying volumio initramfs updater"
-  mv /root/volumio-init-updater /usr/local/sbin
-fi
+# if [[ -f /root/volumio-init-updater ]]; then
+#   log "Copying volumio initramfs updater"
+#   mv /root/volumio-init-updater /usr/local/sbin
+# fi
 
 #On The Fly Patch
 PATCH=$(cat /patch)
@@ -90,10 +90,11 @@ log "Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
 
 log "Creating initramfs 'volumio.initrd'" "info"
-mkinitramfs-custom.sh -o /tmp/initramfs-tmp
+mkinitramfs-buster.sh -o /tmp/initramfs-tmp
 
 log "Finished creating initramfs" "okay"
 
 log "Creating uInitrd from 'volumio.initrd'" "info"
+ls -la /boot
 mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 mkimage -A arm -T script -C none -d /boot/boot.cmd /boot/boot.scr
