@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155
 
 # Some general helpers for the Volumio Build system
 
@@ -78,9 +79,9 @@ isMounted() { findmnt -rno SOURCE,TARGET "$1" >/dev/null;}
 time_it() {
 	time=$(( $1-$2 ))
 	if [[ $time -lt 60 ]]; then
-		time_str="$time sec"
+		TIME_STR="$time sec"
 	else
-		time_str="$(( time/60 )) min"
+		TIME_STR="$(( time/60 )) min"
 	fi
-	export time_str
+	export TIME_STR
 }

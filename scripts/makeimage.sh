@@ -77,7 +77,7 @@ mount -t vfat "${BOOT_PART}" $ROOTFSMNT/boot
 
 #TODO -pPR?
 log "Copying Volumio RootFs" "info"
-cp -pdR $rootfs/* $ROOTFSMNT
+cp -pdR $ROOTFS/* $ROOTFSMNT
 
 # Refactor this to support more binaries
 if [[ $VOLINITUPDATER == yes ]]; then
@@ -87,15 +87,15 @@ if [[ $VOLINITUPDATER == yes ]]; then
 fi
 
 log "Getting device specific files for ${DEVICE} from platform-${DEVICEBASE}" "info"
-platform_dir="$SRC/platform-${DEVICEBASE}"
-if [[ -d $platform_dir ]]; then
+PLTDIR="$SRC/platform-${DEVICEBASE}"
+if [[ -d $PLTDIR ]]; then
   log "Platform folder exists, keeping it" "" "platform-${DEVICEBASE}"
 else
   log "Cloning platform-${DEVICEBASE} from ${DEVICEREPO}"
   git clone --depth 1 $DEVICEREPO platform-${DEVICEBASE}
   log "Unpacking $DEVICE files"
-  mkdir -p ${platform_dir}/${DEVICE}
-  tar xfJ platform-${DEVICEBASE}/${DEVICE}.tar.xz -C ${platform_dir}/${DEVICE}
+  mkdir -p ${PLTDIR}/${DEVICE}
+  tar xfJ platform-${DEVICEBASE}/${DEVICE}.tar.xz -C ${PLTDIR}/${DEVICE}
 fi
 
 # This is pulled in from each devices's config script
@@ -157,7 +157,7 @@ rm ${ROOTFSMNT:?}/*.sh ${ROOTFSMNT}/root/init
 unmount_chroot ${ROOTFSMNT}
 end_chroot_final=$(date +%s)
 time_it $end_chroot_final $start_chroot_final
-log "Finished chroot image configuration" "okay" "$time_str"
+log "Finished chroot image configuration" "okay" "$TIME_STR"
 
 log "Finalizing Rootfs (Cleaning, Stripping, Hash)" "info"
 # shellcheck source=./scripts/volumio/finalize.sh

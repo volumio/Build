@@ -92,7 +92,7 @@ done
 # For dependency ordered mkinitramfs hook scripts.
 . /usr/share/initramfs-tools/scripts/functions
 . /usr/share/initramfs-tools/hook-functions
-
+# shellcheck disable=SC1090
 . "${CONFDIR}/initramfs.conf"
 
 EXTRA_CONF=''
@@ -105,6 +105,7 @@ maybe_add_conf() {
       echo "W: $1 is a directory instead of file" >&2
     else
       EXTRA_CONF="${EXTRA_CONF} $1"
+      # shellcheck disable=SC1090
       . "$1"
     fi
   fi
@@ -124,6 +125,7 @@ for i in /usr/share/initramfs-tools/conf-hooks.d/*; do
   if [ -d "${i}" ]; then
     echo "W: ${i} is a directory instead of file." >&2
   elif [ -e "${i}" ]; then
+    # shellcheck disable=SC1090
     . "${i}"
   fi
 done

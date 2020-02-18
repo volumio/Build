@@ -85,8 +85,8 @@ exit_error () {
   log "Build script failed!!" "err"
   # Check if there are any mounts that need cleaning up
   # If dev is mounted, the rest should also be mounted (right?)
-  if isMounted "$rootfs/dev"; then
-    unmount_chroot $rootfs
+  if isMounted "$ROOTFS/dev"; then
+    unmount_chroot $ROOTFS
   fi
 }
 
@@ -212,8 +212,8 @@ if [ -n "$BUILD" ]; then
     log "$BUILD rootfs exists, cleaning it"
     rm -rf "$SRC/build/$BUILD"
   fi
-  rootfs="$SRC/build/$BUILD/root"
-  mkdir -p $rootfs
+  ROOTFS="$SRC/build/$BUILD/root"
+  mkdir -p $ROOTFS
 
   log "Creating rootfs in <./build/$BUILD/root>"
 
@@ -221,7 +221,7 @@ if [ -n "$BUILD" ]; then
   ### Multistrap
   log "Setting up Multistrap environment" "info"
   log "Preparing rootfs apt-config"
-  DirEtc="$rootfs/etc/apt/"
+  DirEtc="$ROOTFS/etc/apt/"
   DirEtcparts="$DirEtc/apt.conf.d"
   DirEtctrustedparts="$DirEtc/trusted.gpg.d"
 
@@ -247,7 +247,7 @@ if [ -n "$BUILD" ]; then
   else
     end_multistrap=$(date +%s)
     time_it $end_multistrap $start
-    log "Finished setting up Multistrap rootfs" "okay" "$time_str"
+    log "Finished setting up Multistrap rootfs" "okay" "$TIME_STR"
   fi
 
 
@@ -256,50 +256,50 @@ if [ -n "$BUILD" ]; then
 
   if [ ! "$BUILD" = x86 ]; then
     log "Build for $BUILD platform, copying qemu"
-    cp /usr/bin/qemu-arm-static "$rootfs/usr/bin/"
+    cp /usr/bin/qemu-arm-static "$ROOTFS/usr/bin/"
   fi
 
-  cp scripts/volumio/volumioconfig.sh "$rootfs"
-  cp scripts/helpers.sh "$rootfs"
+  cp scripts/volumio/volumioconfig.sh "$ROOTFS"
+  cp scripts/helpers.sh "$ROOTFS"
 
-  mount_chroot ${rootfs}
+  mount_chroot ${ROOTFS}
 
   log 'Cloning Volumio Node Backend'
-  mkdir "$rootfs/volumio"
+  mkdir "$ROOTFS/volumio"
 
   if [ -n "$PATCH" ]; then
     log "Cloning Volumio with all its history"
-    git clone https://github.com/volumio/Volumio2.git "$rootfs/volumio"
+    git clone https://github.com/volumio/Volumio2.git "$ROOTFS/volumio"
   else
-    git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git "$rootfs/volumio"
+    git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git "$ROOTFS/volumio"
   fi
 
   log 'Cloning Volumio UI'
-  git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "$rootfs/volumio/http/www"
+  git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "$ROOTFS/volumio/http/www"
 
   log "Adding Volumio revision information to os-release"
-  cat <<-EOF >> "$rootfs/etc/os-release"
+  cat <<-EOF >> "$ROOTFS/etc/os-release"
 	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
-	VOLUMIO_FE_VERSION="$(git --git-dir "$rootfs/volumio/http/www/.git" rev-parse HEAD)"
-	VOLUMIO_BE_VERSION="$(git --git-dir "$rootfs/volumio/.git" rev-parse HEAD)"
+	VOLUMIO_FE_VERSION="$(git --git-dir "$ROOTFS/volumio/http/www/.git" rev-parse HEAD)"
+	VOLUMIO_BE_VERSION="$(git --git-dir "$ROOTFS/volumio/.git" rev-parse HEAD)"
 	VOLUMIO_ARCH="${BUILD}"
 	EOF
   # Clean up git repo
-  rm -rf $rootfs/volumio/http/www/.git
+  rm -rf $ROOTFS/volumio/http/www/.git
 
   log "Configuring Volumio" "info"
   if [ ! "$BUILD" = x86 ]; then
-    chroot "$rootfs" /bin/bash -x <<-EOF
+    chroot "$ROOTFS" /bin/bash -x <<-EOF
 	su -
 	./volumioconfig.sh
 	EOF
   else
     echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' > /proc/sys/fs/binfmt_misc/register
-    chroot "$rootfs" /volumioconfig.sh
+    chroot "$ROOTFS" /volumioconfig.sh
   fi
 
   ###Dirty fix for mpd.conf TODO use volumio repo
-  cp $SRC/volumio/etc/mpd.conf "$rootfs/etc/mpd.conf"
+  cp $SRC/volumio/etc/mpd.conf "$ROOTFS/etc/mpd.conf"
 
   CUR_DATE=$(date)
   #Write some Version information
@@ -310,16 +310,16 @@ if [ -n "$BUILD" ]; then
 	VOLUMIO_BUILD_DATE="${CUR_DATE}"
 	EOF
 
-  unmount_chroot ${rootfs}
+  unmount_chroot ${ROOTFS}
 
   end_chroot=$(date +%s)
   time_it $end_chroot $start_chroot
 
-  log "Base rootfs Installed" "okay" "$time_str"
-  rm -f "$rootfs/volumioconfig.sh"
+  log "Base rootfs Installed" "okay" "$TIME_STR"
+  rm -f "$ROOTFS/volumioconfig.sh"
 
   log "Running Volumio configuration script on rootfs" "info"
-  bash $SCR/scripts/volumio/configure.sh -b "$BUILD"
+  bash $SRC/scripts/volumio/configure.sh -b "$BUILD"
 
   log "Volumio rootfs created" "okay"
   # Bundle up the base rootfs
@@ -358,7 +358,7 @@ if [[ -n "$DEVICE" ]]; then
         | lz4 -dc \
         | tar xp --xattrs -C ./build/${BUILD}
       fi
-      rootfs="$SRC/build/$BUILD/root"
+      ROOTFS="$SRC/build/$BUILD/root"
 
     fi
   else
@@ -370,7 +370,7 @@ if [[ -n "$DEVICE" ]]; then
   #TODO
   if [ -n "$PATCH" ]; then
     log "Copying Patch to Rootfs"
-    cp -rp "$PATCH"  "$rootfs/"
+    cp -rp "$PATCH"  "$ROOTFS/"
   else
     log "No patches found, defaulting to Volumio rootfs"
     PATCH='volumio'
@@ -388,7 +388,7 @@ if [[ -n "$DEVICE" ]]; then
 
   end_img=$(date +%s)
   time_it $end_img $start_img
-  log "Image ${IMG_FILE} Created" "okay" "$time_str"
+  log "Image ${IMG_FILE} Created" "okay" "$TIME_STR"
 else
   log "No device specified, only base rootfs created!" "wrn"
 fi
@@ -403,7 +403,7 @@ log "Volumio Builder finished: \
 $([[ -n $BUILD ]] && echo "${yellow}BUILD=${standout}${BUILD}${normal} ")\
 $([[ -n $DEVICE ]] && echo "${yellow}DEVICE=${standout}${DEVICE}${normal}  ")\
 $([[ -n $VERSION ]] && echo "${yellow}VERSION=${standout}${VERSION}${normal} ")\
-${normal}" "okay" "$time_str"
+${normal}" "okay" "$TIME_STR"
 
 
 # Lets ignore this for now.
