@@ -4,7 +4,7 @@ Wants=dynamicswap.service
 
 
 [Service]
-ExecStart=/usr/local/bin/node /volumio/index.js
+ExecStart=/usr/bin/node /volumio/index.js
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
@@ -15,4 +15,3 @@ Environment=NODE_ENV=production
 
 [Install]
 WantedBy=multi-user.target
-

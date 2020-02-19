@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 
 //Volumio Network Manager - Copyright Michelangelo Guarise - Volumio.org
 
@@ -155,7 +155,7 @@ function startFlow() {
                 if (wpaerr > 0) {
                     actualTime = totalSecondsForConnection + 1;
                 }
-                
+
                 if (actualTime > totalSecondsForConnection) {
                     console.log("Overtime, starting plan B");
                     if (conf != undefined && conf.hotspot_fallback != undefined && conf.hotspot_fallback.value != undefined && conf.hotspot_fallback.value) {
