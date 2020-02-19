@@ -290,15 +290,7 @@ if [ -n "$BUILD" ]; then
   rm -rf $ROOTFS/volumio/http/www3/.git
 
   log "Configuring Volumio" "info"
-  if [ ! "$BUILD" = x86 ]; then
-    chroot "$ROOTFS" /bin/bash -x <<-EOF
-	su -
-	./volumioconfig.sh
-	EOF
-  else
-    echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' > /proc/sys/fs/binfmt_misc/register
-    chroot "$ROOTFS" /volumioconfig.sh
-  fi
+  chroot "$ROOTFS" /volumioconfig.sh
 
   ###Dirty fix for mpd.conf TODO use volumio repo
   cp $SRC/volumio/etc/mpd.conf "$ROOTFS/etc/mpd.conf"
