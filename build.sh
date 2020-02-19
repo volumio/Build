@@ -275,17 +275,19 @@ if [ -n "$BUILD" ]; then
   fi
 
   log 'Cloning Volumio UI'
-  git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "$ROOTFS/volumio/http/www"
-
+  git clone --depth 1 -b dist  --single-branch https://github.com/volumio/Volumio2-UI.git "$ROOTFS/volumio/http/www"
+  git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "$ROOTFS/volumio/http/www3"
   log "Adding Volumio revision information to os-release"
   cat <<-EOF >> "$ROOTFS/etc/os-release"
 	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
 	VOLUMIO_FE_VERSION="$(git --git-dir "$ROOTFS/volumio/http/www/.git" rev-parse HEAD)"
+	VOLUMIO_FE3_VERSION="$(git --git-dir "$ROOTFS/volumio/http/www3/.git" rev-parse HEAD)"
 	VOLUMIO_BE_VERSION="$(git --git-dir "$ROOTFS/volumio/.git" rev-parse HEAD)"
 	VOLUMIO_ARCH="${BUILD}"
 	EOF
   # Clean up git repo
   rm -rf $ROOTFS/volumio/http/www/.git
+  rm -rf $ROOTFS/volumio/http/www3/.git
 
   log "Configuring Volumio" "info"
   if [ ! "$BUILD" = x86 ]; then
@@ -382,9 +384,9 @@ if [[ -n "$DEVICE" ]]; then
   IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-${DEVICE}.img"
 
   # shellcheck source=scripts/makeimage.sh
-  source $SRC/scripts/makeimage.sh
-  # # shellcheck source=scripts/rockpisimage.sh
-  # source $SRC/scripts/rockpisimage.sh
+  # source $SRC/scripts/makeimage.sh
+   # shellcheck source=scripts/raspberryimage.sh
+   source $SRC/scripts/raspberryimage.sh
 
   end_img=$(date +%s)
   time_it $end_img $start_img
