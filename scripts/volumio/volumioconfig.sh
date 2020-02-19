@@ -25,7 +25,7 @@ check_dependency() {
   fi
 }
 
-NODE_VERSION=node_12.x
+NODE_VERSION=node_8.x
 DISTRO_VER="$(lsb_release -s -r)"
 DISTRO_NAME="$(lsb_release -s -c)"
 
@@ -83,31 +83,7 @@ log "Existing locales: " && locale -a
     sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 locale-gen
 update-locale LANG=en_US:en LC_ALL=en_US.UTF-8
-# chroot $target_dir /bin/bash -c "locale-gen; update-locale LANG=en_US:en LC_ALL=en_US.UTF-8"
 
-# [[ -f /etc/locale.gen ]] && \
-#   sed -i "s/^# $LANG_def/$LANG_def/" /etc/locale.gen
-
-# [[ -f $SDCARD/etc/locale.gen ]] && sed -i "s/^# $DEST_LANG/$DEST_LANG/" $SDCARD/etc/locale.gen
-#		eval 'LC_ALL=C LANG=C chroot $SDCARD /bin/bash -c "locale-gen $DEST_LANG"' ${OUTPUT_VERYSILENT:+' >/dev/null 2>/dev/null'}
-#   eval 'LC_ALL=C LANG=C chroot $SDCARD /bin/bash -c "update-locale LANG=$DEST_LANG LANGUAGE=$DEST_LANG LC_MESSAGES=$DEST_LANG"' \
-
-
-# echo "Generating required locales:"
-# [ -f /etc/locale.gen ] || touch -m /etc/locale.gen
-# echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-# locale-gen
-# echo "Removing unused locales"
-# echo "en_US.UTF-8" >> /etc/locale.nopurge
-# # To remove existing locale data we must turn off the dpkg hook
-# sed -i -e 's/^USE_DPKG/#USE_DPKG/' /etc/locale.nopurge
-# # Ensure that the package knows it has been configured
-# sed -i -e 's/^NEEDSCONFIGFIRST/#NEEDSCONFIGFIRST/' /etc/locale.nopurge
-# dpkg-reconfigure localepurge -f noninteractive
-# localepurge
-# # Turn dpkg feature back on, it will handle further locale-cleaning
-# sed -i -e 's/^#USE_DPKG/USE_DPKG/' /etc/locale.nopurge
-# dpkg-reconfigure localepurge -f noninteractive
 log "Final locale list"
 locale -a
 
@@ -118,7 +94,7 @@ groupadd volumio
 useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev,netdev,lp -s /bin/bash -p '$6$tRtTtICB$Ki6z.DGyFRopSDJmLUcf3o2P2K8vr5QxRx5yk3lorDrWUhH64GKotIeYSNKefcniSVNcGHlFxZOqLM6xiDa.M.' volumio
 
 #Setting Root Password
-echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
+# echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
 #Global BashRC Aliases"
 log 'Setting BashRC for custom system calls'
@@ -189,7 +165,9 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 
 log "Testing curl" "dbg"
-curl -vL 'https://github.com/' || log "SSL errors?" "wrn" && curl --version 
+curl -vLS 'https://github.com/' -o /dev/null || log "SSL issues" "wrn"  && CURLFAIL=yes
+# 32bit quemu issues workaround
+[[ $CURLFAIL == yes ]] && log "Fixing ca-certificates" "wrn" && c_rehash
 
 ################
 #Volumio System#---------------------------------------------------
