@@ -66,7 +66,7 @@ fi
 log "Configuring packages" "info"
 #TODO do we need to log full output
 # shellcheck disable=SC2069
-if ! dpkg --configure --pending  2>&1 > /dev/null
+if ! dpkg --configure --pending  2>&1 > /dpkg.log
 # if ! { dpkg --configure -a  > /dev/null; } 2>&1
 then
   log "Failed configuring packages!" "err"
@@ -165,8 +165,10 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 
 log "Testing curl" "dbg"
-curl -vLS 'https://github.com/' -o /dev/null || log "SSL issues" "wrn"  && CURLFAIL=yes
-# 32bit quemu issues workaround
+curl -LS 'https://github.com/' -o /dev/null || log "SSL issues" "wrn"  && CURLFAIL=yes
+# Took a while to debug this -
+# export DEB_BUILD_MAINT_OPTIONS = hardening=+all future=+lfs
+#https://sourceware.org/bugzilla/show_bug.cgi?id=23960
 [[ $CURLFAIL == yes ]] && log "Fixing ca-certificates" "wrn" && c_rehash
 
 ################
