@@ -90,28 +90,35 @@ log "Getting device specific files for ${DEVICE} from platform-${DEVICEBASE}" "i
 PLTDIR="$SRC/platform-${DEVICEBASE}"
 if [[ -d $PLTDIR ]]; then
   log "Platform folder exists, keeping it" "" "platform-${DEVICEBASE}"
-else
+  HAS_PLTDIR=yes
+elif [[ -d $DEVICEREPO ]]; then
   log "Cloning platform-${DEVICEBASE} from ${DEVICEREPO}"
   git clone --depth 1 $DEVICEREPO platform-${DEVICEBASE}
   log "Unpacking $DEVICE files"
   mkdir -p ${PLTDIR}/${DEVICE}
   tar xfJ platform-${DEVICEBASE}/${DEVICE}.tar.xz -C ${PLTDIR}/${DEVICE}
+  HAS_PLTDIR=yes
+else
+  log "No platfrom-${DEVICE} found, skipping this step"
+  HAS_PLTDIR=no
 fi
 
-# This is pulled in from each devices's config script
-log "Copying ${DEVICE} boot files from platform-${DEVICEBASE}" "info"
+if [[ $HAS_PLTDIR == yes ]]; then
+  # This is pulled in from each device's config script
+  log "Copying ${DEVICE} boot files from platform-${DEVICEBASE}" "info"
+  log "Writing device files" "ext"
+  write_device_files
+  log "Writing bootloader" "ext"
+  write_device_bootloader
+fi
 
-write_device_files
-
-log "Writing bootloader"
-
-write_device_bootloader
 
 # Device specific tweaks
-log "Performing ${DEVICE} specific tweaks"
+log "Performing ${DEVICE} specific tweaks" "info"
+log "Running device_image_tweaks" "ext"
 device_image_tweaks
 
-# Ensure all filesystems oprations are completed before entering chroot again
+# Ensure all filesystems operations are completed before entering chroot again
 sync
 
 #### Build stage 2 - Device specific chroot config
