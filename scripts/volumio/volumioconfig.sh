@@ -277,9 +277,6 @@ log "Adding Volumio Parent Service to Startup"
 #systemctl enable volumio.service
 ln -s /lib/systemd/system/volumio.service /etc/systemd/system/multi-user.target.wants/volumio.service
 
-log "Adding Udisks-glue service to Startup"
-ln -s /lib/systemd/system/udisks-glue.service /etc/systemd/system/multi-user.target.wants/udisks-glue.service
-
 log "Adding First start script"
 ln -s /lib/systemd/system/firststart.service /etc/systemd/system/multi-user.target.wants/firststart.service
 

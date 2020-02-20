@@ -56,8 +56,6 @@ cp volumio/etc/dhcp/dhcpd.conf build/$BUILD/root/etc/dhcp/dhcpd.conf
 cp volumio/etc/samba/smb.conf build/$BUILD/root/etc/samba/smb.conf
 #Udev confs file (NET)
 cp -r volumio/etc/udev build/$BUILD/root/etc/
-#Udisks-glue for USB
-cp -r volumio/etc/udisks-glue.conf build/$BUILD/root/etc/udisks-glue.conf
 #Polkit for USB mounts
 cp -r volumio/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla build/$BUILD/root/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla
 #Inittab file
