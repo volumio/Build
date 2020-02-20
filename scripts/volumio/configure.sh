@@ -43,6 +43,12 @@ else
   exit 1
 fi
 
+if [[ $SUITE == "buster" ]]; then
+  log "Enabling buster specific tweaks" "info"
+  log "Updating Backend .env"
+  sed -i 's/^NODE_MOUNT_HANDLER=false/NODE_MOUNT_HANDLER=true/' build/$BUILD/root/volumio/.env
+fi
+
 log "Copying misc config to rootfs"
 
 #Edimax Power Saving Fix + Alsa modprobe
@@ -113,15 +119,3 @@ chmod a+x build/$BUILD/root/bin/volumio_cpu_tweak
 cp volumio/etc/default/ifplugd build/$BUILD/root/etc/default/ifplugd
 
 log 'Done Copying Custom Volumio System Files' "okay"
-
-log "Stripping binaries and libraries to save space"
-
-#echo "Size before strip"$( du -sh build/$BUILD/root/ )
-#find build/$BUILD/root/usr/lib -type f -name \*.a  -exec strip --strip-debug {} ';'
-#find build/$BUILD/root/usr/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
-#find build/$BUILD/root/lib -type f -name \*.so* -exec strip --strip-unneeded {} ';'
-#find build/$BUILD/root/sbin -type f -exec strip --strip-all {} ';'
-#find build/$BUILD/root/bin -type f -exec strip --strip-all {} ';'
-#find build/$BUILD/root/usr/bin -type f -exec strip --strip-all {} ';'
-#find build/$BUILD/root/usr/sbin -type f -exec strip --strip-all {} ';'
-#echo "Size after strip"$( du -sh build/$BUILD/root/ )
