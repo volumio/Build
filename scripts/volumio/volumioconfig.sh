@@ -243,7 +243,6 @@ log "Cleaning up after package(s) installation"
 apt-get clean
 rm -rf tmp/*
 
-
 log "Setting up MPD" "info"
 # Symlinking Mount Folders to Mpd's Folder
 ln -s /mnt/NAS /var/lib/mpd/music
@@ -321,14 +320,21 @@ log "Setting RT Priority to Audio Group"
 echo '@audio - rtprio 99
 @audio - memlock unlimited' >> /etc/security/limits.conf
 
-log "Alsa tuning"
+log "Alsa Optimizations" "info"
 log "Creating Alsa state file"
 touch /var/lib/alsa/asound.state
 echo '#' > /var/lib/alsa/asound.state
 chmod 777 /var/lib/alsa/asound.state
 
-# echo "Fixing UPNP L16 Playback issue"
-# grep -v '^@ENABLEL16' /usr/share/upmpdcli/protocolinfo.txt > /usr/share/upmpdcli/protocolinfo.txtrepl && mv /usr/share/upmpdcli/protocolinfo.txtrepl /usr/share/upmpdcli/protocolinfo.txt
+log "Setting USB DAC ordering"
+## Set USB card ordering
+#https://alsa.opensrc.org/Usb-audio
+cat <<-EOF >> /etc/modprobe.d/alsa-base.conf
+#Tuning USB devices for minimal latencies
+options snd-usb-audio nrpacks=1
+# USB DACs will have device number 5 in whole Volumio device range
+options snd-usb-audio index=5
+EOF
 
 #####################
 #Network Settings and Optimizations#-----------------------------------------
