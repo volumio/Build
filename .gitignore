@@ -1,0 +1,11 @@
+# Build system specific
+build
+logs
+platform-*
+
+# Selective ignore
+.ignore_dir
+
+
+#
+.DS_Store
