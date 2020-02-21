@@ -480,6 +480,9 @@ systemctl disable ssh.service
 echo "Enable Volumio SSH enabler"
 ln -s /lib/systemd/system/volumiossh.service /etc/systemd/system/multi-user.target.wants/volumiossh.service
 
+echo "Enable Volumio Log Rotation Service"
+ln -s /lib/systemd/system/volumiologrotate.service /etc/systemd/system/multi-user.target.wants/volumiologrotate.service
+
 echo "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service

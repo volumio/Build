@@ -1,0 +1,37 @@
+#!/bin/bash
+
+LOG_FOLDER=/var/log
+MAX_TOTAL_LOG_SIZE=18000000
+
+function clearLogs {
+  for LOG_FILE in "$LOG_FOLDER"/*
+  do
+    SIZE=`ls -la "$LOG_FILE" | cut -d' ' -f 5 `
+    if [[ ${SIZE} -gt 0 ]];then
+      echo "Clearing $LOG_FILE"
+      echo "-------------- CLEARED LOG --------------" > $LOG_FILE
+    fi
+  done
+}
+
+function checkLogFilesTotalSize {
+  TOTAL_LOG_SIZE=0
+  for LOG_FILE in "$LOG_FOLDER"/*
+  do
+    SIZE=`ls -la "$LOG_FILE" | cut -d' ' -f 5 `
+    if [[ ${SIZE} -gt 0 ]];then
+      TOTAL_LOG_SIZE=$((${TOTAL_LOG_SIZE}+${SIZE}))
+    fi
+  done
+
+  if [[ ${TOTAL_LOG_SIZE} -gt ${MAX_TOTAL_LOG_SIZE} ]];then
+      echo "Total log size is greater than 18MB, cleaning logs"
+      clearLogs
+  fi
+}
+
+while true
+do 
+    checkLogFilesTotalSize
+    sleep 60
+done
