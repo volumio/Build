@@ -503,6 +503,9 @@ echo "Adding Shairport-Sync User"
 getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
 getent passwd shairport-sync &> /dev/null || useradd -r -M -g shairport-sync -s /usr/bin/nologin -G audio shairport-sync >/dev/null
 
+echo "Semistandard"
+ln -s /volumio/node_modules/semistandard/bin/cmd.js /bin/semistandard
+
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
