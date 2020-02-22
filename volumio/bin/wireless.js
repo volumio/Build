@@ -19,6 +19,7 @@ var ifconfigWlan = "ifconfig " + wlan + " up";
 var ifdeconfig = "sudo ip addr flush dev " + wlan + " && sudo ifconfig " + wlan + " down";
 var execSync = require('child_process').execSync;
 var ifconfig = require('/volumio/app/plugins/system_controller/network/lib/ifconfig.js');
+var wirelessEstablishedOnceFlagFile = '/data/flagfiles/wirelessEstablishedOnce';
 if (debug) {
 	var wpasupp = "wpa_supplicant -d -s -B -Dnl80211,wext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
 } else {
@@ -201,6 +202,7 @@ function startFlow() {
                                     wstatus("ap");
                                     clearTimeout(lesstimer);
                                     restartAvahi();
+                                    saveWirelessConnectionEstablished();
                                 }
                             }
                         });
@@ -304,5 +306,28 @@ function hotspotFallbackCondition() {
         startHotspotFallback = true;
     }
 
+    if (!startHotspotFallback && !hasWirelessConnectionBeenEstablishedOnce()) {
+        startHotspotFallback = true;
+    }
+
     return startHotspotFallback
+}
+
+function saveWirelessConnectionEstablished() {
+    try {
+        fs.ensureFileSync(wirelessEstablishedOnceFlagFile)
+    } catch (e) {
+        logger('Could not save Wireless Connection Established: ' + e);
+    }
+}
+
+function hasWirelessConnectionBeenEstablishedOnce() {
+    var wirelessEstablished = false;
+    try {
+        if (fs.existsSync(wirelessEstablishedOnceFlagFile)) {
+            wirelessEstablished = true;
+        }
+    } catch(err) {}
+
+    return wirelessEstablished
 }
