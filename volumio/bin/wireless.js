@@ -149,7 +149,7 @@ function startFlow() {
         console.log("Start wireless flow");
         startAP(function () {
             console.log("Start ap");
-            lesstimer = setInterval(function () {
+            lesstimer = setInterval(()=> {
                 actualTime += pollingTime;
                 if (wpaerr > 0) {
                     actualTime = totalSecondsForConnection + 1;
@@ -162,10 +162,11 @@ function startFlow() {
                         apstopped = 1;
                         clearTimeout(lesstimer);
                         stopAP(function () {
-                            setTimeout(function () {
-                                startHotspot(function () {
-
-
+                            setTimeout(()=> {
+                                startHotspot(function (err) {
+                                    if(err) {
+                                        console.log('Could not start Hotspot Fallback: ' + err);
+                                    }
                                 });
                             }, settleTime);
                         });
@@ -303,5 +304,5 @@ function hotspotFallbackCondition() {
         startHotspotFallback = true;
     }
 
-    return startHotspotFallback = false;
+    return startHotspotFallback
 }
