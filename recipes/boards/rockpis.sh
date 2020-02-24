@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
+
+
 ## Setup for Radxa Rock Pi S
 
 ## WIP, this should be refactored out to a higher level.
@@ -60,5 +62,13 @@ device_chroot_tweaks_pre() {
 
 # Will be run in chroot - Post initramfs
 device_chroot_tweaks_post(){
-  :
+  log "Running device_chroot_tweaks_post" "ext"
+  log "Creating uInitrd from 'volumio.initrd'" "info"
+  if [[ -f /boot/volumio.initrd ]]; then
+    mkimage -v -A $ARCH -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+  fi
+  if [[ -f /boot/boot.cmd ]]; then
+    log "Creating boot.scr"
+    mkimage -A $ARCH -T script -C none -d /boot/boot.cmd /boot/boot.scr
+  fi
 }

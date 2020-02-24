@@ -7,6 +7,7 @@ declare -A SecureApt=(
     [lesbonscomptes.gpg]="https://www.lesbonscomptes.com/pages/jf-at-dockes.org.pgp" \
     #TODO Not needed for arm64 and x86
     [raspbian.gpg]="https://archive.raspbian.org/raspbian.public.key" \
+    [raspberrypi.gpg]="http://archive.raspberrypi.org/debian/raspberrypi.gpg.key" \
   )
 
 export SecureApt

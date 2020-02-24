@@ -1,5 +1,10 @@
 #!/bin/bash
+function error()
+{
+  log "mkinitramfs failed" "$(basename "$0")" "err"
+}
 
+trap error INT ERR
 umask 0022
 export PATH='/usr/bin:/sbin:/bin'
 
@@ -531,7 +536,7 @@ build_volumio_initramfs() {
 
   if [[ -f '/usr/local/sbin/volumio-init-updater' ]]; then
     log "Adding volumio-init-updater to initramfs"
-    chomod +x /usr/local/sbin/volumio-init-updater
+    chmod +x /usr/local/sbin/volumio-init-updater
     copy_exec /usr/local/sbin/volumio-init-updater /sbin
   else
     log "volumio-init-updater not found!" "wrn"
