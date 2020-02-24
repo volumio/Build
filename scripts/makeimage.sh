@@ -25,15 +25,13 @@ trap exit_error INT ERR
 log "Stage [2]: Creating Image" "info"
 log "Image file: ${IMG_FILE}"
 VOLMNT=/mnt/volumio
-#TOOD Pick the parition scheme(size?) from board conf
-#TODO boot partition might need to be bigger, rPi already is touch and go
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 LOOP_DEV=$(losetup -f --show ${IMG_FILE})
 
 # Note: leave the first 20Mb free for the firmware
-parted -s "${LOOP_DEV}" mklabel msdos
-parted -s "${LOOP_DEV}" mkpart primary fat32 20 84
-parted -s "${LOOP_DEV}" mkpart primary ext3 84 2500
+parted -s "${LOOP_DEV}" mklabel ${BOOT_TYPE}
+parted -s "${LOOP_DEV}" mkpart primary fat32 ${BOOT_START} ${BOOT_END}
+parted -s "${LOOP_DEV}" mkpart primary ext3 ${BOOT_END} 2500
 parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 parted -s "${LOOP_DEV}" print
@@ -50,7 +48,7 @@ if [[ ! -b "$BOOT_PART" ]]; then
 fi
 
 log "Creating filesystem" "info"
-mkfs -t vfat -n BOOT "${BOOT_PART}"
+mkfs -t vfat -n boot "${BOOT_PART}"
 mkfs -F -t ext4 -L volumio "${IMG_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 #sync
@@ -106,25 +104,25 @@ fi
 if [[ $HAS_PLTDIR == yes ]]; then
   # This is pulled in from each device's config script
   log "Copying ${DEVICE} boot files from platform-${DEVICEBASE}" "info"
-  log "Writing device files" "ext"
+  log "Entering write_device_files" "cfg"
   write_device_files
-  log "Writing bootloader" "ext"
+  log "Entering write_device_bootloader" "cfg"
   write_device_bootloader
 fi
 
 
 # Device specific tweaks
 log "Performing ${DEVICE} specific tweaks" "info"
-log "Running device_image_tweaks" "ext"
+log "Entering device_image_tweaks" "cfg"
 device_image_tweaks
 
-# Ensure all filesystems operations are completed before entering chroot again
+# Ensure all file systems operations are completed before entering chroot again
 sync
 
 #### Build stage 2 - Device specific chroot config
 log "Preparing to run chroot for more ${DEVICE} configuration" "info"
 start_chroot_final=$(date +%s)
-cp $SRC/scripts/initramfs/init.nextarm $ROOTFSMNT/root/init
+cp $SRC/scripts/initramfs/${INIT_TYPE} $ROOTFSMNT/root/init
 cp $SRC/scripts/initramfs/mkinitramfs-buster.sh $ROOTFSMNT/usr/local/sbin
 cp $SRC/scripts/volumio/chrootconfig.sh $ROOTFSMNT
 echo $PATCH > $ROOTFSMNT/patch
@@ -140,24 +138,17 @@ DEVICENAME="${DEVICENAME}"
 ARCH="${ARCH}"
 MODULES=($(printf '\"%s\" ' "${MODULES[@]}"))
 PACKAGES=($(printf '\"%s\" ' "${PACKAGES[@]}"))
+$(declare -f device_chroot_tweaks)
 $(declare -f device_chroot_tweaks_pre)
 $(declare -f device_chroot_tweaks_post)
 EOF
 
 mount_chroot ${ROOTFSMNT}
-## Enter chroot for last leg of config
-# log "Grab UUIDS"
-# echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
-# UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
-# UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
-# " > /mnt/volumio/rootfs/root/init.sh
-# chmod +x /mnt/volumio/rootfs/root/init.sh
 
 log "Calling final chroot config script"
-chroot $ROOTFSMNT /bin/bash -x <<'EOF'
-su -
-/chrootconfig.sh
-EOF
+chroot "$ROOTFSMNT" /chrootconfig.sh
+
+log "Finished chroot config for ${DEVICE}" "okay"
 # Clean up chroot stuff
 rm ${ROOTFSMNT:?}/*.sh ${ROOTFSMNT}/root/init
 

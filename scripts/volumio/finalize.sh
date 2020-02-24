@@ -4,7 +4,7 @@ set -eo pipefail
 
 # HARDWARE=`/bin/cat /mnt/volumio/rootfs/etc/os-release | grep "VOLUMIO_HARDWARE" | cut -d \\" -f2 | tr -d "\n"`
 
-# ROOTFSMNT=/mnt/volumio/rootfs
+[ -z $ROOTFSMNT ] && ROOTFSMNT=/mnt/volumio/rootfs
 log "Computing Volumio folder Hash Checksum" "info"
 
 HASH="$(md5deep -r -l -s -q ${ROOTFSMNT}/volumio | sort | md5sum | awk '{print $1}')"
@@ -28,6 +28,7 @@ else
   echo "X86 Environmant detected, not cleaning"
 fi
 
+#TODO: This doesn't seem to be doing much atm
 log "Stripping binaries"
 STRP_DIRECTORIES=("${ROOTFSMNT}/lib/" \
                   "${ROOTFSMNT}/bin/" \
@@ -36,6 +37,6 @@ STRP_DIRECTORIES=("${ROOTFSMNT}/lib/" \
 
 for DIR in "${STRP_DIRECTORIES[@]}"; do
   log "$DIR Pre strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
-  find "$DIR" -type f  -exec bash -c 'strip --strip-all > /dev/null 2>&1' {} ';'
+  find "$DIR" -type f  -exec strip --strip-all {} ';' > /dev/null 2>&1
   log "$DIR Post strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
 done

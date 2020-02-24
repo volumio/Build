@@ -37,11 +37,17 @@ tmpfs          /tmp                 tmpfs   defaults,noatime,mode=0755          
 tmpfs          /dev/shm             tmpfs   defaults,nosuid,noexec,nodev              0 0
 EOF
 
+## Initial chroot config
+declare -fF device_chroot_tweaks &>/dev/null \
+  && log "Entering device_chroot_tweaks" "cfg" \
+  && device_chroot_tweaks
+
 ## Activate modules
 log "Activating ${#MODULES[@]} custom modules:" "" "$(echo "${MODULES[@]}")"
 mod_list=$(printf "%s\n"  "${MODULES[@]}")
 cat <<-EOF >> /etc/initramfs-tools/modules
-"${mod_list}"
+# Volumio modules
+${mod_list}
 EOF
 
 #On The Fly Patch
@@ -68,6 +74,9 @@ log "Installing ${#PACKAGES[@]} custom packages:" "" "$(echo "${PACKAGES[@]}")"
 apt-get update
 apt-get install -y "${PACKAGES[@]}"
 
+log "Entering device_chroot_tweaks_pre" "cfg"
+device_chroot_tweaks_pre
+
 log "Cleaning APT Cache and remove policy file" "info"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
@@ -77,21 +86,9 @@ rm /usr/sbin/policy-rc.d
 log "Signaling the init script to re-size the Volumio data partition"
 touch /boot/resize-volumio-datapart
 
-log "Running device_chroot_tweaks_pre" "cfg"
-device_chroot_tweaks_pre
-
 log "Creating initramfs 'volumio.initrd'" "info"
 mkinitramfs-buster.sh -o /tmp/initramfs-tmp
 log "Finished creating initramfs" "okay"
 
-log "Running device_chroot_tweaks_post" "cfg"
+log "Entering device_chroot_tweaks_post" "cfg"
 device_chroot_tweaks_post
-
-if [[ ! $BUILD == "x86" ]]; then
-  log "Creating uInitrd from 'volumio.initrd'" "info"
-  mkimage -v -A $ARCH -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-  if [[ -f /boot/boot.cmd ]]; then
-    log "Creating boot.scr"
-    mkimage -A $ARCH -T script -C none -d /boot/boot.cmd /boot/boot.scr
-  fi
-fi
