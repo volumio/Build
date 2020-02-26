@@ -95,19 +95,21 @@ trap exit_error INT ERR
 #$1 = ${BUILD} $2 = ${VERSION} $3 = ${DEVICE}"
 function check_os_release {
   ## This shouldn't be required anymore - we pack the rootfs tarball at base level
-  ARCH_BUILD=$1
-  VERSION=$2
-  DEVICE=$3
-  os_release="build/${ARCH_BUILD}/root/etc/os-release"
+  # local build=$1
+  # VERSION=$2
+  # DEVICE=$3
+  os_release="build/${BUILD}/root/etc/os-release"
   HAS_VERSION="grep -c VOLUMIO_VERSION $os_release"
   if $HAS_VERSION; then
+    log "Removing previous VOLUMIO_VERSION"
     # os-release already has a VERSION number
     # remove prior version and hardware
-    sed -i '/^\(VOLUMIO_TEST\|VOLUMIO_BUILD_DATE\)/d' $os_release
+    sed -i '/^\(VOLUMIO_VERSION\|VOLUMIO_HARDWARE\)/d' $os_release
     # # cut the last 2 lines in case other devices are being built from the same rootfs
     # head -n -2 "build/${ARCH_BUILD}/root/etc/os-release" > "build/${ARCH_BUILD}/root/etc/tmp-release"
     # mv "build/${ARCH_BUILD}/root/etc/tmp-release" "build/${ARCH_BUILD}/root/etc/os-release"
   fi
+  log "Adding ${VERSION} and ${DEVICE} to os-release" "info"
   echo "VOLUMIO_VERSION=\"${VERSION}\"" >> $os_release
   echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> $os_release
 }
@@ -166,7 +168,7 @@ log "Creating log directory"
 LOG_DIR=$SRC/logging/build_"$(date +%Y-%m-%d_%H-%M-%S)"
 mkdir -p "$LOG_DIR"
 # But it's annoying if root needs to delete it, soo
-chown -R :users "$LOG_DIR"/
+chmod 777 "$LOG_DIR"/
 
 if [ -z "${VARIANT}" ]; then
   log "Setting default Volumio variant"
@@ -254,11 +256,6 @@ if [ -n "$BUILD" ]; then
   log "Preparing for Volumio chroot configuration" "info"
   start_chroot=$(date +%s)
 
-  if [ ! "$BUILD" = x86 ]; then
-    log "Build for $BUILD platform, copying qemu"
-    cp /usr/bin/qemu-arm-static "$ROOTFS/usr/bin/"
-  fi
-
   cp scripts/volumio/volumioconfig.sh "$ROOTFS"
   cp scripts/helpers.sh "$ROOTFS"
 
@@ -271,7 +268,9 @@ if [ -n "$BUILD" ]; then
     log "Cloning Volumio with all its history"
     git clone https://github.com/volumio/Volumio2.git "$ROOTFS/volumio"
   else
-    git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git "$ROOTFS/volumio"
+    log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
+    git clone --depth 1 -b ${VOL_BE_REPO_BRANCH} --single-branch ${VOL_BE_REPO} "$ROOTFS/volumio"
+    # git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git "$ROOTFS/volumio"
   fi
 
   log 'Cloning Volumio UI'
@@ -292,6 +291,8 @@ if [ -n "$BUILD" ]; then
   log "Configuring Volumio" "info"
   chroot "$ROOTFS" /volumioconfig.sh
 
+  # Copy the dpkg log
+  mv $ROOTFS/dpkg.log $LOG_DIR/dpkg.log
   ###Dirty fix for mpd.conf TODO use volumio repo
   cp $SRC/volumio/etc/mpd.conf "$ROOTFS/etc/mpd.conf"
 
@@ -320,7 +321,7 @@ if [ -n "$BUILD" ]; then
   log "Creating base system rootfs tarball"
   # https://superuser.com/questions/168749/is-there-a-way-to-see-any-tar-progress-per-file/665181#665181
   rootfs_tarball="$SRC/build/$BUILD"_rootfs
-  tar cp --xattrs --directory=build/${BUILD}/ \
+  tar cp --xattrs --directory=build/${BUILD}/root/ \
     --exclude='./dev/*' --exclude='./proc/*' \
     --exclude='./run/*' --exclude='./tmp/*' \
     --exclude='./sys/*' . \
@@ -347,10 +348,10 @@ if [[ -n "$DEVICE" ]]; then
       rootfs_tarball="$SRC/build/$BUILD"_rootfs
       [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
       log "Using prior Base tarball"
-      mkdir ./build/${BUILD}
+      mkdir -p ./build/${BUILD}/root
       pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" \
         | lz4 -dc \
-        | tar xp --xattrs -C ./build/${BUILD}
+        | tar xp --xattrs -C ./build/${BUILD}/root
       fi
       ROOTFS="$SRC/build/$BUILD/root"
 
@@ -359,6 +360,9 @@ if [[ -n "$DEVICE" ]]; then
     log "No configuration found for $DEVICE" "err"
     exit 1
   fi
+
+  ## Add in our version details
+  check_os_release
 
   ## How do we work with this -
   #TODO
@@ -370,15 +374,33 @@ if [[ -n "$DEVICE" ]]; then
     PATCH='volumio'
   fi
 
+  ## Testing and debugging
+  if [[ $USE_BUILD_TESTS == yes ]]; then
+    log "Running Tests for $BUILD"
+    mkdir -p $ROOTFS/tests
+    cp $SRC/tests/test_curl.sh $ROOTFS/tests/test_curl.sh
+    mount_chroot ${ROOTFS}
+    chroot "$ROOTFS" /tests/test_curl.sh
+    unmount_chroot ${ROOTFS}
+    log "Done, exiting"
+    exit 0
+  fi
+
+  ## Copy node_modules
+  USE_LOCAL_NODE_MODULES=yes
+  if [[ $USE_LOCAL_NODE_MODULES == yes ]]; then
+    log "Extracting node_modules"
+    tar xf "$SRC/docker/node_modules_${BUILD}-12.16.1.tar.gz" -C $ROOTFS/volumio
+    ls $ROOTFS/volumio/node_modules
+  fi
+
   # Prepare Images
   start_img=$(date +%s)
   BUILDDATE=$(date -I)
   IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-${DEVICE}.img"
 
   # shellcheck source=scripts/makeimage.sh
-  # source $SRC/scripts/makeimage.sh
-   # shellcheck source=scripts/raspberryimage.sh
-   source $SRC/scripts/raspberryimage.sh
+  source $SRC/scripts/makeimage.sh
 
   end_img=$(date +%s)
   time_it $end_img $start_img
@@ -398,12 +420,3 @@ $([[ -n $BUILD ]] && echo "${yellow}BUILD=${standout}${BUILD}${normal} ")\
 $([[ -n $DEVICE ]] && echo "${yellow}DEVICE=${standout}${DEVICE}${normal}  ")\
 $([[ -n $VERSION ]] && echo "${yellow}VERSION=${standout}${VERSION}${normal} ")\
 ${normal}" "okay" "$TIME_STR"
-
-
-# Lets ignore this for now.
-# #When the tar is created we can build the docker layer
-# if [ "$CREATE_DOCKER_LAYER" = 1 ]; then
-#   log 'Creating docker layer' "info"
-#   DOCKER_UID="$(sudo docker import "VolumioRootFS$VERSION.tar.gz" "$DOCKER_REPOSITORY_NAME")"
-#   log "$DOCKER_UID" "okay"
-# fi
