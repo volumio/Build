@@ -25,7 +25,7 @@ check_dependency() {
   fi
 }
 
-NODE_VERSION=node_8.x
+NODE_VERSION=node_12.x
 DISTRO_VER="$(lsb_release -s -r)"
 DISTRO_NAME="$(lsb_release -s -c)"
 
