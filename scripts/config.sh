@@ -10,4 +10,12 @@ declare -A SecureApt=(
     [raspberrypi.gpg]="http://archive.raspberrypi.org/debian/raspberrypi.gpg.key" \
   )
 
-export SecureApt
+## Path to the volumio repo
+VOLBINSREPO="https://repo.volumio.org/Volumio2/Buster/Custom%20Packages"
+
+## Array of volumio binaries
+declare -A VOLBINS=(
+[init-updater]="volumio-init-updater-v2"
+)
+
+export SecureApt VOLBINSREPO VOLBINS
