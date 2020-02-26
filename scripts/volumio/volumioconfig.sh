@@ -6,6 +6,8 @@ set -eo pipefail
 # Reimport helpers in chroot
 # shellcheck source=./scripts/helpers.sh
 source /helpers.sh
+CHROOT=yes
+export CHROOT
 
 function exit_error()
 {
@@ -165,7 +167,7 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 
 log "Testing curl" "dbg"
-curl -LS 'https://github.com/' -o /dev/null || log "SSL issues" "wrn"  && CURLFAIL=yes
+curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes log "SSL issues" "wrn"
 # Took a while to debug this -
 # export DEB_BUILD_MAINT_OPTIONS = hardening=+all future=+lfs
 #https://sourceware.org/bugzilla/show_bug.cgi?id=23960
@@ -216,21 +218,8 @@ chmod -R 777 /data/INTERNAL
 ################
 
 ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
-log "Installing custom packages for ${ARCH} and ${DISTRO_VER}" "info"
-cd /
-
-log "Prepare external source lists"
-cat <<-EOF > /etc/apt/sources.list.d/nodesource.list
-deb https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
-deb-src https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
-EOF
-
-apt-get update
-apt-get -y install nodejs
-
 #TODO: Refactor this!
 # Binaries
-# Nodejs
 # MPD,Upmpdcli
 # Shairport-Sync, Shairport-Sync Metadata Reader
 # volumio-remote-updater, Volumio Init Updater
@@ -238,6 +227,19 @@ apt-get -y install nodejs
 # hostapd-edimax
 # LINN Songcast - sc2mpd
 # Node modules!
+log "Installing custom packages for ${ARCH} and ${DISTRO_VER}" "info"
+cd /
+
+log "Prepare external source lists"
+log "NodeJs - ${NODE_VERSION}"
+cat <<-EOF > /etc/apt/sources.list.d/nodesource.list
+deb https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
+deb-src https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
+EOF
+packages=nodejs
+
+apt-get update
+apt-get -y install $packages
 
 log "Cleaning up after package(s) installation"
 apt-get clean

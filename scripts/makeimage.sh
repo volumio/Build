@@ -30,7 +30,7 @@ LOOP_DEV=$(losetup -f --show ${IMG_FILE})
 
 # Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel ${BOOT_TYPE}
-parted -s "${LOOP_DEV}" mkpart primary fat32 ${BOOT_START} ${BOOT_END}
+parted -s "${LOOP_DEV}" mkpart primary fat32 ${BOOT_START:-0} ${BOOT_END}
 parted -s "${LOOP_DEV}" mkpart primary ext3 ${BOOT_END} 2500
 parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
@@ -80,8 +80,8 @@ cp -pdR $ROOTFS/* $ROOTFSMNT
 # Refactor this to support more binaries
 if [[ $VOLINITUPDATER == yes ]]; then
   log "Fetching volumio-init-updater"
-  wget -nvP $ROOTFSMNT/usr/local/sbin \
-  ${VOLBINSREPO}/${BUILD}/${VOLBINS[init-updater]}
+  wget -P $ROOTFSMNT/usr/local/sbin \
+  -nv ${VOLBINSREPO}/${BUILD}/${VOLBINS[init-updater]}
   # initramfs doesn't know about v2
   mv $ROOTFSMNT/usr/local/sbin/volumio-init-updater-v2 \
     $ROOTFSMNT/usr/local/sbin/volumio-init-updater
@@ -92,12 +92,14 @@ PLTDIR="$SRC/platform-${DEVICEBASE}"
 if [[ -d $PLTDIR ]]; then
   log "Platform folder exists, keeping it" "" "platform-${DEVICEBASE}"
   HAS_PLTDIR=yes
-elif [[ -d $DEVICEREPO ]]; then
+elif [[ -n $DEVICEREPO ]]; then
   log "Cloning platform-${DEVICEBASE} from ${DEVICEREPO}"
   git clone --depth 1 $DEVICEREPO platform-${DEVICEBASE}
   log "Unpacking $DEVICE files"
+  log "This isn't really consistent across platforms right now!" "dbg"
   mkdir -p ${PLTDIR}/${DEVICE}
-  tar xfJ platform-${DEVICEBASE}/${DEVICE}.tar.xz -C ${PLTDIR}/${DEVICE}
+  # -C ${PLTDIR}/${DEVICE}
+  tar xfJ platform-${DEVICEBASE}/${DEVICE}.tar.xz
   HAS_PLTDIR=yes
 else
   log "No platfrom-${DEVICE} found, skipping this step"
