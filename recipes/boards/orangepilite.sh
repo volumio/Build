@@ -12,10 +12,10 @@ ARCH="armhf"
 BUILD="armv7"
 
 ### Device information
-DEVICENAME="Orange Pi"
+DEVICENAME="Orange Pi" # Pretty name
 # This is useful for multiple devices sharing the same/similar kernel
 DEVICEBASE="orangepi"
-DEVICEREPO="https://github.com/pkendall64/platform-orangepi.git"
+DEVICEREPO="https://github.com/ashthespy/platform-orangepi"
 
 ### What features do we want to target
 # TODO: Not fully implement
@@ -65,12 +65,15 @@ device_chroot_tweaks_pre() {
   log "Adding gpio group and udev rules"
   groupadd -f --system gpio
   usermod -aG gpio volumio
-  #TODO: Refactor to cat
-  touch /etc/udev/rules.d/99-gpio.rules
-  echo "SUBSYSTEM==\"gpio\", ACTION==\"add\", RUN=\"/bin/sh -c '
-          chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
-          chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH\
-    '\"" > /etc/udev/rules.d/99-gpio.rules
+  # Works with newer kernels as well
+  cat<<-EOF > /etc/udev/rules.d/99-gpio.rules
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'find -L /sys/class/gpio/ -maxdepth 2 -exec chown root:gpio {} \; -exec chmod 770 {} \; || true'"
+EOF
+  # touch /etc/udev/rules.d/99-gpio.rules
+  # echo "SUBSYSTEM==\"gpio\", ACTION==\"add\", RUN=\"/bin/sh -c '
+  #         chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
+  #         chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH\
+  #   '\"" > /etc/udev/rules.d/99-gpio.rules
 }
 
 # Will be run in chroot - Post initramfs
@@ -78,8 +81,7 @@ device_chroot_tweaks_post(){
   log "Running device_chroot_tweaks_post" "ext"
 
   #TODO This can be done outside chroot,
-  # removing the need of each image needing u-boot-tools
-  # saving some time!
+  # removing the need of each image needing u-boot-tools saving some time!
   log "Creating uInitrd from 'volumio.initrd'" "info"
   if [[ -f /boot/volumio.initrd ]]; then
     mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd

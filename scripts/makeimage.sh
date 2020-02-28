@@ -97,9 +97,8 @@ elif [[ -n $DEVICEREPO ]]; then
   git clone --depth 1 $DEVICEREPO platform-${DEVICEBASE}
   log "Unpacking $DEVICE files"
   log "This isn't really consistent across platforms right now!" "dbg"
-  mkdir -p ${PLTDIR}/${DEVICE}
-  # -C ${PLTDIR}/${DEVICE}
-  tar xfJ platform-${DEVICEBASE}/${DEVICE}.tar.xz
+  # mkdir -p ${PLTDIR}/${DEVICE}
+  tar xfJ platform-${DEVICEBASE}/${DEVICE}.tar.xz -C ${PLTDIR}
   HAS_PLTDIR=yes
 else
   log "No platfrom-${DEVICE} found, skipping this step"
@@ -198,7 +197,7 @@ log "Removing the Kernel from SquashFS"
 rm -rf ${SQSHMNT:?}/boot/*
 
 log "Creating SquashFS, removing any previous one" "info"
-[[ -f $SRC/Volumio.sqsh ]] && rm -r $SRC/Volumio.sqsh
+[[ -f $SRC/Volumio.sqsh ]] && rm $SRC/Volumio.sqsh
 mksquashfs $SQSHMNT/* $SRC/Volumio.sqsh
 
 log "Squash filesystem created" "okay"
@@ -209,13 +208,18 @@ log "Preparing boot partition" "info"
 cp $SRC/Volumio.sqsh $VOLMNT/images/volumio_current.sqsh
 sync
 
-log "Unmounting devices" "info"
+log "Cleaning up" "info"
+log "Unmounting temp devices"
 umount -l $VOLMNT/images
 umount -l $ROOTFSMNT/boot
 
+log "Cleaning up loop devices"
 dmsetup remove_all
 losetup -d ${LOOP_DEV}
 sync
+
+log "Removing Volumio.sqsh"
+[[ -f $SRC/Volumio.sqsh ]] rm $SRC/Volumio.sqsh
 
 log "Hashing image" "info"
 md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
