@@ -166,11 +166,9 @@ chmod 777 /etc/hosts
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 
-log "Testing curl" "dbg"
-curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes log "SSL issues" "wrn"
-# Took a while to debug this -
-# export DEB_BUILD_MAINT_OPTIONS = hardening=+all future=+lfs
-#https://sourceware.org/bugzilla/show_bug.cgi?id=23960
+log "Testing for SSL issues" "dbg"
+curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes;
+log " SSL Issues: ${CURLFAIL:-no}"
 [[ $CURLFAIL == yes ]] && log "Fixing ca-certificates" "wrn" && c_rehash
 
 ################
