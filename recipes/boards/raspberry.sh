@@ -107,10 +107,10 @@ device_chroot_tweaks_pre() {
   ## Define parameters
   declare -A PI_KERNELS=(\
       [4.19.86]="b9ecbe8d0e3177afed08c54fc938938100a0b73f"\
-      [4.19.97]="dc4ba5be1babd3b3ec905751a30df89a5899a7a9"\
+      [4.19.97]="993f47507f287f5da56495f718c2d0cd05ccbc19"\
     )
   # Version we want
-  KERNEL_VERSION="4.19.86"
+  KERNEL_VERSION="4.19.97"
 
   # List of custom firmware -
   # github archives that can be extracted directly
@@ -181,15 +181,19 @@ dtparam=i2c_arm=on
 disable_splash=1
 hdmi_force_hotplug=1
 enable_uart=1
-dtoverlay=pi3-miniuart-bt
 
 include userconfig.txt
 EOF
 
-  log "Writing cmdline.txt file"
-  # DISABLE_PN=""
   DISABLE_PN="net.ifnames=0"
-  echo "earlycon=serial0,115200 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=8 ${DISABLE_PN}" >> /boot/cmdline.txt
+  log "Writing cmdline.txt file"
+  if [[ $DEBUG_IMAGE == yes ]]; then
+    log "Adding Serial Debug parameters"
+    echo "dtoverlay=pi3-miniuart-bt" > /boot/userconfig.txt
+    echo "earlycon=serial0,115200 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=8 ${DISABLE_PN}" >> /boot/cmdline.txt
+  fi
+
+  echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0 ${DISABLE_PN}" >> /boot/cmdline.txt
 
   # TODO is this still needed?
   # log "Linking DTOverlay utility"
@@ -204,8 +208,8 @@ EOF
   # log "Exporting /opt/vc/bin variable"
   # export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
 
-  log "Enable serial boot debug"
-  if [[ $DEBUG_BUILD == yes ]] && [[ -f /boot/bootcode.bin ]]; then
+  if [[ $DEBUG_IMAGE == yes ]] && [[ -f /boot/bootcode.bin ]]; then
+    log "Enable serial boot debug"
     sed -i -e "s/BOOT_UART=0/BOOT_UART=1/" /boot/bootcode.bin
   fi
 
