@@ -24,6 +24,7 @@ trap exit_error INT ERR
 
 log "Stage [2]: Creating Image" "info"
 log "Image file: ${IMG_FILE}"
+log "Using DEBUG_IMAGE: ${DEBUG_IMAGE:-no}"
 VOLMNT=/mnt/volumio
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 LOOP_DEV=$(losetup -f --show ${IMG_FILE})
@@ -120,6 +121,11 @@ log "Performing ${DEVICE} specific tweaks" "info"
 log "Entering device_image_tweaks" "cfg"
 device_image_tweaks
 
+# Grab the UUIDS for boards that use it
+UUID_BOOT="$(blkid -s UUID -o value ${BOOT_PART})"
+UUID_IMG="$(blkid -s UUID -o value ${IMG_PART})"
+UUID_DATA="$(blkid -s UUID -o value ${DATA_PART})"
+
 # Ensure all file systems operations are completed before entering chroot again
 sync
 
@@ -129,6 +135,7 @@ start_chroot_final=$(date +%s)
 cp $SRC/scripts/initramfs/${INIT_TYPE} $ROOTFSMNT/root/init
 cp $SRC/scripts/initramfs/mkinitramfs-buster.sh $ROOTFSMNT/usr/local/sbin
 cp $SRC/scripts/volumio/chrootconfig.sh $ROOTFSMNT
+[ ${KIOSKMODE} == yes ] && cp $SRC/scripts/volumio/install-kiosk.sh $ROOTFSMNT
 echo $PATCH > $ROOTFSMNT/patch
 
 # Copy across custom bits and bobs from device config
@@ -140,6 +147,10 @@ echo $PATCH > $ROOTFSMNT/patch
 cat <<-EOF > $ROOTFSMNT/chroot_device_config.sh
 DEVICENAME="${DEVICENAME}"
 ARCH="${ARCH}"
+DEBUG_IMAGE="${DEBUG_IMAGE:-no}"
+UUID_BOOT=${UUID_BOOT}
+UUID_IMG=${UUID_IMG}
+UUID_DATA=${UUID_DATA}
 MODULES=($(printf '\"%s\" ' "${MODULES[@]}"))
 PACKAGES=($(printf '\"%s\" ' "${PACKAGES[@]}"))
 $(declare -f device_chroot_tweaks)
@@ -219,7 +230,7 @@ losetup -d ${LOOP_DEV}
 sync
 
 log "Removing Volumio.sqsh"
-[[ -f $SRC/Volumio.sqsh ]] rm $SRC/Volumio.sqsh
+[[ -f $SRC/Volumio.sqsh ]] && rm $SRC/Volumio.sqsh
 
 log "Hashing image" "info"
 md5sum "$IMG_FILE" > "${IMG_FILE}.md5"

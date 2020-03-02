@@ -74,6 +74,8 @@ log "Installing ${#PACKAGES[@]} custom packages:" "" "$(echo "${PACKAGES[@]}")"
 apt-get update
 apt-get install -y "${PACKAGES[@]}"
 
+[ -f "/install-kiosk.sh" ] && bash install-kiosk.sh
+
 log "Entering device_chroot_tweaks_pre" "cfg"
 device_chroot_tweaks_pre
 
