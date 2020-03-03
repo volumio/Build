@@ -13,8 +13,8 @@ BUILD="armv8"
 ### Device information
 DEVICENAME="NanoPi Neo2"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="nanopineo2"
-DEVICEREPO="https://github.com/volumio/nanopineo2-platform.git"
+DEVICEBASE="nanopi"
+DEVICEREPO="https://github.com/ashthespy/platform-nanopi"
 
 ### What features do we want to target
 # TODO: Not fully implement
@@ -44,11 +44,11 @@ write_device_files() {
   cp -dR ${PLTDIR}/${DEVICE}/boot ${ROOTFSMNT}
   cp -pdR ${PLTDIR}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib
   cp -pdR ${PLTDIR}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib
-  log "Setting sun50i-h5-nanopi-neo2-i2s-generic.dtb version as default"
-  mv ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2.dtb \
-      ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2-org-default.dtb
-  mv ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2-i2s-generic.dtb \
-      ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2.dtb
+  # log "Setting sun50i-h5-nanopi-neo2-i2s-generic.dtb version as default"
+  # mv ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2.dtb \
+  #     ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2-org-default.dtb
+  # mv ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2-i2s-generic.dtb \
+  #     ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2.dtb
 }
 
 write_device_bootloader(){
