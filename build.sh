@@ -314,7 +314,8 @@ if [ -n "$BUILD" ]; then
   rm -f "$ROOTFS/volumioconfig.sh"
 
   log "Running Volumio configuration script on rootfs" "info"
-  bash $SRC/scripts/volumio/configure.sh -b "$BUILD"
+  # shellcheck source=/scripts/volumio/configure.sh
+  source $SRC/scripts/volumio/configure.sh
 
   log "Volumio rootfs created" "okay"
   # Bundle up the base rootfs

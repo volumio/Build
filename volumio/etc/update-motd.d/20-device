@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# Get system information
+
+[ -r /etc/os-release ] && . /etc/os-release
+
+printf "Welcome to Volumio for %s (%s %s)\n" "$VOLUMIO_DEVICENAME" "$(uname -r)" "$(uname -m)"

@@ -28,6 +28,10 @@ else
   echo "X86 Environmant detected, not cleaning"
 fi
 
+log "Updating MOTD"
+rm -f ${ROOTFSMNT}/etc/motd ${ROOTFSMNT}/etc/update-motd.d/*
+cp $SRC/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
+
 #TODO: This doesn't seem to be doing much atm
 log "Stripping binaries"
 STRP_DIRECTORIES=("${ROOTFSMNT}/lib/" \
