@@ -10,11 +10,14 @@ echo "Installing the kernel"
 # Not brilliant, but safe enough as x86image.sh only copied one image
 dpkg -i linux-image-*_i386.deb
 
-echo "Setting sane defaults for baytrail/cherrytrail soundcards"
+echo "Add script to set sane defaults for baytrail/cherrytrail soundcards"
+#TODO: add this to the Intel HD Audio tweak script see below
 echo "#!/bin/sh -e
-/usr/local/bin/bytcr-init.sh
-/usr/local/bin/volumio_hda_intel_tweak.sh
-exit 0" > /etc/rc.local
+/usr/local/bin/bytcr-init.sh" > /etc/rc.local
+
+echo "Tweaking HDA Intel soundcards"
+echo "/usr/local/bin/volumio_hda_intel_tweak.sh
+exit 0" >> /etc/rc.local
 
 echo "Creating node/ nodejs symlinks to stay compatible with the armv6/v7 platforms"
 ln -s /usr/bin/nodejs /usr/local/bin/nodejs

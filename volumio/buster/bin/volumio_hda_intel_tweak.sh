@@ -27,6 +27,8 @@ for card in /sys/class/sound/card*; do
         ;;
   esac
 done
+exit 0
+
 
 
 
