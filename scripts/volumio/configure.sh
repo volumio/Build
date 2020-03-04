@@ -11,111 +11,122 @@ function exit_error()
 
 trap exit_error INT ERR
 
-
-while getopts ":b:" opt; do
-  case $opt in
-    b)
-      BUILD=$OPTARG
-      ;;
-    *)
-      log "Unknown $OPTARG passed to configure.sh" "err"
-  esac
-done
-
 log 'Copying Custom Volumio System Files' "info"
-#Apt conf file
-if [ "$BUILD" = arm ] || [ "$BUILD" = armv7 ] || [ "$BUILD" = armv8 ]; then
-  log 'Copying ARM sources configuration files'
-  cp volumio/etc/apt/sources.list.$BUILD build/$BUILD/root/etc/apt/sources.list
-  log 'Setting time for ARM devices with fakehwclock to build time'
-  date -u '+%Y-%m-%d %H:%M:%S' > build/$BUILD/root/etc/fake-hwclock.data
-elif [ "$BUILD" = x86 ]; then
+
+# Apt sources
+log "Copying Apt lists" "sources.list.$BUILD"
+cp ${SRC}/volumio/etc/apt/sources.list.$BUILD ${ROOTFS}/etc/apt/sources.list
+if [[ $BUILD == x86 ]]; then
   log 'Copying X86 related Configuration files'
-  #APT sources file
-  cp volumio/etc/apt/sources.list.x86 build/$BUILD/root/etc/apt/sources.list
-#Grub2 conf file
-  cp volumio/etc/default/grub build/$BUILD/root/etc/default/grub
-  cp volumio/splash/volumio.png build/$BUILD/root/boot
-#FSTAB File
-  cp volumio/etc/fstab.x86 build/$BUILD/root/etc/fstab
+  #Grub2 conf file
+    cp ${SRC}/volumio/etc/default/grub ${ROOTFS}/etc/default/grub
+    cp ${SRC}/volumio/splash/volumio.png ${ROOTFS}/boot
+  #FSTAB File
+    cp ${SRC}/volumio/etc/fstab.x86 ${ROOTFS}/etc/fstab
 else
-  log 'Unexpected Build Architecture, aborting...' "err"
-  exit 1
+  log 'Setting time for ARM devices with fakehwclock to build time'
+  date -u '+%Y-%m-%d %H:%M:%S' > ${ROOTFS}/etc/fake-hwclock.data
 fi
+
+log "Copying misc config/tweaks to rootfs" "info"
 
 if [[ $SUITE == "buster" ]]; then
   log "Enabling buster specific tweaks" "info"
   log "Updating Backend .env"
-  sed -i 's/^NODE_MOUNT_HANDLER=false/NODE_MOUNT_HANDLER=true/' build/$BUILD/root/volumio/.env
+  sed -i 's/^NODE_MOUNT_HANDLER=false/NODE_MOUNT_HANDLER=true/' ${ROOTFS}/volumio/.env
+  log "Confirm if following tweaks are still required for Debain - $SUITE" "dbg"
 fi
 
-log "Copying misc config to rootfs"
-
 #Edimax Power Saving Fix + Alsa modprobe
-cp -r volumio/etc/modprobe.d build/$BUILD/root/etc/
+cp -r ${SRC}/volumio/etc/modprobe.d ${ROOTFS}/etc/
+
 #Hosts file
-cp -p volumio/etc/hosts build/$BUILD/root/etc/hosts
+cp -p ${SRC}/volumio/etc/hosts ${ROOTFS}/etc/hosts
+
 #Dhcp conf file
-cp volumio/etc/dhcp/dhclient.conf build/$BUILD/root/etc/dhcp/dhclient.conf
-cp volumio/etc/dhcp/dhcpd.conf build/$BUILD/root/etc/dhcp/dhcpd.conf
+cp ${SRC}/volumio/etc/dhcp/dhclient.conf ${ROOTFS}/etc/dhcp/dhclient.conf
+cp ${SRC}/volumio/etc/dhcp/dhcpd.conf ${ROOTFS}/etc/dhcp/dhcpd.conf
+
 #Samba conf file
-cp volumio/etc/samba/smb.conf build/$BUILD/root/etc/samba/smb.conf
+cp ${SRC}/volumio/etc/samba/smb.conf ${ROOTFS}/etc/samba/smb.conf
+
 #Udev confs file (NET)
-cp -r volumio/etc/udev build/$BUILD/root/etc/
+cp -r ${SRC}/volumio/etc/udev ${ROOTFS}/etc/
+
 #Polkit for USB mounts
-cp -r volumio/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla build/$BUILD/root/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla
+cp -r ${SRC}/volumio/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla ${ROOTFS}/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla
+
 #Inittab file
-cp volumio/etc/inittab build/$BUILD/root/etc/inittab
+cp ${SRC}/volumio/etc/inittab ${ROOTFS}/etc/inittab
+
 #MOTD
-cp volumio/etc/motd build/$BUILD/root/etc/motd
+rm -f ${ROOTFSMNT}/etc/motd ${ROOTFSMNT}/etc/update-motd.d/*
+cp ${SRC}/volumio/etc/update-motd.d/* ${ROOTFS}/etc/update-motd.d/
+
 #SSH
-cp volumio/etc/ssh/sshd_config build/$BUILD/root/etc/ssh/sshd_config
+cp ${SRC}/volumio/etc/ssh/sshd_config ${ROOTFS}/etc/ssh/sshd_config
+cp ${SRC}/volumio/bin/volumiossh.sh ${ROOTFS}/bin/volumiossh.sh
+chmod a+x ${ROOTFS}/bin/volumiossh.sh
+
 #Mpd
-cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
-chmod 777 build/$BUILD/root/etc/mpd.conf
+cp ${SRC}/volumio/etc/mpd.conf ${ROOTFS}/etc/mpd.conf
+chmod 777 ${ROOTFS}/etc/mpd.conf
+
 #Log via JournalD in RAM
-cp volumio/etc/systemd/journald.conf build/$BUILD/root/etc/systemd/journald.conf
+cp ${SRC}/volumio/etc/systemd/journald.conf ${ROOTFS}/etc/systemd/journald.conf
 #Volumio SystemD Services
-cp -r volumio/lib build/$BUILD/root/
+cp -r ${SRC}/volumio/lib ${ROOTFS}/
+
 # Netplug
 # removed , we are using ifplugd
-#cp -rp volumio/etc/netplug build/$BUILD/root/etc/
-#chmod +x build/$BUILD/root/etc/netplug/netplug
+#cp -rp ${SRC}/volumio/etc/netplug ${ROOTFS}/etc/
+#chmod +x ${ROOTFS}/etc/netplug/netplug
+
 # Network
-cp -r volumio/etc/network/* build/$BUILD/root/etc/network
+cp -r ${SRC}/volumio/etc/network/* ${ROOTFS}/etc/network
+
 # Wpa Supplicant
-echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
-chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
+echo " " > ${ROOTFS}/etc/wpa_supplicant/wpa_supplicant.conf
+chmod 777 ${ROOTFS}/etc/wpa_supplicant/wpa_supplicant.conf
+
 #Shairport
-cp volumio/etc/shairport-sync.conf build/$BUILD/root/etc/shairport-sync.conf
-chmod 777 build/$BUILD/root/etc/shairport-sync.conf
+cp ${SRC}/volumio/etc/shairport-sync.conf ${ROOTFS}/etc/shairport-sync.conf
+chmod 777 ${ROOTFS}/etc/shairport-sync.conf
+
 #nsswitch
-cp volumio/etc/nsswitch.conf build/$BUILD/root/etc/nsswitch.conf
+cp ${SRC}/volumio/etc/nsswitch.conf ${ROOTFS}/etc/nsswitch.conf
+
 #firststart
-cp volumio/bin/firststart.sh build/$BUILD/root/bin/firststart.sh
+cp ${SRC}/volumio/bin/firststart.sh ${ROOTFS}/bin/firststart.sh
+
 #hotspot
-cp volumio/bin/hotspot.sh build/$BUILD/root/bin/hotspot.sh
+cp ${SRC}/volumio/bin/hotspot.sh ${ROOTFS}/bin/hotspot.sh
+
 #dynswap
-cp volumio/bin/dynswap.sh build/$BUILD/root/bin/dynswap.sh
+cp ${SRC}/volumio/bin/dynswap.sh ${ROOTFS}/bin/dynswap.sh
+
 #Wireless
-cp volumio/bin/wireless.js build/$BUILD/root/volumio/app/plugins/system_controller/network/wireless.js
+cp ${SRC}/volumio/bin/wireless.js ${ROOTFS}/volumio/app/plugins/system_controller/network/wireless.js
+
 #dhcpcd
-cp -rp volumio/etc/dhcpcd.conf build/$BUILD/root/etc/
+cp -rp ${SRC}/volumio/etc/dhcpcd.conf ${ROOTFS}/etc/
+
 #wifi pre script
-cp volumio/bin/wifistart.sh build/$BUILD/root/bin/wifistart.sh
-chmod a+x build/$BUILD/root/bin/wifistart.sh
+cp ${SRC}/volumio/bin/wifistart.sh ${ROOTFS}/bin/wifistart.sh
+chmod a+x ${ROOTFS}/bin/wifistart.sh
+
 #udev script
-cp volumio/bin/rename_netiface0.sh build/$BUILD/root/bin/rename_netiface0.sh
-chmod a+x build/$BUILD/root/bin/rename_netiface0.sh
+cp ${SRC}/volumio/bin/rename_netiface0.sh ${ROOTFS}/bin/rename_netiface0.sh
+chmod a+x ${ROOTFS}/bin/rename_netiface0.sh
+
 #Plymouth & upmpdcli files
-cp -rp volumio/usr/*  build/$BUILD/root/usr/
-#SSH
-cp volumio/bin/volumiossh.sh build/$BUILD/root/bin/volumiossh.sh
-chmod a+x build/$BUILD/root/bin/volumiossh.sh
+cp -rp ${SRC}/volumio/usr/*  ${ROOTFS}/usr/
+
 #CPU TWEAK
-cp volumio/bin/volumio_cpu_tweak build/$BUILD/root/bin/volumio_cpu_tweak
-chmod a+x build/$BUILD/root/bin/volumio_cpu_tweak
+cp ${SRC}/volumio/bin/volumio_cpu_tweak ${ROOTFS}/bin/volumio_cpu_tweak
+chmod a+x ${ROOTFS}/bin/volumio_cpu_tweak
+
 #LAN HOTPLUG
-cp volumio/etc/default/ifplugd build/$BUILD/root/etc/default/ifplugd
+cp ${SRC}/volumio/etc/default/ifplugd ${ROOTFS}/etc/default/ifplugd
 
 log 'Done Copying Custom Volumio System Files' "okay"
