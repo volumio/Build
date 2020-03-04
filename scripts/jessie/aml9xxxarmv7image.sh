@@ -113,9 +113,9 @@ cp -pdR platform-aml/s9xxx/volumio/* /mnt/volumio/rootfs/volumio
 sync
 
 echo "Preparing to run chroot for more AML configuration"
-cp scripts/aml9xxxarmv7config.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init.nextarm_tvbox /mnt/volumio/rootfs/root/init
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/jessie/aml9xxxarmv7config.sh /mnt/volumio/rootfs
+cp scripts/jessie/initramfs/init.nextarm_tvbox /mnt/volumio/rootfs/root/init
+cp scripts/jessie/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
@@ -160,7 +160,7 @@ echo "==> AML device installed"
 sync
 
 echo "Finalizing Rootfs creation"
-sh scripts/finalize.sh
+sh scripts/jessie/finalize.sh
 
 echo "Preparing rootfs base for SquashFS"
 

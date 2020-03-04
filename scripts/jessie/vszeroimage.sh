@@ -109,9 +109,9 @@ cp platform-pv/vszero/bin/hotspot.sh /mnt/volumio/rootfs/bin/
 sync
 
 echo "Preparing to run chroot for more Voltastream0 configuration"
-cp scripts/vszeroconfig.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/jessie/vszeroconfig.sh /mnt/volumio/rootfs
+cp scripts/jessie/initramfs/init /mnt/volumio/rootfs/root
+cp scripts/jessie/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
@@ -160,7 +160,7 @@ echo "==> Voltastream Zero device installed"
 sync
 
 echo "Finalizing Rootfs creation"
-sh scripts/finalize.sh
+sh scripts/jessie/finalize.sh
 
 echo "Preparing rootfs base for SquashFS"
 

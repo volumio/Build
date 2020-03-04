@@ -76,10 +76,10 @@ sync
 
 echo "Entering Chroot Environment"
 
-cp scripts/raspberryconfig.sh /mnt/volumio/rootfs
+cp scripts/jessie/raspberryconfig.sh /mnt/volumio/rootfs
 
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/jessie/initramfs/init /mnt/volumio/rootfs/root
+cp scripts/jessie/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 
 mount /dev /mnt/volumio/rootfs/dev -o bind
 mount /proc /mnt/volumio/rootfs/proc -t proc
@@ -131,7 +131,7 @@ echo "Copying Firmwares"
 sync
 
 echo "Finalizing Rootfs creation"
-sh scripts/finalize.sh
+sh scripts/jessie/finalize.sh
 
 echo "Creating RootFS Base for SquashFS"
 

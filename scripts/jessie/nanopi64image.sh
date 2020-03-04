@@ -121,9 +121,9 @@ sudo cp -pdR platform-nanopi/nanopi-a64/lib/firmware /mnt/volumio/rootfs/lib/
 sync
 
 echo "Preparing to run chroot for more Nanopi a64 configuration"
-cp scripts/nanopi64config.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/jessie/nanopi64config.sh /mnt/volumio/rootfs
+cp scripts/jessie/initramfs/init /mnt/volumio/rootfs/root
+cp scripts/jessie/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
@@ -153,7 +153,7 @@ echo "==> NanoPI64 device installed"
 sync
 
 echo "Finalizing Rootfs creation"
-sh scripts/finalize.sh
+sh scripts/jessie/finalize.sh
 
 echo "Preparing rootfs base for SquashFS"
 

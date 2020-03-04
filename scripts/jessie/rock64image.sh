@@ -126,9 +126,9 @@ sudo cp -pdR platform-rock64/rock64/etc /mnt/volumio/rootfs/
 sync
 
 echo "Preparing to run chroot for more rock64 configuration"
-cp scripts/rock64config.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/jessie/rock64config.sh /mnt/volumio/rootfs
+cp scripts/jessie/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
+cp scripts/jessie/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
@@ -181,7 +181,7 @@ echo "==> rock64 device installed"
 sync
 
 echo "Finalizing Rootfs creation"
-sh scripts/finalize.sh
+sh scripts/jessie/finalize.sh
 
 echo "Preparing rootfs base for SquashFS"
 

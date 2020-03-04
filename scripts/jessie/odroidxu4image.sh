@@ -122,9 +122,9 @@ echo "Copying modified securetty (oDroid-XU4 console)"
 cp platform-odroid/odroidxu4/etc/securetty /mnt/volumio/rootfs/etc/
 
 echo "Preparing to run chroot for more OdroidXU configuration"
-cp scripts/odroidxu4config.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
-cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
+cp scripts/jessie/odroidxu4config.sh /mnt/volumio/rootfs
+cp scripts/jessie/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
+cp scripts/jessie/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
 
@@ -177,7 +177,7 @@ sync
 echo "Odroid-XU4 device installed"
 
 echo "Finalizing Rootfs creation"
-sh scripts/finalize.sh
+sh scripts/jessie/finalize.sh
 
 echo "Preparing rootfs base for SquashFS"
 
