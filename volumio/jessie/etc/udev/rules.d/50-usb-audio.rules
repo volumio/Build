@@ -1,0 +1,2 @@
+KERNEL=="pcmC5D0p", DRIVERS=="usb", ACTION=="add", RUN+="/bin/bash -c '/usr/local/bin/volumio usbattach'"
+KERNEL=="pcmC5D0p", DRIVERS=="usb", ACTION=="remove", RUN+="/bin/bash -c '/usr/local/bin/volumio usbdetach'"

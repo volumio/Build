@@ -1,0 +1,473 @@
+#!/bin/sh
+#
+#
+# Unlike arm devices, an x86 device is much more diverse when it comes to storage devices.
+# For this reason, locating all relevant partitions is based on search by UUID.
+# An exception is the detecting of additional USB devices, possibly holding a new 
+# version of the squashfs 'volumio' rootfs
+# 
+#
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+parse_disk() {
+  if [ "$(echo $1|cut -c -5)" = "UUID=" ]; then
+    # $1 is a UUID
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -6)" = "LABEL=" ]; then
+    # $1 is a LABEL
+    echo $(findfs $1)
+  elif [ "$(echo $1|cut -c -5)" = "/dev/" ]; then
+    # $1 is a device name
+    echo $1
+  else
+    # $1 is unrecognized.
+    echo "unknown-disk"
+    exec sh
+	exit 0
+  fi
+}
+
+# Display a message or print directly to /dev/kmsg
+print_msg() {
+msgbuf=$1
+if [ $USE_KMSG == yes ]; then
+  printf "[i] initramfs: ${msgbuf}\n"
+else
+  printf "[e] initramfs: ${msgbuf}\n"
+fi
+}
+
+update_config_UUIDs() {
+  mkdir /mnt/configs
+  mount -t vfat ${BOOTPART} /mnt/configs
+
+  UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
+  UUID_IMG=$(blkid -s UUID -o value ${IMGPART})
+  UUID_DATA=$(blkid -s UUID -o value ${DATAPART})
+
+  mv /mnt/configs/syslinux.cfg /mnt/configs/syslinux.cfg.old
+  mv /mnt/configs/syslinux.tmpl /mnt/configs/syslinux.cfg
+  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /mnt/configs/syslinux.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /mnt/configs/syslinux.cfg
+  sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /mnt/configs/syslinux.cfg
+
+  mv /mnt/configs/efi/BOOT/grub.cfg /mnt/configs/efi/BOOT/grub.cfg.old
+  mv /mnt/configs/efi/BOOT/grub.tmpl /mnt/configs/efi/BOOT/grub.cfg
+  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /mnt/configs/efi/BOOT/grub.cfg
+  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /mnt/configs/efi/BOOT/grub.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /mnt/configs/efi/BOOT/grub.cfg
+  sed -i "s/datapart=%%DATAPART%%/datapart=UUID=${UUID_DATA}/g" /mnt/configs/efi/BOOT/grub.cfg
+
+  sync
+  umount /mnt/configs
+  rm -r /mnt/configs
+}
+
+#set a default for printing kernel messages yes/no
+USE_KMSG="no"
+#  -- checking if a firmware update is available on the
+#     first partition of any additional USB device
+#  -- resizing a newly flashed Volumio device
+#     (sentinel in /boot partition)
+#  -- creating the overlay fs
+#     (rootfs RO and volumio_data (RW)
+
+modprobe overlay 
+modprobe squashfs
+modprobe nls_cp437
+modprobe nls_utf8
+modprobe nvme_core
+modprobe nvme
+modprobe usb_common
+modprobe usbcore
+# The EHCI driver should be loaded before the ones for low speed controllers
+# or some devices may be confused when they are disconnected and reconnected.
+modprobe ehci_hcd
+modprobe ehci_pci
+modprobe uhci_hcd
+modprobe ohci_hcd
+modprobe ohci_pci
+modprobe xhci_hcd
+modprobe xhci_pci
+modprobe mmc_core
+modprobe mmc_block
+modprobe sdhci
+modprobe sdhci_pci
+modprobe sdhci_acpi
+modprobe hid
+modprobe usbhid
+modprobe hid_cherry
+modprobe hid_generic
+modprobe loop
+
+[ -d /proc ] || mkdir /proc
+mount -t proc none /proc
+[ -d /sys ] || mkdir /sys
+mount -t sysfs none /sys
+
+mknod /dev/null c 1 3
+mknod /dev/tty c 5 0
+
+modprobe usb_storage
+modprobe libata
+modprobe libahci
+modprobe ahci
+modprobe pata_atiixp
+modprobe sd_mod
+modprobe ata_piix
+modprobe pata_sch
+modprobe pata_sis
+modprobe pata_via
+modprobe pata_amd
+modprobe sata_sis
+modprobe sata_via
+modprobe ata_generic
+
+sleep 5
+mdev -s
+
+echo "[Daemon]
+Theme=volumio
+ShowDelay=0
+" > /usr/share/plymouth/plymouthd.defaults
+# No need to start plymouth daemon (started already), just show splash
+/bin/plymouth --show-splash
+
+# Parse the kernel command line from grub
+CMDLINE="$(cat /proc/cmdline)"
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+
+  case $key in
+  imgpart)
+    IMGPART=`parse_disk $value`
+    ;;
+  bootpart)
+    BOOTPART=`parse_disk $value`
+    ;;
+  datapart)
+    DATAPART=`parse_disk $value`
+    ;;
+  imgfile)
+    IMGFILE=$value
+    ;;
+  use_kmsg)
+    USE_KMSG=$value
+    ;;
+  esac
+done
+
+if [ $USE_KMSG == no ]; then
+	echo 0 > /proc/sys/kernel/printk
+fi
+
+if [ -z "${BOOTPART}" ]; then
+  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  exec sh
+  exit 0
+fi
+
+if [ -z "${IMGPART}" ]; then
+  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  exec sh
+  exit 0
+fi
+
+if [ -z "${DATAPART}" ]; then
+  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  exec sh
+  exit 0
+fi
+
+if [ -z "${IMGFILE}" ]; then
+  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+  exec sh
+  exit 0
+fi
+
+print_msg IMGPART=${IMGPART}
+print_msg IMGFILE=${IMGFILE}
+print_msg BOOTPART=${BOOTPART}
+print_msg DATAPART=${DATAPART}
+
+if [ ! -b "${IMGPART}" ]; then
+  print_msg "No partition with ${IMGPART} has been found"
+  exec sh
+  exit 0
+fi
+
+# ok, parsing done
+[ -d /mnt ] || mkdir /mnt
+# Mount the partitions
+# 1) mount the partition where the squash image resides
+[ -d /mnt/imgpart ] || mkdir /mnt/imgpart
+mount -t ext4 ${IMGPART} /mnt/imgpart
+
+#
+# Step 1: As the image likely has been dd'ed to a bigger disk, 
+#         the backup GPT table is not at the end of the disk.
+# 		  Fix it before doing anything else (only at first boot)
+# ==============================================================
+#
+
+BOOT_DEVICE=$(echo /dev/`lsblk -no PKNAME ${BOOTPART}`)
+GPTSIZEMISMATCH="$(/usr/sbin/fdisk -l ${BOOT_DEVICE} 2>&1 | grep 'GPT PMBR size mismatch')"
+if [ ! "x${GPTSIZEMISMATCH}" == "x" ]; then
+  print_msg "Alternate (backup) GPT header not at the end of the disk, moving it..."
+  /usr/sbin/gdisk ${BOOT_DEVICE} > /dev/null  2>&1 <<EOF
+x
+e
+w
+y
+EOF
+  rm -rf /mnt/imgpart/move-gpt
+  print_msg "Succesfully moved the alternate GPT header"
+fi
+
+#
+# Step 2: Check for recovery image, if not found create it
+# =============================================================
+#
+if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
+  print_msg "Creating factory image, this will take a minute, please wait..."
+  cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
+  print_msg "Factory image created"
+  print_msg "Creating archive for factory kernel..."
+  mkdir /mnt/factory
+  mount -t vfat ${BOOTPART} /mnt/factory
+# exclude ldlinux.sys from kernel tar's to avoid a relocation during kernel-update or factory-reset 
+# (little workaround, as this tar version does not support the --exclude= option)
+  mkdir /mnt/imgpart/boot
+  cp -pR /mnt/factory/* /mnt/imgpart/boot
+  rm /mnt/imgpart/boot/ldlinux.sys
+  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/imgpart/boot .
+  cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
+  rm -r /mnt/imgpart/boot
+  umount /mnt/factory
+  rm -r /mnt/factory
+fi
+#
+# Step 3: Check for Volumio rootfs update
+#         or factory reset file on usb
+# =======================================
+#
+print_msg "Detecting additional removable devices"
+mkdir /mnt/usb
+usb_done=/dev/
+for devlink in /dev/sd*
+  do 
+	# only checking the first partition of an additional device!
+	usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g') 
+	if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
+          mount -t auto $(echo ${usb_dev}1) /mnt/usb > /dev/null  2>&1
+          print_msg "Checking " $usb_dev"1 for a volumio rootfs update" 
+      	    if [ -e /mnt/usb/*.fir ]; then
+               print_msg "New rootfs firmware found"
+               print_msg "Updating will take several minutes, please wait...."
+	       volumio-init-updater
+	       sync
+               print_msg "USB Update applied"
+               umount /mnt/usb > /dev/null 2>&1
+               rm -r /mnt/boot
+               print_msg "Restarting"
+               echo b > /proc/sysrq-trigger
+	       break
+      fi
+	  umount /mnt/usb> /dev/null 2>&1
+    fi
+	usb_done=${usb_dev}
+  done
+print_msg "Checking for factory reset on an additional device"
+for devlink in /dev/sd*
+  do 
+	# only checking the first partition of an additional device!
+	usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g') 
+	if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
+      mount -t auto $(echo ${usb_dev}1) /mnt/usb > /dev/null  2>&1
+      print_msg "Checking " $usb_dev"1 for a factory reset" 
+      if [ -e /mnt/usb/factory_reset ]; then
+        mkdir /mnt/factory
+        mount -t auto ${BOOTPART} /mnt/factory
+        echo " " > /mnt/factory/factory_reset
+        print_msg "Factory reset initiated"
+        umount /mnt/factory
+        rm -r /mnt/factory
+	    umount /mnt/usb > /dev/null  2>&1
+        break
+      fi
+      umount /mnt/usb > /dev/null 2>&1
+    fi
+	usb_done=${usb_dev}
+  done
+rmdir /mnt/usb
+
+#
+# Step 4: If there is factory reset or a user-data reset on the boot partition
+#         then re-format data partition.
+# ============================================================================
+# TODO: restore kernel_factory too
+#
+print_msg "Checking for factory or user-data reset on boot device"
+mkdir /mnt/factory
+mount -t vfat ${BOOTPART} /mnt/factory
+if [ -e "/mnt/factory/factory_reset" ]; then
+  print_msg "Executing factory reset..."
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
+  print_msg "Factory reset executed: part I - User Data Part"
+  tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
+  update_config_UUIDs
+  # no re-size
+  rm /mnt/factory/resize-volumio-datapart
+  print_msg "Factory reset executed: part II - Kernel"
+  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh && rm /mnt/factory/factory_reset
+  print_msg "Factory reset executed: part III - Squash"
+  print_msg "Restarting"
+  sync
+  umount /mnt/factory
+  rm -r /mnt/factory
+  echo b > /proc/sysrq-trigger
+fi
+if [ -e "/mnt/factory/user_data" ]; then
+  print_msg "Deleting User Data..."
+  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
+  update_config_UUIDs
+  rm /mnt/factory/user_data
+  
+  print_msg "User Data successfully deleted "
+fi
+umount /mnt/factory
+rm -r /mnt/factory
+
+#
+# Step 5: Handling of kernel updates
+# ===========================================================
+#
+# if the update failed before completion
+mkdir boot
+mount -t vfat ${BOOTPART} /boot
+if [ -e "/boot/update_process" ]; then
+  print_msg "Previous update attempt failed, restoring fallbacks"
+  cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
+  cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
+  if [-e "/boot/kernel_update" ]; then
+    rm /boot/kernel_update
+  fi
+  rm /boot/update_process
+fi
+
+# if the kernel has been updated, and no error has occurred before completition
+# Retrieve current UUID of boot and image partition
+# These need to be edited into the new boot configs to make the new update bootable
+# This is an update on an existing installation, do not resize the data partition
+# Just remove the sentinel
+if [ -e "/boot/kernel_update" ]; then
+  print_msg "unpacking kernel"
+  tar xf /mnt/imgpart/kernel_current.tar -C /boot
+  update_config_UUIDs
+  rm /boot/resize-volumio-datapart
+  rm /boot/kernel_update
+  sync
+  umount /boot
+  rm -rf /boot
+  echo b > /proc/sysrq-trigger
+fi
+
+#
+# Step 6: Re-size the data partition
+# ==================================
+#
+DATADEV=$(echo /dev/`lsblk -no PKNAME ${DATAPART}`)
+# Re-sizing is not necessary when we already reached maximum (shows with decimals less than 1MB).
+FREESIZE="$(parted -s ${DATADEV} unit MB print free | tail -n 2 | grep Free | awk '{print $3}' | awk -F 'MB' '{print $1}')"
+if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
+  print_msg "Re-sizing Volumio data partition..."
+  END="$(parted -s ${DATADEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
+  parted -s ${DATADEV} resizepart 3 ${END} > /boot/resize-datapart.log 2>&1
+  e2fsck -f ${DATAPART} -y >> /boot/resize-datapart.log 2>&1
+  resize2fs ${DATAPART} >> /boot/resize-datapart.log 2>&1
+  print_msg "Volumio data partition succesfully resized"
+  parted -s ${DATADEV} unit MB print >> /boot/resize-datapart.log 2>&1
+fi
+umount /boot
+rm -r /boot
+
+#
+# Step 7: mount the squashfs (RO) on /mnt/static
+# ==============================================
+#
+loop_free=$(losetup -f | sed s#p/#p#)
+#wait for the device to become ready
+sleep 3
+mdev -s
+
+losetup $loop_free /mnt/imgpart/${IMGFILE}
+
+mkdir /mnt/static
+mount -t squashfs $loop_free /mnt/static
+VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
+
+#
+# Step 8: mount the dynamic (RW) datapart on /mnt/ext
+# ===================================================
+#
+[ -d /mnt/ext ] || mkdir /mnt/ext
+mount -t ext4 ${DATAPART} /mnt/ext
+[ -d /mnt/ext/dyn ] || mkdir /mnt/ext/dyn
+[ -d /mnt/ext/union ] || mkdir /mnt/ext/union
+[ -d /mnt/ext/work ] || mkdir /mnt/ext/work
+
+# Step 9: Create the overlay from RO and RW partitions
+# ====================================================
+
+mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
+
+# Clean up.
+[ -d /mnt/ext/union/static ] || mkdir /mnt/ext/union/static
+[ -d /mnt/ext/union/imgpart ] || mkdir /mnt/ext/union/imgpart
+mount --move /mnt/static /mnt/ext/union/static
+mount --move /mnt/imgpart /mnt/ext/union/imgpart
+
+chmod -R 777 /mnt/ext/union/imgpart
+
+# Step 10: The UUID of the bootpartition could possibly not match the one used in fstab.
+#          This is the case when an new version of the squash file has been created.
+#          This step fixes that 
+# ============================================================================================
+UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
+print_msg "Editing fstab to use UUID=<correct uuid of bootpartition>"
+if [ -e "/mnt/ext/union/etc/fstab.prev" ]; then
+  rm /mnt/ext/union/etc/fstab.prev
+fi
+mv /mnt/ext/union/etc/fstab /mnt/ext/union/etc/fstab.prev
+cp /mnt/ext/union/etc/fstab.tmpl /mnt/ext/union/etc/fstab
+sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /mnt/ext/union/etc/fstab
+
+print_msg ${VOLUMIO_VERSION}
+print_msg "Finishing initramfs, switching rootfs and starting the boot process..."
+umount /proc
+umount /sys
+
+/bin/plymouth --newroot=/mnt/ext/union
+
+exec switch_root /mnt/ext/union /sbin/init
+
+print_msg "Failed to switch_root, dropping to a shell"
+exec sh 
+
+

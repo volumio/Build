@@ -1,0 +1,12 @@
+[Unit]
+Description=Wireless Services
+Before=volumio.service
+
+[Service]
+Type=forking
+ExecStartPre=-/bin/wifistart.sh
+ExecStart=/volumio/app/plugins/system_controller/network/wireless.js start
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

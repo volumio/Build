@@ -1,0 +1,18 @@
+[Unit]
+Description = Volumio Backend Module
+Wants=dynamicswap.service
+
+
+[Service]
+ExecStart=/usr/local/bin/node /volumio/index.js
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=volumio
+User=volumio
+Group=volumio
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+

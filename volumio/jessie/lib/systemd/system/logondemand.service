@@ -1,0 +1,11 @@
+[Unit]
+Description=Send Log on demand
+
+[Service]
+EnvironmentFile=/tmp/logfields
+ExecStart=/usr/local/bin/node /volumio/logsubmit.js
+User=volumio
+Group=volumio
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description = mount disks automatically with standby
+After = remote-fs.target
+
+[Service]
+User = volumio
+Group = volumio
+Type = simple
+ExecStart = /usr/bin/udisks-glue --foreground
+
+[Install]
+WantedBy = multi-user.target

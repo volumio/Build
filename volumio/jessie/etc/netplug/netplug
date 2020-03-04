@@ -1,0 +1,47 @@
+#!/bin/bash
+
+dev="$1"
+action="$2"
+echo $1 - $2 >>/tmp/log
+case "$dev" in 
+eth0)
+    case "$action" in
+    in) 
+	#systemctl stop wireless
+	#sleep 1
+	#echo lan >/tmp/networkstatus
+	
+        ;;
+    out)
+	#systemctl restart wireless
+        ;;
+     probe)
+	#systemctl stop wac
+	
+	#sleep 1
+    ifconfig eth0 up
+	#cable="$(grep "" /sys/class/net/eth0/carrier)"
+	#if [ $cable == "0" ]; then
+	systemctl restart wireless 
+	#fi
+	
+	exit 0
+   esac
+   ;;
+wlan0)
+	case "$action" in
+    in)
+	
+        ;;
+    out)
+	#systemctl stop wac
+	#cable="$(grep "" /sys/class/net/eth0/carrier)"
+	#if [ $cable == "0" ]; then
+	systemctl restart wireless 
+	#fi
+	;;
+    probe)
+	;;
+    esac
+    ;;
+esac

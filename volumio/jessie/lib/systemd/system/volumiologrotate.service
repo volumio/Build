@@ -1,0 +1,15 @@
+[Unit]
+Description = Volumio Log Rotation Service
+
+[Service]
+ExecStart=/bin/volumiologrotate
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=volumiologrotate
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+

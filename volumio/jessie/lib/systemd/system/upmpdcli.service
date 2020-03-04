@@ -1,0 +1,15 @@
+[Unit]
+Description=UPnP Renderer front-end to MPD
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/upmpdcli -c /tmp/upmpdcli.conf
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=volumio
+User=volumio
+Group=volumio
+
+[Install]
+WantedBy=multi-user.target

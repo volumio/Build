@@ -1,0 +1,14 @@
+[Unit]
+Description = Volumio Iptables Module
+
+[Service]
+ExecStart=/sbin/iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=iptables
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+

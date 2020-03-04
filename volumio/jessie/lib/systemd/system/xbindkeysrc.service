@@ -1,0 +1,14 @@
+[Unit]
+Description = Xbindrc
+
+[Service]
+ExecStart=/usr/bin/xbindkeys -X :0 -f /etc/xbindkeysrc
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=xbindrc
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

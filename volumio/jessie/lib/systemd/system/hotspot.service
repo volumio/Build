@@ -1,0 +1,14 @@
+[Unit]
+Wants=dhcpd.service
+Wants=dnsmasq.service
+
+[Service]
+Type=idle
+ExecStart=/bin/hotspot.sh start
+ExecStop=/bin/hotspot.sh stop
+KillMode=mixed
+Restart=no
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=hotspot
+
