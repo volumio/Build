@@ -3,7 +3,7 @@ Description = Xbindrc
 
 [Service]
 ExecStart=/usr/bin/xbindkeys -X :0 -f /etc/xbindkeysrc
-Restart=always
+Restart=on-failure
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=xbindrc
