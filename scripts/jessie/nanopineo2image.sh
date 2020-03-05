@@ -54,10 +54,14 @@ then
 	exit 1
 fi
 
-echo "Creating boot and rootfs filesystems"
+echo "Creating boot filesystem"
 mkfs -t vfat -n BOOT "${BOOT_PART}"
-mkfs -F -t ext4 -L volumio "${SYS_PART}"
-mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+echo "Creating image and data filesystem"
+#make sure metadata_csum and 64bit filesystem options are excluded, target OS jessie does not know them
+#mkfs 1.44.5 or higher (e.g. buster host pc) use these options as default, try to exclude them
+#jessie's mkfs does not know these options, causing an explicit exclude to fail. In that case continue mkfs without the exclusions.
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio "${SYS_PART}" || echo "Obviously we're on a jessie host, no need for options" ; mkfs -F -t ext4 -L volumio "${SYS_PART}"
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio_data "${DATA_PART}" || echo "Obviously we're on a jessie host, no need for options" ; mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 GETNEO2=yes
