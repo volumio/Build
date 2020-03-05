@@ -34,6 +34,10 @@ if [[ $SUITE == "buster" ]]; then
   log "Enabling buster specific tweaks" "info"
   log "Updating Backend .env"
   sed -i 's/^NODE_MOUNT_HANDLER=false/NODE_MOUNT_HANDLER=true/' ${ROOTFS}/volumio/.env
+
+  log "Copying headless wifi setup service"
+  cp ${SRC}/volumio/lib/systemd/system/headless_wireless.service ${ROOTFS}/etc/systemd/system/multi-user.target.wants/
+
   log "Confirm if following tweaks are still required for Debain - $SUITE" "dbg"
 fi
 
