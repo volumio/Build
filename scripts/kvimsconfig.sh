@@ -56,27 +56,6 @@ if [ ! "$MODEL" = kvim1 ]; then
 	ln -s /lib/systemd/system/fan.service /etc/systemd/system/multi-user.target.wants/fan.service
 fi
 
-#echo "Bluetooth Audio Sink/ Media configuration"
-#echo "[General]" > /etc/bluetooth/audio.conf
-#echo "Enable=Source,Sink,Media,Socket" >> /etc/bluetooth/audio.conf
-#echo "HFP=true" >> /etc/bluetooth/audio.conf
-#echo "Class=0x00041C" >> /etc/bluetooth/audio.conf
-
-#echo "Various device conf"
-#echo "[General]" > /etc/bluetooth/main.conf
-#echo "Name = Volumio" >> /etc/bluetooth/main.conf
-#echo "Class = 0x00041C" >> /etc/bluetooth/main.conf
-#echo "DiscoverableTimeout = 0" >> /etc/bluetooth/main.conf
-#echo "Discoverable = true" >> /etc/bluetooth/main.conf
-#echo "PairableTimeout = 0" >> /etc/bluetooth/main.conf
-#echo "AutoConnectTimeout = 0" >> /etc/bluetooth/main.conf
-
-#echo "Setting default Bluetooth Name"
-#echo "Volumio" > /etc/machine-info
-#chmod 777 /etc/machine-info
-
-#echo "volumio ALL=(ALL) NOPASSWD: /bin/hciconfig" >> /etc/sudoers
-
 echo "Configuring boot splash"
 apt-get -y install plymouth plymouth-themes
 plymouth-set-default-theme volumio
