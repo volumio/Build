@@ -58,8 +58,8 @@ fi
 
 echo "Creating boot and rootfs filesystems"
 mkfs -t vfat -n VBOOT "${BOOT_PART}"
-mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio "${SYS_PART}" || mkfs -F -t ext4 -L volumio "${SYS_PART}"
-mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio_data "${DATA_PART}" || mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L VIMAGE "${SYS_PART}" || mkfs -F -t ext4 -L VIMAGE "${SYS_PART}"
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L VDATA "${DATA_PART}" || mkfs -F -t ext4 -L VDATA "${DATA_PART}"
 sync
 
 echo "Preparing for the vims kernel/ platform files"
