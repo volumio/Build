@@ -86,11 +86,25 @@ else
 	cd ..
 fi
 
-echo "Installing u-boot"
+echo "Use $MODEL u-boot naming as Krescue also needs it.."
+case $MODEL in
+  kvim1 )
+  BOARD=VIM1
+  ;;
+  kvim2 )
+  BOARD=VIM2
+  ;;
+  kvim3 )
+  BOARD=VIM3
+  ;;
+  kvim3l )
+  BOARD=VIM3L
+  ;;
+esac
 
-echo "Installing u-boot for $MODEL"
-dd if=platform-khadas/vims/uboot/u-boot.$MODEL.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
-dd if=platform-khadas/vims/uboot/u-boot.$MODEL.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync > /dev/null 2>&1
+echo "Installing u-boot for $BOARD"
+dd if=platform-khadas/vims/uboot/u-boot.$BOARD.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
+dd if=platform-khadas/vims/uboot/u-boot.$BOARD.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync > /dev/null 2>&1
 
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
