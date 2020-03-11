@@ -30,6 +30,8 @@ echo "kernel.dmesg_restrict = 0" >> /etc/sysctl.conf
 
 echo "#!/bin/sh -e
 echo heartbeat > /sys/class/leds/sys_led/trigger
+/usr/bin/amixer sset 'Audio hdmi-out mute' off
+/usr/bin/amixer sset 'Audio spdif mute' off
 exit 0" > /etc/rc.local
 
 #TODO: perhaps add fancontrol, though this is really "not done" for an audiophile device

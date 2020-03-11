@@ -169,9 +169,9 @@ if [ "$MODEL" = kvim3 ] || [ "$MODEL" = kvim3l ]; then
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_ap6398s.bin /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag.bin
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6398s.txt /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6359sa.txt
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0_ap6398s.hcd /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0.hcd
-	cp platform-khadas/vims/var/lib/alsa/asound.state.vim3-3l /mnt/volumio/rootfs/var/lib/alsa/asound.state
+#	cp platform-khadas/vims/var/lib/alsa/asound.state.vim3-3l /mnt/volumio/rootfs/var/lib/alsa/asound.state
 else
-	cp platform-khadas/vims/var/lib/alsa/asound.state.vim1-2 /mnt/volumio/rootfs/var/lib/alsa/asound.state
+#	cp platform-khadas/vims/var/lib/alsa/asound.state.vim1-2 /mnt/volumio/rootfs/var/lib/alsa/asound.state
 fi
 
 echo "Preparing to run chroot for more Khadas ${MODEL} configuration"
