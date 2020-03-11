@@ -102,7 +102,7 @@ case $MODEL in
   ;;
 esac
 
-echo "Installing u-boot for $BOARD"
+echo "Installing u-boot u-boot.$BOARD.sd.bin"
 dd if=platform-khadas/vims/uboot/u-boot.$BOARD.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
 dd if=platform-khadas/vims/uboot/u-boot.$BOARD.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync > /dev/null 2>&1
 
@@ -170,7 +170,7 @@ if [ "$MODEL" = kvim3 ] || [ "$MODEL" = kvim3l ]; then
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6398s.txt /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6359sa.txt
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0_ap6398s.hcd /mnt/volumio/rootfs/lib/firmware/brcm/BCM4359C0.hcd
 #	cp platform-khadas/vims/var/lib/alsa/asound.state.vim3-3l /mnt/volumio/rootfs/var/lib/alsa/asound.state
-else
+#else
 #	cp platform-khadas/vims/var/lib/alsa/asound.state.vim1-2 /mnt/volumio/rootfs/var/lib/alsa/asound.state
 fi
 
