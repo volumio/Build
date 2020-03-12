@@ -81,6 +81,8 @@ cp volumio/bin/hotspot.sh build/$BUILD/root/bin/hotspot.sh
 cp volumio/bin/dynswap.sh build/$BUILD/root/bin/dynswap.sh
 #Wireless
 cp volumio/bin/wireless.js build/$BUILD/root/volumio/app/plugins/system_controller/network/wireless.js
+#Volumio Log Rotate
+cp volumio/bin/volumiologrotate build/$BUILD/root/bin/volumiologrotate
 #dhcpcd
 cp -rp volumio/etc/dhcpcd.conf build/$BUILD/root/etc/
 #wifi pre script
