@@ -18,15 +18,14 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
-sed -i "s/%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/boot.ini
-sed -i "s/%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/boot.ini
-sed -i "s/%%DATAPART%%/datapart=UUID=${UUID_DATA}/g" /boot/boot.ini
+sed -i "s/#IMG_PART=UUID=/IMG_PART=UUID=${UUID_IMG}/g" /boot/env.txt
+sed -i "s/#BOOT_PART=UUID=/BOOT_PART=UUID=${UUID_BOOT}/g" /boot/env.txt
+sed -i "s/#DATA_PART=UUID=/DATA_PART=UUID=${UUID_DATA}/g" /boot/env.txt
 
 echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
 echo "Remove default dmesg restriction"
 echo "kernel.dmesg_restrict = 0" >> /etc/sysctl.conf
-
 
 echo "#!/bin/sh -e
 echo heartbeat > /sys/class/leds/sys_led/trigger

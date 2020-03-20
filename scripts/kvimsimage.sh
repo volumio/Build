@@ -136,9 +136,12 @@ echo "Copying boot files"
 cp platform-khadas/vims/boot/Image /mnt/volumio/rootfs/boot
 cp platform-khadas/vims/boot/config* /mnt/volumio/rootfs/boot
 cp platform-khadas/vims/boot/boot.ini /mnt/volumio/rootfs/boot
+cp platform-khadas/vims/boot/env.txt /mnt/volumio/rootfs/boot
+cp platform-khadas/vims/boot/env.txt.header.tpl /mnt/volumio/rootfs/boot
 cp -r platform-khadas/vims/boot/dtb /mnt/volumio/rootfs/boot
 echo "Keeping copies of u-boot files"
 cp -r platform-khadas/vims/uboot /mnt/volumio/rootfs/boot
+cp -r platform-khadas/vims/uboot-mainline /mnt/volumio/rootfs/boot
 
 echo "Copying modules"
 cp -Rp platform-khadas/vims/lib/modules /mnt/volumio/rootfs/lib/
