@@ -70,16 +70,16 @@ then
 	cd platform-khadas
 	if [ -f vims.tar.xz ]; then
 	   echo "Found a new tarball, unpacking..."
-	   [ -d vims ] || rm -r vims	
+	   [ -d vims ] || rm -r vims
 	   tar xfJ vims.tar.xz
-	   rm vims.tar.xz 
+	   rm vims.tar.xz
 	fi
 	cd ..
 else
 	echo "Clone vims files from repo"
 	mkdir platform-khadas
     cd platform-khadas
-	wget https://github.com/gkkpch/platform-khadas/raw/master/vims.tar.xz
+	wget https://github.com/volumio/platform-khadas/raw/master/vims.tar.xz
 	echo "Unpacking the platform files"
 	tar xfJ vims.tar.xz
 	rm vims.tar.xz
