@@ -358,6 +358,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/vim1image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  hemx8mmini) echo 'Writing hemx8mmini Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/hemx8mminiimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
   kvim1|kvim2|kvim3|kvim3l) echo 'Writing VIM1 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/kvimsimage.sh -v "$VERSION" -p "$PATCH" -a armv7 -m ${DEVICE}
