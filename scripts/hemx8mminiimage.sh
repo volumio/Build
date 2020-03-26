@@ -73,14 +73,9 @@ then
 	cd ..
 else
 	echo "[INFO] Get hemx8mmini files from repo"
-	mkdir platform-variscite
-    cd platform-odroid
-	[ ! -f hemx8mmini.tar.xz ] || rm hemx8mmini.tar.xz
-	wget https://github.com/volumio/platform-variscite/raw/master/hemx8mmini.tar.xz
-	echo "[INFO] Unpacking the platform files"
-	tar xfJ hemx8mmini.tar.xz
-	rm hemx8mmini.tar.xz
-	cd ..
+	git clone https://github.com/volumio/platform-hem-var-som-mx8m-mini platform-variscite --depth 1
+    tyr xfJ hemx8mmini.tar.xz
+    rm hemx8mmini.tar.xz
 fi
 
 echo "[INFO] Copying the hemx8mmini bootloader"
