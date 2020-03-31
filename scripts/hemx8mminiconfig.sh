@@ -23,7 +23,6 @@ echo "Modifying uEnv.txt template"
 sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/uEnv.txt
 sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/uEnv.txt
 sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /boot/uEnv.txt
-cat /boot/uEnv.txt
 
 echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
@@ -34,7 +33,11 @@ options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
 
 echo "Installing additional packages"
 apt-get update
-apt-get -y install device-tree-compiler u-boot-tools 
+apt-get -y install device-tree-compiler u-boot-tools bluez-firmware bluetooth bluez bluez-tools 
+
+echo "Enabling hemx6mmini Bluetooth stack"
+ln -sf /lib/firmware /etc/firmware
+ln -s /lib/systemd/system/variscite-bt.service /etc/systemd/system/multi-user.target.wants/variscite-bt.service
 
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules
@@ -92,5 +95,5 @@ mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 echo "Creating uInitrd from 'volumio.initrd'"
 mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
 
-#echo "Removing unnecessary /boot files"
-#rm /boot/volumio.initrd
+echo "Removing unnecessary /boot files"
+rm /boot/volumio.initrd

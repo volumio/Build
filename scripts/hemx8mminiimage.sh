@@ -116,11 +116,19 @@ mkimage -C none -A arm -T script -d platform-variscite/hemx8mmini/boot/boot.cmd 
 echo "[INFO] Copying kernel configuration file"
 cp platform-variscite/hemx8mmini/boot/config* /mnt/volumio/rootfs/boot
 
-echo "[INFO] Copying kernel modules"
+echo "[INFO] Copying kernel modules & firmware"
 cp -pdR platform-variscite/hemx8mmini/lib/modules /mnt/volumio/rootfs/lib/
+cp -pdR platform-variscite/hemx8mmini/firmware/* /mnt/volumio/rootfs/lib/firmware
 
 echo "[INFO] Copying ALSA defaults"
-cp platform-variscite/hemx8mmini/usrshare/alsa/asound.state /mnt/volumio/rootfs/usr/share/alsa/
+cp platform-variscite/hemx8mmini/usr/share/alsa/asound.state /mnt/volumio/rootfs/usr/share/alsa/
+cp platform-variscite/hemx8mmini/etc/asound.conf /mnt/volumio/rootfs/etc
+
+echo "Copying WiFi and BT scripts and configs"
+mkdir /mnt/volumio/rootfs/etc/wifi/
+cp platform-variscite/hemx8mmini/extras/variscite-wifi.conf /mnt/volumio/rootfs/etc/wifi/
+cp platform-variscite/hemx8mmini/extras/variscite-wifi-common.sh /mnt/volumio/rootfs/etc/wifi/
+cp platform-variscite/hemx8mmini/extras/*.service /mnt/volumio/rootfs/lib/systemd/system
 
 echo "[INFO] Copying the binary for updating from usb during initrd"
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
