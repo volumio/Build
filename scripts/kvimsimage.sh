@@ -223,6 +223,13 @@ rm /mnt/volumio/rootfs/kvimsconfig.sh
 rm /mnt/volumio/rootfs/root/init /mnt/volumio/rootfs/root/init.sh
 rm /mnt/volumio/rootfs/usr/local/sbin/mkinitramfs-custom.sh
 
+UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT	
+if [ -f "${UIVARIANT_FILE}" ]; then	
+    echo "Starting variant.js"	
+    node variant.js	
+    rm $UIVARIANT_FILE	
+fi
+
 echo "Unmounting chroot temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
