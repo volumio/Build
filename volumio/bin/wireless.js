@@ -140,12 +140,21 @@ function startFlow() {
         var directhotspot = true;
     }
 
-    if (isWirelessDisabled()) {
+    try {
+        fs.accessSync('/tmp/forcehotspot', fs.F_OK);
+        var hotspotForce = true;
+        fs.unlinkSync('/tmp/forcehotspot')
+    } catch (e) {
+        var hotspotForce = false;
+    }
+
+    if (hotspotForce) {
+        console.log('Wireless networking forced to hotspot mode');
+        startHotspot(function () {});
+    } else if (isWirelessDisabled()) {
         console.log('Wireless Networking DISABLED, not starting wireless flow');
     } else if (directhotspot){
-        startHotspot(function () {
-
-        });
+        startHotspot(function () {});
     } else {
         console.log("Start wireless flow");
         startAP(function () {
