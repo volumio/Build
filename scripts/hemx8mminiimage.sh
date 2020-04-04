@@ -74,7 +74,7 @@ then
 else
 	echo "[INFO] Get hemx8mmini files from repo"
 	git clone https://github.com/volumio/platform-hem-var-som-mx8m-mini platform-variscite --depth 1
-    tyr xfJ hemx8mmini.tar.xz
+    tar xfJ hemx8mmini.tar.xz
     rm hemx8mmini.tar.xz
 fi
 
