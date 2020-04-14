@@ -160,6 +160,9 @@ cp -Rp platform-khadas/vims/usr/* /mnt/volumio/rootfs/usr
 echo "Adding specific wlan firmware" 
 cp -r platform-khadas/vims/hwpacks/wlan-firmware/brcm/ /mnt/volumio/rootfs/lib/firmware
 
+echo "Copying rc.local"
+cp platform-khadas/vims/etc/rc.local /mnt/volumio/rootfs/etc
+
 echo "Adding Meson video firmware"
 cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/video /mnt/volumio/rootfs/lib/firmware/
 cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/meson /mnt/volumio/rootfs/lib/firmware/

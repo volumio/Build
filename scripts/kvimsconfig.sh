@@ -27,28 +27,6 @@ echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
 echo "Remove default dmesg restriction"
 echo "kernel.dmesg_restrict = 0" >> /etc/sysctl.conf
 
-echo "#!/bin/sh -e
-echo heartbeat > /sys/class/leds/sys_led/trigger
-## fix cpu freq
-## fix audio lags clicks
-
-C=/sys/devices/system/cpu/cpufreq
-[ "$FREQ" ] || FREQ=1200000
-
-echo "[i] set fix freq $FREQ">&2
-
-for c in $C/policy*; do
-    echo $FREQ > $c/scaling_max_freq
-    echo $FREQ > $c/scaling_min_freq
-done
-/usr/bin/amixer sset 'Audio hdmi-out mute' off
-/usr/bin/amixer sset 'Audio spdif mute' off
-exit 0" > /etc/rc.local
-
-#TODO: perhaps add fancontrol, though this is really "not done" for an audiophile device
-# not really needed for VIM3L, 
-# .....but as the VIM3L HTPC kit already has one ....)
-
 echo "Adding default wifi"
 echo "dhd
 " >> /etc/modules
