@@ -74,8 +74,10 @@ then
 else
    echo "[INFO] Get hemx8mmini files from repo"
    git clone https://github.com/volumio/platform-hem-var-som-mx8m-mini platform-variscite --depth 1
+   cd platform-variscite
    tar xfJ hemx8mmini.tar.xz
    rm hemx8mmini.tar.xz
+   cd ..
 fi
 
 echo "[INFO] Copying the hemx8mmini bootloader"
@@ -127,21 +129,17 @@ echo "[INFO] Copying ALSA defaults"
 cp platform-variscite/hemx8mmini/variscite/asound.state /mnt/volumio/rootfs/usr/share/alsa/
 cp platform-variscite/hemx8mmini/variscite/asound.conf /mnt/volumio/rootfs/etc
 
-
-
 echo "[INFO] Copying BT service, scripts and configs"
 mkdir /mnt/volumio/rootfs/etc/bluetooth
 cp platform-variscite/hemx8mmini/variscite/brcm_patchram_plus /mnt/volumio/rootfs/usr/bin
 chmod +x /mnt/volumio/rootfs/usr/bin/brcm_patchram_plus
+cp platform-variscite/hemx8mmini/variscite/imx8mm-var-dart/main.conf /mnt/volumio/rootfs/etc/bluetooth
 cp platform-variscite/hemx8mmini/variscite/imx8mm-var-dart/variscite-bt.conf /mnt/volumio/rootfs/etc/bluetooth
 cp platform-variscite/hemx8mmini/variscite/variscite-bt /mnt/volumio/rootfs/etc/bluetooth
 chmod +x /mnt/volumio/rootfs/etc/bluetooth/variscite-bt
-cp platform-variscite/hemx8mmini/variscite/variscite-bt.common.sh /mnt/volumio/rootfs/etc/bluetooth
-chmod +x /mnt/volumio/rootfs/etc/bluetooth/variscite-bt.common.sh
+cp platform-variscite/hemx8mmini/variscite/variscite-bt-common.sh /mnt/volumio/rootfs/etc/bluetooth
+chmod +x /mnt/volumio/rootfs/etc/bluetooth/variscite-bt-common.sh
 cp platform-variscite/hemx8mmini/variscite/variscite-bt.service /mnt/volumio/rootfs/lib/systemd/system
-
-echo "[INFO] Copying BT main config"
-cp platform-variscite/hemx8mmini/variscite/mx8mm-var-dart/main.conf /mnt/volumio/rootfs/etc/bluetooth
 
 echo "[INFO] Install blacklist"
 cp platform-variscite/hemx8mmini/variscite/imx8mm-var-dart/blacklist.conf /mnt/volumio/rootfs/etc/modprobe.d

@@ -4,10 +4,10 @@ PATCH=$(cat /patch)
 
 # This script will be run in chroot under qemu.
 
-echo "Initializing.."
+echo "[INFO] Initializing.."
 . init.sh
 
-echo "Creating \"fstab\""
+echo "[INFO] Creating \"fstab\""
 echo "# hemx8mmini fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
@@ -19,54 +19,54 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
-echo "Modifying uEnv.txt template"
+echo "[INFO] Modifying uEnv.txt template"
 sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/uEnv.txt
 sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/uEnv.txt
 sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /boot/uEnv.txt
 
-echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
+echo "[INFO] Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
 
-echo "Alsa Card Ordering"
+echo "[INFO] Alsa Card Ordering"
 echo "# USB DACs will have device number 5 in whole Volumio device range
 options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
 
-echo "Installing additional packages"
+echo "[INFO] Installing additional packages"
 apt-get update
-apt-get -y install device-tree-compiler u-boot-tools bluez-firmware bluetooth bluez bluez-tools 
+apt-get -y install device-tree-compiler u-boot-tools bluez-firmware  
 
-echo "Enabling hemx8mmini Bluetooth stack"
+echo "[INFO] Enabling hemx8mmini Bluetooth stack"
 ln -sf /lib/firmware /etc/firmware
 ln -s /lib/systemd/system/variscite-bt.service /etc/systemd/system/multi-user.target.wants/variscite-bt.service
 
-echo "Enabling hemx8mmini wireless stack"
+echo "[INFO] Enabling hemx8mmini wireless stack"
 ln -s /lib/systemd/system/variscite-wifi.service /etc/systemd/system/multi-user.target.wants/variscite-wifi.service
 
-echo "Adding custom modules overlayfs, squashfs and nls_cp437"
+echo "[INFO] Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules
 echo "squashfs" >> /etc/initramfs-tools/modules
 echo "nls_cp437" >> /etc/initramfs-tools/modules
 
-echo "Copying volumio initramfs updater"
+echo "[INFO] Copying volumio initramfs updater"
 cd /root/
 mv volumio-init-updater /usr/local/sbin
 
-echo "Removing unused features"
+echo "[INFO] Removing unused features"
 rm /etc/xbindkeysrc
 rm /etc/systemd/system/multi-user.target.wants/xbindkeysrc.service
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
-echo "No Patch To Apply"
+echo "[INFO] No Patch To Apply"
 else
-echo "Applying Patch ${PATCH}"
+echo "[INFO] Applying Patch ${PATCH}"
 PATCHPATH=/${PATCH}
 cd $PATCHPATH
 #Check the existence of patch script
 if [ -f "patch.sh" ]; then
 sh patch.sh
 else
-echo "Cannot Find Patch File, aborting"
+echo "[INFO] Cannot Find Patch File, aborting"
 fi
 if [ -f "install.sh" ]; then
 sh install.sh
@@ -76,20 +76,20 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
-echo "Changing to 'modules=list'"
+echo "[INFO] mkinitramfs: changing to 'modules=list'"
 sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
 
-echo "Installing winbind here, since it freezes networking"
+echo "[INFO] Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
 
-echo "Cleaning APT Cache and remove policy file"
+echo "[INFO] Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
 
 #First Boot operations
-echo "Signalling the init script to re-size the volumio data partition"
+echo "[INFO] Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
 
 echo "Creating initramfs 'volumio.initrd'"
