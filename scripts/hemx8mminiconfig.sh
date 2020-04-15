@@ -35,9 +35,12 @@ echo "Installing additional packages"
 apt-get update
 apt-get -y install device-tree-compiler u-boot-tools bluez-firmware bluetooth bluez bluez-tools 
 
-echo "Enabling hemx6mmini Bluetooth stack"
+echo "Enabling hemx8mmini Bluetooth stack"
 ln -sf /lib/firmware /etc/firmware
 ln -s /lib/systemd/system/variscite-bt.service /etc/systemd/system/multi-user.target.wants/variscite-bt.service
+
+echo "Enabling hemx8mmini wireless stack"
+ln -s /lib/systemd/system/variscite-wifi.service /etc/systemd/system/multi-user.target.wants/variscite-wifi.service
 
 echo "Adding custom modules overlayfs, squashfs and nls_cp437"
 echo "overlay" >> /etc/initramfs-tools/modules

@@ -63,19 +63,19 @@ if [ -d platform-variscite ]
 then
 # if you really want to re-clone from the repo, then delete the platform-hemx8mmini folder
     # that will refresh all, see below
-	cd platform-variscite
-	if [ -f hemx8mmini.tar.xz ]; then
-	   echo "[INFO] Found a new tarball, unpacking..."
-	   [ -d hemx8mmini ] || rm -r hemx8mmini	
-	   tar xfJ hemx8mmini.tar.xz
-	   rm hemx8mmini.tar.xz 
-	fi
-	cd ..
+   cd platform-variscite
+   if [ -f hemx8mmini.tar.xz ]; then
+      echo "[INFO] Found a new tarball, unpacking..."
+      [ -d hemx8mmini ] || rm -r hemx8mmini	
+      tar xfJ hemx8mmini.tar.xz
+      rm hemx8mmini.tar.xz 
+   fi
+   cd ..
 else
-	echo "[INFO] Get hemx8mmini files from repo"
-	git clone https://github.com/volumio/platform-hem-var-som-mx8m-mini platform-variscite --depth 1
-    tar xfJ hemx8mmini.tar.xz
-    rm hemx8mmini.tar.xz
+   echo "[INFO] Get hemx8mmini files from repo"
+   git clone https://github.com/volumio/platform-hem-var-som-mx8m-mini platform-variscite --depth 1
+   tar xfJ hemx8mmini.tar.xz
+   rm hemx8mmini.tar.xz
 fi
 
 echo "[INFO] Copying the hemx8mmini bootloader"
@@ -110,6 +110,9 @@ cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "[INFO] Copying hemx8mmini dtb and boot files"
 cp platform-variscite/hemx8mmini/boot/* /mnt/volumio/rootfs/boot
 
+echo "[INFO] Copying boot logo (to be customized)"
+cp platform-variscite/hemx8mmini/variscite/splash.bmp /mnt/volumio/rootfs/boot
+
 echo "[INFO] Compiling u-boot boot script"
 mkimage -C none -A arm -T script -d platform-variscite/hemx8mmini/boot/boot.cmd /mnt/volumio/rootfs/boot/boot.scr
 
@@ -118,17 +121,42 @@ cp platform-variscite/hemx8mmini/boot/config* /mnt/volumio/rootfs/boot
 
 echo "[INFO] Copying kernel modules & firmware"
 cp -pdR platform-variscite/hemx8mmini/lib/modules /mnt/volumio/rootfs/lib/
-cp -pdR platform-variscite/hemx8mmini/firmware/* /mnt/volumio/rootfs/lib/firmware
+cp -pdR platform-variscite/hemx8mmini/variscite/firmware/* /mnt/volumio/rootfs/lib/firmware
 
 echo "[INFO] Copying ALSA defaults"
-cp platform-variscite/hemx8mmini/usr/share/alsa/asound.state /mnt/volumio/rootfs/usr/share/alsa/
-cp platform-variscite/hemx8mmini/etc/asound.conf /mnt/volumio/rootfs/etc
+cp platform-variscite/hemx8mmini/variscite/asound.state /mnt/volumio/rootfs/usr/share/alsa/
+cp platform-variscite/hemx8mmini/variscite/asound.conf /mnt/volumio/rootfs/etc
 
-echo "Copying WiFi and BT scripts and configs"
+
+
+echo "[INFO] Copying BT service, scripts and configs"
+mkdir /mnt/volumio/rootfs/etc/bluetooth
+cp platform-variscite/hemx8mmini/variscite/brcm_patchram_plus /mnt/volumio/rootfs/usr/bin
+chmod +x /mnt/volumio/rootfs/usr/bin/brcm_patchram_plus
+cp platform-variscite/hemx8mmini/variscite/imx8mm-var-dart/variscite-bt.conf /mnt/volumio/rootfs/etc/bluetooth
+cp platform-variscite/hemx8mmini/variscite/variscite-bt /mnt/volumio/rootfs/etc/bluetooth
+chmod +x /mnt/volumio/rootfs/etc/bluetooth/variscite-bt
+cp platform-variscite/hemx8mmini/variscite/variscite-bt.common.sh /mnt/volumio/rootfs/etc/bluetooth
+chmod +x /mnt/volumio/rootfs/etc/bluetooth/variscite-bt.common.sh
+cp platform-variscite/hemx8mmini/variscite/variscite-bt.service /mnt/volumio/rootfs/lib/systemd/system
+
+echo "[INFO] Copying BT main config"
+cp platform-variscite/hemx8mmini/variscite/mx8mm-var-dart/main.conf /mnt/volumio/rootfs/etc/bluetooth
+
+echo "[INFO] Install blacklist"
+cp platform-variscite/hemx8mmini/variscite/imx8mm-var-dart/blacklist.conf /mnt/volumio/rootfs/etc/modprobe.d
+
+echo "[INFO] Copying WiFi service, scripts and configs"
 mkdir /mnt/volumio/rootfs/etc/wifi/
-cp platform-variscite/hemx8mmini/extras/variscite-wifi.conf /mnt/volumio/rootfs/etc/wifi/
-cp platform-variscite/hemx8mmini/extras/variscite-wifi-common.sh /mnt/volumio/rootfs/etc/wifi/
-cp platform-variscite/hemx8mmini/extras/*.service /mnt/volumio/rootfs/lib/systemd/system
+cp platform-variscite/hemx8mmini/variscite/imx8mm-var-dart/variscite-wifi.conf /mnt/volumio/rootfs/etc/wifi/
+cp platform-variscite/hemx8mmini/variscite/imx8mm-var-dart/variscite-wifi-common.sh /mnt/volumio/rootfs/etc/wifi/
+chmod +x /mnt/volumio/rootfs/etc/wifi/variscite-wifi-common.sh
+cp platform-variscite/hemx8mmini/variscite/variscite-wifi /mnt/volumio/rootfs/etc/wifi/
+chmod +x /mnt/volumio/rootfs/etc/wifi/variscite-wifi
+cp platform-variscite/hemx8mmini/variscite/variscite-wifi.service /mnt/volumio/rootfs/lib/systemd/system
+
+echo "[INFO] Copying rc.local (set min_free_kbytes)"
+cp platform-variscite/hemx8mmini/variscite/rc.local /mnt/volumio/rootfs/etc
 
 echo "[INFO] Copying the binary for updating from usb during initrd"
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
