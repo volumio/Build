@@ -95,6 +95,18 @@ function startHotspot() {
     });
 }
 
+function startHotspotForce() {
+    stopHotspot(function(err) {
+        console.log('Starting Force Hotspot')
+        launch(ifconfigHotspot, "confighotspot", true, function(err) {
+            logger("ifconfig " + err);
+            launch(starthostapd,"hotspot" , false, function() {
+                wstatus("hotspot");
+            });
+        });
+    });
+}
+
 function stopHotspot(callback) {
     launch(stophostapd, "stophotspot" , true, function(err) {
         launch(ifdeconfig, "ifdeconfig", true, callback);
@@ -150,7 +162,7 @@ function startFlow() {
 
     if (hotspotForce) {
         console.log('Wireless networking forced to hotspot mode');
-        startHotspot(function () {});
+        startHotspotForce(function () {});
     } else if (isWirelessDisabled()) {
         console.log('Wireless Networking DISABLED, not starting wireless flow');
     } else if (directhotspot){
