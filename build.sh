@@ -193,7 +193,6 @@ if [ -n "$BUILD" ]; then
     echo "VOLUMIO_BE_VERSION=\"$(git --git-dir "build/$BUILD/root/volumio/.git" rev-parse HEAD)\""
     echo "VOLUMIO_ARCH=\"${BUILD}\""
   } >> "build/$BUILD/root/etc/os-release"
-  rm -rf build/$BUILD/root/volumio/.git
   rm -rf build/$BUILD/root/volumio/http/www/.git
   rm -rf build/$BUILD/root/volumio/http/www3/.git
   
