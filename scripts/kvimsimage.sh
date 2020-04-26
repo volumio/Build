@@ -97,7 +97,7 @@ case $MODEL in
   kvim3 )
   BOARD=VIM3
   ;;
-  kvim3l )
+  mp1 )
   BOARD=VIM3L
   ;;
 esac
@@ -163,6 +163,22 @@ cp -r platform-khadas/vims/hwpacks/wlan-firmware/brcm/ /mnt/volumio/rootfs/lib/f
 echo "Copying rc.local"
 cp platform-khadas/vims/etc/rc.local /mnt/volumio/rootfs/etc
 
+echo "Copying triggerhappy configuration"
+cp -R platform-khadas/vims/etc/triggerhappy /mnt/volumio/rootfs/etc
+
+#TODO ===> remove when reboot for VIM3/MP1 resolved
+echo "Adding temporary fix for reboot fix with VIM3 or MP1"
+if [ "$MODEL" = kvim3 ] || [ "$MODEL" = mp1 ]; then
+    mv /mnt/volumio/rootfs/sbin/ifconfig /mnt/volumio/rootfs/opt
+    mv /mnt/volumio/rootfs/bin/ip /mnt/volumio/rootfs/opt
+    cp platform-khadas/vims/opt/ifconfig.fix /mnt/volumio/rootfs/sbin/ifconfig
+    cp platform-khadas/vims/opt/ip.fix /mnt/volumio/rootfs/bin/ip
+fi
+
+echo "Copying khadas system halt service"
+cp -R platform-khadas/vims/etc/systemd /mnt/volumio/rootfs/etc
+cp platform-khadas/vims/opt/poweroff /mnt/volumio/rootfs/opt/poweroff
+
 echo "Adding Meson video firmware"
 cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/video /mnt/volumio/rootfs/lib/firmware/
 cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/meson /mnt/volumio/rootfs/lib/firmware/
@@ -170,8 +186,8 @@ cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/meson /mnt/volumio/roo
 echo "Adding Wifi & Bluetooth firmware and helpers"
 cp platform-khadas/vims/hwpacks/bluez/hciattach-armhf /mnt/volumio/rootfs/usr/local/bin/hciattach
 cp platform-khadas/vims/hwpacks/bluez/brcm_patchram_plus-armhf /mnt/volumio/rootfs/usr/local/bin/brcm_patchram_plus
-if [ "$MODEL" = kvim3 ] || [ "$MODEL" = kvim3l ]; then
-	echo "   fixing AP6359SA and AP6398S using the same chipid and rev for VIM3/VIM3L"
+if [ "$MODEL" = kvim3 ] || [ "$MODEL" = mp1 ]; then
+	echo "   fixing AP6359SA and AP6398S using the same chipid and rev for VIM3/MP1"
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_apsta_ap6398s.bin /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_apsta.bin
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag_ap6398s.bin /mnt/volumio/rootfs/lib/firmware/brcm/fw_bcm4359c0_ag.bin
 	mv /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6398s.txt /mnt/volumio/rootfs/lib/firmware/brcm/nvram_ap6359sa.txt

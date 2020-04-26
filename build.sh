@@ -354,6 +354,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/motivoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  mp1) echo 'Writing Motivo Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/kvimsimage.sh -v "$VERSION" -p "$PATCH" -a armv7 -m ${DEVICE}
+    ;;
   primo) echo 'Writing Primo Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/primoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
@@ -366,7 +370,7 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/hemx8mminiimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
-  kvim1|kvim2|kvim3|kvim3l) echo 'Writing VIM1 Image File'
+  kvim1|kvim2|kvim3) echo 'Writing Khadas Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/kvimsimage.sh -v "$VERSION" -p "$PATCH" -a armv7 -m ${DEVICE}
 

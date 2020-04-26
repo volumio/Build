@@ -38,11 +38,18 @@ options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
 
 echo "Installing additional packages"
 apt-get update
-apt-get -y install u-boot-tools mc abootimg fbset bluez-firmware bluetooth bluez bluez-tools device-tree-compiler linux-base
+apt-get -y install u-boot-tools mc abootimg fbset bluez-firmware bluetooth bluez bluez-tools device-tree-compiler linux-base 
+
+echo "Configure triggerhappy"
+apt-get -y install triggerhappy
+echo "
+DAEMON_OPTS=\"--user root\"
+" >> /etc/default/triggerhappy
 
 echo "Enabling KVIM Bluetooth stack"
 ln -sf /lib/firmware /etc/firmware
 ln -s /lib/systemd/system/bluetooth-khadas.service /etc/systemd/system/multi-user.target.wants/bluetooth-khadas.service
+
 if [ ! "$MODEL" = kvim1 ]; then
 	ln -s /lib/systemd/system/fan.service /etc/systemd/system/multi-user.target.wants/fan.service
 fi
