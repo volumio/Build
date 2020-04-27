@@ -175,9 +175,15 @@ if [ "$MODEL" = kvim3 ] || [ "$MODEL" = mp1 ]; then
     cp platform-khadas/vims/opt/ip.fix /mnt/volumio/rootfs/bin/ip
 fi
 
-echo "Copying khadas system halt service"
-cp -R platform-khadas/vims/etc/systemd /mnt/volumio/rootfs/etc
-cp platform-khadas/vims/opt/poweroff /mnt/volumio/rootfs/opt/poweroff
+#TODO: remove the mp1 restriction when reboot works
+if [ ! "$MODEL" = mp1 ]; then
+	echo "Copying khadas system halt service"
+	cp -R platform-khadas/vims/etc/systemd /mnt/volumio/rootfs/etc
+	cp platform-khadas/vims/opt/poweroff /mnt/volumio/rootfs/opt/poweroff
+else
+#do not use the system-halt.service for mp1 yet
+    cp platform-khadas/vims/etc/rc.local.mp1 /mnt/volumio/rootfs/etc/rc.local
+fi
 
 echo "Adding Meson video firmware"
 cp -r platform-khadas/vims/hwpacks/video-firmware/Amlogic/video /mnt/volumio/rootfs/lib/firmware/
