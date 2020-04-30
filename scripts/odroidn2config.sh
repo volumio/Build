@@ -21,17 +21,12 @@ tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 echo "Creating boot.ini from template"
 sed -i "s/%%VOLUMIO-PARAMS%%/imgpart=UUID=${UUID_IMG} imgfile=\/volumio_current.sqsh hwdevice=Odroid-N2 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=boot.ini/g" /boot/boot.ini
 
-
 echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
 
-echo "#!/bin/sh -e
-#/usr/local/bin/n2-init.sh
-exit 0" > /etc/rc.local
-
 echo "Installing additional packages"
 apt-get update
-apt-get -y install u-boot-tools liblircclient0 lirc fbset
+apt-get -y install u-boot-tools lirc fbset
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*

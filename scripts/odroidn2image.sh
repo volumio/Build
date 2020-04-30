@@ -120,7 +120,8 @@ cp platform-odroid/odroidn2/boot/Image* /mnt/volumio/rootfs/boot
 echo "Copying OdroidN2 modules and firmware"
 cp -pdR platform-odroid/odroidn2/lib/modules /mnt/volumio/rootfs/lib/
 
-sync
+echo "Copying rc.local for performance tweaks"
+cp platform-odroid/odroidn2/etc/rc.local /mnt/volumio/rootfs/etc
 
 echo "Preparing to run chroot for more Odroid-N2 configuration"
 cp scripts/odroidn2config.sh /mnt/volumio/rootfs
@@ -166,6 +167,11 @@ if [ -f "${UIVARIANT_FILE}" ]; then
     rm $UIVARIANT_FILE
 fi
 
+echo "Copying LIRC configuration files for HK stock remote"
+cp platform-odroid/odroidn2/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidn2/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidn2/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+
 echo "Cleaning up temp files"
 rm /mnt/volumio/rootfs/odroidn2config.sh /mnt/volumio/rootfs/root/init.sh /mnt/volumio/rootfs/root/init
 
@@ -173,11 +179,6 @@ echo "Unmounting temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
-
-echo "Copying LIRC configuration files for HK stock remote"
-cp platform-odroid/odroidn2/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-cp platform-odroid/odroidn2/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
-cp platform-odroid/odroidn2/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
 echo "==> Odroid-N2 device installed"
 
