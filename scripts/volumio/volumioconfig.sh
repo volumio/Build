@@ -96,7 +96,7 @@ groupadd volumio
 useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev,netdev,lp -s /bin/bash -p '$6$tRtTtICB$Ki6z.DGyFRopSDJmLUcf3o2P2K8vr5QxRx5yk3lorDrWUhH64GKotIeYSNKefcniSVNcGHlFxZOqLM6xiDa.M.' volumio
 
 #Setting Root Password
-# echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
+echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
 #Global BashRC Aliases"
 log 'Setting BashRC for custom system calls'
@@ -163,6 +163,8 @@ echo volumio > /etc/hostname
 chmod 777 /etc/hostname
 chmod 777 /etc/hosts
 
+log "Creating an empty dhcpd.leases if required"
+[[ ! -f /var/lib/dhcpd/dhcpd.leases ]] && touch /var/lib/dhcpd/dhcpd.leases
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 
@@ -234,8 +236,13 @@ cat <<-EOF > /etc/apt/sources.list.d/nodesource.list
 deb https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
 deb-src https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
 EOF
-packages=nodejs
 
+# Use unofficial-builds.nodejs to get 32bit builds
+# wget https://unofficial-builds.nodejs.org/download/release/v12.16.1/node-v12.16.1-linux-x86.tar.xz
+#[ ! $BUILD == x86 ] && 
+#[ ! $BUILD == x86 ] && 
+
+packages=nodejs
 apt-get update
 apt-get -y install $packages
 

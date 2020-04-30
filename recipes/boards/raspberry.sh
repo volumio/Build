@@ -62,6 +62,25 @@ device_image_tweaks(){
   mkdir -p ${ROOTFSMNT}/opt/vc/bin/
   cp -rp ${SRC}/volumio/opt/vc/bin/* ${ROOTFSMNT}/opt/vc/bin/
 
+  log "Fixing hostapd.conf"
+  cat <<-EOF > ${ROOTFSMNT}/etc/hostapd/hostapd.conf
+interface=wlan0
+driver=nl80211
+channel=4
+hw_mode=g
+wmm_enabled=0
+macaddr_acl=0
+ignore_broadcast_ssid=0
+# Auth
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+# Volumio specific
+ssid=Volumio
+wpa_passphrase=volumio2
+EOF
+
   cat <<-EOF > ${ROOTFSMNT}/etc/apt/sources.list.d/raspi.list
 deb http://archive.raspberrypi.org/debian/ buster main ui
 # Uncomment line below then 'apt-get update' to enable 'apt-get source'
@@ -140,6 +159,20 @@ device_chroot_tweaks_pre() {
   log "Finished Kernel installation" "okay"
 
   ### Other Rpi specific stuff
+  log "Installing Volumio customPkgs" "info"
+  for deb in /volumio/customPkgs/*.deb; do
+    log "Installing ${deb}"
+    dpkg -i "${deb}"
+  done
+  rm -r /volumio/customPkgs
+  log "Adding Shairport-Sync User"
+
+  getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
+  getent passwd shairport-sync &> /dev/null || useradd -r -M -g shairport-sync -s /usr/bin/nologin -G audio shairport-sync >/dev/null
+  
+  log "Adding /opt/vc/lib to LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib/
+  
   log "Adding Custom DAC firmware from github" "info"
   for key in "${!CustomFirmware[@]}"
   do
