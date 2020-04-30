@@ -252,6 +252,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/odroidc2image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  odroidc4) echo 'Writing Odroid-C4 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/odroidc4image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
   odroidn2) echo 'Writing Odroid-N2 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/odroidn2image.sh -v "$VERSION" -p "$PATCH" -a armv7

@@ -18,7 +18,7 @@ while getopts ":v:p:a:" opt; do
 done
 
 BUILDDATE=$(date -I)
-IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidn2.img"
+IMG_FILE="Volumio${VERSION}-${BUILDDATE}-odroidc4.img"
 
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
@@ -26,10 +26,10 @@ else
   DISTRO="Debian 32bit"
 fi
 
-echo "Creating Image File ${IMG_FILE} with $DISTRO rootfs"
+echo "INFO Creating Image File ${IMG_FILE} with $DISTRO rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
-echo "Creating Image Bed"
+echo "INFO Creating Image Bed"
 LOOP_DEV=`losetup -f --show ${IMG_FILE}`
 
 parted -s "${LOOP_DEV}" mklabel msdos
@@ -47,84 +47,86 @@ DATA_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"
 
 if [ ! -b "${BOOT_PART}" ]
 then
-	echo "${BOOT_PART} doesn't exist"
+	echo "INFO ${BOOT_PART} doesn't exist"
 	exit 1
 fi
 
-echo "Creating boot and rootfs filesystems"
+echo "INFO Creating boot and rootfs filesystems"
 mkfs -t vfat -n BOOT "${BOOT_PART}"
 mkfs -F -t ext4 -L volumio "${SYS_PART}"
 mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
-echo "Preparing for the Odroid N2 kernel/ platform files"
-if [ -d ./platform-odroid/odroidn2 ]
+echo "INFO Preparing for the Odroid C4 kernel/ platform files"
+if [ -d ./platform-odroid/odroidc4 ]
 then
-	echo "Platform folder already exists - keeping it"
+	echo "INFO Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platform-odroid folder
     # that will refresh all the odroid platforms, see below
 	cd platform-odroid
-	if [ -f odroidn2.tar.xz ]; then
-	   echo "Found a new tarball, unpacking..."
-	   rm -r odroidn2
-	   tar xfJ odroidn2.tar.xz
-	   rm odroidn2.tar.xz
+	if [ -f odroidc4.tar.xz ]; then
+	   echo "INFO Found a new tarball, unpacking..."
+	   rm -r odroidc4
+	   tar xfJ odroidc4.tar.xz
+	   rm odroidc4.tar.xz
 	fi
 	cd ..
 else
-	echo "Getting sthe Odroid N2 files from repo"
+	echo "INFO Getting sthe Odroid C4 files from repo"
 	mkdir platform-odroid
 	cd platform-odroid
-	[ ! -f odroidn2.tar.xz ] || rm odroidn2.tar.xz
-	wget https://github.com/volumio/platform-odroid/raw/master/odroidn2.tar.xz
-	echo "Unpacking the N2 platform files"
-	tar xfJ odroidn2.tar.xz
-	rm odroidn2.tar.xz
+	[ ! -f odroidc4.tar.xz ] || rm odroidc4.tar.xz
+	wget https://github.com/volumio/platform-odroid/raw/master/odroidc4.tar.xz
+	echo "INFO Unpacking the C4 platform files"
+	tar xfJ odroidc4.tar.xz
+	rm odroidc4.tar.xz
 	cd ..
 fi
 
-echo "Copying the bootloader"
-dd if=platform-odroid/odroidn2/uboot/u-boot.bin of=${LOOP_DEV} conv=fsync bs=512 seek=1
+echo "INFO Copying the bootloader"
+dd if=platform-odroid/odroidc4/uboot/u-boot.bin of=${LOOP_DEV} conv=fsync,notrunc bs=512 seek=1
 sync
 
-echo "Preparing for Volumio rootfs"
+echo "INFO Preparing for Volumio rootfs"
 if [ -d /mnt ]
 then
-	echo "/mount folder exist"
+	echo "INFO /mount folder exist"
 else
 	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then
-	echo "Volumio Temp Directory Exists - Cleaning it"
+	echo "INFO Volumio Temp Directory Exists - Cleaning it"
 	rm -rf /mnt/volumio/*
 else
-	echo "Creating Volumio Temp Directory"
+	echo "INFO Creating Volumio Temp Directory"
 	mkdir /mnt/volumio
 fi
 
-echo "Creating mount point for the images partition"
+echo "INFO Creating mount point for the images partition"
 mkdir /mnt/volumio/images
 mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
 mkdir /mnt/volumio/rootfs/boot
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
-echo "Copying Volumio RootFs"
+echo "INFO Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying OdroidN2 boot files"
-cp platform-odroid/odroidn2/boot/boot.ini* /mnt/volumio/rootfs/boot
-cp platform-odroid/odroidn2/boot/meson64_odroidn2.dtb /mnt/volumio/rootfs/boot
-cp platform-odroid/odroidn2/boot/Image* /mnt/volumio/rootfs/boot
+echo "INFO Copying odroidc4 boot files"
+cp platform-odroid/odroidc4/boot/*boot.ini /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidc4/boot/meson64_odroidc4.dtb /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidc4/boot/Image* /mnt/volumio/rootfs/boot
 
-echo "Copying OdroidN2 modules and firmware"
-cp -pdR platform-odroid/odroidn2/lib/modules /mnt/volumio/rootfs/lib/
+echo "INFO Copying odroidc4 performance tweaking"
+cp platform-odroid/odroidc4/etc/rc.local /mnt/volumio/rootfs/etc
 
-echo "Copying rc.local for performance tweaks"
-cp platform-odroid/odroidn2/etc/rc.local /mnt/volumio/rootfs/etc
+echo "INFO Copying odroidc4 modules and firmware"
+cp -pdR platform-odroid/odroidc4/lib/modules /mnt/volumio/rootfs/lib/
 
-echo "Preparing to run chroot for more Odroid-N2 configuration"
-cp scripts/odroidn2config.sh /mnt/volumio/rootfs
+sync
+
+echo "INFO Preparing to run chroot for more Odroid-C4 configuration"
+cp scripts/odroidc4config.sh /mnt/volumio/rootfs
 cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
@@ -145,87 +147,84 @@ chmod +x /mnt/volumio/rootfs/root/init.sh
 if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
         if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
                 UIVARIANT=$(cat "UIVARIANT")
-                echo "Configuring variant $UIVARIANT"
-                echo "Starting config.js for variant $UIVARIANT"
+                echo "INFO Configuring variant $UIVARIANT"
+                echo "INFO Starting config.js for variant $UIVARIANT"
                 node config.js $PATCH $UIVARIANT
                 echo $UIVARIANT > /mnt/volumio/rootfs/UIVARIANT
         else
-                echo "Starting config.js"
+                echo "INFO Starting config.js"
                 node config.js $PATCH
         fi
 fi
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/odroidn2config.sh
+/odroidc4config.sh
 EOF
 
 UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT
 if [ -f "${UIVARIANT_FILE}" ]; then
-    echo "Starting variant.js"
+    echo "INFO Starting variant.js"
     node variant.js
     rm $UIVARIANT_FILE
 fi
 
 echo "Copying LIRC configuration files for HK stock remote"
-cp platform-odroid/odroidn2/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-cp platform-odroid/odroidn2/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
-cp platform-odroid/odroidn2/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidc4/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidc4/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+cp platform-odroid/odroidc4/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+ls -l /mnt/volumio/rootfs/etc/lirc
 
-echo "Cleaning up temp files"
-rm /mnt/volumio/rootfs/odroidn2config.sh /mnt/volumio/rootfs/root/init.sh /mnt/volumio/rootfs/root/init
+echo "INFO Cleaning up temp files"
+rm /mnt/volumio/rootfs/odroidc4config.sh /mnt/volumio/rootfs/root/init.sh /mnt/volumio/rootfs/root/init
 
-echo "Unmounting temp devices"
+echo "INFO Unmounting temp devices"
 umount -l /mnt/volumio/rootfs/dev
 umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
-echo "==> Odroid-N2 device installed"
-
-#echo "Removing temporary platform files"
-#echo "(you can keep it safely as long as you're sure of no changes)"
-#rm -r platform-odroid
+echo "INFO ==> Odroid-C4 device installed"
 sync
 
-echo "Finalizing Rootfs creation"
+echo "INFO Finalizing Rootfs creation"
 sh scripts/finalize.sh
 
-echo "Preparing rootfs base for SquashFS"
+echo "INFO Preparing rootfs base for SquashFS"
 
 if [ -d /mnt/squash ]; then
-	echo "Volumio SquashFS Temp Dir Exists - Cleaning it"
+	echo "INFO Volumio SquashFS Temp Dir Exists - Cleaning it"
 	rm -rf /mnt/squash/*
 else
-	echo "Creating Volumio SquashFS Temp Dir"
+	echo "INFO Creating Volumio SquashFS Temp Dir"
 	mkdir /mnt/squash
 fi
 
-echo "Copying Volumio rootfs to Temp Dir"
+echo "INFO Copying Volumio rootfs to Temp Dir"
 cp -rp /mnt/volumio/rootfs/* /mnt/squash/
 
 if [ -e /mnt/kernel_current.tar ]; then
-	echo "Volumio Kernel Partition Archive exists - Cleaning it"
+	echo "INFO Volumio Kernel Partition Archive exists - Cleaning it"
 	rm -rf /mnt/kernel_current.tar
 fi
 
-echo "Creating Kernel Partition Archive"
+echo "INFO Creating Kernel Partition Archive"
 tar cf /mnt/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/squash/boot/ .
 
-echo "Removing the Kernel"
+echo "INFO Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
-echo "Creating SquashFS, removing any previous one"
+echo "INFO Creating SquashFS, removing any previous one"
 rm -r Volumio.sqsh
 mksquashfs /mnt/squash/* Volumio.sqsh
 
-echo "Squash filesystem created"
-echo "Cleaning squash environment"
+echo "INFO Squash filesystem created"
+echo "INFO Cleaning squash environment"
 rm -rf /mnt/squash
 
 #copy the squash image inside the boot partition
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
-echo "Unmounting Temp Devices"
+echo "INFO Unmounting Temp Devices"
 umount -l /mnt/volumio/images
 umount -l /mnt/volumio/rootfs/boot
 

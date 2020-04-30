@@ -7,7 +7,7 @@ echo "Initializing.."
 . init.sh
 
 echo "Creating \"fstab\""
-echo "# Odroid N2 fstab" > /etc/fstab
+echo "# Odroid C4 fstab" > /etc/fstab
 echo "" >> /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
 UUID=${UUID_BOOT}     /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
@@ -18,15 +18,15 @@ tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
 tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
-echo "Creating boot.ini from template"
-sed -i "s/%%VOLUMIO-PARAMS%%/imgpart=UUID=${UUID_IMG} imgfile=\/volumio_current.sqsh hwdevice=Odroid-N2 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=boot.ini/g" /boot/boot.ini
+echo "Editing boot.ini"
+sed -i "s/%%VOLUMIO-PARAMS%%/imgpart=UUID=${UUID_IMG} imgfile=\/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA}/g" /boot/boot.ini
 
 echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
 
 echo "Installing additional packages"
 apt-get update
-apt-get -y install u-boot-tools lirc fbset
+apt-get -y install u-boot-tools fbset lirc
 
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
@@ -62,10 +62,6 @@ rm -rf ${PATCH}
 fi
 rm /patch
 
-echo "Changing to 'modules=dep' to minimise uInitrd size"
-echo "(otherwise Odroid may not boot)"
-sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
-
 echo "Installing winbind here, since it freezes networking"
 apt-get update
 apt-get install -y winbind libnss-winbind
@@ -78,6 +74,9 @@ rm /usr/sbin/policy-rc.d
 #First Boot operations
 echo "Signalling the init script to re-size the volumio data partition"
 touch /boot/resize-volumio-datapart
+
+echo "Limiting 'modules=most' to 'modules=list' to reduce uInitrd size"
+sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
 
 echo "Creating initramfs 'volumio.initrd'"
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
