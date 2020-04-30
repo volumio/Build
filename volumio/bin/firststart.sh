@@ -5,8 +5,8 @@ echo "Volumio first start configuration script"
 echo "configuring unconfigured packages"
 dpkg --configure --pending
 
-echo "Creating /var/log/samba folder"
-mkdir /var/log/samba
+echo "Creating /var/log/samba/cores folder"
+mkdir -p /var/log/samba/cores && chmod -R 0700 "$_"
 
 echo "Removing default SSH host keys"
 # These should be created on first boot to ensure they are unique on each system
