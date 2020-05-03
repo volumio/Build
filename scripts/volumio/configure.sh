@@ -115,10 +115,6 @@ cp ${SRC}/volumio/bin/wireless.js ${ROOTFS}/volumio/app/plugins/system_controlle
 #dhcpcd
 cp -rp ${SRC}/volumio/etc/dhcpcd.conf ${ROOTFS}/etc/
 
-#wifi pre script
-cp ${SRC}/volumio/bin/wifistart.sh ${ROOTFS}/bin/wifistart.sh
-chmod a+x ${ROOTFS}/bin/wifistart.sh
-
 #udev script
 cp ${SRC}/volumio/bin/rename_netiface0.sh ${ROOTFS}/bin/rename_netiface0.sh
 chmod a+x ${ROOTFS}/bin/rename_netiface0.sh
