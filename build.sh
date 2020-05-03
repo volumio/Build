@@ -391,8 +391,12 @@ if [[ -n "$DEVICE" ]]; then
   USE_LOCAL_NODE_MODULES=yes
   if [[ $USE_LOCAL_NODE_MODULES == yes ]]; then
     log "Extracting node_modules"
-    tar xf "$SRC/docker/node_modules_${BUILD}-12.16.1.tar.gz" -C $ROOTFS/volumio
+    tar xf "$SRC/docker/node_modules_${BUILD}_v12.16.3.tar.xz" -C $ROOTFS/volumio
     ls $ROOTFS/volumio/node_modules
+
+    log "Adding shairport-sync"
+    mkdir -p $ROOTFS/volumio/customPkgs && cp ${SRC}/docker/shairport-sync_*_${ARCH}.deb "$_"
+    ls $ROOTFS/volumio/customPkgs
   fi
 
   # Prepare Images
@@ -414,7 +418,7 @@ end_build=$(date +%s)
 time_it $end_build $start
 
 log "Cleaning up rootfs.." "info" "build/$BUILD/"
-rm -r build/$BUILD/ || log "Couldn't clean rootfs" "wrn"
+rm -r build/${BUILD:?}/ || log "Couldn't clean rootfs" "wrn"
 
 log "Volumio Builder finished: \
 $([[ -n $BUILD ]] && echo "${yellow}BUILD=${standout}${BUILD}${normal} ")\

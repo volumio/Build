@@ -126,6 +126,9 @@ UUID_BOOT="$(blkid -s UUID -o value ${BOOT_PART})"
 UUID_IMG="$(blkid -s UUID -o value ${IMG_PART})"
 UUID_DATA="$(blkid -s UUID -o value ${DATA_PART})"
 
+log "Adding board pretty name to os-release"
+echo "VOLUMIO_DEVICENAME=\"${DEVICENAME}\"" >> $ROOTFSMNT/etc/os-release
+
 # Ensure all file systems operations are completed before entering chroot again
 sync
 

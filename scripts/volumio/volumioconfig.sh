@@ -84,10 +84,10 @@ log "Existing locales: " && locale -a
 [[ -f /etc/locale.gen ]] && \
     sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 locale-gen
-update-locale LANG=en_US:en LC_ALL=en_US.UTF-8
+update-locale LANG=en_US:en LC_ALL=en_US.UTF-8 LANGUAGE=en_US.UTF-8
 
 log "Final locale list"
-locale -a
+locale
 
 
 #Adding Main user Volumio
@@ -164,8 +164,9 @@ chmod 777 /etc/hostname
 chmod 777 /etc/hosts
 
 log "Creating an empty dhcpd.leases if required"
-[[ ! -f /var/lib/dhcpd/dhcpd.leases ]] && touch /var/lib/dhcpd/dhcpd.leases
-echo "nameserver 8.8.8.8" > /etc/resolv.conf
+lease_file="/var/lib/dhcp/dhcpd.leases"
+[[ ! -f $lease_file ]] && mkdir -p "$(dirname $lease_file)" && touch $lease_file
+echo "nameserver 208.67.220.220" > /etc/resolv.conf
 
 
 log "Testing for SSL issues" "dbg"
@@ -302,13 +303,14 @@ log "Setting Mpd to SystemD instead of Init"
 update-rc.d mpd remove
 systemctl enable mpd.service
 
-log "Preventing hotspot services from starting at boot"
-systemctl disable hotspot.service
+log "Preventing hotspot (hostapd/dnsmasq) services from starting at boot"
+systemctl disable hostapd.service
 systemctl disable dnsmasq.service
 
-log "Preventing un-needed dhcp servers to start automatically"
-systemctl disable isc-dhcp-server.service
-systemctl disable dhcpd.service
+# We no longer need this as we don't use it
+# log "Preventing un-needed dhcp servers to start automatically"
+# systemctl disable isc-dhcp-server.service
+# systemctl disable dhcpd.service
 
 log "Linking Volumio Command Line Client"
 ln -s /volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh /usr/local/bin/volumio
@@ -360,18 +362,45 @@ EOF
 
 log "Creating Wireless service"
 ln -s /lib/systemd/system/wireless.service /etc/systemd/system/multi-user.target.wants/wireless.service
+log "Setting up wireless hostspot config" "info"
+# Fix dnsmasq service
+log "Adding Volumio bits to dnsmasq and hostapd services"
+sed -i '/^After=network.target/a # For Volumio hotspot functionality\nAfter=hostapd.service\nPartOf=hostapd.service' /lib/systemd/system/dnsmasq.service
+sed -i '/^After=network.target/a # For Volumio hotspot functionality\nWants=dnsmasq.service' /lib/systemd/system/hostapd.service
+
+log "Configuring dnsmasq"
+# TODO listen on wlan* or only wlan0?
+cat <<-EOF >> /etc/dnsmasq.d/hotspot.conf
+# dnsmasq hotspot configuration for Volumio
+# Only listen on wifi interface
+interface=wlan0
+# Always return 192.168.211.1 for any query not answered from /etc/hosts or DHCP and not sent to an upstream nameserver
+address=/#/192.168.211.1
+# DHCP server not active on wired lan interface
+no-dhcp-interface=eth0
+# IPv4 address range, netmask and lease time
+dhcp-range=192.168.211.100,192.168.211.200,255.255.255.0,24h
+# DNS server
+dhcp-option=option:dns-server,192.168.211.1
+expand-hosts
+domain=local
+# Facility to which dnsmasq will send syslog entries
+log-facility=local7
+EOF
 
 log "Configuring hostapd"
 cat <<-EOF >> /etc/hostapd/hostapd.conf
 interface=wlan0
-ssid=Volumio
-channel=4
 driver=nl80211
+channel=4
 hw_mode=g
+# Auth
 auth_algs=1
 wpa=2
 wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP
+# Volumio specific
+ssid=Volumio
 wpa_passphrase=volumio2
 EOF
 
@@ -385,9 +414,9 @@ log "Setting fallback DNS with OpenDNS nameservers"
 cat <<-EOF > /etc/resolv.conf.tail.tmpl
 # OpenDNS nameservers
 nameserver 208.67.222.222
-nameserver 208.67.220.220" >
-chmod 666 /etc/resolv.conf.*
+nameserver 208.67.220.220
 EOF
+chmod 666 /etc/resolv.conf.*
 
 ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 

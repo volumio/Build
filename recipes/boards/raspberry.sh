@@ -43,6 +43,7 @@ PACKAGES=(# Bluetooth packages
   "plymouth" "plymouth-themes"\
     # Wireless firmware
   "firmware-atheros" "firmware-ralink" "firmware-realtek" "firmware-brcm80211" \
+  "libsox-dev"
   )
 
 ### Device customisation
@@ -61,6 +62,8 @@ device_image_tweaks(){
   log "Custom dtoverlay pre and post" "ext"
   mkdir -p ${ROOTFSMNT}/opt/vc/bin/
   cp -rp ${SRC}/volumio/opt/vc/bin/* ${ROOTFSMNT}/opt/vc/bin/
+  log "Copying shairport-sync service for arm"   
+  cp -rp ${SRC}/volumio/lib/systemd/system/shairport-sync.service ${ROOTFSMNT}/lib/systemd/system
 
   log "Fixing hostapd.conf"
   cat <<-EOF > ${ROOTFSMNT}/etc/hostapd/hostapd.conf
@@ -80,6 +83,21 @@ rsn_pairwise=CCMP
 ssid=Volumio
 wpa_passphrase=volumio2
 EOF
+
+#   log "Fixing vcgencmd and tvservice for Kodi"
+#   cat <<-EOF > ${ROOFTFSMNT}/etc/profile.d/vc-fix.sh
+# # Add aliases for vcgencmd and tvservice with proper paths
+# [ -f /opt/vc/bin/vcgencmd ] && alias vcgencmd="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib /opt/vc/bin/vcgencmd"
+# [ -f /opt/vc/bin/tvservice ] && alias tvservice="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib /opt/vc/bin/tvservice"
+# EOF
+  # log "Symlinking vc bins"
+  # # https://github.com/RPi-Distro/firmware/blob/debian/debian/libraspberrypi-bin.links
+  # VC_BINS=("edidparser" "raspistill" "raspivid" "raspividyuv" "raspiyuv" \
+  #          "tvservice" "vcdbg" "vcgencmd" "vchiq_test" \
+  #           "dtoverlay" "dtoverlay" "dtoverlay-pre" "dtoverlay-post" "dtmerge")
+  # for bin in "${VC_BINS[@]}"; do
+  #     ln -s /opt/vc/bin/${bin} /usr/bin/${bin}
+  # done
 
   cat <<-EOF > ${ROOTFSMNT}/etc/apt/sources.list.d/raspi.list
 deb http://archive.raspberrypi.org/debian/ buster main ui
@@ -253,6 +271,9 @@ EOF
   depmod $KERNEL_VERSION-v7l+ # Pi4
 
   log "Raspi Kernel and Modules installed" "okay"
+
+  log "linking libsox for Spop"
+  ln -s /usr/lib/arm-linux-gnueabihf/libsox.so /usr/local/lib/libsox.so.2
 }
 
 # Will be run in chroot - Post initramfs

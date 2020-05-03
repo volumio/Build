@@ -48,8 +48,8 @@ cp -r ${SRC}/volumio/etc/modprobe.d ${ROOTFS}/etc/
 cp -p ${SRC}/volumio/etc/hosts ${ROOTFS}/etc/hosts
 
 #Dhcp conf file
-cp ${SRC}/volumio/etc/dhcp/dhclient.conf ${ROOTFS}/etc/dhcp/dhclient.conf
-cp ${SRC}/volumio/etc/dhcp/dhcpd.conf ${ROOTFS}/etc/dhcp/dhcpd.conf
+# cp ${SRC}/volumio/etc/dhcp/dhclient.conf ${ROOTFS}/etc/dhcp/dhclient.conf
+# cp ${SRC}/volumio/etc/dhcp/dhcpd.conf ${ROOTFS}/etc/dhcp/dhcpd.conf
 
 #Samba conf file
 cp ${SRC}/volumio/etc/samba/smb.conf ${ROOTFS}/etc/samba/smb.conf
@@ -104,7 +104,8 @@ cp ${SRC}/volumio/etc/nsswitch.conf ${ROOTFS}/etc/nsswitch.conf
 cp ${SRC}/volumio/bin/firststart.sh ${ROOTFS}/bin/firststart.sh
 
 #hotspot
-cp ${SRC}/volumio/bin/hotspot.sh ${ROOTFS}/bin/hotspot.sh
+# We don't need this anymore with buster, and use hostapd directly
+# cp ${SRC}/volumio/bin/hotspot.sh ${ROOTFS}/bin/hotspot.sh
 
 #dynswap
 cp ${SRC}/volumio/bin/dynswap.sh ${ROOTFS}/bin/dynswap.sh
@@ -113,7 +114,8 @@ cp ${SRC}/volumio/bin/dynswap.sh ${ROOTFS}/bin/dynswap.sh
 cp ${SRC}/volumio/bin/wireless.js ${ROOTFS}/volumio/app/plugins/system_controller/network/wireless.js
 
 #dhcpcd
-cp -rp ${SRC}/volumio/etc/dhcpcd.conf ${ROOTFS}/etc/
+# We don't need this anymore by switching to dnsmasq on buster
+# cp -rp ${SRC}/volumio/etc/dhcpcd.conf ${ROOTFS}/etc/
 
 #udev script
 cp ${SRC}/volumio/bin/rename_netiface0.sh ${ROOTFS}/bin/rename_netiface0.sh

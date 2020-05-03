@@ -20,6 +20,6 @@ declare -A VOLBINS=(
 
 ## Backend and Fronend Repository details
 VOL_BE_REPO="https://github.com/ashthespy/Volumio2.git"
-VOL_BE_REPO_BRANCH="buster"
+VOL_BE_REPO_BRANCH="buster_"
 
 export SecureApt VOLBINSREPO VOLBINS VOL_BE_REPO VOL_BE_REPO_BRANCH

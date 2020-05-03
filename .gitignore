@@ -3,6 +3,11 @@ build
 logs
 platform-*
 
+# We don't need logs and image artifacts
+*.log
+*.zip
+*.img*
+*.tar*
 # Selective ignore
 .ignore_dir
 
