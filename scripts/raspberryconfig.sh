@@ -172,10 +172,6 @@ wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20190114-1+rp
 dpkg -i firmware-brcm80211_20190114-1+rpt6_all.deb
 rm firmware-brcm80211_20190114-1+rpt6_all.deb
 
-# Fix of baud rate issues for PI models < 1.3
-# reference https://github.com/balena-os/balena-raspberrypi/issues/476
-sed -i -e 's/921600/460800/g' /usr/bin/btuart
-
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
 wget -P /boot/. https://github.com/Hexxeh/rpi-firmware/raw/$FIRMWARE_COMMIT/bcm2708-rpi-0-w.dtb
