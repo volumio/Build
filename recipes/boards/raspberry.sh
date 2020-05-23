@@ -13,7 +13,7 @@ DEBUG_BUILD=no
 ### Device information
 DEVICENAME="Raspberry Pi"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="pi"
+DEVICEBASE="raspberry"
 
 # Disable to ensure the script doesn't look for `platform-xxx`
 #DEVICEREPO=""
@@ -140,7 +140,18 @@ device_chroot_tweaks(){
 # Will be run in chroot - Pre initramfs
 # TODO Try and streamline this!
 device_chroot_tweaks_pre() {
-  log "Performing device_chroot_tweaks_pre" "ext"
+  # Get rid of armv7 nodejs and pick up the armv6l version
+  arch=armv6l
+  if dpkg -s nodejs &> /dev/null; then
+    log "Removing previous nodejs installation from $(command -v node)" "info"
+    log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+    sudo apt-get -y purge nodejs
+  fi
+  echo "Proceeding fetchiing node for ${arch}"
+  echo "Installing Node for ${arch}"
+  dpkg -i /volumio/customNode/nodejs_*-1unofficial_armv6l.deb
+  log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+  
   ## Define parameters
   declare -A PI_KERNELS=(\
       [4.19.86]="b9ecbe8d0e3177afed08c54fc938938100a0b73f"\
@@ -177,6 +188,8 @@ device_chroot_tweaks_pre() {
   log "Finished Kernel installation" "okay"
 
   ### Other Rpi specific stuff
+  ## Lets update some packages from raspbian repos now
+  apt-get update && apt-get -y upgrade
   log "Installing Volumio customPkgs" "info"
   for deb in /volumio/customPkgs/*.deb; do
     log "Installing ${deb}"
@@ -274,6 +287,9 @@ EOF
 
   log "linking libsox for Spop"
   ln -s /usr/lib/arm-linux-gnueabihf/libsox.so /usr/local/lib/libsox.so.2
+  log "linking libvchiq_arm and libvcos for mpd"
+  ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/arm-linux-gnueabihf/
+  ln -s /opt/vc/lib/libvcos.so /usr/lib/arm-linux-gnueabihf/
 }
 
 # Will be run in chroot - Post initramfs

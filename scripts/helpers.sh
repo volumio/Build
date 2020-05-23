@@ -4,9 +4,12 @@
 # Some general helpers for the Volumio Build system
 
 # Terminal colors if supported
-if test -t 1; then # if terminal
+if [[ $TERM == dumb ]]; then
+	export TERM=ansi
+fi
+if test -t; then # if terminal
 	ncolors=$(which tput > /dev/null && tput colors) # supports color
-	if test -n "$ncolors" && test $ncolors -ge 8; then
+	if [[ $ncolors -ge  8 ]]; then
 		export termcols=$(tput cols)
 		export bold="$(tput bold)"
 		export underline="$(tput smul)"
@@ -59,9 +62,9 @@ log()
       echo -e "[${green} o.k. ${normal}]${green} $1 ${normal} $tmp"
       ;;
 
-		"")
-			echo -e "[${green} $char ${normal}] $1 $tmp "
-			;;
+	"")
+	  echo -e "[${green} $char ${normal}] $1 $tmp "
+	  ;;
 
     *)
 			[[ !  -z  $2  ]] && tmp="[${yellow} $2 ${normal}]"

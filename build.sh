@@ -215,7 +215,7 @@ if [ -n "$BUILD" ]; then
     rm -rf "$SRC/build/$BUILD"
   fi
   ROOTFS="$SRC/build/$BUILD/root"
-  mkdir -p $ROOTFS
+  mkdir -p "${ROOTFS}"
 
   log "Creating rootfs in <./build/$BUILD/root>"
 
@@ -223,14 +223,14 @@ if [ -n "$BUILD" ]; then
   ### Multistrap
   log "Setting up Multistrap environment" "info"
   log "Preparing rootfs apt-config"
-  DirEtc="$ROOTFS/etc/apt/"
-  DirEtcparts="$DirEtc/apt.conf.d"
-  DirEtctrustedparts="$DirEtc/trusted.gpg.d"
+  DirEtc="${ROOTFS}"/etc/apt
+  DirEtcparts=${DirEtc}/apt.conf.d
+  DirEtctrustedparts=${DirEtc}/trusted.gpg.d
 
-  mkdir -p ${DirEtcparts}
-  mkdir -p ${DirEtctrustedparts}
+  mkdir -p "${DirEtcparts}"
+  mkdir -p "${DirEtctrustedparts}"
   echo -e 'Dpkg::Progress-Fancy "1";\nAPT::Color "1";' > \
-    ${DirEtcparts}/01progress
+    "${DirEtcparts}"/01progress
 
   log "Adding SecureApt keys to rootfs"
   for key in "${!SecureApt[@]}"
@@ -391,12 +391,16 @@ if [[ -n "$DEVICE" ]]; then
   USE_LOCAL_NODE_MODULES=yes
   if [[ $USE_LOCAL_NODE_MODULES == yes ]]; then
     log "Extracting node_modules"
-    tar xf "$SRC/docker/node_modules_${BUILD}_v12.16.3.tar.xz" -C $ROOTFS/volumio
+    tar xf "$SRC"/docker/node_modules_${BUILD}_v14.*.tar.xz -C $ROOTFS/volumio
     ls $ROOTFS/volumio/node_modules
 
+  if [ ${BUILD} == 'arm' ]; then
     log "Adding shairport-sync"
     mkdir -p $ROOTFS/volumio/customPkgs && cp ${SRC}/docker/shairport-sync_*_${ARCH}.deb "$_"
     ls $ROOTFS/volumio/customPkgs
+    log "Adding nodejs_xx_armv6l.deb"
+    mkdir -p $ROOTFS/volumio/customNode && cp ${SRC}/docker/nodejs_*-1unofficial_armv6l.deb "$_"
+  fi
   fi
 
   # Prepare Images
