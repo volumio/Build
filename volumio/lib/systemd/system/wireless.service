@@ -4,7 +4,7 @@ Before=volumio.service
 
 [Service]
 Type=forking
-ExecStartPre=/sbin/iw dev wlan0 set power_save off
+ExecStartPost=/sbin/iw dev wlan0 set power_save off
 ExecStart=/volumio/app/plugins/system_controller/network/wireless.js start
 KillMode=mixed
 
