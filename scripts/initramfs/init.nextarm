@@ -89,6 +89,7 @@ do_reboot() {
       mkdir /boot
       mount -t vfat ${BOOTPART} /boot
       echo "" > /boot/executereboot
+      sync
       umount /boot
       rm -r /boot
       ;;
