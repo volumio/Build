@@ -5,8 +5,10 @@
 ## WIP, this should be refactored out to a higher level.
 # Base system
 BASE="Debian"
-ARCH="arm64"
-BUILD="armv8"
+#ARCH="arm64"
+#BUILD="armv8"
+ARCH="armhf"
+BUILD="armv7"
 
 ### Device information
 DEVICENAME="ROCK Pi S"
@@ -85,10 +87,12 @@ device_chroot_tweaks_post(){
   # removing the need of each image needing u-boot-tools
   # saving some time!
   if [[ -f /boot/volumio.initrd ]]; then
+  [[ $ARCH == "armhf" ]] && ARCH="arm"
     mkimage -v -A $ARCH -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
   fi
   if [[ ! -f /boot/boot.scr ]]; then
     log "Creating boot.scr"
+    [[ $ARCH == "armhf" ]] && ARCH="arm"
     mkimage -A $ARCH -T script -C none -d /boot/boot.cmd /boot/boot.scr
   fi
 }
