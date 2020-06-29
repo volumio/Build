@@ -67,7 +67,7 @@ touch /boot/start.elf
 mkdir /lib/modules
 
 
-KERNEL_VERSION="4.19.86"
+KERNEL_VERSION="5.4.49"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -135,6 +135,12 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="b9ecbe8d0e3177afed08c54fc938938100a0b73f"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;;
+    "5.4.49")
+      KERNEL_REV="1323"
+      KERNEL_COMMIT="da3752a358a86014cdcce5fc3be5b18d7ec074c4"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
+
 esac
 
 # using rpi-update relevant to defined kernel version
