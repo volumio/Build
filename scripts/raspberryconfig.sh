@@ -67,7 +67,7 @@ touch /boot/start.elf
 mkdir /lib/modules
 
 
-KERNEL_VERSION="5.4.49"
+KERNEL_VERSION="4.19.118"
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -133,6 +133,11 @@ case $KERNEL_VERSION in
     "4.19.86")
       KERNEL_REV="1283"
       KERNEL_COMMIT="b9ecbe8d0e3177afed08c54fc938938100a0b73f"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
+    "4.19.118")
+      KERNEL_REV="1311"
+      KERNEL_COMMIT="e1050e94821a70b2e4c72b318d6c6c968552e9a2"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;;
     "5.4.51")
@@ -208,7 +213,7 @@ hdmi_force_hotplug=1
 include userconfig.txt" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0 snd-bcm2835.enable_compat_alsa=0" >> /boot/cmdline.txt
 
 echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
