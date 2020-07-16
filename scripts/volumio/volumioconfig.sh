@@ -453,27 +453,4 @@ rm -f /etc/avahi/services/udisks.service
 log "Setting CPU governor to performance" "info"
 echo 'GOVERNOR="performance"' >/etc/default/cpufrequtils
 
-#####################
-#Multimedia Keys#-----------------------------------------
-#####################
-
-log "Configuring xbindkeys"
-cat <<-EOF >/etc/xbindkeysrc
-"/usr/local/bin/volumio toggle"
-    XF86AudioPlay
-"/usr/local/bin/volumio previous"
-    XF86AudioPrev
-"/usr/local/bin/volumio next"
-    XF86AudioNext
-"/usr/local/bin/volumio volume toggle"
-    XF86AudioMute
-"/usr/local/bin/volumio volume minus"
-    XF86AudioLowerVolume
-"/usr/local/bin/volumio volume plus"
-XF86AudioRaiseVolume'
-EOF
-
-# log "Enabling xbindkeys"
-# ln -s /lib/systemd/system/xbindkeysrc.service /etc/systemd/system/multi-user.target.wants/xbindkeysrc.service
-
 log "Finished Volumio chroot configuration for ${DISTRO_NAME}" "okay"
