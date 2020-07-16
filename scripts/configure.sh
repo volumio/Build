@@ -102,7 +102,7 @@ chmod a+x build/$BUILD/root/bin/volumio_cpu_tweak
 #LAN HOTPLUG
 cp volumio/etc/default/ifplugd build/$BUILD/root/etc/default/ifplugd
 #TRIGGERHAPPY
-cp -r volumio/etc/triggerhappy build/$BUILD/root/etc/triggerhappy
+cp -r volumio/etc/triggerhappy build/$BUILD/root/etc
 
 echo 'Done Copying Custom Volumio System Files'
 
