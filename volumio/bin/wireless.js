@@ -20,10 +20,11 @@ var ifdeconfig = "sudo ip addr flush dev " + wlan + " && sudo ifconfig " + wlan 
 var execSync = require('child_process').execSync;
 var ifconfig = require('/volumio/app/plugins/system_controller/network/lib/ifconfig.js');
 var wirelessEstablishedOnceFlagFile = '/data/flagfiles/wirelessEstablishedOnce';
+var wirelessWPADriver = getWirelessWPADriverString();
 if (debug) {
-	var wpasupp = "wpa_supplicant -d -s -B -Dnl80211,wext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
+	var wpasupp = "wpa_supplicant -d -s -B -D" + wirelessWPADriver + " -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
 } else {
-	var wpasupp = "wpa_supplicant -s -B -Dnl80211,wext -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
+	var wpasupp = "wpa_supplicant -s -B -D" + wirelessWPADriver + " -c/etc/wpa_supplicant/wpa_supplicant.conf -i" + wlan;
 }
 
 function kill(process, callback) {
@@ -351,4 +352,19 @@ function hasWirelessConnectionBeenEstablishedOnce() {
     } catch(err) {}
 
     return wirelessEstablished
+}
+
+function getWirelessWPADriverString() {
+    try {
+        var volumioHW = execSync("cat /etc/os-release | grep ^VOLUMIO_HARDWARE | tr -d 'VOLUMIO_HARDWARE=\"'", { uid: 1000, gid: 1000, encoding: 'utf8'}).replace('\n','');
+    } catch(e) {
+        var volumioHW = 'none';
+    }
+    var fullDriver = 'nl80211,wext';
+    var onlyWextDriver = 'wext';
+    if (volumioHW === 'nanopineo2') {
+        return onlyWextDriver
+    } else {
+        return fullDriver
+    }
 }
