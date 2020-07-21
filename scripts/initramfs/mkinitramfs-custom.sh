@@ -413,10 +413,11 @@ fi
 
 DESTDIR=${DESTDIR_REAL}
 
-echo "Adding findfs/ parted/ mkfs.ext4/ e2fsck to initramfs"
+echo "Adding findfs/ parted/ mkfs.ext4/ mkfs.vfat/ e2fsck to initramfs"
 cp /sbin/parted "${DESTDIR}/sbin"
 cp /sbin/partprobe "${DESTDIR}/sbin"
 cp /sbin/mkfs.ext4 "${DESTDIR}/sbin"
+cp /sbin/mkfs.vfat "${DESTDIR}/sbin"
 cp /sbin/e2fsck "${DESTDIR}/sbin"
 cp /sbin/resize2fs "${DESTDIR}/sbin"
 cp /sbin/findfs "${DESTDIR}/sbin"
@@ -447,7 +448,11 @@ chmod +x /usr/local/sbin/volumio-init-updater
 cp /usr/local/sbin/volumio-init-updater "${DESTDIR}/sbin"
 
 #Manage the destdir folder removing the auto-generated scripts
-rm -rf "${DESTDIR}/scripts"
+rm -rf "${DESTDIR}/scripts/"
+if [ -d /root/scripts ]; then
+   mkdir "${DESTDIR}/scripts"
+   cp /root/scripts/* "${DESTDIR}/scripts/"
+fi
 cp /root/init "${DESTDIR}"
 
 #Creation of the initrd image
