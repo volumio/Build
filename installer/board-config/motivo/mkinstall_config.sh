@@ -31,13 +31,14 @@ TARGETIMAGE="/dev/mmcblk2p2"
 HWDEVICE="SOPine64-Motivo"
 USEKMSG="yes"
 UUIDFMT=
+FACTORYCOPY="yes"
 
 
 # Modules to load (as a blank separated string array)
-MODULES=("nls_cp437")
+MODULES="nls_cp437"
 
 # Additional packages to install (as a blank separated string array)
-#PACKAGES=("")
+#PACKAGES=""
 
 # initramfs type
 RAMDISK_TYPE=image			# image or gzip (ramdisk image = uInitrd, gzip compressed = volumio.initrd) 

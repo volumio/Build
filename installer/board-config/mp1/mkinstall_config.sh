@@ -28,13 +28,14 @@ TARGETIMAGE="/dev/mmcblk0p2"
 HWDEVICE=
 USEKMSG="yes"
 UUIDFMT="yes"			# yes|no (actually, anything non-blank)
+FACTORYCOPY="yes"
 
 
 # Modules to load (as a blank separated string array)
-MODULES=("nls_cp437")
+MODULES="nls_cp437"
 
-# Additional packages to install (as a blank separated string array)
-#PACKAGES=("")
+# Additional packages to install (as a blank separated string)
+#PACKAGES=""
 
 # initramfs type
 RAMDISK_TYPE=image		# image or gzip (ramdisk image = uInitrd, gzip compressed = volumio.initrd) 

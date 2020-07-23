@@ -5,15 +5,15 @@ source /config.sh
 if [ ! "x${PACKAGES}" == "x" ]; then
    echo "[info] Adding board-specific packages"
    apt-get update
-   apt-get install -y "${PACKAGES[@]}"
+   apt-get install -y "${PACKAGES}"
 fi
 
 echo "[info] Adding custom modules"
-mod_list=$(printf "%s\n"  "${MODULES[@]}")
-cat <<-EOF >> /etc/initramfs-tools/modules
-# Volumio modules
-${mod_list}
-EOF
+echo "" > /etc/initramfs-tools/modules
+for module in ${MODULES}
+do 
+   echo $module >> /etc/initramfs-tools/modules
+done
 
 echo "[info] Changing to 'modules=list'"
 sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf

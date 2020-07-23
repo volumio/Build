@@ -63,7 +63,14 @@ cp $BOOT/data/image/* $BOOT/temp/image
  
 echo "[info] Copying volumio boot partition files (image, dtb, boot files etc.)"
 #TODO tar xfJ $BOOT/data/boot/kernel_current.tar.xz -C $BOOT/temp/boot
-tar xvfJ $BOOT/data/boot/kernel_current.tar.xz -C $BOOT/temp/boot
+tar xf $BOOT/data/image/kernel_current.tar -C $BOOT/temp/boot
+
+if [ ! -z ${FACTORYCOPY} ]; then
+   echo "[info] Continue with creating factory copies"
+   cp $BOOT/data/image/kernel_current.tar $BOOT/data/image/kernel_factory.tar
+   cp $BOOT/data/image/volumio_current.sqsh $BOOT/data/image/volumio_factory.tar
+fi
+
 sync
 
 

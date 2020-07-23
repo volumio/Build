@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 SRC="$(pwd)"
 
@@ -15,42 +15,36 @@ while getopts ":d:v:f:" opt; do
          echo "[err] Volumio image $OPTARG does not exist, aborting..."
          exit 1
       else
-         FILENAME=$(basename "$OPTARG" ".zip")
-         VOLUMIOIMAGE=$(dirname "$VOLUMIOIMAGE")/$(basename "$OPTARG" ".zip")
-         if [ ! -f $VOLUMIOIMAGE ]; then
-            unzip $OPTARG
-            echo "[err] Volumio image $VOLUMIOIMAGE does not exist, aborting..."
-            exit
-         fi
+         VOLUMIOIMAGE=$OPTARG
       fi
       ;;
   esac
 done
 
-if [ "x${DEVICE}" == "x" ]; then
+if [ -z ${DEVICE} ]; then
    echo "[err] No device specified, aborting..."
    exit 1
 fi
 
-if [ "x${VOLUMIOIMAGE}" == "x" ]; then
+if [ -z ${VOLUMIOIMAGE} ]; then
    echo "[err] No Volumio image supplied, aborting..."
    exit 1
 fi
 
-if [ "x${VERSION}" == "x" ]; then
+if [ -z ${VERSION} ]; then
    echo "[warn] Warning: no flash image version supplied, continuing..."
 fi
 
-source "${SRC}/installer/board-config/${DEVICE}/mkinstall_config.sh"
+. ${SRC}/installer/board-config/${DEVICE}/mkinstall_config.sh
 
-PLTDIR="$SRC/platform-${DEVICEBASE}"
-if [ -d "$SRC/build/$BUILD" ]; then
+PLTDIR="${SRC}/platform-${DEVICEBASE}"
+if [ -d "${SRC}/build/$BUILD" ]; then
    if [ ! -d "${PLTDIR}" ]; then
-      echo "No platform folder present, please build a volumio device image first"
+      echo "No platform folder ${PLTDIR} present, please build a volumio device image first"
 	  exit 1
    fi
 else
-   echo "No ${BUILD} rootfs present, please build an image first"
+   echo "No ${SRC}/build/${BUILD} rootfs present, please build a volumio device image first"
    exit 1
 fi
 
@@ -82,7 +76,7 @@ echo "[info] Creating boot and rootfs filesystem"
 mkfs -t vfat -n BOOT "${FLASH_PART}"
 
 echo "[info] Preparing for the  kernel/ platform files"
-if [ ! "x$NONSTANDARD_REPO" == "x" ]; then
+if [ ! -z $NONSTANDARD_REPO ]; then
    non_standard_repo
 else
    HAS_PLTDIR=no
@@ -184,10 +178,9 @@ cp scripts/initramfs/mkinitramfs-custom.sh $ROOTFSMNT/usr/local/sbin
 
 echo "
 RAMDISK_TYPE=${RAMDISK_TYPE}
-MODULES=($(printf '\"%s\" ' "${MODULES[@]}"))
-PACKAGES=($(printf '\"%s\" ' "${PACKAGES[@]}"))
+MODULES=\"${MODULES}\"
+PACKAGES=\"${PACKAGES}\"
 " > $ROOTFSMNT/config.sh
-
 
 mount /dev $ROOTFSMNT/dev -o bind
 mount /proc $ROOTFSMNT/proc -t proc
@@ -198,7 +191,7 @@ su -
 /mkinitrd.sh
 EOF
 
-if [ "x${RAMDISK_TYPE}" == "ximage" ]; then
+if [ ${RAMDISK_TYPE} = image ]; then
    echo "Creating uInitrd from 'volumio.initrd'"
    mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d $ROOTFSMNT/boot/volumio.initrd $ROOTFSMNT/boot/uInitrd
    rm $ROOTFSMNT/boot/volumio.initrd
@@ -236,7 +229,7 @@ copy_device_bootloader_files
 
 echo "[info] Copying 'raw' boot & image data"
 #cd /mnt/volumioimage/boot
-tar cfJ $ROOTFSMNT/boot/data/boot/kernel_current.tar.xz --exclude='resize-volumio-datapart' -C /mnt/volumioimage/boot .
+tar cf $ROOTFSMNT/boot/data/image/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/volumioimage/boot .
 
 cp /mnt/volumioimage/image/* /mnt/volumio/rootfs/boot/data/image
 
