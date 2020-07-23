@@ -2,40 +2,50 @@
 
 SRC="$(pwd)"
 
-while getopts ":d:v:f:" opt; do
+while getopts ":i:" opt; do
   case $opt in
-    d)
-      DEVICE=$OPTARG
-      ;;
-    v)
-      VERSION=$OPTARG
-      ;;
-    f)
-	  if [ ! -f $OPTARG ]; then
+
+    i)
+	  if [ ! -e $OPTARG ]; then
          echo "[err] Volumio image $OPTARG does not exist, aborting..."
          exit 1
-      else
-         VOLUMIOIMAGE=$OPTARG
       fi
+      
+      VOLUMIOIMAGE=$OPTARG
+      # split the image name in elements and parse
+      IMAGEPATH=$(echo $VOLUMIOIMAGE | awk 'BEGIN{FS=OFS="/"}NF--')
+      IMAGENAME=$(echo $VOLUMIOIMAGE | awk -F "/" '{print $NF}')
+
+      # get variant from image file name
+      VARIANT=$(echo $(echo $IMAGENAME | awk -F "-" '{print $1}') | awk -F "/" '{print $NF}')
+
+      # get version and build date from image name
+      BUILDVER=$(echo $IMAGENAME | awk -F "-" '{print $2}')
+      BUILDDATE=$(echo $IMAGENAME | awk -F "-" '{print $3"-"$4"-"$5}')
+
+      # get player and file extension
+      PLAYER=$(echo $(echo $IMAGENAME | awk -F "-" '{print $6}') | awk -F "." '{print $1}')
       ;;
   esac
 done
 
-if [ -z ${DEVICE} ]; then
-   echo "[err] No device specified, aborting..."
-   exit 1
-fi
+echo "+------EXTRA STEP: Building Auto Installer "
+echo "       Variant:    $VARIANT"
+echo "       Version:    $BUILDVER"
+echo "       Build date: $BUILDDATE"
+echo "       Player:     $PLAYER"
+echo ""
+
+echo $VOLUMIOIMAGE
+echo $IMAGEPATH
+echo $IMAGENAME
 
 if [ -z ${VOLUMIOIMAGE} ]; then
    echo "[err] No Volumio image supplied, aborting..."
    exit 1
 fi
 
-if [ -z ${VERSION} ]; then
-   echo "[warn] Warning: no flash image version supplied, continuing..."
-fi
-
-. ${SRC}/installer/board-config/${DEVICE}/mkinstall_config.sh
+. ${SRC}/installer/board-config/${PLAYER}/mkinstall_config.sh
 
 PLTDIR="${SRC}/platform-${DEVICEBASE}"
 if [ -d "${SRC}/build/$BUILD" ]; then
@@ -48,8 +58,7 @@ else
    exit 1
 fi
 
-BUILDDATE=$(date -I)
-IMG_FILE="AutoFlash${VERSION}-${BUILDDATE}-${DEVICE}.img"
+IMG_FILE=$SRC/"Autoinstaller-$VARIANT-${BUILDVER}-${BUILDDATE}-${PLAYER}.img"
 VOLMNT=/mnt/volumio
 
 echo "[Stage 1] Creating AutoFlash Image File ${IMG_FILE}"
@@ -157,7 +166,7 @@ LBLDATA=${LBLDATA}
 " > $ROOTFSMNT/root/scripts/initconfig.sh
 
 echo "[info] Copying initrd scripts"   
-cp ${SRC}/installer/board-config/${DEVICE}/board-functions $ROOTFSMNT/root/scripts
+cp ${SRC}/installer/board-config/${PLAYER}/board-functions $ROOTFSMNT/root/scripts
 cp ${SRC}/installer/runtime-generic/gen-functions $ROOTFSMNT/root/scripts
 cp ${SRC}/installer/runtime-generic/init-script $ROOTFSMNT/root/init
 cp ${SRC}/installer/mkinitrd.sh $ROOTFSMNT
@@ -251,6 +260,10 @@ sync
 dmsetup remove_all
 losetup -d ${LOOP_DEV1}
 losetup -d ${LOOP_DEV}
+
+zip -j ${IMG_FILE}.zip ${IMG_FILE}
+#TODO cp $IMG_FILE.zip to its proper place
+
 echo "[info] Done..."
 #rm $VOLUMIOIMAGE
 sync

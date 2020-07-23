@@ -2,7 +2,7 @@
 
 # Device Info
 DEVICEBASE="motivo"
-BOARDFAMILY=${DEVICE}
+BOARDFAMILY=${PLAYER}
 PLATFORMREPO="https://github.com/volumio/platform-motivo.git"
 PATCHREPO="https://github.com/volumio/motivo-patch"
 MOTIVOPATCH="motivo-patch"
