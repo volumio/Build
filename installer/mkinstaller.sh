@@ -36,10 +36,6 @@ echo "       Build date: $BUILDDATE"
 echo "       Player:     $PLAYER"
 echo ""
 
-echo $VOLUMIOIMAGE
-echo $IMAGEPATH
-echo $IMAGENAME
-
 if [ -z ${VOLUMIOIMAGE} ]; then
    echo "[err] No Volumio image supplied, aborting..."
    exit 1
