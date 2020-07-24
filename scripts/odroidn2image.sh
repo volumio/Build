@@ -107,15 +107,13 @@ echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
 mount -t ext4 "${SYS_PART}" /mnt/volumio/images
 mkdir /mnt/volumio/rootfs
-mkdir /mnt/volumio/rootfs/boot
+mkdir -p /mnt/volumio/rootfs/boot/amlogic
 mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "Copying OdroidN2 boot files"
-cp platform-odroid/odroidn2/boot/boot.ini* /mnt/volumio/rootfs/boot
-cp platform-odroid/odroidn2/boot/meson64_odroidn2.dtb /mnt/volumio/rootfs/boot
-cp platform-odroid/odroidn2/boot/Image* /mnt/volumio/rootfs/boot
+cp -dR platform-odroid/odroidn2/boot/* /mnt/volumio/rootfs/boot
 
 echo "Copying OdroidN2 modules and firmware"
 cp -pdR platform-odroid/odroidn2/lib/modules /mnt/volumio/rootfs/lib/
@@ -181,10 +179,6 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
 echo "==> Odroid-N2 device installed"
-
-#echo "Removing temporary platform files"
-#echo "(you can keep it safely as long as you're sure of no changes)"
-#rm -r platform-odroid
 sync
 
 echo "Finalizing Rootfs creation"

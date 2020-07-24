@@ -19,7 +19,7 @@ tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 " > /etc/fstab
 
 echo "Creating boot.ini from template"
-sed -i "s/%%VOLUMIO-PARAMS%%/imgpart=UUID=${UUID_IMG} imgfile=\/volumio_current.sqsh hwdevice=Odroid-N2 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=boot.ini/g" /boot/boot.ini
+sed -i "s/%%VOLUMIO-PARAMS%%/imgpart=UUID=${UUID_IMG} imgfile=\/volumio_current.sqsh hwdevice=Odroid-N2 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=boot.ini loglevel=0/g" /boot/boot.ini
 
 echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
