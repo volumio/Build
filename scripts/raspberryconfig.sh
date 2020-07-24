@@ -213,7 +213,7 @@ hdmi_force_hotplug=1
 include userconfig.txt" >> /boot/config.txt
 
 echo "Writing cmdline.txt file"
-echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0 snd-bcm2835.enable_compat_alsa=0" >> /boot/cmdline.txt
+echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0 snd-bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_headphones=1" >> /boot/cmdline.txt
 
 echo "adding gpio & spi group and permissions"
 groupadd -f --system gpio
