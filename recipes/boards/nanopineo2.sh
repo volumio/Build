@@ -41,9 +41,9 @@ PACKAGES=("u-boot-tools")
 write_device_files() {
   log "Running write_device_files" "ext"
 
-  cp -dR ${PLTDIR}/${DEVICE}/boot ${ROOTFSMNT}
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib
+  cp -dR "${PLTDIR}/${DEVICE}/boot" "${ROOTFSMNT}"
+  cp -pdR "${PLTDIR}/${DEVICE}/lib/modules" "${ROOTFSMNT}/lib"
+  cp -pdR "${PLTDIR}/${DEVICE}/lib/firmware" "${ROOTFSMNT}/lib"
   # log "Setting sun50i-h5-nanopi-neo2-i2s-generic.dtb version as default"
   # mv ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2.dtb \
   #     ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2-org-default.dtb
@@ -54,8 +54,8 @@ write_device_files() {
 write_device_bootloader(){
   log "Running write_device_bootloader" "ext"
 
-  dd if="${PLTDIR}/${DEVICE}/u-boot/sunxi-spl.bin" of=${LOOP_DEV} bs=1024 seek=8
-  dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot.itb" of=${LOOP_DEV} bs=1024 seek=40
+  dd if="${PLTDIR}/${DEVICE}/u-boot/sunxi-spl.bin" of="${LOOP_DEV}" bs=1024 seek=8
+  dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot.itb" of="${LOOP_DEV}" bs=1024 seek=40
 }
 
 # Will be called by the image builder for any customisation

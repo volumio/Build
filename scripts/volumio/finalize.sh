@@ -4,12 +4,12 @@ set -eo pipefail
 
 # HARDWARE=`/bin/cat /mnt/volumio/rootfs/etc/os-release | grep "VOLUMIO_HARDWARE" | cut -d \\" -f2 | tr -d "\n"`
 
-[ -z $ROOTFSMNT ] && ROOTFSMNT=/mnt/volumio/rootfs
+[ -z "${ROOTFSMNT}" ] && ROOTFSMNT=/mnt/volumio/rootfs
 log "Computing Volumio folder Hash Checksum" "info"
 
 HASH="$(md5deep -r -l -s -q ${ROOTFSMNT}/volumio | sort | md5sum | awk '{print $1}')"
-log "HASH: ${HASH}" "dbg"
 # HASH=`/usr/bin/md5deep -r -l -s -q ${ROOTFSMNT}/volumio | sort | md5sum | tr -d "-" | tr -d " \t\n\r"`
+log "HASH: ${HASH}" "dbg"
 cat <<-EOF >> ${ROOTFSMNT}/etc/os-release
 VOLUMIO_HASH="${HASH}"
 EOF
@@ -23,14 +23,13 @@ if [[ $BUILD != "x86" ]]; then
   log "Cleaning man and caches"
   rm -rf ${ROOTFSMNT}/usr/share/man/* ${ROOTFSMNT}/usr/share/groff/* ${ROOTFSMNT}/usr/share/info/*
   rm -rf ${ROOTFSMNT}/usr/share/lintian/* ${ROOTFSMNT}/usr/share/linda/* ${ROOTFSMNT}/var/cache/man/*
-
 else
-  echo "X86 Environmant detected, not cleaning"
+  echo "X86 environment detected, not cleaning"
 fi
 
 log "Updating MOTD"
 rm -f ${ROOTFSMNT}/etc/motd ${ROOTFSMNT}/etc/update-motd.d/*
-cp $SRC/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
+cp "${SRC}"/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
 
 #TODO: This doesn't seem to be doing much atm
 log "Stripping binaries"

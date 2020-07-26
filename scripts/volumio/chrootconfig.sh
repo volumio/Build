@@ -43,6 +43,7 @@ declare -fF device_chroot_tweaks &>/dev/null \
   && device_chroot_tweaks
 
 ## Activate modules
+# shellcheck disable=SC2116
 log "Activating ${#MODULES[@]} custom modules:" "" "$(echo "${MODULES[@]}")"
 mod_list=$(printf "%s\n"  "${MODULES[@]}")
 cat <<-EOF >> /etc/initramfs-tools/modules
@@ -57,8 +58,8 @@ if [ "$PATCH" = "volumio" ]; then
   log "No Patch To Apply" "wrn"
 else
   log "Applying Patch ${PATCH}" "wrn"
-  PATCHPATH=/${PATCH}
-  cd $PATCHPATH || exit
+  PATCHPATH=/"${PATCH}"
+  cd "${PATCHPATH}" || exit
   #Check the existence of patch script
   if [ -f "patch.sh" ]; then
     sh patch.sh
@@ -66,15 +67,24 @@ else
     log "Cannot Find Patch File, aborting" "err"
   fi
   cd /
-  rm -rf ${PATCH}
+  rm -rf "${PATCH}"
 fi
 
 ## Adding board specific packages
+# shellcheck disable=SC2116
 log "Installing ${#PACKAGES[@]} custom packages:" "" "$(echo "${PACKAGES[@]}")"
 apt-get update
 apt-get install -y "${PACKAGES[@]}"
 
+# Custom packages for Volumio
 [ -f "/install-kiosk.sh" ] && bash install-kiosk.sh
+if [ -d "/volumio/customPkgs/" ]; then
+  log "Installing Volumio customPkgs" "info"
+  for deb in /volumio/customPkgs/*.deb; do
+    log "Installing ${deb}"
+    dpkg -i "${deb}"
+  done
+fi
 
 log "Entering device_chroot_tweaks_pre" "cfg"
 device_chroot_tweaks_pre
@@ -83,6 +93,7 @@ log "Cleaning APT Cache and remove policy file" "info"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
+rm -r /volumio/customPkgs
 
 # Fix services for tmpfs logs
 log "Ensuring /var/log has right folders and permissions"

@@ -42,16 +42,16 @@ PACKAGES=("u-boot-tools" "plymouth" "plymouth-themes")
 write_device_files() {
   log "Running write_device_files" "ext"
 
-  cp -dR ${PLTDIR}/${DEVICE}/boot ${ROOTFSMNT}
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib
+  cp -dR "${PLTDIR}/${DEVICE}/boot" "${ROOTFSMNT}"
+  cp -pdR "${PLTDIR}/${DEVICE}/lib/modules" "${ROOTFSMNT}/lib"
+  cp -pdR "${PLTDIR}/${DEVICE}/lib/firmware" "${ROOTFSMNT}/lib"
 
 }
 
 write_device_bootloader(){
   log "Running write_device_bootloader" "ext"
 
-  dd if=${PLTDIR}/${DEVICE}/u-boot/u-boot.img of=${LOOP_DEV} seek=64 conv=notrunc
+  dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot.img" of="${LOOP_DEV}" seek=64 conv=notrunc
 
 }
 
@@ -69,7 +69,7 @@ device_chroot_tweaks_pre() {
   mapfile -t kernel_versions < <(ls -t /lib/modules | sort)
   log "Creating extlinux.conf for Kernel -- ${kernel_versions[0]}"
   cat<<-EOF > /boot/extlinux/extlinux.conf
-label $(awk -F . '{print "kernel-"$1"."$2}' <<< ${kernel_versions[0]})
+label $(awk -F . '{print "kernel-"$1"."$2}' <<< "${kernel_versions[0]}")
   kernel /zImage
   fdt /dtb/rk3288-miniarm.dtb
   initrd /uInitrd

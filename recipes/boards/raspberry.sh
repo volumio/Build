@@ -60,13 +60,14 @@ write_device_bootloader(){
 # Will be called by the image builder for any customisation
 device_image_tweaks(){
   log "Custom dtoverlay pre and post" "ext"
-  mkdir -p ${ROOTFSMNT}/opt/vc/bin/
-  cp -rp ${SRC}/volumio/opt/vc/bin/* ${ROOTFSMNT}/opt/vc/bin/
+  # mkdir -p "${ROOTFSMNT}/opt/vc/bin/"
+  # cp -rp "${SRC}"/volumio/opt/vc/bin/* "${ROOTFSMNT}/opt/vc/bin/"
   log "Copying shairport-sync service for arm"   
-  cp -rp ${SRC}/volumio/lib/systemd/system/shairport-sync.service ${ROOTFSMNT}/lib/systemd/system
-
+  if [ -f "${SRC}/volumio/lib/systemd/system/shairport-sync.service" ]; then
+    cp -rp "${SRC}/volumio/lib/systemd/system/shairport-sync.service" "${ROOTFSMNT}/lib/systemd/system"
+  fi 
   log "Fixing hostapd.conf"
-  cat <<-EOF > ${ROOTFSMNT}/etc/hostapd/hostapd.conf
+  cat <<-EOF > "${ROOTFSMNT}/etc/hostapd/hostapd.conf"
 interface=wlan0
 driver=nl80211
 channel=4
@@ -99,7 +100,7 @@ EOF
   #     ln -s /opt/vc/bin/${bin} /usr/bin/${bin}
   # done
 
-  cat <<-EOF > ${ROOTFSMNT}/etc/apt/sources.list.d/raspi.list
+  cat <<-EOF > "${ROOTFSMNT}/etc/apt/sources.list.d/raspi.list"
 deb http://archive.raspberrypi.org/debian/ buster main ui
 # Uncomment line below then 'apt-get update' to enable 'apt-get source'
 #deb-src http://archive.raspberrypi.org/debian/ buster main ui
@@ -111,7 +112,7 @@ EOF
   # chromium, sense-hat, picamera,...
   # Using Pin-Priority < 0 prevents installation
   log "Blocking raspberrypi-bootloader and raspberrypi-kernel"
-  cat <<-EOF > ${ROOTFSMNT}/etc/apt/preferences.d/raspberrypi-kernel
+  cat <<-EOF > "${ROOTFSMNT}/etc/apt/preferences.d/raspberrypi-kernel"
 Package: raspberrypi-bootloader
 Pin: release *
 Pin-Priority: -1
@@ -122,9 +123,9 @@ Pin-Priority: -1
 EOF
 
   log "Fetching rpi-update" "info"
-  curl -L --output ${ROOTFSMNT}/usr/bin/rpi-update https://raw.githubusercontent.com/volumio/rpi-update/master/rpi-update && \
-    chmod +x ${ROOTFSMNT}/usr/bin/rpi-update
-  #TODO: Look into moving kernel stuff outside chroot using ROOT/BOOT_PATH
+  curl -L --output "${ROOTFSMNT}/usr/bin/rpi-update" https://raw.githubusercontent.com/volumio/rpi-update/master/rpi-update && \
+    chmod +x "${ROOTFSMNT}/usr/bin/rpi-update"
+  #TODO: Look into moving kernel stuff outside chroot using ROOT/BOOT_PATH to speed things up
   # ROOT_PATH=${ROOTFSMNT}
   # BOOT_PATH=${ROOT_PATH}/boot
 }
@@ -140,17 +141,22 @@ device_chroot_tweaks(){
 # Will be run in chroot - Pre initramfs
 # TODO Try and streamline this!
 device_chroot_tweaks_pre() {
-  # Get rid of armv7 nodejs and pick up the armv6l version
-  arch=armv6l
-  if dpkg -s nodejs &> /dev/null; then
-    log "Removing previous nodejs installation from $(command -v node)" "info"
+  NODE_VERSION=$(node --version)
+  # drop the leading v
+  NODE_VERSION=${NODE_VERSION:1}
+  if [[ ${NODE_VERSION%%.*} -gt 8 ]]; then
+    log "Using a compatible nodejs version for all pi images" "info"
+    # Get rid of armv7 nodejs and pick up the armv6l version
+    if dpkg -s nodejs &> /dev/null; then
+      log "Removing previous nodejs installation from $(command -v node)" "info"
+      log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+      sudo apt-get -y purge nodejs
+    fi 
+    arch=armv6l
+    echo "Installing Node for ${arch}"
+    dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
     log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
-    sudo apt-get -y purge nodejs
   fi
-  echo "Proceeding fetchiing node for ${arch}"
-  echo "Installing Node for ${arch}"
-  dpkg -i /volumio/customNode/nodejs_*-1unofficial_armv6l.deb
-  log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
   
   ## Define parameters
   declare -A PI_KERNELS=(\
@@ -173,11 +179,11 @@ device_chroot_tweaks_pre() {
   # using rpi-update relevant to defined kernel version
   log "Adding kernel ${KERNEL_VERSION} using rpi-update" "info"
 
-  echo y | SKIP_BACKUP=1 WANT_PI4=1 SKIP_CHECK_PARTITION=1 UPDATE_SELF=0 /usr/bin/rpi-update $KERNEL_COMMIT
+  echo y | SKIP_BACKUP=1 WANT_PI4=1 SKIP_CHECK_PARTITION=1 UPDATE_SELF=0 /usr/bin/rpi-update "$KERNEL_COMMIT"
   log "Getting actual kernel revision with firmware revision backup"
   cp /boot/.firmware_revision /boot/.firmware_revision_kernel
   log "Updating bootloader files *.elf *.dat *.bin" "info"
-  echo y | SKIP_KERNEL=1 WANT_PI4=1 SKIP_CHECK_PARTITION=1 UPDATE_SELF=0 /usr/bin/rpi-update $FIRMWARE_COMMIT
+  echo y | SKIP_KERNEL=1 WANT_PI4=1 SKIP_CHECK_PARTITION=1 UPDATE_SELF=0 /usr/bin/rpi-update "$FIRMWARE_COMMIT"
 
   if [ -d /lib/modules/$KERNEL_VERSION-v8+ ]; then
     log "Removing v8+ (pi4) Kernels" "info"
@@ -190,12 +196,7 @@ device_chroot_tweaks_pre() {
   ### Other Rpi specific stuff
   ## Lets update some packages from raspbian repos now
   apt-get update && apt-get -y upgrade
-  log "Installing Volumio customPkgs" "info"
-  for deb in /volumio/customPkgs/*.deb; do
-    log "Installing ${deb}"
-    dpkg -i "${deb}"
-  done
-  rm -r /volumio/customPkgs
+  
   log "Adding Shairport-Sync User"
 
   getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
@@ -207,9 +208,9 @@ device_chroot_tweaks_pre() {
   log "Adding Custom DAC firmware from github" "info"
   for key in "${!CustomFirmware[@]}"
   do
-    wget -nv ${CustomFirmware[$key]} -O $key.tar.gz
-    tar --strip-components 1 --exclude *.hash --exclude *.md -xf $key.tar.gz
-    rm $key.tar.gz
+    wget -nv "${CustomFirmware[$key]}" -O "$key.tar.gz"
+    tar --strip-components 1 --exclude "*.hash" --exclude "*.md" -xf "$key.tar.gz"
+    rm "$key.tar.gz"
   done
 
   log "Starting Raspi platform tweaks" "info"

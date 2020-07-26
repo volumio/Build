@@ -85,8 +85,8 @@ exit_error () {
   log "Build script failed!!" "err"
   # Check if there are any mounts that need cleaning up
   # If dev is mounted, the rest should also be mounted (right?)
-  if isMounted "$ROOTFS/dev"; then
-    unmount_chroot $ROOTFS
+  if isMounted "${ROOTFS}/dev"; then
+    unmount_chroot "${ROOTFS}"
   fi
 }
 
@@ -104,14 +104,11 @@ function check_os_release {
     log "Removing previous VOLUMIO_VERSION"
     # os-release already has a VERSION number
     # remove prior version and hardware
-    sed -i '/^\(VOLUMIO_VERSION\|VOLUMIO_HARDWARE\)/d' $os_release
-    # # cut the last 2 lines in case other devices are being built from the same rootfs
-    # head -n -2 "build/${ARCH_BUILD}/root/etc/os-release" > "build/${ARCH_BUILD}/root/etc/tmp-release"
-    # mv "build/${ARCH_BUILD}/root/etc/tmp-release" "build/${ARCH_BUILD}/root/etc/os-release"
+    sed -i '/^\(VOLUMIO_VERSION\|VOLUMIO_HARDWARE\)/d' "$os_release"
   fi
   log "Adding ${VERSION} and ${DEVICE} to os-release" "info"
-  echo "VOLUMIO_VERSION=\"${VERSION}\"" >> $os_release
-  echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> $os_release
+  echo "VOLUMIO_VERSION=\"${VERSION}\"" >> "$os_release"
+  echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> "$os_release"
 }
 
 #Check the number of arguments. If none are passed, print help and exit.
@@ -165,7 +162,7 @@ start=$(date +%s)
 ## Setup logging
 #TODO make this smarter.
 log "Creating log directory"
-LOG_DIR=$SRC/logging/build_"$(date +%Y-%m-%d_%H-%M-%S)"
+LOG_DIR=${SRC}/logging/build_"$(date +%Y-%m-%d_%H-%M-%S)"
 mkdir -p "$LOG_DIR"
 # But it's annoying if root needs to delete it, soo
 chmod 777 "$LOG_DIR"/
@@ -175,8 +172,8 @@ if [ -z "${VARIANT}" ]; then
   VARIANT="volumio"
 fi
 
-if [ -n "$BUILD" ]; then
-  log "Creating $BUILD rootfs" "info"
+if [ -n "${BUILD}" ]; then
+  log "Creating ${BUILD} rootfs" "info"
   #TODO Check naming conventions!
   BASE="Debian"
   if [[ ! -f "$SUITE" ]]; then
@@ -184,22 +181,22 @@ if [ -n "$BUILD" ]; then
     SUITE="buster"
   fi
 
-  if [ "$BUILD" = arm ] || [ "$BUILD" = arm-dev ]; then
+  if [ "${BUILD}" = arm ] || [ "${BUILD}" = arm-dev ]; then
     ARCH="armhf"
     BUILD="arm"
     BASE="Raspbian"
-  elif [ "$BUILD" = armv7 ] || [ "$BUILD" = armv7-dev ]; then
+  elif [ "${BUILD}" = armv7 ] || [ "${BUILD}" = armv7-dev ]; then
     ARCH="armhf"
     BUILD="armv7"
-  elif [ "$BUILD" = armv8 ] || [ "$BUILD" = armv8-dev ]; then
+  elif [ "${BUILD}" = armv8 ] || [ "${BUILD}" = armv8-dev ]; then
     ARCH="arm64"
     BUILD="armv8"
-  elif [ "$BUILD" = x86 ] || [ "$BUILD" = x86-dev ]; then
+  elif [ "${BUILD}" = x86 ] || [ "${BUILD}" = x86-dev ]; then
     ARCH="i386"
     BUILD="x86"
   fi
 
-  CONF="$SRC/recipes/base/$BUILD-$SUITE.conf"
+  CONF="${SRC}/recipes/base/${BUILD}-$SUITE.conf"
 
   if [[ ! -f $CONF ]]; then
     log "No base system configuration file found" "wrn" "$(basename "$CONF")"
@@ -210,14 +207,14 @@ if [ -n "$BUILD" ]; then
 
   # Setup output directory
 
-  if [ -d "$SRC/build/$BUILD" ]; then
-    log "$BUILD rootfs exists, cleaning it"
-    rm -rf "$SRC/build/$BUILD"
+  if [ -d "${SRC}/build/${BUILD}" ]; then
+    log "${BUILD} rootfs exists, cleaning it"
+    rm -rf "${SRC}/build/${BUILD}"
   fi
-  ROOTFS="$SRC/build/$BUILD/root"
+  ROOTFS="${SRC}/build/${BUILD}/root"
   mkdir -p "${ROOTFS}"
 
-  log "Creating rootfs in <./build/$BUILD/root>"
+  log "Creating rootfs in <./build/${BUILD}/root>"
 
   #### Build stage 0 - Multistrap
   ### Multistrap
@@ -236,19 +233,19 @@ if [ -n "$BUILD" ]; then
   for key in "${!SecureApt[@]}"
   do
     apt-key --keyring "${DirEtctrustedparts}/${key}" \
-      adv --fetch-keys ${SecureApt[$key]}
+      adv --fetch-keys "${SecureApt[$key]}"
   done
 
   log "Running multistrap for ${BUILD} (${ARCH})"
   # shellcheck disable=SC2069
-  if ! multistrap -a "$ARCH" -f "$CONF"  2>&1 > $LOG_DIR/multistrap.log
+  if ! multistrap -a "$ARCH" -f "$CONF"  2>&1 > "${LOG_DIR}/multistrap.log"
   # if ! { multistrap -a "$ARCH" -f "$CONF" > /dev/null; } 2>&1
   then
     log "Multistrap failed. Exiting" "err"
     exit 1
   else
     end_multistrap=$(date +%s)
-    time_it $end_multistrap $start
+    time_it "$end_multistrap" "$start"
     log "Finished setting up Multistrap rootfs" "okay" "$TIME_STR"
   fi
 
@@ -256,45 +253,44 @@ if [ -n "$BUILD" ]; then
   log "Preparing for Volumio chroot configuration" "info"
   start_chroot=$(date +%s)
 
-  cp scripts/volumio/volumioconfig.sh "$ROOTFS"
-  cp scripts/helpers.sh "$ROOTFS"
+  cp scripts/volumio/volumioconfig.sh "${ROOTFS}"
+  cp scripts/helpers.sh "${ROOTFS}"
 
-  mount_chroot ${ROOTFS}
+  mount_chroot "${ROOTFS}"
 
   log 'Cloning Volumio Node Backend'
-  mkdir "$ROOTFS/volumio"
+  mkdir "${ROOTFS}/volumio"
 
   if [ -n "$PATCH" ]; then
     log "Cloning Volumio with all its history"
-    git clone https://github.com/volumio/Volumio2.git "$ROOTFS/volumio"
+    git clone https://github.com/volumio/Volumio2.git "${ROOTFS}/volumio"
   else
     log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
-    git clone --depth 1 -b ${VOL_BE_REPO_BRANCH} --single-branch ${VOL_BE_REPO} "$ROOTFS/volumio"
-    # git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git "$ROOTFS/volumio"
+    git clone --depth 1 -b ${VOL_BE_REPO_BRANCH} --single-branch ${VOL_BE_REPO} "${ROOTFS}/volumio"
   fi
 
   log 'Cloning Volumio UI'
-  git clone --depth 1 -b dist  --single-branch https://github.com/volumio/Volumio2-UI.git "$ROOTFS/volumio/http/www"
-  git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "$ROOTFS/volumio/http/www3"
+  git clone --depth 1 -b dist  --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www"
+  git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www3"
   log "Adding Volumio revision information to os-release"
-  cat <<-EOF >> "$ROOTFS/etc/os-release"
+  cat <<-EOF >> "${ROOTFS}/etc/os-release"
 	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
-	VOLUMIO_FE_VERSION="$(git --git-dir "$ROOTFS/volumio/http/www/.git" rev-parse HEAD)"
-	VOLUMIO_FE3_VERSION="$(git --git-dir "$ROOTFS/volumio/http/www3/.git" rev-parse HEAD)"
-	VOLUMIO_BE_VERSION="$(git --git-dir "$ROOTFS/volumio/.git" rev-parse HEAD)"
+	VOLUMIO_FE_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www/.git" rev-parse HEAD)"
+	VOLUMIO_FE3_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www3/.git" rev-parse HEAD)"
+	VOLUMIO_BE_VERSION="$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)"
 	VOLUMIO_ARCH="${BUILD}"
 	EOF
   # Clean up git repo
-  rm -rf $ROOTFS/volumio/http/www/.git
-  rm -rf $ROOTFS/volumio/http/www3/.git
+  rm -rf "${ROOTFS}/volumio/http/www/.git"
+  rm -rf "${ROOTFS}/volumio/http/www3/.git"
 
   log "Configuring Volumio" "info"
-  chroot "$ROOTFS" /volumioconfig.sh
+  chroot "${ROOTFS}" /volumioconfig.sh
 
   # Copy the dpkg log
-  mv $ROOTFS/dpkg.log $LOG_DIR/dpkg.log
+  mv "${ROOTFS}/dpkg.log" "${LOG_DIR}/dpkg.log"
   ###Dirty fix for mpd.conf TODO use volumio repo
-  cp $SRC/volumio/etc/mpd.conf "$ROOTFS/etc/mpd.conf"
+  cp "${SRC}/volumio/etc/mpd.conf" "${ROOTFS}/etc/mpd.conf"
 
   CUR_DATE=$(date)
   #Write some Version information
@@ -305,28 +301,28 @@ if [ -n "$BUILD" ]; then
 	VOLUMIO_BUILD_DATE="${CUR_DATE}"
 	EOF
 
-  unmount_chroot ${ROOTFS}
+  unmount_chroot "${ROOTFS}"
 
   end_chroot=$(date +%s)
-  time_it $end_chroot $start_chroot
+  time_it "$end_chroot" "$start_chroot"
 
   log "Base rootfs Installed" "okay" "$TIME_STR"
-  rm -f "$ROOTFS/volumioconfig.sh"
+  rm -f "${ROOTFS}/volumioconfig.sh"
 
   log "Running Volumio configuration script on rootfs" "info"
-  # shellcheck source=/scripts/volumio/configure.sh
-  source $SRC/scripts/volumio/configure.sh
+  # shellcheck source=./scripts/volumio/configure.sh
+  source "${SRC}/scripts/volumio/configure.sh"
 
   log "Volumio rootfs created" "okay"
   # Bundle up the base rootfs
   log "Creating base system rootfs tarball"
   # https://superuser.com/questions/168749/is-there-a-way-to-see-any-tar-progress-per-file/665181#665181
-  rootfs_tarball="$SRC/build/$BUILD"_rootfs
+  rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
   tar cp --xattrs --directory=build/${BUILD}/root/ \
     --exclude='./dev/*' --exclude='./proc/*' \
     --exclude='./run/*' --exclude='./tmp/*' \
     --exclude='./sys/*' . \
-    | pv -p -b -r -s "$(du -sb build/${BUILD}/ | cut -f1)" -N "$rootfs_tarball" | lz4 -c > $rootfs_tarball.lz4
+    | pv -p -b -r -s "$(du -sb build/${BUILD}/ | cut -f1)" -N "$rootfs_tarball" | lz4 -c > "${rootfs_tarball}.lz4"
   log "Created ${BUILD}_rootfs.lz4" "okay"
 else
   use_rootfs_tarball=yes
@@ -335,18 +331,19 @@ fi
 
 #### Build stage 1 - Device specific image creation
 
+#TODO: Streamline this for multiple devices that are siblings
 if [[ -n "$DEVICE" ]]; then
-  DEV_CONFIG="$SRC/recipes/boards/${DEVICE}.sh"
+  DEV_CONFIG="${SRC}/recipes/boards/${DEVICE}.sh"
   if [[ -f $DEV_CONFIG ]]; then
     # shellcheck source=/dev/null
-    source $DEV_CONFIG
-    log "Preparing an image for ${DEVICE} using $BASE - $BUILD"
+    source "$DEV_CONFIG"
+    log "Preparing an image for ${DEVICE} using $BASE - ${BUILD}"
     if [[ $use_rootfs_tarball == yes ]]; then
       log "Trying to use prior base system" "info"
-      if [[ -d $SRC/build/$BUILD ]]; then
+      if [[ -d ${SRC}/build/${BUILD} ]]; then
         log "Using prior Base system"
       else
-      rootfs_tarball="$SRC/build/$BUILD"_rootfs
+      rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
       [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
       log "Using prior Base tarball"
       mkdir -p ./build/${BUILD}/root
@@ -354,7 +351,7 @@ if [[ -n "$DEVICE" ]]; then
         | lz4 -dc \
         | tar xp --xattrs -C ./build/${BUILD}/root
       fi
-      ROOTFS="$SRC/build/$BUILD/root"
+      ROOTFS="${SRC}/build/${BUILD}/root"
 
     fi
   else
@@ -368,8 +365,8 @@ if [[ -n "$DEVICE" ]]; then
   ## How do we work with this -
   #TODO
   if [ -n "$PATCH" ]; then
-    log "Copying Patch to Rootfs"
-    cp -rp "$PATCH"  "$ROOTFS/"
+    log "Copying Patch ${PATCH} to Rootfs"
+    cp -rp "$PATCH"  "${ROOTFS}/"
   else
     log "No patches found, defaulting to Volumio rootfs"
     PATCH='volumio'
@@ -377,31 +374,56 @@ if [[ -n "$DEVICE" ]]; then
 
   ## Testing and debugging
   if [[ $USE_BUILD_TESTS == yes ]]; then
-    log "Running Tests for $BUILD"
-    mkdir -p $ROOTFS/tests
-    cp $SRC/tests/test_curl.sh $ROOTFS/tests/test_curl.sh
-    mount_chroot ${ROOTFS}
-    chroot "$ROOTFS" /tests/test_curl.sh
-    unmount_chroot ${ROOTFS}
-    log "Done, exiting"
-    exit 0
+    log "Running Tests for ${BUILD}"
+    if [[ -d "${SRC}/tests" ]]; then
+      mkdir -p "${ROOTFS}/tests"
+      for file in "${SRC}"/tests/*.sh; do
+        cp "${file}"  "${ROOTFS}"/tests/
+      done
+      mount_chroot "${ROOTFS}"
+      for file in "${ROOTFS}"/tests/*.sh; do
+        chroot "${ROOTFS}" /tests/"$(basename "$file")"
+      done
+      unmount_chroot "${ROOTFS}"
+      log "Done, exiting"
+      exit 0  
+    fi
   fi
 
-  ## Copy node_modules
-  USE_LOCAL_NODE_MODULES=yes
-  if [[ $USE_LOCAL_NODE_MODULES == yes ]]; then
-    log "Extracting node_modules"
-    tar xf "$SRC"/docker/node_modules_${BUILD}_v14.*.tar.xz -C $ROOTFS/volumio
-    ls $ROOTFS/volumio/node_modules
+  ## Copy modules/packages
+  # TODO: Streamline node versioning! 
+  # Major version modules tarballs should be sufficient.
+  IFS=\. read -ra NODE_SEMVER <<<"$NODE_VERSION"
+  if [[ ${USE_LOCAL_NODE_MODULES:-no} == yes ]]; then
+    log "Extracting node_modules for Node v${NODE_VERSION}"
+    tar xf "${SRC}"/modules/node_modules_${BUILD}_v${NODE_VERSION%%.*}.*.tar.xz -C "${ROOTFS}/volumio"
+    ls "${ROOTFS}/volumio/node_modules"
+  else 
+    # Current Volumio repo knows only {arm|x86} which is conviniently the same lenght
+    # TODO: Consolidate the naming schme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz 
+    log "Attempting to fetch node_modules for ${NODE_VERSION} -- ${NODE_SEMVER[*]}"
+    modules_url="${NODE_MODULES_REPO}/node_modules_${BUILD:0:3}-${NODE_VERSION}.tar.gz"
+    log "Fetching node_modules from ${modules_url}"
+    curl -L "${modules_url}" | tar xz -C "${ROOTFS}/volumio"
+  fi
 
-  if [ ${BUILD} == 'arm' ]; then
-    log "Adding shairport-sync"
-    mkdir -p $ROOTFS/volumio/customPkgs && cp ${SRC}/docker/shairport-sync_*_${ARCH}.deb "$_"
-    ls $ROOTFS/volumio/customPkgs
-    log "Adding nodejs_xx_armv6l.deb"
-    mkdir -p $ROOTFS/volumio/customNode && cp ${SRC}/docker/nodejs_*-1unofficial_armv6l.deb "$_"
+  ## Copy custom packages for Volumio
+  mkdir -p "${ROOTFS}"/volumio/customPkgs
+  if [[ ${USE_LOCAL_PACKAGES:-no} == yes ]]; then
+    log "Adding packages from local ${SRC}/customPkgs/"
+    cp "${SRC}"/customPkgs/*"${BUILD}".deb  "${ROOTFS}"/volumio/customPkgs/
+    # Pi's need an armvl6 build of nodejs (for Node > v8)
+    [[ ${DEVICE} == raspberry && ${NODE_SEMVER[0]} -ge 8 ]] && mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${SRC}"/customPkgs/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
+    ls "${ROOTFS}"/volumio/customPkgs
+  else 
+    log "Adding customPkgs from external repo" "info"
+    for key in "${!CUSTOM_PKGS[@]}"
+    do
+      log "Fetching ${key} from ${CUSTOM_PKGS[$key]}"
+      wget -nv "${CUSTOM_PKGS[$key]}" -P "${ROOTFS}"/volumio/customPkgs/
+    done
   fi
-  fi
+
 
   # Prepare Images
   start_img=$(date +%s)
@@ -409,23 +431,31 @@ if [[ -n "$DEVICE" ]]; then
   IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-${DEVICE}.img"
 
   # shellcheck source=scripts/makeimage.sh
-  source $SRC/scripts/makeimage.sh
+  source "${SRC}/scripts/makeimage.sh"
 
   end_img=$(date +%s)
-  time_it $end_img $start_img
+  time_it "$end_img" "$start_img"
   log "Image ${IMG_FILE} Created" "okay" "$TIME_STR"
+  log "Compressing image"
+  start_zip=$(date +%s)
+  ZIP_FILE=${IMG_FILE%.*}.zip
+  zip "${ZIP_FILE}" "${IMG_FILE}"*
+  end_zip=$(date +%s)
+  time_it "$end_zip" "$start_zip"
+  log "Image ${ZIP_FILE} Created" "okay" "$TIME_STR"
+  [[ ${CLEAN_IMAGE_FILE:-no} == yes ]] && rm "${IMG_FILE}"*
 else
   log "No device specified, only base rootfs created!" "wrn"
 fi
 
 end_build=$(date +%s)
-time_it $end_build $start
+time_it "$end_build" "$start"
 
-log "Cleaning up rootfs.." "info" "build/$BUILD/"
+log "Cleaning up rootfs.." "info" "build/${BUILD}/"
 rm -r build/${BUILD:?}/ || log "Couldn't clean rootfs" "wrn"
 
 log "Volumio Builder finished: \
-$([[ -n $BUILD ]] && echo "${yellow}BUILD=${standout}${BUILD}${normal} ")\
+$([[ -n ${BUILD} ]] && echo "${yellow}BUILD=${standout}${BUILD}${normal} ")\
 $([[ -n $DEVICE ]] && echo "${yellow}DEVICE=${standout}${DEVICE}${normal}  ")\
 $([[ -n $VERSION ]] && echo "${yellow}VERSION=${standout}${VERSION}${normal} ")\
 ${normal}" "okay" "$TIME_STR"

@@ -17,19 +17,18 @@ function exit_error()
 trap exit_error INT ERR
 
 check_dependency() {
-  dpkg -l $1 &> /dev/null
-  if [ $? -eq 0 ]; then
-    echo "${1} installed"
-    # print something saying it is installed
+  if ! dpkg -l "$1" &> /dev/null; then 
+    log "${1} installed"
   else
-    echo "${1} not installed"
-    # print something saying it was not found
+    log "${1} not installed"
   fi
 }
 
-NODE_VERSION=node_12.x
 DISTRO_VER="$(lsb_release -s -r)"
 DISTRO_NAME="$(lsb_release -s -c)"
+
+# Packages to install that are not in multistrap for some reason.
+packages=nodejs
 
 log "Preapring to run Debconf in chroot" "info"
 log "Prevent services starting during install, running under chroot"
@@ -169,6 +168,7 @@ lease_file="/var/lib/dhcp/dhcpd.leases"
 echo "nameserver 208.67.220.220" > /etc/resolv.conf
 
 
+# Fix qmeu 64 bit host issues for 32bit binaries on buster
 log "Testing for SSL issues" "dbg"
 curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes;
 log " SSL Issues: ${CURLFAIL:-no}"
@@ -218,7 +218,9 @@ chmod -R 777 /data/INTERNAL
 #Volumio Package installation #---------------------------------------------------
 ################
 
-ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
+# shellcheck source=/dev/null
+source /etc/os-release
+
 #TODO: Refactor this!
 # Binaries
 # MPD,Upmpdcli
@@ -228,24 +230,22 @@ ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
 # hostapd-edimax
 # LINN Songcast - sc2mpd
 # Node modules!
-log "Installing custom packages for ${ARCH} and ${DISTRO_VER}" "info"
-cd /
-
+log "Installing custom packages for ${VOLUMIO_ARCH} and ${DISTRO_VER}" "info"
 log "Prepare external source lists"
-log "NodeJs - ${NODE_VERSION}"
+log "Attempting to install Node version: ${NODE_VERSION}"
+IFS=\. read -ra NODE_SEMVER <<<"$NODE_VERSION"
+NODE_APT=node_${NODE_SEMVER[0]}.x
+log "Adding NodeJs lists - ${NODE_APT}"
 cat <<-EOF > /etc/apt/sources.list.d/nodesource.list
-deb https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
-deb-src https://deb.nodesource.com/$NODE_VERSION $DISTRO_NAME main
+deb https://deb.nodesource.com/$NODE_APT $DISTRO_NAME main
+deb-src https://deb.nodesource.com/$NODE_APT $DISTRO_NAME main
 EOF
 
-# Use unofficial-builds.nodejs to get 32bit builds
-# wget https://unofficial-builds.nodejs.org/download/release/v12.16.1/node-v12.16.1-linux-x86.tar.xz
-#[ ! $BUILD == x86 ] && 
-#[ ! $BUILD == x86 ] && 
-
-packages=nodejs
 apt-get update
 apt-get -y install $packages
+
+log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+log "nodejs installed at $(command -v node)" "info"
 
 log "Cleaning up after package(s) installation"
 apt-get clean

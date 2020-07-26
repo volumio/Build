@@ -18,8 +18,26 @@ declare -A VOLBINS=(
 [init-updater]="volumio-init-updater-v2"
 )
 
-## Backend and Fronend Repository details
-VOL_BE_REPO="https://github.com/ashthespy/Volumio2.git"
-VOL_BE_REPO_BRANCH="buster_upstream"
+## Array of custom packages 
+# TODO: merge into VOLBINS!
+declare -A CUSTOM_PKGS=(
+  # For example only. This particular package isn't going to work on buster.
+  [wiringpi]="https://repo.volumio.org/Volumio2/Binaries/wiringpi-2.29-1.deb" \
+)
 
-export SecureApt VOLBINSREPO VOLBINS VOL_BE_REPO VOL_BE_REPO_BRANCH
+## Backend and Frontend Repository details
+# VOL_BE_REPO="https://github.com/ashthespy/Volumio2.git"
+# VOL_BE_REPO_BRANCH="buster_upstream"
+VOL_BE_REPO="https://github.com/volumio/Volumio2.git"
+VOL_BE_REPO_BRANCH="master"
+
+## NodeJS Controls 
+# Semver is only used w.t.r modules fetched from repo, 
+# actual node version installs only respects the curent major versions (Major.x)
+# NODE_VERSION=14
+NODE_VERSION=8.11.1  
+# Used to pull the right version of modules
+# expected format node_modules_{arm/x86}-v${NODE_VERSION}.tar.gz
+NODE_MODULES_REPO="http://repo.volumio.org/Volumio2/"
+
+export SecureApt VOLBINSREPO VOLBINS VOL_BE_REPO VOL_BE_REPO_BRANCH NODE_VERSION NODE_MODULES_REPO CUSTOM_PKGS

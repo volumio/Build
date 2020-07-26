@@ -42,15 +42,15 @@ PACKAGES=("u-boot-tools")
 write_device_files() {
   log "Running write_device_files" "ext"
 
-  cp -dR ${PLTDIR}/${DEVICE}/boot ${ROOTFSMNT}
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib
+  cp -dR "${PLTDIR}/${DEVICE}/boot" "${ROOTFSMNT}"
+  cp -pdR "${PLTDIR}/${DEVICE}/lib/modules" "${ROOTFSMNT}/lib"
+  cp -pdR "${PLTDIR}/${DEVICE}/lib/firmware" "${ROOTFSMNT}/lib"
 }
 
 write_device_bootloader(){
   log "Running write_device_bootloader" "ext"
 
-  dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot-sunxi-with-spl.bin" of=${LOOP_DEV} bs=1024 seek=8 conv=notrunc
+  dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot-sunxi-with-spl.bin" of="${LOOP_DEV}" bs=1024 seek=8 conv=notrunc
 }
 
 # Will be called by the image builder for any customisation
