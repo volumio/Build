@@ -141,36 +141,21 @@ device_chroot_tweaks(){
 # Will be run in chroot - Pre initramfs
 # TODO Try and streamline this!
 device_chroot_tweaks_pre() {
-  NODE_VERSION=$(node --version)
-  # drop the leading v
-  NODE_VERSION=${NODE_VERSION:1}
-  if [[ ${NODE_VERSION%%.*} -gt 8 ]]; then
-    log "Using a compatible nodejs version for all pi images" "info"
-    # Get rid of armv7 nodejs and pick up the armv6l version
-    if dpkg -s nodejs &> /dev/null; then
-      log "Removing previous nodejs installation from $(command -v node)" "info"
-      log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
-      sudo apt-get -y purge nodejs
-    fi 
-    arch=armv6l
-    echo "Installing Node for ${arch}"
-    dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
-    log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
-  fi
-  
   ## Define parameters
   declare -A PI_KERNELS=(\
       [4.19.86]="b9ecbe8d0e3177afed08c54fc938938100a0b73f"\
       [4.19.97]="993f47507f287f5da56495f718c2d0cd05ccbc19"\
+      [4.19.118]="e1050e94821a70b2e4c72b318d6c6c968552e9a2"\
+      [5.4.51]="8382ece2b30be0beb87cac7f3b36824f194d01e9"\
     )
   # Version we want
-  KERNEL_VERSION="4.19.97"
-
+  KERNEL_VERSION="4.19.118"
+  IFS=\. read -ra KERNEL_SEMVER <<<"$KERNEL_VERSION"
   # List of custom firmware -
   # github archives that can be extracted directly
   declare -A CustomFirmware=(
     [AlloPiano]="https://github.com/allocom/piano-firmware/archive/master.tar.gz" \
-      [TauDAC]="https://github.com/taudac/modules/archive/rpi-volumio-${KERNEL_VERSION}-taudac-modules.tar.gz" \
+    [TauDAC]="https://github.com/taudac/modules/archive/rpi-volumio-${KERNEL_VERSION}-taudac-modules.tar.gz" \
     )
 
   ### Kernel installation
@@ -197,6 +182,23 @@ device_chroot_tweaks_pre() {
   ## Lets update some packages from raspbian repos now
   apt-get update && apt-get -y upgrade
   
+  NODE_VERSION=$(node --version)
+  log "Node version installed:" "dbg" "${NODE_VERSION}"
+  # drop the leading v
+  NODE_VERSION=${NODE_VERSION:1}
+  if [[ ${NODE_VERSION%%.*} -gt 8 ]]; then
+    log "Using a compatible nodejs version for all pi images" "info"
+    # Get rid of armv7 nodejs and pick up the armv6l version
+    if dpkg -s nodejs &> /dev/null; then
+      log "Removing previous nodejs installation from $(command -v node)"
+      log "Removing Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+      apt-get -y purge nodejs
+    fi 
+    arch=armv6l
+    log "Installing Node for ${arch}"
+    dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
+    log "Installed Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+  fi
   log "Adding Shairport-Sync User"
 
   getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
@@ -250,15 +252,53 @@ enable_uart=1
 include userconfig.txt
 EOF
 
-  DISABLE_PN="net.ifnames=0"
   log "Writing cmdline.txt file"
+  KERNEL_LOGLEVEL="loglevel=0" # Default to KERN_EMERG
+  DISABLE_PN="net.ifnames=0"
+  # Build up the base parameters
+  kernel_params=(
+  # Boot screen stuff
+  "splash" "plymouth.ignore-serial-consoles"\
+  # Raspi USB controller params
+  # TODO: Check if still required!
+  "dwc_otg.fiq_enable=1" "dwc_otg.fiq_fsm_enable=1"\
+  "dwc_otg.fiq_fsm_mask=0xF" "dwc_otg.nak_holdoff=1"\
+  # Output console device and options.
+  "quiet" "console=serial0,115200" "kgdboc=serial0,115200" "console=tty1"\
+  # Image params
+  "imgpart=/dev/mmcblk0p2" "imgfile=/volumio_current.sqsh"\
+  # Wait for root device
+  "rootwait" "bootdelay=5"\
+  # I/O scheduler
+  "elevator=noop"\
+  # Disable linux logo during boot
+  "logo.nologo"\
+  # Disable cursor
+  "vt.global_cursor_default=0"\
+  ) 
+  
+  # Buster tweaks
+  kernel_params+=("${DISABLE_PN}") 
+  # ALSA tweaks
+  kernel_params+=("snd-bcm2835.enable_compat_alsa=1" "snd_bcm2835.enable_headphones=1")
   if [[ $DEBUG_IMAGE == yes ]]; then
     log "Adding Serial Debug parameters"
     echo "dtoverlay=pi3-miniuart-bt" > /boot/userconfig.txt
-    echo "earlycon=serial0,115200 dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=8 ${DISABLE_PN}" >> /boot/cmdline.txt
+    KERNEL_LOGLEVEL="loglevel=8" # KERN_DEBUG
+  
   fi
 
-  echo "splash quiet plymouth.ignore-serial-consoles dwc_otg.fiq_enable=1 dwc_otg.fiq_fsm_enable=1 dwc_otg.fiq_fsm_mask=0xF dwc_otg.nak_holdoff=1 console=serial0,115200 kgdboc=serial0,115200 console=tty1 imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh elevator=noop rootwait bootdelay=5 logo.nologo vt.global_cursor_default=0 loglevel=0 ${DISABLE_PN}" >> /boot/cmdline.txt
+  kernel_params+=("${KERNEL_LOGLEVEL}")
+  # shellcheck disable=SC2116
+  log "Setting ${#kernel_params[@]} Kernel params:" "" "$(echo "${kernel_params[@]}")"
+  cat <<-EOF > /boot/cmdline.txt
+${kernel_params[@]}
+EOF
+
+  if [[ $DEBUG_IMAGE == yes ]] && [[ -f /boot/bootcode.bin ]]; then
+    log "Enable serial boot debug"
+    sed -i -e "s/BOOT_UART=0/BOOT_UART=1/" /boot/bootcode.bin
+  fi
 
   # TODO is this still needed?
   # log "Linking DTOverlay utility"
@@ -272,11 +312,6 @@ EOF
   # ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
   # log "Exporting /opt/vc/bin variable"
   # export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
-
-  if [[ $DEBUG_IMAGE == yes ]] && [[ -f /boot/bootcode.bin ]]; then
-    log "Enable serial boot debug"
-    sed -i -e "s/BOOT_UART=0/BOOT_UART=1/" /boot/bootcode.bin
-  fi
 
   # Rerun depmod for new drivers
   log "Finalising drivers installation with depmod on $KERNEL_VERSION+,-v7+ and -v7l+"
