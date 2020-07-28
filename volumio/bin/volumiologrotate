@@ -4,7 +4,7 @@ LOG_FOLDER=/var/log
 MAX_TOTAL_LOG_SIZE=18000000
 
 function clearLogs {
-  for LOG_FILE in "$LOG_FOLDER"/*
+  for LOG_FILE in $(find $LOG_FOLDER -type f);
   do
     SIZE=`ls -la "$LOG_FILE" | cut -d' ' -f 5 `
     if [[ ${SIZE} -gt 0 ]];then
@@ -16,7 +16,7 @@ function clearLogs {
 
 function checkLogFilesTotalSize {
   TOTAL_LOG_SIZE=0
-  for LOG_FILE in "$LOG_FOLDER"/*
+  for LOG_FILE in $(find $LOG_FOLDER -type f);
   do
     SIZE=`ls -la "$LOG_FILE" | cut -d' ' -f 5 `
     if [[ ${SIZE} -gt 0 ]];then
