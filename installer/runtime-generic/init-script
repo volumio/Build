@@ -1,0 +1,104 @@
+#!/bin/sh
+
+# Default PATH differs between shells, and is not automatically exported
+# by klibc dash.  Make it consistent.
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export BOOT=/mnt/boot
+export BOOTDELAY=
+export BOOTDEV= 
+export BOOTCONFIG=
+export TARGETBOOT= 
+export TARGETDEV= 
+export TARGETDATA= 
+export TARGETIMAGE= 
+export HWDEVICE= 
+export USE_KMSG="yes"
+export UUIDFMT=
+
+[ -d /proc ] || mkdir /proc
+mount -t proc none /proc
+[ -d /sys ] || mkdir /sys
+mount -t sysfs none /sys
+
+mknod /dev/null c 1 3
+mknod /dev/tty c 5 0
+[ -e /dev/console ] || mknod /dev/console c 5 1
+
+mdev -s
+
+echo "[info] Including config script functions"
+. /scripts/initconfig.sh
+. /scripts/gen-functions
+. /scripts/board-functions
+
+led_show_init_signal
+
+parse_cmdline
+
+load_modules
+
+check_uuids
+
+if [ ! -z "${BOOTDELAY}" ]; then
+  echo "[info] Boot delay (except first time) will be ${BOOTDELAY} seconds"
+fi
+
+#Check if target device already up
+search_target_device
+
+# Initialisation finished, start processing
+led_show_start_signal
+
+[ -d /mnt ] || mkdir /mnt
+mkdir ${BOOT}
+mount -t vfat ${BOOTPART} ${BOOT}
+
+clear_target_device
+create_volumio_partitions
+write_device_bootloader ${TARGETDEV} 
+mount_target_boot
+
+echo "[info] Copying current image partition files"
+cp $BOOT/data/image/* $BOOT/temp/image
+ 
+echo "[info] Copying volumio boot partition files (image, dtb, boot files etc.)"
+#TODO tar xfJ $BOOT/data/boot/kernel_current.tar.xz -C $BOOT/temp/boot
+tar xf $BOOT/data/image/kernel_current.tar -C $BOOT/temp/boot
+
+if [ ! -z ${FACTORYCOPY} ]; then
+   echo "[info] Continue with creating factory copies"
+   cp $BOOT/data/image/kernel_current.tar $BOOT/data/image/kernel_factory.tar
+   cp $BOOT/data/image/volumio_current.sqsh $BOOT/data/image/volumio_factory.tar
+fi
+
+sync
+
+
+if [ ! "x${UUIDFMT}" == "x" ]; then
+   echo "[info] Correcting UUID in boot configs"
+   swap_uuids
+fi
+
+echo "[info] Syncing..."
+sync
+echo "[info] Remove temp folders"
+umount $BOOT/temp/boot
+umount $BOOT/temp/image
+umount $BOOT
+rm -r $BOOT
+sync
+
+
+#==============================================================
+led_show_finish_signal
+
+umount /proc
+umount /sys
+
+echo "[info] Installer program finished, please manually power off the unit and remove the SD card."
+sh
+while true
+do
+sleep 1
+done
+
