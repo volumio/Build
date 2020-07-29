@@ -79,6 +79,7 @@ fi
 
 echo "[info] Creating boot and rootfs filesystem"
 mkfs -t vfat -n BOOT "${FLASH_PART}"
+fetch_bootpart_uuid
 
 echo "[info] Preparing for the  kernel/ platform files"
 if [ ! -z $NONSTANDARD_REPO ]; then

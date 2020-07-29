@@ -114,6 +114,27 @@ mount_target_boot()
 	mount -t ext4 ${TARGETIMAGE} $BOOT/temp/image
 }
 
+search_boot_device()
+{
+	echo "[info] Waiting for boot device"
+	for i in 1 2 3 4 5 6 7 8 9 10
+	do
+		BOOTPARTDEV=`parse_disk ${BOOTPART}`
+		if [ ! -b "${BOOTPARTDEV}" ]; then
+		  echo "[info] Boot partition not ready, retrying mdev in 0.5 seconds"
+		  sleep 0.5
+		  mdev -s
+		else
+		  break
+		fi
+  	done
+	if [ ! -b "${BOOTPARTDEV}" ]; then
+		print_msg "Boot device ${BOOTPART} failed"
+		exec sh
+	fi
+}
+
+
 search_target_device()
 {
 echo "[info] Checking if target device is up"

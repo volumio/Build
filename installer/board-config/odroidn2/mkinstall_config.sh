@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Device Info
-DEVICEBASE="khadas"
-BOARDFAMILY="vims"
+# Device Info Odroid N2/N2+
+DEVICEBASE="odroid"
+BOARDFAMILY="odroidn2"
 PLATFORMREPO="https://github.com/volumio/platform-khadas.git"
 BUILD="armv7"
 NONSTANDARD_REPO=no	# yes requires "non_standard_repo() function in make.sh 
@@ -12,14 +12,14 @@ LBLDATA="VDATA"
 
 # Partition Info
 BOOT_TYPE=msdos			# msdos or gpt   
-BOOT_START=16
-BOOT_END=80
-IMAGE_END=2580
+BOOT_START=1
+BOOT_END=64
+IMAGE_END=2500
 BOOT=/mnt/boot
 BOOTDELAY=1
 BOOTDEV="mmcblk1"
 BOOTPART=/dev/mmcblk1p1
-BOOTCONFIG=env.system.txt
+BOOTCONFIG=boot.ini
 
 TARGETBOOT="/dev/mmcblk0p1"
 TARGETDEV="/dev/mmcblk0"
@@ -47,42 +47,32 @@ non_standard_repo()
 
 fetch_bootpart_uuid()
 {
-echo "[info] replace BOOTPART device by ${FLASH_PART} UUID value"
-UUIDBOOT=$(blkid -s UUID -o value ${FLASH_PART})
-BOOTPART="UUID=${UUIDBOOT}"
+   :
 }
-
 write_device_files()
 {
-   cp ${PLTDIR}/${BOARDFAMILY}/boot/Image $ROOTFSMNT/boot
+   cp ${PLTDIR}/${BOARDFAMILY}/boot/Image.gz $ROOTFSMNT/boot
    cp ${PLTDIR}/${BOARDFAMILY}/boot/boot.ini $ROOTFSMNT/boot
-   cp ${PLTDIR}/${BOARDFAMILY}/boot/env.txt $ROOTFSMNT/boot
+   cp ${PLTDIR}/${BOARDFAMILY}/boot/config.ini $ROOTFSMNT/boot
 
-   mkdir /mnt/volumio/rootfs/boot/dtb
-   cp -R ${PLTDIR}/${BOARDFAMILY}/boot/dtb/* $ROOTFSMNT/boot/dtb
+   mkdir /mnt/volumio/rootfs/boot/amlogic
+   cp -R ${PLTDIR}/${BOARDFAMILY}/boot/amlogic/* $ROOTFSMNT/boot/amlogic
 }
 
 write_device_bootloader()
 {
-   dd if=${PLTDIR}/${BOARDFAMILY}/uboot/u-boot.VIM3L.sd.bin of=${LOOP_DEV} bs=444 count=1 conv=fsync
-   dd if=${PLTDIR}/${BOARDFAMILY}/uboot/u-boot.VIM3L.sd.bin of=${LOOP_DEV} bs=512 skip=1 seek=1 conv=fsync 
-
+   dd if=${PLTDIR}/${BOARDFAMILY}/uboot/u-boot.bin of=${LOOP_DEV} conv=fsync bs=512 seek=1
 }
 
 copy_device_bootloader_files()
 {
    mkdir /mnt/volumio/rootfs/boot/u-boot
-   cp ${PLTDIR}/${BOARDFAMILY}/uboot/u-boot.VIM3L.sd.bin $ROOTFSMNT/boot/u-boot
+   cp ${PLTDIR}/${BOARDFAMILY}/uboot/u-boot.bin $ROOTFSMNT/boot/u-boot
 }
 
 write_boot_parameters()
 {
-   echo "
-BOOTARGS_USER=loglevel=0 quiet splash bootdelay=1
-bootpart=/dev/mmcblk1p1
-imgpart=/dev/mmcblk1p2
-datapart=/dev/mmcblk1p3
-" > $ROOTFSMNT/boot/env.system.txt
+   sed -i "s/%%VOLUMIO-PARAMS%%/loglevel=0/g" $ROOTFSMNT/boot/boot.ini
 }
 
 

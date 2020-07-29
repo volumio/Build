@@ -1,0 +1,27 @@
+
+# Board functions Odroid N2/N2+
+write_device_bootloader()
+{
+   echo "[info] Flashing u-boot"
+   dd if=$BOOT/u-boot/u-boot.bin of=$1 conv=fsync bs=512 seek=1
+}
+
+led_show_init_signal()
+{
+   echo default-on > /sys/class/leds/blue\:heartbeat/trigger
+}
+
+led_show_start_signal()
+{
+   echo none > /sys/class/leds/blue\:heartbeat/trigger
+   sleep 1
+   echo default-on > /sys/class/leds/blue\:heartbeat/trigger
+   sleep 1
+   echo heartbeat  > /sys/class/leds/blue\:heartbeat/trigger
+}
+
+led_show_finish_signal()
+{
+   echo default-on > /sys/class/leds/blue\:heartbeat/trigger
+}
+
