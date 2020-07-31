@@ -66,8 +66,13 @@ else
   else
     log "Cannot Find Patch File, aborting" "err"
   fi
+  if [ -f "install.sh" ]; then
+    log "Running install.sh" "ext" "${PATCH}"
+    bash install.sh
+  fi
   cd /
-  rm -rf "${PATCH}"
+  rm -rf "${PATCH}" /patch
+  log "Finished on the fly patching" "ok"
 fi
 
 ## Adding board specific packages
@@ -103,7 +108,7 @@ sed -i '/^ExecStart=.*/i ExecStartPre=mkdir -m 700 -p /var/log/samba/cores' /lib
 # sed -i '/^ExecStart=.*/i ExecStartPre=chmod 700 /var/log/samba/cores' /lib/systemd/system/nmbd.service
 
 #First Boot operations
-log "Signaling the init script to re-size the Volumio data partition"
+log "Signalling the init script to re-size the Volumio data partition"
 touch /boot/resize-volumio-datapart
 
 log "Creating initramfs 'volumio.initrd'" "info"

@@ -27,6 +27,7 @@ else
   echo "X86 environment detected, not cleaning"
 fi
 
+# Got to do this here to make it stick
 log "Updating MOTD"
 rm -f ${ROOTFSMNT}/etc/motd ${ROOTFSMNT}/etc/update-motd.d/*
 cp "${SRC}"/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/

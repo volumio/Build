@@ -30,7 +30,7 @@ DISTRO_NAME="$(lsb_release -s -c)"
 # Packages to install that are not in multistrap for some reason.
 packages=nodejs
 
-log "Preapring to run Debconf in chroot" "info"
+log "Preparing to run Debconf in chroot" "info"
 log "Prevent services starting during install, running under chroot"
 cat <<-EOF > /usr/sbin/policy-rc.d
 exit 101

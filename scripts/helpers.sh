@@ -8,7 +8,7 @@ if [[ $TERM == dumb ]]; then
 	export TERM=ansi
 fi
 if test -t; then # if terminal
-	ncolors=$(which tput > /dev/null && tput colors) # supports color
+	ncolors=$(command -v tput > /dev/null && tput colors) # supports colour
 	if [[ $ncolors -ge  8 ]]; then
 		export termcols=$(tput cols)
 		export bold="$(tput bold)"

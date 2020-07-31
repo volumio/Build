@@ -111,6 +111,42 @@ function check_os_release {
   echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> "$os_release"
 }
 
+## Fetch the NodeJS BE and FE
+function fetch_volumio_from_repo {
+  log 'Cloning Volumio Node Backend'
+  [[ -d "${ROOTFS}/volumio" ]] && rm -r "${ROOTFS}/volumio"
+
+  mkdir "${ROOTFS}/volumio"
+
+  if [ -n "$PATCH" ]; then
+    log "Cloning Volumio with all its history"
+    git clone https://github.com/volumio/Volumio2.git "${ROOTFS}/volumio"
+  else
+    log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
+    git clone --depth 1 -b ${VOL_BE_REPO_BRANCH} --single-branch ${VOL_BE_REPO} "${ROOTFS}/volumio"
+  fi
+
+  log 'Cloning Volumio UI'
+  git clone --depth 1 -b dist  --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www"
+  git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www3"
+  log "Adding Volumio revision information to os-release"
+  cat <<-EOF >> "${ROOTFS}/etc/os-release"
+	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
+	VOLUMIO_FE_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www/.git" rev-parse HEAD)"
+	VOLUMIO_FE3_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www3/.git" rev-parse HEAD)"
+	VOLUMIO_BE_VERSION="$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)"
+	VOLUMIO_ARCH="${BUILD}"
+	EOF
+  
+  # Clean up git repo
+  rm -rf "${ROOTFS}/volumio/http/www/.git"
+  rm -rf "${ROOTFS}/volumio/http/www3/.git"
+
+  log "Cloned Volumio BE" "okay" "$(git --git-dir "${ROOTFS}/volumio/.git" log --oneline -1)"
+
+}
+
+
 #Check the number of arguments. If none are passed, print help and exit.
 NUMARGS=$#
 if [ "$NUMARGS" -eq 0 ]; then
@@ -258,31 +294,7 @@ if [ -n "${BUILD}" ]; then
 
   mount_chroot "${ROOTFS}"
 
-  log 'Cloning Volumio Node Backend'
-  mkdir "${ROOTFS}/volumio"
-
-  if [ -n "$PATCH" ]; then
-    log "Cloning Volumio with all its history"
-    git clone https://github.com/volumio/Volumio2.git "${ROOTFS}/volumio"
-  else
-    log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
-    git clone --depth 1 -b ${VOL_BE_REPO_BRANCH} --single-branch ${VOL_BE_REPO} "${ROOTFS}/volumio"
-  fi
-
-  log 'Cloning Volumio UI'
-  git clone --depth 1 -b dist  --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www"
-  git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www3"
-  log "Adding Volumio revision information to os-release"
-  cat <<-EOF >> "${ROOTFS}/etc/os-release"
-	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
-	VOLUMIO_FE_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www/.git" rev-parse HEAD)"
-	VOLUMIO_FE3_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www3/.git" rev-parse HEAD)"
-	VOLUMIO_BE_VERSION="$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)"
-	VOLUMIO_ARCH="${BUILD}"
-	EOF
-  # Clean up git repo
-  rm -rf "${ROOTFS}/volumio/http/www/.git"
-  rm -rf "${ROOTFS}/volumio/http/www3/.git"
+  fetch_volumio_from_repo
 
   log "Configuring Volumio" "info"
   chroot "${ROOTFS}" /volumioconfig.sh
@@ -390,6 +402,14 @@ if [[ -n "$DEVICE" ]]; then
     fi
   fi
 
+  ## Update the FE/BE 
+  if  [[ ${UPDATE_VOLUMIO:-no} == yes ]]; then 
+    log "Updating Volumio Node BE/FE"
+    fetch_volumio_from_repo
+  else 
+    log "Using base tarball's Volumio Node BE/FE" "info" "$(git --git-dir "${ROOTFS}/volumio/.git" log --oneline -1)"
+  fi
+
   ## Copy modules/packages
   # TODO: Streamline node versioning! 
   # Major version modules tarballs should be sufficient.
@@ -399,8 +419,8 @@ if [[ -n "$DEVICE" ]]; then
     tar xf "${SRC}"/modules/node_modules_${BUILD}_v${NODE_VERSION%%.*}.*.tar.xz -C "${ROOTFS}/volumio"
     ls "${ROOTFS}/volumio/node_modules"
   else 
-    # Current Volumio repo knows only {arm|x86} which is conviniently the same lenght
-    # TODO: Consolidate the naming schme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz 
+    # Current Volumio repo knows only {arm|x86} which is conveniently the same length
+    # TODO: Consolidate the naming scheme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz 
     log "Attempting to fetch node_modules for ${NODE_VERSION} -- ${NODE_SEMVER[*]}"
     modules_url="${NODE_MODULES_REPO}/node_modules_${BUILD:0:3}-${NODE_VERSION}.tar.gz"
     log "Fetching node_modules from ${modules_url}"

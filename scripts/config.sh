@@ -33,7 +33,7 @@ VOL_BE_REPO_BRANCH="master"
 
 ## NodeJS Controls 
 # Semver is only used w.t.r modules fetched from repo, 
-# actual node version installs only respects the curent major versions (Major.x)
+# actual node version installs only respects the current major versions (Major.x)
 # NODE_VERSION=14
 NODE_VERSION=8.11.1  
 # Used to pull the right version of modules

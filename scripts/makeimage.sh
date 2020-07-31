@@ -141,8 +141,9 @@ cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
 [ "$KIOSKMODE" == yes ] && cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}
 echo "$PATCH" > ${ROOTFSMNT}/patch
 if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "config.js" ]]; then
-   log "Starting config.js" "ext"
+   log "Starting config.js" "ext" "${PATCH}"
    node config.js "${PATCH}"
+   log "Completed config.js" "ext" "${PATCH}"
 fi
 # Copy across custom bits and bobs from device config
 # This is in the hope that <./recipes/boards/${DEVICE}>
