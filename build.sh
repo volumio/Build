@@ -123,7 +123,7 @@ function fetch_volumio_from_repo {
     git clone https://github.com/volumio/Volumio2.git "${ROOTFS}/volumio"
   else
     log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
-    git clone --depth 1 -b ${VOL_BE_REPO_BRANCH} --single-branch ${VOL_BE_REPO} "${ROOTFS}/volumio"
+    git clone --depth 1 -b "${VOL_BE_REPO_BRANCH}" --single-branch "${VOL_BE_REPO}" "${ROOTFS}/volumio"
   fi
 
   log 'Cloning Volumio UI'
@@ -353,8 +353,10 @@ if [[ -n "$DEVICE" ]]; then
     if [[ $use_rootfs_tarball == yes ]]; then
       log "Trying to use prior base system" "info"
       if [[ -d ${SRC}/build/${BUILD} ]]; then
-        log "Using prior Base system"
-      else
+        log "Prior ${BUILD} rootfs dir found!" "dbg" "$(date -r "${SRC}/build/${BUILD}" "+%m-%d-%Y %H:%M:%S")"
+         [[ ${CLEAN_ROOTFS:-yes} == yes ]] && \
+          log "Cleaning prior rootfs directory" "wrn" && rm -rf "${SRC}/build/${BUILD}"
+      fi
       rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
       [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
       log "Using prior Base tarball"
@@ -364,10 +366,8 @@ if [[ -n "$DEVICE" ]]; then
         | tar xp --xattrs -C ./build/${BUILD}/root
       fi
       ROOTFS="${SRC}/build/${BUILD}/root"
-
-    fi
   else
-    log "No configuration found for $DEVICE" "err"
+    log "No configuration found for <${DEVICE}>" "err"
     exit 1
   fi
 
@@ -403,6 +403,13 @@ if [[ -n "$DEVICE" ]]; then
   fi
 
   ## Update the FE/BE 
+  log "Checking upstream status of Volumio Node BE" "info"
+  REPO_URL=${VOL_BE_REPO/github.com/api.github.com\/repos}
+  REPO_URL="${REPO_URL%.*}/branches/${VOL_BE_REPO_BRANCH}"
+  GIT_STATUS=$(curl  --silent "${REPO_URL}")
+  readarray -t COMMIT_DETAILS <<< "$(jq -r '.commit.sha, .commit.commit.message' <<< "${GIT_STATUS}")"
+  log "Upstream Volumio BE details" "dbg" "${COMMIT_DETAILS[0]:0:8} ${COMMIT_DETAILS[1]}"
+  [[ ! "$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)" == "${COMMIT_DETAILS[0]}" ]] && log "Rootfs git is not in sync with upstream repo!" "wrn"
   if  [[ ${UPDATE_VOLUMIO:-no} == yes ]]; then 
     log "Updating Volumio Node BE/FE"
     fetch_volumio_from_repo
@@ -433,7 +440,7 @@ if [[ -n "$DEVICE" ]]; then
     log "Adding packages from local ${SRC}/customPkgs/"
     cp "${SRC}"/customPkgs/*"${BUILD}".deb  "${ROOTFS}"/volumio/customPkgs/
     # Pi's need an armvl6 build of nodejs (for Node > v8)
-    [[ ${DEVICE} == raspberry && ${NODE_SEMVER[0]} -ge 8 ]] && mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${SRC}"/customPkgs/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
+    [[ ${DEVICE} == raspberry && ${NODE_SEMVER[0]} -gt 8 ]] && mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${SRC}"/customPkgs/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
     ls "${ROOTFS}"/volumio/customPkgs
   else 
     log "Adding customPkgs from external repo" "info"
@@ -462,7 +469,7 @@ if [[ -n "$DEVICE" ]]; then
   zip "${ZIP_FILE}" "${IMG_FILE}"*
   end_zip=$(date +%s)
   time_it "$end_zip" "$start_zip"
-  log "Image ${ZIP_FILE} Created" "okay" "$TIME_STR"
+  log "Image ${ZIP_FILE} Created [ ${yellow}${standout}$(du -h "${ZIP_FILE}" | cut -f1)${normal} ]" "okay" "$TIME_STR"
   [[ ${CLEAN_IMAGE_FILE:-no} == yes ]] && rm "${IMG_FILE}"*
 else
   log "No device specified, only base rootfs created!" "wrn"
