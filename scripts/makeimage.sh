@@ -143,6 +143,8 @@ echo "$PATCH" > ${ROOTFSMNT}/patch
 if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "config.js" ]]; then
    log "Starting config.js" "ext" "${PATCH}"
    node config.js "${PATCH}"
+   status=$?
+   [[ ${status} ]] && log "config.js failed with ${status}" "err" "${PATCH}" && exit 10
    log "Completed config.js" "ext" "${PATCH}"
 fi
 # Copy across custom bits and bobs from device config

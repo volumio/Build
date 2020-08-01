@@ -51,30 +51,6 @@ cat <<-EOF >> /etc/initramfs-tools/modules
 ${mod_list}
 EOF
 
-#On The Fly Patch
-#TODO Where should this be called?
-PATCH=$(cat /patch)
-if [ "$PATCH" = "volumio" ]; then
-  log "No Patch To Apply" "wrn"
-else
-  log "Applying Patch ${PATCH}" "wrn"
-  PATCHPATH=/"${PATCH}"
-  cd "${PATCHPATH}" || exit
-  #Check the existence of patch script
-  if [ -f "patch.sh" ]; then
-    sh patch.sh
-  else
-    log "Cannot Find Patch File, aborting" "err"
-  fi
-  if [ -f "install.sh" ]; then
-    log "Running install.sh" "ext" "${PATCH}"
-    bash install.sh
-  fi
-  cd /
-  rm -rf "${PATCH}" /patch
-  log "Finished on the fly patching" "ok"
-fi
-
 ## Adding board specific packages
 # shellcheck disable=SC2116
 log "Installing ${#PACKAGES[@]} custom packages:" "" "$(echo "${PACKAGES[@]}")"
@@ -110,6 +86,31 @@ sed -i '/^ExecStart=.*/i ExecStartPre=mkdir -m 700 -p /var/log/samba/cores' /lib
 #First Boot operations
 log "Signalling the init script to re-size the Volumio data partition"
 touch /boot/resize-volumio-datapart
+
+#On The Fly Patch
+#TODO Where should this be called?
+PATCH=$(cat /patch)
+if [ "$PATCH" = "volumio" ]; then
+  log "No Patch To Apply" "wrn"
+else
+  log "Applying Patch ${PATCH}" "wrn"
+  #Check the existence of patch script(s)
+  patch_scrips=("patch.sh" "install.sh")
+  if [[ -d ${PATCH} ]]; then 
+    pushd "${PATCH}"
+    for script in "${patch_scrips[@]}"; do
+     log "Running ${script}" "ext" "${PATCH}"
+     bash "${script}"
+     status=$?
+     [[ ${status} -ne 0 ]] && log "${script} failed with ${status}" "err" "${PATCH}"
+    done
+    popd
+  else
+    log "Cannot Find Patch, aborting" "err"
+  fi
+  rm -rf "${PATCH}" /patch
+  log "Finished on the fly patching" "ok"
+fi
 
 log "Creating initramfs 'volumio.initrd'" "info"
 mkinitramfs-buster.sh -o /tmp/initramfs-tmp
