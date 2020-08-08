@@ -6,9 +6,9 @@ BOARDFAMILY="odroidn2"
 PLATFORMREPO="https://github.com/volumio/platform-khadas.git"
 BUILD="armv7"
 NONSTANDARD_REPO=no	# yes requires "non_standard_repo() function in make.sh 
-LBLBOOT="VBOOT"
-LBLIMAGE="VIMAGE"
-LBLDATA="VDATA"
+LBLBOOT="BOOT"
+LBLIMAGE="volumio"
+LBLDATA="volumio_data"
 
 # Partition Info
 BOOT_TYPE=msdos			# msdos or gpt   
