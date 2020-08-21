@@ -147,15 +147,18 @@ device_chroot_tweaks_pre() {
       [4.19.97]="993f47507f287f5da56495f718c2d0cd05ccbc19"\
       [4.19.118]="e1050e94821a70b2e4c72b318d6c6c968552e9a2"\
       [5.4.51]="8382ece2b30be0beb87cac7f3b36824f194d01e9"\
+      [5.4.59]="caf7070cd6cece7e810e6f2661fc65899c58e297"\
     )
   # Version we want
   KERNEL_VERSION="4.19.118"
+  KERNEL_VERSION="5.4.59"
   IFS=\. read -ra KERNEL_SEMVER <<<"$KERNEL_VERSION"
   # List of custom firmware -
   # github archives that can be extracted directly
   declare -A CustomFirmware=(
     [AlloPiano]="https://github.com/allocom/piano-firmware/archive/master.tar.gz" \
-    [TauDAC]="https://github.com/taudac/modules/archive/rpi-volumio-${KERNEL_VERSION}-taudac-modules.tar.gz" \
+    # [TauDAC]="https://github.com/taudac/modules/archive/rpi-volumio-${KERNEL_VERSION}-taudac-modules.tar.gz" \
+    [Bassowl]="https://raw.githubusercontent.com/Darmur/bassowl-hat/master/driver/archives/modules-rpi-${KERNEL_VERSION}-bassowl.tar.gz"
     )
 
   ### Kernel installation
@@ -186,7 +189,7 @@ device_chroot_tweaks_pre() {
   log "Node version installed:" "dbg" "${NODE_VERSION}"
   # drop the leading v
   NODE_VERSION=${NODE_VERSION:1}
-  if [[ ${NODE_VERSION%%.*} -gt 8 ]]; then
+    if [[ ${NODE_VERSION%%.*} -ge 8 ]]; then
     log "Using a compatible nodejs version for all pi images" "info"
     # Get rid of armv7 nodejs and pick up the armv6l version
     if dpkg -s nodejs &> /dev/null; then
@@ -198,6 +201,14 @@ device_chroot_tweaks_pre() {
     log "Installing Node for ${arch}"
     dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
     log "Installed Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+
+    # Block upgrade of nodejs from raspi repos
+    log "Blocking nodejs updgrades for ${NODE_VERSION}"
+    cat <<-EOF > "${ROOTFSMNT}/etc/apt/preferences.d/nodejs"
+Package: nodejs
+Pin: release *
+Pin-Priority: -1
+EOF
   fi
   log "Adding Shairport-Sync User"
 
@@ -280,13 +291,14 @@ EOF
   # Buster tweaks
   kernel_params+=("${DISABLE_PN}") 
   # ALSA tweaks
-  kernel_params+=("snd-bcm2835.enable_compat_alsa=1" "snd_bcm2835.enable_headphones=1")
+  # ALSA compatibility needs to be set depending on kernel version, so use hacky semver check here 
+  [[ ${KERNEL_SEMVER[0]} == 5 ]] && compat_alsa=0 || compat_alsa=1
+  kernel_params+=("snd-bcm2835.enable_compat_alsa=${compat_alsa}" "snd_bcm2835.enable_headphones=1")
   if [[ $DEBUG_IMAGE == yes ]]; then
     log "Adding Serial Debug parameters"
     echo "dtoverlay=pi3-miniuart-bt" > /boot/userconfig.txt
     KERNEL_LOGLEVEL="loglevel=8" # KERN_DEBUG
-  
-  fi
+    fi
 
   kernel_params+=("${KERNEL_LOGLEVEL}")
   # shellcheck disable=SC2116
