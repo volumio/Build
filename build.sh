@@ -171,7 +171,6 @@ if [ -n "$BUILD" ]; then
   mount /sys "build/$BUILD/root/sys" -t sysfs
 
   echo 'Cloning Volumio Node Backend'
-  mkdir "build/$BUILD/root/volumio"
   if [ -n "$PATCH" ]; then
       echo "Cloning Volumio with all its history"
       git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
