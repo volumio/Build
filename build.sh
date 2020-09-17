@@ -181,7 +181,7 @@ if [ -n "$BUILD" ]; then
   echo "Pre-commit hooks"
   echo '#!/bin/sh
   # Pre-commit hook, uncomment when finished linting all codebase
-  #npm run lint-staged' > /volumio/.git/hooks/pre-commit
+  #npm run lint-staged' > "build/$BUILD/root/volumio/.git/hooks/pre-commit"
   echo 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
   echo 'Cloning Volumio3 UI'
