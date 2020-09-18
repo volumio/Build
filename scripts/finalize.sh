@@ -35,7 +35,7 @@ find $BASEDIR/usr/sbin -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/usr/local/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 
 else
-  echo "X86 Environmant detected, not cleaning"
+  echo "X86 Environment detected, not cleaning"
   find $BASEDIR/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/usr/sbin -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/usr/local/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
