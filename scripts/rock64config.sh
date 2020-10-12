@@ -23,7 +23,7 @@ echo "label kernel-4.4
     kernel /Image
     fdt /rk3328-rock64.dtb
     initrd /uInitrd
-    append  earlycon=uart8250,mmio32,0xff130000 imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh hwdevice=Rock64 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf
+    append  earlycon=uart8250,mmio32,0xff130000 console=tty1 imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh hwdevice=Rock64 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf
 "> /boot/extlinux/extlinux.conf
 
 echo "#!/bin/sh
