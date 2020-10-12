@@ -176,6 +176,8 @@ create_volumio_partitions()
 	parted -s ${TARGETDEV} set 1 boot on
 	partprobe ${TARGETDEV}
 	sync
+	mdev -s
+	sleep 0.5
 
 	echo "[info] Creating partition filesystems"
 	mkfs.vfat -n $LBLBOOT ${TARGETBOOT}

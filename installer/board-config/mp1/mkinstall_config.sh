@@ -56,10 +56,11 @@ write_device_files()
 {
    cp ${PLTDIR}/${BOARDFAMILY}/boot/Image $ROOTFSMNT/boot
    cp ${PLTDIR}/${BOARDFAMILY}/boot/boot.ini $ROOTFSMNT/boot
+   mkimage -A arm64 -O linux -T script -C none -a 0 -e 0 -n "aml_autoscript" -d ${PLTDIR}/${BOARDFAMILY}/boot/aml_autoscript.cmd $ROOTFSMNT/boot/aml_autoscript
    cp ${PLTDIR}/${BOARDFAMILY}/boot/env.txt $ROOTFSMNT/boot
 
    mkdir /mnt/volumio/rootfs/boot/dtb
-   cp -R ${PLTDIR}/${BOARDFAMILY}/boot/dtb/* $ROOTFSMNT/boot/dtb
+   cp -R ${PLTDIR}/${BOARDFAMILY}/boot/dtb/kvim3l_linux.dtb $ROOTFSMNT/boot/dtb
 }
 
 write_device_bootloader()
@@ -82,6 +83,7 @@ BOOTARGS_USER=loglevel=0 quiet splash bootdelay=1
 bootpart=/dev/mmcblk1p1
 imgpart=/dev/mmcblk1p2
 datapart=/dev/mmcblk1p3
+DTB=dtb/kvim3l_linux.dtb
 " > $ROOTFSMNT/boot/env.system.txt
 }
 

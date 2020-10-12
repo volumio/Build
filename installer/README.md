@@ -4,7 +4,7 @@ build process when this has been completed.
 **Usage**
 
 ~~~
-./mkinstaller.sh -d <device> -v <version-number> -f <location of a zipped volumio image>
+./mkinstaller.sh -i <location of the volumio image>
 ~~~
 
 where currently supported devices are  **Volumio MP1** and **Volumio Motivo**
