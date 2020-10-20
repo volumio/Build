@@ -179,9 +179,9 @@ echo "Adding PI3 & PiZero W Wireless, PI WIFI Wireless dongle, ralink mt7601u & 
 apt-get install -y --only-upgrade firmware-atheros firmware-ralink firmware-realtek firmware-brcm80211
 
 # Temporary brcm firmware fix solution until we use Buster 
-wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20190114-1+rpt6_all.deb
-dpkg -i firmware-brcm80211_20190114-1+rpt6_all.deb
-rm firmware-brcm80211_20190114-1+rpt6_all.deb
+wget http://repo.volumio.org/Volumio2/Firmwares/firmware-brcm80211_20190114-1+rpt9_all.deb
+dpkg -i firmware-brcm80211_20190114-1+rpt9_all.deb
+rm firmware-brcm80211_20190114-1+rpt9_all.deb
 
 if [ "$KERNEL_VERSION" = "4.4.9" ]; then       # probably won't be necessary in future kernels 
 echo "Adding initial support for PiZero W wireless on 4.4.9 kernel"
