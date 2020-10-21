@@ -145,7 +145,11 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="8382ece2b30be0beb87cac7f3b36824f194d01e9"
       FIRMWARE_COMMIT=$KERNEL_COMMIT
       ;;
-
+    "5.4.72")
+      KERNEL_REV="1354"
+      KERNEL_COMMIT="b3b238cf1e64d0cc272732e77ae6002c75184495"
+      FIRMWARE_COMMIT=$KERNEL_COMMIT
+      ;;
 esac
 
 # using rpi-update relevant to defined kernel version
