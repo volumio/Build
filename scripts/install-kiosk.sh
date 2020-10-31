@@ -1,4 +1,5 @@
 #!/bin/sh
+HARDWARE=$(cat /etc/os-release | grep HARDWARE | tr -d 'VOLUMIO_HARDWARE="')
 
 echo "Installing Volumio local UI"
 
@@ -73,12 +74,15 @@ echo "  Allowing volumio to start an xsession"
 echo "Enabling kiosk"
 /bin/ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
 
-echo "Enabling UI for HDMI output selection"
-echo '[{"value": false,"id":"section_hdmi_settings","attribute_name": "hidden"}]' > /volumio/app/plugins/system_controller/system/override.json
+if  [ "$HARDWARE" != "motivo" ]; then
 
-echo "Setting HDMI UI enabled by default"
-/usr/bin/jq '.hdmi_enabled.value = true' /volumio/app/plugins/system_controller/system/config.json > /hdmi && mv /hdmi /volumio/app/plugins/system_controller/system/config.json
-/usr/bin/jq '.hdmi_enabled.type = "boolean"' /volumio/app/plugins/system_controller/system/config.json > /hdmi && mv /hdmi /volumio/app/plugins/system_controller/system/config.json
+  echo "Enabling UI for HDMI output selection"
+  echo '[{"value": false,"id":"section_hdmi_settings","attribute_name": "hidden"}]' > /volumio/app/plugins/system_controller/system/override.json
+
+  echo "Setting HDMI UI enabled by default"
+  /usr/bin/jq '.hdmi_enabled.value = true' /volumio/app/plugins/system_controller/system/config.json > /hdmi && mv /hdmi /volumio/app/plugins/system_controller/system/config.json
+  /usr/bin/jq '.hdmi_enabled.type = "boolean"' /volumio/app/plugins/system_controller/system/config.json > /hdmi && mv /hdmi /volumio/app/plugins/system_controller/system/config.json
+fi
 
 echo "Setting localhost"
 echo '{"localhost": "http://127.0.0.1:3000"}' > /volumio/http/www/app/local-config.json

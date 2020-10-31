@@ -9,7 +9,7 @@ write_device_bootloader()
 
 led_show_init_signal()
 {
-   :
+   echo "Init"   
 }
 
 led_show_start_signal()
