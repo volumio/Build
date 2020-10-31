@@ -4,8 +4,6 @@
 DEVICEBASE="motivo"
 BOARDFAMILY=${PLAYER}
 PLATFORMREPO="https://github.com/volumio/platform-motivo.git"
-PATCHREPO="https://github.com/volumio/motivo-patch"
-MOTIVOPATCH="motivo-patch"
 BUILD="armv7"
 NONSTANDARD_REPO=yes	# yes requires "non_standard_repo() function in make.sh 
 LBLBOOT="BOOT"
@@ -16,8 +14,8 @@ LBLDATA="volumio_data"
 # Partition Info
 BOOT_TYPE=msdos			# msdos or gpt   
 BOOT_START=21
-BOOT_END=64
-IMAGE_END=2500
+BOOT_END=84
+IMAGE_END=3500
 BOOT=/mnt/boot
 BOOTDELAY=
 BOOTDEV="mmcblk0"
@@ -95,7 +93,7 @@ write_device_bootloader()
 write_boot_parameters()
 {
    echo "console=serial
-panel_model=feiyang
+panel_model=motivo
 kernel_filename=Image
 initrd_filename=uInitrd
 fdtfile=allwinner/sun50i-a64-motivo-baseboard.dtb
