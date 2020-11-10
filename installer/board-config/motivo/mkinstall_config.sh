@@ -62,6 +62,8 @@ write_device_files()
    cp ${PLTDIR}/${BOARDFAMILY}/boot/Image $ROOTFSMNT/boot
    cp -R ${PLTDIR}/${BOARDFAMILY}/boot/dtb/* $ROOTFSMNT/boot/dtb
    cp ${PLTDIR}/${BOARDFAMILY}/usr/bin/i2crw1 $ROOTFSMNT/usr/bin
+#  just to make sure it is executable
+   chmod +x $ROOTFSMNT/usr/bin
 
    echo "[info] Creating boot.scr image"
    cp ${PLTDIR}/${BOARDFAMILY}/boot/boot.cmd /$ROOTFSMNT/boot
