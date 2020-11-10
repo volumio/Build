@@ -1,6 +1,7 @@
 #!/bin/sh
 
 SRC="$(pwd)"
+FAILED=0
 
 while getopts ":i:" opt; do
   case $opt in
@@ -160,6 +161,7 @@ UUIDFMT=${UUIDFMT}
 LBLBOOT=${LBLBOOT}
 LBLIMAGE=${LBLIMAGE}
 LBLDATA=${LBLDATA}
+FACTORYCOPY=${FACTORYCOPY}
 " > $ROOTFSMNT/root/scripts/initconfig.sh
 
 echo "[info] Copying initrd scripts"   
@@ -231,13 +233,21 @@ mkdir -p /mnt/volumioimage/image
 mount -t vfat "${BOOT_PART}" /mnt/volumioimage/boot
 mount -t ext4 "${IMAGE_PART}" /mnt/volumioimage/image
 
-copy_device_bootloader_files
+echo "[info] Do quality check prior to copying files"
+is_dataquality_ok
+if [ $? -ne 0 ]; then
+	echo "[ERROR] Quality check failed, aborting..."
+    FAILED=1
+else
+	echo "[info] Copy bootloader files"
+	copy_device_bootloader_files
 
-echo "[info] Copying 'raw' boot & image data"
-#cd /mnt/volumioimage/boot
-tar cf $ROOTFSMNT/boot/data/image/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/volumioimage/boot .
+	echo "[info] Copying 'raw' boot & image data"
+	#cd /mnt/volumioimage/boot
+	tar cf $ROOTFSMNT/boot/data/image/kernel_current.tar --exclude='resize-volumio-datapart' -C /mnt/volumioimage/boot .
 
-cp /mnt/volumioimage/image/* /mnt/volumio/rootfs/boot/data/image
+	cp /mnt/volumioimage/image/* /mnt/volumio/rootfs/boot/data/image
+fi
 
 umount -l /mnt/volumioimage/boot
 umount -l /mnt/volumioimage/image
@@ -258,9 +268,11 @@ dmsetup remove_all
 losetup -d ${LOOP_DEV1}
 losetup -d ${LOOP_DEV}
 
-zip -j ${IMG_FILE}.zip ${IMG_FILE}
-#TODO cp $IMG_FILE.zip to its proper place
+if [ $FAILED -eq 0 ]; then
+	zip -j ${IMG_FILE}.zip ${IMG_FILE}
+else
+	rm ${IMG_FILE}
+fi
 
 echo "[info] Done..."
-#rm $VOLUMIOIMAGE
 sync

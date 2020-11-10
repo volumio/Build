@@ -71,7 +71,7 @@ tar xf $BOOT/data/image/kernel_current.tar -C $BOOT/temp/boot
 if [ ! -z ${FACTORYCOPY} ]; then
    echo "[info] Continue with creating factory copies"
    cp $BOOT/data/image/kernel_current.tar $BOOT/data/image/kernel_factory.tar
-   cp $BOOT/data/image/volumio_current.sqsh $BOOT/data/image/volumio_factory.tar
+   cp $BOOT/data/image/volumio_current.sqsh $BOOT/data/image/volumio_factory.sqsh
 fi
 
 sync

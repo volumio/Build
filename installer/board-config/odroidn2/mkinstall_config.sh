@@ -3,7 +3,7 @@
 # Device Info Odroid N2/N2+
 DEVICEBASE="odroid"
 BOARDFAMILY="odroidn2"
-PLATFORMREPO="https://github.com/volumio/platform-khadas.git"
+PLATFORMREPO="https://github.com/volumio/platform-odroid.git"
 BUILD="armv7"
 NONSTANDARD_REPO=no	# yes requires "non_standard_repo() function in make.sh 
 LBLBOOT="BOOT"
@@ -49,6 +49,12 @@ fetch_bootpart_uuid()
 {
    :
 }
+
+is_dataquality_ok()
+{
+   return 0
+}
+
 write_device_files()
 {
    cp ${PLTDIR}/${BOARDFAMILY}/boot/Image.gz $ROOTFSMNT/boot

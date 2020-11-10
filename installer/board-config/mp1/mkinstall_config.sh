@@ -52,6 +52,11 @@ UUIDBOOT=$(blkid -s UUID -o value ${FLASH_PART})
 BOOTPART="UUID=${UUIDBOOT}"
 }
 
+is_dataquality_ok()
+{
+   return 0
+}
+
 write_device_files()
 {
    cp ${PLTDIR}/${BOARDFAMILY}/boot/Image $ROOTFSMNT/boot
