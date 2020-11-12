@@ -14,13 +14,13 @@ led_show_init_signal()
 
 led_show_start_signal()
 {
-   /bin/i2crw1 w 33 51 1 0 0
-   /bin/i2crw1 w 33 20 4
+   /usr/bin/i2crw1 w 33 51 1 0 0
+   /usr/bin/i2crw1 w 33 20 4
 }
 
 led_show_finish_signal()
 {
-   /bin/i2crw1 w 33 51 0 1 0
-   /bin/i2crw1 w 33 21 1
+   /usr/bin/i2crw1 w 33 51 0 1 0
+   /usr/bin/i2crw1 w 33 21 1
 }
 
