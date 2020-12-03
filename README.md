@@ -46,7 +46,7 @@ Example: Build the architecture for x86 first and the image version MyVersion in
 Kernel Sources
 
 * [Raspberry PI](https://github.com/volumio/raspberrypi-linux)
-* [X86](https://github.com/volumio/linux)
+* [X86](https://github.com/volumio/platform-x86)
 * [Odroid C1, branch odroidc-3.10.y](https://github.com/hardkernel/linux.git)
 * [Odroid C2, branch odroidc2-3.14.y](https://github.com/hardkernel/linux.git)
 * [Odroid X2](https://github.com/volumio/linux-odroid-public)
