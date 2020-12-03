@@ -118,7 +118,7 @@ echo "Copying (so)Pine64(LTS) boot files"
 mkdir /mnt/volumio/rootfs/boot/dtb
 cp platform-pine64/sopine64lts/boot/Image /mnt/volumio/rootfs/boot
 cp -R platform-pine64/sopine64lts/boot/dtb/* /mnt/volumio/rootfs/boot/dtb
-cp platform-pine64/sopine64lts/boot/uEnv.txt.sopine64 /mnt/volumio/rootfs/boot/uEnv.txt
+cp platform-pine64/sopine64lts/boot/uEnv.txt.sopine64lts /mnt/volumio/rootfs/boot/uEnv.txt
 cp platform-pine64/sopine64lts/boot/boot.cmd /mnt/volumio/rootfs/boot
 
 echo "Compiling boot script"
