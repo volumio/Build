@@ -31,16 +31,16 @@ echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs"
 dd if=/dev/zero of=${IMG_FILE} bs=1M count=2800
 
 echo "Creating Image Bed"
-LOOP_DEV=`sudo losetup -f --show ${IMG_FILE}`
+LOOP_DEV=`losetup -f --show ${IMG_FILE}`
 # Note: leave the first 20Mb free for the firmware
-sudo parted -s "${LOOP_DEV}" mklabel msdos
-sudo parted -s "${LOOP_DEV}" mkpart primary fat32 21 84
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 84 2500
-sudo parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
-sudo parted -s "${LOOP_DEV}" set 1 boot on
-sudo parted -s "${LOOP_DEV}" print
-sudo partprobe "${LOOP_DEV}"
-sudo kpartx -s -a "${LOOP_DEV}"
+parted -s "${LOOP_DEV}" mklabel msdos
+parted -s "${LOOP_DEV}" mkpart primary fat32 21 84
+parted -s "${LOOP_DEV}" mkpart primary ext3 84 2500
+parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
+parted -s "${LOOP_DEV}" set 1 boot on
+parted -s "${LOOP_DEV}" print
+partprobe "${LOOP_DEV}"
+kpartx -s -a "${LOOP_DEV}"
 
 BOOT_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p1`
 SYS_PART=`echo /dev/mapper/"$( echo ${LOOP_DEV} | sed -e 's/.*\/\(\w*\)/\1/' )"p2`
@@ -55,9 +55,9 @@ then
 fi
 
 echo "Creating boot and rootfs filesystems"
-sudo mkfs -t vfat -n BOOT "${BOOT_PART}"
-sudo mkfs -F -t ext4 -L volumio "${SYS_PART}"
-sudo mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+mkfs -t vfat -n BOOT "${BOOT_PART}"
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio "${SYS_PART}" || mkfs -F -t ext4 -L volumio "${SYS_PART}"
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio_data "${DATA_PART}" || mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 echo "Preparing for the (so)Pine64(LTS) kernel/ platform files"
@@ -66,18 +66,26 @@ then
 	echo "Platform folder already exists - keeping it"
     # if you really want to re-clone from the repo, then delete the platform-pine64 folder
     # that will refresh all the odroid platforms, see below
+    cd platform-pine64
+	if [ -f sopine64lts.tar.xz ]; then
+	   echo "Found a new tarball, unpacking..."
+	   [ -d sopine64lts ] || rm -r sopine64lts
+	   tar xfJ sopine64lts.tar.xz
+	   rm sopine64lts.tar.xz
+	fi
+	cd ..
 else
 	echo "Clone (so)Pine64(LTS) files from repo"
-	git clone --depth 1 https://github.com/volumio/platform-pine64.git platform-pine64
-	echo "Unpack the (so)Pine64(LTS) platform files"
+	wget https://github.com/volumio/platform-pine64/raw/master/sopine64lts.tar.xz
+	echo "Unpacking the platform files"echo "Unpack the (so)Pine64(LTS) platform files"
     cd platform-pine64
 	tar xfJ sopine64lts.tar.xz
 	cd ..
 fi
 
-echo "Copying the soPine64 (and Pine64LTS) bootloader"
-sudo dd if=platform-pine64/sopine64/u-boot/boot0-pine64-sopine.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=8
-sudo dd if=platform-pine64/sopine64/u-boot/u-boot-pine64-sopine.bin of=${LOOP_DEV} conv=notrunc bs=1k seek=19096
+#mainline u-boot
+dd if=platform-pine64/sopine64lts/u-boot/sunxi-spl.bin of=${LOOP_DEV} conv=fsync bs=8k seek=1
+dd if=platform-pine64/sopine64lts/u-boot/u-boot.itb of=${LOOP_DEV} conv=fsync bs=8k seek=5
 sync
 
 echo "Preparing for Volumio rootfs"
@@ -85,7 +93,7 @@ if [ -d /mnt ]
 then
 	echo "/mount folder exist"
 else
-	sudo mkdir /mnt
+	mkdir /mnt
 fi
 if [ -d /mnt/volumio ]
 then
@@ -93,38 +101,45 @@ then
 	rm -rf /mnt/volumio/*
 else
 	echo "Creating Volumio Temp Directory"
-	sudo mkdir /mnt/volumio
+	mkdir /mnt/volumio
 fi
 
 echo "Creating mount point for the images partition"
 mkdir /mnt/volumio/images
-sudo mount -t ext4 "${SYS_PART}" /mnt/volumio/images
-sudo mkdir /mnt/volumio/rootfs
-sudo mkdir /mnt/volumio/rootfs/boot
-sudo mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
+mount -t ext4 "${SYS_PART}" /mnt/volumio/images
+mkdir /mnt/volumio/rootfs
+mkdir /mnt/volumio/rootfs/boot
+mount -t vfat "${BOOT_PART}" /mnt/volumio/rootfs/boot
 
 echo "Copying Volumio RootFs"
-sudo cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
-echo "Copying (so)Pine64(LTS) boot files"
-mkdir /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/sopine64/boot/pine64/Image /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/sopine64/boot/pine64/*.dtb /mnt/volumio/rootfs/boot/pine64
-sudo cp platform-pine64/sopine64/boot/uEnv.txt /mnt/volumio/rootfs/boot
-sudo cp platform-pine64/sopine64/boot/Image.version /mnt/volumio/rootfs/boot
-sudo cp platform-pine64/sopine64/boot/config* /mnt/volumio/rootfs/boot
+cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 
-echo "Copying (so)Pine64(LTS) modules and firmware"
-sudo cp -pdR platform-pine64/sopine64/lib/modules /mnt/volumio/rootfs/lib/
-sudo cp -pdR platform-pine64/sopine64/lib/firmware /mnt/volumio/rootfs/lib/
+echo "Copying (so)Pine64(LTS) boot files"
+mkdir /mnt/volumio/rootfs/boot/dtb
+cp platform-pine64/sopine64lts/boot/Image /mnt/volumio/rootfs/boot
+cp -R platform-pine64/sopine64lts/boot/dtb/* /mnt/volumio/rootfs/boot/dtb
+cp platform-pine64/sopine64lts/boot/uEnv.txt.sopine64 /mnt/volumio/rootfs/boot/uEnv.txt
+cp platform-pine64/sopine64lts/boot/boot.cmd /mnt/volumio/rootfs/boot
+
+echo "Compiling boot script"
+mkimage -C none -A arm -T script -d platform-pine64/sopine64lts/boot/boot.cmd /mnt/volumio/rootfs/boot/boot.scr
+
+echo "Copying kernel configuration file"
+cp platform-pine64/sopine64lts/boot/config* /mnt/volumio/rootfs/boot
+
+echo "Copying (so)Pine64(LTS) kernel modules"
+cp -pdR platform-pine64/sopine64lts/lib/modules /mnt/volumio/rootfs/lib/
 
 echo "Confguring ALSA with sane defaults"
-sudo cp platform-pine64/sopine64/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
+#cp platform-pine64/sopine64lts/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
 
+echo "Copying firmware"
+cp -R platform-pine64/sopine64lts/firmware/* /mnt/volumio/rootfs/lib/firmware
 sync
 
-echo "Preparing to run chroot for more SOPINE A64 configuration (equals pine64)"
-cp scripts/pine64config.sh /mnt/volumio/rootfs
-cp scripts/initramfs/init /mnt/volumio/rootfs/root
+echo "Preparing to run chroot for more so(PINE64)lts configuration)"
+cp scripts/sopine64ltsconfig.sh /mnt/volumio/rootfs
+cp scripts/initramfs/init.nextarm /mnt/volumio/rootfs/root/init
 cp scripts/initramfs/mkinitramfs-custom.sh /mnt/volumio/rootfs/usr/local/sbin
 #copy the scripts for updating from usb
 wget -P /mnt/volumio/rootfs/root http://repo.volumio.org/Volumio2/Binaries/volumio-init-updater
@@ -134,6 +149,12 @@ mount /proc /mnt/volumio/rootfs/proc -t proc
 mount /sys /mnt/volumio/rootfs/sys -t sysfs
 
 echo $PATCH > /mnt/volumio/rootfs/patch
+
+echo "UUID_DATA=$(blkid -s UUID -o value ${DATA_PART})
+UUID_IMG=$(blkid -s UUID -o value ${SYS_PART})
+UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PART})
+" > /mnt/volumio/rootfs/root/init.sh
+chmod +x /mnt/volumio/rootfs/root/init.sh
 
 if [ -f "/mnt/volumio/rootfs/$PATCH/patch.sh" ] && [ -f "config.js" ]; then
         if [ -f "UIVARIANT" ] && [ -f "variant.js" ]; then
@@ -150,7 +171,7 @@ fi
 
 chroot /mnt/volumio/rootfs /bin/bash -x <<'EOF'
 su -
-/pine64config.sh
+/sopine64ltsconfig.sh
 EOF
 
 UIVARIANT_FILE=/mnt/volumio/rootfs/UIVARIANT
@@ -161,7 +182,7 @@ if [ -f "${UIVARIANT_FILE}" ]; then
 fi
 
 #cleanup
-rm /mnt/volumio/rootfs/pine64config.sh /mnt/volumio/rootfs/root/init
+rm /mnt/volumio/rootfs/root/init.sh /mnt/volumio/rootfs/sopine64ltsconfig.sh /mnt/volumio/rootfs/root/init
 
 echo "Unmounting Temp devices"
 umount -l /mnt/volumio/rootfs/dev
@@ -169,15 +190,11 @@ umount -l /mnt/volumio/rootfs/proc
 umount -l /mnt/volumio/rootfs/sys
 
 #echo "Copying LIRC configuration files"
-#sudo cp platform-pine64/pine64/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
-#sudo cp platform-pine64/pine64/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
-#sudo cp platform-pine64/pine64/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
+#cp platform-pine64/pine64/etc/lirc/lircd.conf /mnt/volumio/rootfs/etc/lirc
+#cp platform-pine64/pine64/etc/lirc/hardware.conf /mnt/volumio/rootfs/etc/lirc
+#cp platform-pine64/pine64/etc/lirc/lircrc /mnt/volumio/rootfs/etc/lirc
 
 echo "==> soPine64/ Pine64 LTS device installed"
-
-#echo "Removing temporary platform files"
-#echo "(you can keep it safely as long as you're sure of no changes)"
-#sudo rm -r platform-pine64
 sync
 
 echo "Finalizing Rootfs creation"
@@ -190,7 +207,7 @@ if [ -d /mnt/squash ]; then
 	rm -rf /mnt/squash/*
 else
 	echo "Creating Volumio SquashFS Temp Dir"
-	sudo mkdir /mnt/squash
+	mkdir /mnt/squash
 fi
 
 echo "Copying Volumio rootfs to Temp Dir"
@@ -219,11 +236,11 @@ rm -rf /mnt/squash
 cp Volumio.sqsh /mnt/volumio/images/volumio_current.sqsh
 sync
 echo "Unmounting Temp Devices"
-sudo umount -l /mnt/volumio/images
-sudo umount -l /mnt/volumio/rootfs/boot
+umount -l /mnt/volumio/images
+umount -l /mnt/volumio/rootfs/boot
 
-sudo dmsetup remove_all
-sudo losetup -d ${LOOP_DEV}
+dmsetup remove_all
+losetup -d ${LOOP_DEV}
 sync
 
 md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
