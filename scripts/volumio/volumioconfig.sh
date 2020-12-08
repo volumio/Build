@@ -9,15 +9,14 @@ source /helpers.sh
 CHROOT=yes
 export CHROOT
 
-function exit_error()
-{
+function exit_error() {
   log "Volumio chroot config failed" "$(basename "$0")" "err"
 }
 
 trap exit_error INT ERR
 
 check_dependency() {
-  if ! dpkg -l "$1" &> /dev/null; then 
+  if ! dpkg -l "$1" &>/dev/null; then
     log "${1} installed"
   else
     log "${1} not installed"
@@ -32,13 +31,13 @@ packages=nodejs
 
 log "Preparing to run Debconf in chroot" "info"
 log "Prevent services starting during install, running under chroot"
-cat <<-EOF > /usr/sbin/policy-rc.d
+cat <<-EOF >/usr/sbin/policy-rc.d
 exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
 
 log "Configuring dpkg to not include Manual pages and docs"
-cat <<-EOF > /etc/bash.bashrc
+cat <<-EOF >/etc/bash.bashrc
 path-exclude /usr/share/doc/*
 # we need to keep copyright files for legal reasons
 path-include /usr/share/doc/*/copyright
@@ -50,12 +49,11 @@ path-exclude /usr/share/lintian/*
 path-exclude /usr/share/linda/*"
 EOF
 
-
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
 
 log "Running dpkg fixes for ${DISTRO_NAME}(${DISTRO_VER})"
-if [[  ${DISTRO_VER} = 10 ]]; then
+if [[ ${DISTRO_VER} = 10 ]]; then
   # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=924401
   log "Running base-passwd.preinst" "wrn"
   /var/lib/dpkg/info/base-passwd.preinst install
@@ -67,9 +65,7 @@ fi
 log "Configuring packages" "info"
 #TODO do we need to log full output
 # shellcheck disable=SC2069
-if ! dpkg --configure --pending  2>&1 > /dpkg.log
-# if ! { dpkg --configure -a  > /dev/null; } 2>&1
-then
+if ! dpkg --configure --pending 2>&1 >/dpkg.log; then # if ! { dpkg --configure -a  > /dev/null; } 2>&1
   log "Failed configuring packages!" "err"
 else
   log "Finished configuring packages" "okay"
@@ -80,14 +76,13 @@ log "Prepare Volumio Debain customization" "info"
 log "Existing locales: " && locale -a
 
 # Enable LANG_def='en_US.UTF-8'
-[[ -f /etc/locale.gen ]] && \
-    sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
+[[ -f /etc/locale.gen ]] &&
+  sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 locale-gen
 update-locale LANG=en_US:en LC_ALL=en_US.UTF-8 LANGUAGE=en_US.UTF-8
 
 log "Final locale list"
 locale
-
 
 #Adding Main user Volumio
 log "Adding Volumio User"
@@ -99,7 +94,7 @@ echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
 #Global BashRC Aliases"
 log 'Setting BashRC for custom system calls'
-cat <<-EOF > /etc/bash.bashrc
+cat <<-EOF >/etc/bash.bashrc
 ## System Commands ##
 alias reboot="sudo /sbin/reboot"
 alias poweroff="sudo /sbin/poweroff"
@@ -148,7 +143,7 @@ EOF
 #Sudoers Nopasswd
 SUDOERS_FILE="/etc/sudoers.d/volumio-user"
 log 'Adding Safe Sudoers NoPassw permissions'
-cat <<-EOF > ${SUDOERS_FILE}
+cat <<-EOF >${SUDOERS_FILE}
 # Add permissions for volumio user
 volumio ALL=(ALL) ALL
 volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid,/bin/ln,/usr/bin/unlink,/bin/dd,/usr/bin/dcfldd,/opt/vc/bin/vcgencmd,/opt/vc/bin/tvservice,/usr/bin/renice,/bin/rm
@@ -156,21 +151,19 @@ volumio ALL=(ALL) NOPASSWD: /bin/sh /volumio/app/plugins/system_controller/volum
 EOF
 chmod 0440 ${SUDOERS_FILE}
 
-
 log "Setting up hostname"
-echo volumio > /etc/hostname
+echo volumio >/etc/hostname
 chmod 777 /etc/hostname
 chmod 777 /etc/hosts
 
 log "Creating an empty dhcpd.leases if required"
 lease_file="/var/lib/dhcp/dhcpd.leases"
 [[ ! -f $lease_file ]] && mkdir -p "$(dirname $lease_file)" && touch $lease_file
-echo "nameserver 208.67.220.220" > /etc/resolv.conf
-
+echo "nameserver 208.67.220.220" >/etc/resolv.conf
 
 # Fix qmeu 64 bit host issues for 32bit binaries on buster
 log "Testing for SSL issues" "dbg"
-curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes;
+curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes
 log " SSL Issues: ${CURLFAIL:-no}"
 [[ $CURLFAIL == yes ]] && log "Fixing ca-certificates" "wrn" && c_rehash
 
@@ -236,7 +229,7 @@ log "Attempting to install Node version: ${NODE_VERSION}"
 IFS=\. read -ra NODE_SEMVER <<<"$NODE_VERSION"
 NODE_APT=node_${NODE_SEMVER[0]}.x
 log "Adding NodeJs lists - ${NODE_APT}"
-cat <<-EOF > /etc/apt/sources.list.d/nodesource.list
+cat <<-EOF >/etc/apt/sources.list.d/nodesource.list
 deb https://deb.nodesource.com/$NODE_APT $DISTRO_NAME main
 deb-src https://deb.nodesource.com/$NODE_APT $DISTRO_NAME main
 EOF
@@ -244,7 +237,7 @@ EOF
 apt-get update
 apt-get -y install $packages
 
-log "Node $(node --version) arm_version: $(node <<< 'console.log(process.config.variables.arm_version)')" "info"
+log "Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
 log "nodejs installed at $(command -v node)" "info"
 
 log "Cleaning up after package(s) installation"
@@ -264,7 +257,7 @@ chmod 777 /var/lib/mpd/tag_cache
 chmod 777 /var/lib/mpd/playlists
 
 log "Setting mpdignore file"
-cat <<-EOF > /var/lib/mpd/music/.mpdignore
+cat <<-EOF >/var/lib/mpd/music/.mpdignore
 @Recycle
 #recycle
 $*
@@ -327,18 +320,18 @@ usermod -a -G audio mpd
 
 log "Setting RT Priority to Audio Group"
 echo '@audio - rtprio 99
-@audio - memlock unlimited' >> /etc/security/limits.conf
+@audio - memlock unlimited' >>/etc/security/limits.conf
 
 log "Alsa Optimizations" "info"
 log "Creating Alsa state file"
 touch /var/lib/alsa/asound.state
-echo '#' > /var/lib/alsa/asound.state
+echo '#' >/var/lib/alsa/asound.state
 chmod 777 /var/lib/alsa/asound.state
 
 log "Setting USB DAC ordering"
 ## Set USB card ordering
 #https://alsa.opensrc.org/Usb-audio
-cat <<-EOF >> /etc/modprobe.d/alsa-base.conf
+cat <<-EOF >>/etc/modprobe.d/alsa-base.conf
 #Tuning USB devices for minimal latencies
 options snd-usb-audio nrpacks=1
 # USB DACs will have device number 5 in whole Volumio device range
@@ -350,10 +343,10 @@ EOF
 #####################
 log "Network Optimizations" "info"
 log "Tuning LAN"
-echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf
+echo 'fs.inotify.max_user_watches = 524288' >>/etc/sysctl.conf
 
 log "Disabling IPV6"
-cat <<-EOF >> /etc/sysctl.conf
+cat <<-EOF >>/etc/sysctl.conf
 #disable ipv6
 net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.default.disable_ipv6 = 1
@@ -370,7 +363,7 @@ sed -i '/^After=network.target/a # For Volumio hotspot functionality\nWants=dnsm
 
 log "Configuring dnsmasq"
 # TODO listen on wlan* or only wlan0?
-cat <<-EOF >> /etc/dnsmasq.d/hotspot.conf
+cat <<-EOF >>/etc/dnsmasq.d/hotspot.conf
 # dnsmasq hotspot configuration for Volumio
 # Only listen on wifi interface
 interface=wlan0
@@ -389,7 +382,7 @@ log-facility=local7
 EOF
 
 log "Configuring hostapd"
-cat <<-EOF >> /etc/hostapd/hostapd.conf
+cat <<-EOF >>/etc/hostapd/hostapd.conf
 interface=wlan0
 driver=nl80211
 channel=4
@@ -411,7 +404,7 @@ log "Empty resolv.conf.head for custom DNS settings"
 touch /etc/resolv.conf.head
 
 log "Setting fallback DNS with OpenDNS nameservers"
-cat <<-EOF > /etc/resolv.conf.tail.tmpl
+cat <<-EOF >/etc/resolv.conf.tail.tmpl
 # OpenDNS nameservers
 nameserver 208.67.222.222
 nameserver 208.67.220.220
@@ -428,14 +421,14 @@ rm -f /etc/avahi/services/udisks.service
 #####################
 
 log "Setting CPU governor to performance" "info"
-echo 'GOVERNOR="performance"' > /etc/default/cpufrequtils
+echo 'GOVERNOR="performance"' >/etc/default/cpufrequtils
 
 #####################
 #Multimedia Keys#-----------------------------------------
 #####################
 
 log "Configuring xbindkeys"
-cat <<-EOF > /etc/xbindkeysrc
+cat <<-EOF >/etc/xbindkeysrc
 "/usr/local/bin/volumio toggle"
     XF86AudioPlay
 "/usr/local/bin/volumio previous"
@@ -450,9 +443,7 @@ cat <<-EOF > /etc/xbindkeysrc
 XF86AudioRaiseVolume'
 EOF
 
-
 log "Enabling xbindkeys"
 ln -s /lib/systemd/system/xbindkeysrc.service /etc/systemd/system/multi-user.target.wants/xbindkeysrc.service
-
 
 log "Finished Volumio chroot configuration for ${DISTRO_NAME}" "okay"

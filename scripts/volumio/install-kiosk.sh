@@ -9,7 +9,7 @@ kiosk_pkgs+=" midori"
 apt-get install -y $kiosk_pkgs --no-install-recommends
 log "Kiosk dependencies installed" "okay"
 log "Creating Kiosk start script"
-cat<<-EOF>/opt/volumiokiosk.sh
+cat <<-EOF >/opt/volumiokiosk.sh
 #!/bin/bash
 mkdir -p /data/volumiokiosk
 export DISPLAY=:0
@@ -25,7 +25,7 @@ EOF
 chmod +x /opt/volumiokiosk.sh
 
 log "Creating Systemd Unit for Kiosk"
-cat<<-EOF>/lib/systemd/system/volumio-kiosk.service
+cat <<-EOF >/lib/systemd/system/volumio-kiosk.service
 [Unit]
 Description=Start Volumio Kiosk
 Wants=volumio.service
@@ -49,7 +49,7 @@ sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
 
 log "Hide Mouse cursor"
 
-cat<<-EOF>/root/.xinitrc
+cat <<-EOF >/root/.xinitrc
 #!/bin/sh
 if [ -d /etc/X11/xinit/xinitrc.d ]; then
   for f in /etc/X11/xinit/xinitrc.d/*; do
@@ -63,10 +63,9 @@ exec openbox-session
 exec unclutter &
 EOF
 
-
 log "Enabling UI for HDMI output selection"
-echo '[{"value": false,"id":"section_hdmi_settings","attribute_name": "hidden"}]' > /volumio/app/plugins/system_controller/system/override.json
+echo '[{"value": false,"id":"section_hdmi_settings","attribute_name": "hidden"}]' >/volumio/app/plugins/system_controller/system/override.json
 
 log "Setting HDMI UI enabled by default"
 config_path="/volumio/app/plugins/system_controller/system/config.json"
-cat <<< $"(jq '.hdmi_enabled={value:true, type:\"boolean\"}' ${config_path})" > ${config_path}
+cat <<<$"(jq '.hdmi_enabled={value:true, type:\"boolean\"}' ${config_path})" >${config_path}

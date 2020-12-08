@@ -27,7 +27,7 @@ log "Running Volumio Image Builder -" "info"
 ARCH=""
 SUITE="buster"
 #Help function
-function HELP {
+function HELP() {
   echo "
 
 Help documentation for Volumio Image Builder
@@ -67,12 +67,12 @@ mount_chroot() {
   export CHROOT
 }
 
-unmount_chroot(){
+unmount_chroot() {
   local base=$1
   log "Unmounting chroot temporary devices at ${base}"
-  umount -l "${base}/dev"  || log "umount dev failed" "wrn"
+  umount -l "${base}/dev" || log "umount dev failed" "wrn"
   umount -l "${base}/proc" || log "umount proc failed" "wrn"
-  umount -l "${base}/sys"  || log "umount sys failed" "wrn"
+  umount -l "${base}/sys" || log "umount sys failed" "wrn"
 
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
   if [[ -d "${base}/run/cgmanager/fs" ]]; then
@@ -81,7 +81,7 @@ unmount_chroot(){
   CHROOT=no
 }
 
-exit_error () {
+exit_error() {
   log "Build script failed!!" "err"
   # Check if there are any mounts that need cleaning up
   # If dev is mounted, the rest should also be mounted (right?)
@@ -93,7 +93,7 @@ exit_error () {
 trap exit_error INT ERR
 
 #$1 = ${BUILD} $2 = ${VERSION} $3 = ${DEVICE}"
-function check_os_release {
+function check_os_release() {
   ## This shouldn't be required anymore - we pack the rootfs tarball at base level
   # local build=$1
   # VERSION=$2
@@ -107,12 +107,12 @@ function check_os_release {
     sed -i '/^\(VOLUMIO_VERSION\|VOLUMIO_HARDWARE\)/d' "$os_release"
   fi
   log "Adding ${VERSION} and ${DEVICE} to os-release" "info"
-  echo "VOLUMIO_VERSION=\"${VERSION}\"" >> "$os_release"
-  echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >> "$os_release"
+  echo "VOLUMIO_VERSION=\"${VERSION}\"" >>"$os_release"
+  echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >>"$os_release"
 }
 
 ## Fetch the NodeJS BE and FE
-function fetch_volumio_from_repo {
+function fetch_volumio_from_repo() {
   log 'Cloning Volumio Node Backend'
   [[ -d "${ROOTFS}/volumio" ]] && rm -r "${ROOTFS}/volumio"
 
@@ -127,17 +127,17 @@ function fetch_volumio_from_repo {
   fi
 
   log 'Cloning Volumio UI'
-  git clone --depth 1 -b dist  --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www"
+  git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www"
   git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www3"
   log "Adding Volumio revision information to os-release"
-  cat <<-EOF >> "${ROOTFS}/etc/os-release"
+  cat <<-EOF >>"${ROOTFS}/etc/os-release"
 	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
 	VOLUMIO_FE_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www/.git" rev-parse HEAD)"
 	VOLUMIO_FE3_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www3/.git" rev-parse HEAD)"
 	VOLUMIO_BE_VERSION="$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)"
 	VOLUMIO_ARCH="${BUILD}"
 	EOF
-  
+
   # Clean up git repo
   rm -rf "${ROOTFS}/volumio/http/www/.git"
   rm -rf "${ROOTFS}/volumio/http/www3/.git"
@@ -145,7 +145,6 @@ function fetch_volumio_from_repo {
   log "Cloned Volumio BE" "okay" "$(git --git-dir "${ROOTFS}/volumio/.git" log --oneline -1)"
 
 }
-
 
 #Check the number of arguments. If none are passed, print help and exit.
 NUMARGS=$#
@@ -155,37 +154,37 @@ fi
 
 while getopts b:v:d:p:t:e:h: FLAG; do
   case $FLAG in
-    b)
-      BUILD=$OPTARG
-      ;;
-    d)
-      DEVICE=$OPTARG
-      ;;
-    v)
-      VERSION=$OPTARG
-      ;;
+  b)
+    BUILD=$OPTARG
+    ;;
+  d)
+    DEVICE=$OPTARG
+    ;;
+  v)
+    VERSION=$OPTARG
+    ;;
     # l)
     #   #Create docker layer
     #   CREATE_DOCKER_LAYER=1
     #   DOCKER_REPOSITORY_NAME=$OPTARG
-      # ;;
-    p)
-      PATCH=$OPTARG
-      ;;
-    h)  #show help
-      HELP
-      ;;
-    t)
-      VARIANT=$OPTARG
-      ;;
-    /?) #unrecognized option - show help
-      echo -e \\n"Option -${bold}$OPTARG${normal} not allowed."
-      HELP
-      ;;
+    # ;;
+  p)
+    PATCH=$OPTARG
+    ;;
+  h) #show help
+    HELP
+    ;;
+  t)
+    VARIANT=$OPTARG
+    ;;
+  /?) #unrecognized option - show help
+    echo -e \\n"Option -${bold}$OPTARG${normal} not allowed."
+    HELP
+    ;;
   esac
 done
 
-shift $((OPTIND-1))
+shift $((OPTIND - 1))
 
 log "Checking whether we are running as root"
 if [ "$(id -u)" -ne 0 ]; then
@@ -266,17 +265,14 @@ if [ -n "${BUILD}" ]; then
     "${DirEtcparts}"/01progress
 
   log "Adding SecureApt keys to rootfs"
-  for key in "${!SecureApt[@]}"
-  do
+  for key in "${!SecureApt[@]}"; do
     apt-key --keyring "${DirEtctrustedparts}/${key}" \
       adv --fetch-keys "${SecureApt[$key]}"
   done
 
   log "Running multistrap for ${BUILD} (${ARCH})"
   # shellcheck disable=SC2069
-  if ! multistrap -a "$ARCH" -f "$CONF"  2>&1 > "${LOG_DIR}/multistrap.log"
-  # if ! { multistrap -a "$ARCH" -f "$CONF" > /dev/null; } 2>&1
-  then
+  if ! multistrap -a "$ARCH" -f "$CONF" 2>&1 >"${LOG_DIR}/multistrap.log"; then # if ! { multistrap -a "$ARCH" -f "$CONF" > /dev/null; } 2>&1
     log "Multistrap failed. Exiting" "err"
     exit 1
   else
@@ -284,7 +280,6 @@ if [ -n "${BUILD}" ]; then
     time_it "$end_multistrap" "$start"
     log "Finished setting up Multistrap rootfs" "okay" "$TIME_STR"
   fi
-
 
   log "Preparing for Volumio chroot configuration" "info"
   start_chroot=$(date +%s)
@@ -307,7 +302,7 @@ if [ -n "${BUILD}" ]; then
   CUR_DATE=$(date)
   #Write some Version information
   log "Writing system information"
-  cat <<-EOF >>  "build/${BUILD}/root/etc/os-release"
+  cat <<-EOF >>"build/${BUILD}/root/etc/os-release"
 	VOLUMIO_VARIANT="${VARIANT}"
 	VOLUMIO_TEST="FALSE"
 	VOLUMIO_BUILD_DATE="${CUR_DATE}"
@@ -333,13 +328,12 @@ if [ -n "${BUILD}" ]; then
   tar cp --xattrs --directory=build/${BUILD}/root/ \
     --exclude='./dev/*' --exclude='./proc/*' \
     --exclude='./run/*' --exclude='./tmp/*' \
-    --exclude='./sys/*' . \
-    | pv -p -b -r -s "$(du -sb build/${BUILD}/ | cut -f1)" -N "$rootfs_tarball" | lz4 -c > "${rootfs_tarball}.lz4"
+    --exclude='./sys/*' . |
+    pv -p -b -r -s "$(du -sb build/${BUILD}/ | cut -f1)" -N "$rootfs_tarball" | lz4 -c >"${rootfs_tarball}.lz4"
   log "Created ${BUILD}_rootfs.lz4" "okay"
 else
   use_rootfs_tarball=yes
 fi
-
 
 #### Build stage 1 - Device specific image creation
 
@@ -354,18 +348,18 @@ if [[ -n "$DEVICE" ]]; then
       log "Trying to use prior base system" "info"
       if [[ -d ${SRC}/build/${BUILD} ]]; then
         log "Prior ${BUILD} rootfs dir found!" "dbg" "$(date -r "${SRC}/build/${BUILD}" "+%m-%d-%Y %H:%M:%S")"
-         [[ ${CLEAN_ROOTFS:-yes} == yes ]] && \
+        [[ ${CLEAN_ROOTFS:-yes} == yes ]] &&
           log "Cleaning prior rootfs directory" "wrn" && rm -rf "${SRC}/build/${BUILD}"
       fi
       rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
       [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
       log "Using prior Base tarball"
       mkdir -p ./build/${BUILD}/root
-      pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" \
-        | lz4 -dc \
-        | tar xp --xattrs -C ./build/${BUILD}/root
-      fi
-      ROOTFS="${SRC}/build/${BUILD}/root"
+      pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" |
+        lz4 -dc |
+        tar xp --xattrs -C ./build/${BUILD}/root
+    fi
+    ROOTFS="${SRC}/build/${BUILD}/root"
   else
     log "No configuration found for <${DEVICE}>" "err"
     exit 1
@@ -378,7 +372,7 @@ if [[ -n "$DEVICE" ]]; then
   #TODO
   if [ -n "$PATCH" ]; then
     log "Copying Patch ${PATCH} to Rootfs"
-    cp -rp "$PATCH"  "${ROOTFS}/"
+    cp -rp "$PATCH" "${ROOTFS}/"
   else
     log "No patches found, defaulting to Volumio rootfs"
     PATCH='volumio'
@@ -390,7 +384,7 @@ if [[ -n "$DEVICE" ]]; then
     if [[ -d "${SRC}/tests" ]]; then
       mkdir -p "${ROOTFS}/tests"
       for file in "${SRC}"/tests/*.sh; do
-        cp "${file}"  "${ROOTFS}"/tests/
+        cp "${file}" "${ROOTFS}"/tests/
       done
       mount_chroot "${ROOTFS}"
       for file in "${ROOTFS}"/tests/*.sh; do
@@ -398,36 +392,36 @@ if [[ -n "$DEVICE" ]]; then
       done
       unmount_chroot "${ROOTFS}"
       log "Done, exiting"
-      exit 0  
+      exit 0
     fi
   fi
 
-  ## Update the FE/BE 
+  ## Update the FE/BE
   log "Checking upstream status of Volumio Node BE" "info"
   REPO_URL=${VOL_BE_REPO/github.com/api.github.com\/repos}
   REPO_URL="${REPO_URL%.*}/branches/${VOL_BE_REPO_BRANCH}"
-  GIT_STATUS=$(curl  --silent "${REPO_URL}")
-  readarray -t COMMIT_DETAILS <<< "$(jq -r '.commit.sha, .commit.commit.message' <<< "${GIT_STATUS}")"
+  GIT_STATUS=$(curl --silent "${REPO_URL}")
+  readarray -t COMMIT_DETAILS <<<"$(jq -r '.commit.sha, .commit.commit.message' <<<"${GIT_STATUS}")"
   log "Upstream Volumio BE details" "dbg" "${COMMIT_DETAILS[0]:0:8} ${COMMIT_DETAILS[1]}"
   [[ ! "$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)" == "${COMMIT_DETAILS[0]}" ]] && log "Rootfs git is not in sync with upstream repo!" "wrn"
-  if  [[ ${UPDATE_VOLUMIO:-no} == yes ]]; then 
+  if [[ ${UPDATE_VOLUMIO:-no} == yes ]]; then
     log "Updating Volumio Node BE/FE"
     fetch_volumio_from_repo
-  else 
+  else
     log "Using base tarball's Volumio Node BE/FE" "info" "$(git --git-dir "${ROOTFS}/volumio/.git" log --oneline -1)"
   fi
 
   ## Copy modules/packages
-  # TODO: Streamline node versioning! 
+  # TODO: Streamline node versioning!
   # Major version modules tarballs should be sufficient.
   IFS=\. read -ra NODE_SEMVER <<<"$NODE_VERSION"
   if [[ ${USE_LOCAL_NODE_MODULES:-no} == yes ]]; then
     log "Extracting node_modules for Node v${NODE_VERSION}"
     tar xf "${SRC}"/modules/node_modules_${BUILD}_v${NODE_VERSION%%.*}.*.tar.xz -C "${ROOTFS}/volumio"
     ls "${ROOTFS}/volumio/node_modules"
-  else 
+  else
     # Current Volumio repo knows only {arm|x86} which is conveniently the same length
-    # TODO: Consolidate the naming scheme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz 
+    # TODO: Consolidate the naming scheme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz
     log "Attempting to fetch node_modules for ${NODE_VERSION} -- ${NODE_SEMVER[*]}"
     modules_url="${NODE_MODULES_REPO}/node_modules_${BUILD:0:3}-${NODE_VERSION}.tar.gz"
     log "Fetching node_modules from ${modules_url}"
@@ -438,19 +432,17 @@ if [[ -n "$DEVICE" ]]; then
   mkdir -p "${ROOTFS}"/volumio/customPkgs
   if [[ ${USE_LOCAL_PACKAGES:-no} == yes ]]; then
     log "Adding packages from local ${SRC}/customPkgs/"
-    cp "${SRC}"/customPkgs/*"${BUILD}".deb  "${ROOTFS}"/volumio/customPkgs/
+    cp "${SRC}"/customPkgs/*"${BUILD}".deb "${ROOTFS}"/volumio/customPkgs/
     # Pi's need an armvl6 build of nodejs (for Node > v8)
     [[ ${DEVICE} == raspberry && ${NODE_SEMVER[0]} -gt 8 ]] && mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${SRC}"/customPkgs/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
     ls "${ROOTFS}"/volumio/customPkgs
-  else 
+  else
     log "Adding customPkgs from external repo" "info"
-    for key in "${!CUSTOM_PKGS[@]}"
-    do
+    for key in "${!CUSTOM_PKGS[@]}"; do
       log "Fetching ${key} from ${CUSTOM_PKGS[$key]}"
       wget -nv "${CUSTOM_PKGS[$key]}" -P "${ROOTFS}"/volumio/customPkgs/
     done
   fi
-
 
   # Prepare Images
   start_img=$(date +%s)

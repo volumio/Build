@@ -14,8 +14,7 @@ export -f time_it
 # shellcheck source=/dev/null
 source /chroot_device_config.sh
 
-function exit_error()
-{
+function exit_error() {
   log "Volumio chroot config failed" "$(basename "$0")" "err"
 }
 
@@ -25,7 +24,7 @@ log "Running final config for ${DEVICENAME}"
 
 ## Setup Fstab
 log "Creating fstab" "info"
-cat <<-EOF > /etc/fstab
+cat <<-EOF >/etc/fstab
 # ${DEVICENAME} fstab
 
 proc           /proc                proc    defaults                                  0 0
@@ -38,15 +37,15 @@ tmpfs          /dev/shm             tmpfs   defaults,nosuid,noexec,nodev        
 EOF
 
 ## Initial chroot config
-declare -fF device_chroot_tweaks &>/dev/null \
-  && log "Entering device_chroot_tweaks" "cfg" \
-  && device_chroot_tweaks
+declare -fF device_chroot_tweaks &>/dev/null &&
+  log "Entering device_chroot_tweaks" "cfg" &&
+  device_chroot_tweaks
 
 ## Activate modules
 # shellcheck disable=SC2116
 log "Activating ${#MODULES[@]} custom modules:" "" "$(echo "${MODULES[@]}")"
-mod_list=$(printf "%s\n"  "${MODULES[@]}")
-cat <<-EOF >> /etc/initramfs-tools/modules
+mod_list=$(printf "%s\n" "${MODULES[@]}")
+cat <<-EOF >>/etc/initramfs-tools/modules
 # Volumio modules
 ${mod_list}
 EOF
@@ -96,13 +95,13 @@ else
   log "Applying Patch ${PATCH}" "wrn"
   #Check the existence of patch script(s)
   patch_scrips=("patch.sh" "install.sh")
-  if [[ -d ${PATCH} ]]; then 
+  if [[ -d ${PATCH} ]]; then
     pushd "${PATCH}"
     for script in "${patch_scrips[@]}"; do
-     log "Running ${script}" "ext" "${PATCH}"
-     bash "${script}"
-     status=$?
-     [[ ${status} -ne 0 ]] && log "${script} failed with ${status}" "err" "${PATCH}"
+      log "Running ${script}" "ext" "${PATCH}"
+      bash "${script}"
+      status=$?
+      [[ ${status} -ne 0 ]] && log "${script} failed with ${status}" "err" "${PATCH}"
     done
     popd
   else

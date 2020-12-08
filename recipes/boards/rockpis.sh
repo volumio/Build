@@ -25,14 +25,13 @@ VOLINITUPDATER=no
 ## Partition info
 BOOT_START=20
 BOOT_END=84
-BOOT_TYPE=msdos  # msdos or gpt
+BOOT_TYPE=msdos          # msdos or gpt
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
 MODULES=("overlay" "overlayfs" "squashfs" "nls_cp437")
 # Packages that will be installed
 PACKAGES=("u-boot-tools")
-
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -44,7 +43,7 @@ write_device_files() {
   cp -pdR "${PLTDIR}/${DEVICE}/lib/firmware" "${ROOTFSMNT}/lib"
 }
 
-write_device_bootloader(){
+write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
 
   dd if="${PLTDIR}/${DEVICE}/u-boot/idbloader.bin" of="${LOOP_DEV}" seek=64 conv=notrunc status=none
@@ -53,13 +52,13 @@ write_device_bootloader(){
 }
 
 # Will be called by the image builder for any customisation
-device_image_tweaks(){
+device_image_tweaks() {
   :
 }
 
 ### Chroot tweaks
 # Will be run in chroot (before other things)
-device_chroot_tweaks(){
+device_chroot_tweaks() {
   :
 }
 
@@ -74,12 +73,11 @@ device_chroot_tweaks_pre() {
   touch /etc/udev/rules.d/99-gpio.rules
   echo "SUBSYSTEM==\"gpio\", ACTION==\"add\", RUN=\"/bin/sh -c '
           chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
-          chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH\
-    '\"" > /etc/udev/rules.d/99-gpio.rules
+          chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH    '\"" >/etc/udev/rules.d/99-gpio.rules
 }
 
 # Will be run in chroot - Post initramfs
-device_chroot_tweaks_post(){
+device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   log "Creating uInitrd from 'volumio.initrd'" "info"
@@ -87,7 +85,7 @@ device_chroot_tweaks_post(){
   # removing the need of each image needing u-boot-tools
   # saving some time!
   if [[ -f /boot/volumio.initrd ]]; then
-  [[ $ARCH == "armhf" ]] && ARCH="arm"
+    [[ $ARCH == "armhf" ]] && ARCH="arm"
     mkimage -v -A $ARCH -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
   fi
   if [[ ! -f /boot/boot.scr ]]; then

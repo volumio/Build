@@ -3,7 +3,7 @@
 
 set -eo pipefail
 
-exit_error () {
+exit_error() {
   log "Imagebuilder script failed!!" "err"
   # Check if there are any mounts that need cleaning up
   # If dev is mounted, the rest should also be mounted (right?)
@@ -14,7 +14,7 @@ exit_error () {
   # dmsetup remove_all
   log "Cleaning loop device $LOOP_DEV" "wrn"
   losetup -j "${IMG_FILE}"
-  dmsetup remove "${LOOP_DEV}" && \
+  dmsetup remove "${LOOP_DEV}" &&
     losetup -d "${LOOP_DEV}"
   log "Deleting image file"
   [[ -f ${IMG_FILE} ]] && rm "${IMG_FILE}"
@@ -39,9 +39,9 @@ parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
 kpartx -a "${LOOP_DEV}" -s
 
-BOOT_PART=/dev/mapper/"$(awk -F'/' '{print $NF}'<<< "${LOOP_DEV}")"p1
-IMG_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<< "$LOOP_DEV")"p2
-DATA_PART=/dev/mapper/"$(awk -F'/' '{print $NF}'<<< "$LOOP_DEV")"p3
+BOOT_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"${LOOP_DEV}")"p1
+IMG_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"$LOOP_DEV")"p2
+DATA_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"$LOOP_DEV")"p3
 
 if [[ ! -b "$BOOT_PART" ]]; then
   log "$BOOT_PART doesn't exist" "err"
@@ -82,7 +82,7 @@ cp -pdR "${ROOTFS}"/* ${ROOTFSMNT}
 if [[ $VOLINITUPDATER == yes ]]; then
   log "Fetching volumio-init-updater"
   wget -P ${ROOTFSMNT}/usr/local/sbin \
-  -nv "${VOLBINSREPO}/${BUILD}/${VOLBINS[init-updater]}"
+    -nv "${VOLBINSREPO}/${BUILD}/${VOLBINS[init - updater]}"
   # initramfs doesn't know about v2
   mv ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater-v2 \
     ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater
@@ -115,7 +115,6 @@ if [[ $HAS_PLTDIR == yes ]]; then
   write_device_bootloader
 fi
 
-
 # Device specific tweaks
 log "Performing ${DEVICE} specific tweaks" "info"
 log "Entering device_image_tweaks" "cfg"
@@ -127,7 +126,7 @@ UUID_IMG="$(blkid -s UUID -o value "${IMG_PART}")"
 UUID_DATA="$(blkid -s UUID -o value "${DATA_PART}")"
 
 log "Adding board pretty name to os-release"
-echo "VOLUMIO_DEVICENAME=\"${DEVICENAME}\"" >> ${ROOTFSMNT}/etc/os-release
+echo "VOLUMIO_DEVICENAME=\"${DEVICENAME}\"" >>${ROOTFSMNT}/etc/os-release
 
 # Ensure all file systems operations are completed before entering chroot again
 sync
@@ -139,13 +138,13 @@ cp "${SRC}/scripts/initramfs/${INIT_TYPE}" ${ROOTFSMNT}/root/init
 cp "${SRC}"/scripts/initramfs/mkinitramfs-buster.sh ${ROOTFSMNT}/usr/local/sbin
 cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
 [ "$KIOSKMODE" == yes ] && cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}
-echo "$PATCH" > ${ROOTFSMNT}/patch
+echo "$PATCH" >${ROOTFSMNT}/patch
 if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "config.js" ]]; then
-   log "Starting config.js" "ext" "${PATCH}"
-   node config.js "${PATCH}"
-   status=$?
-   [[ ${status} ]] && log "config.js failed with ${status}" "err" "${PATCH}" && exit 10
-   log "Completed config.js" "ext" "${PATCH}"
+  log "Starting config.js" "ext" "${PATCH}"
+  node config.js "${PATCH}"
+  status=$?
+  [[ ${status} ]] && log "config.js failed with ${status}" "err" "${PATCH}" && exit 10
+  log "Completed config.js" "ext" "${PATCH}"
 fi
 # Copy across custom bits and bobs from device config
 # This is in the hope that <./recipes/boards/${DEVICE}>
@@ -153,7 +152,7 @@ fi
 
 #TODO: Should we just copy the
 # whole thing into the chroot to make life easier?
-cat <<-EOF > $ROOTFSMNT/chroot_device_config.sh
+cat <<-EOF >$ROOTFSMNT/chroot_device_config.sh
 DEVICENAME="${DEVICENAME}"
 ARCH="${ARCH}"
 DEBUG_IMAGE="${DEBUG_IMAGE:-no}"
@@ -189,7 +188,6 @@ source "${SRC}/scripts/volumio/finalize.sh"
 
 log "Rootfs created" "okay"
 
-
 #### Build stage 3 - Prepare squashfs
 log "Preparing rootfs base for SquashFS" "info"
 
@@ -203,7 +201,6 @@ else
 fi
 log "Copying Volumio rootfs to SquashFS Dir"
 cp -rp $ROOTFSMNT/* $SQSHMNT
-
 
 log "Creating Kernel Partition Archive" "info"
 if [ -e $VOLMNT/kernel_current.tar ]; then
@@ -244,4 +241,4 @@ log "Removing Volumio.sqsh"
 [[ -f "${SRC}"/Volumio.sqsh ]] && rm "${SRC}"/Volumio.sqsh
 
 log "Hashing image" "info"
-md5sum "$IMG_FILE" > "${IMG_FILE}.md5"
+md5sum "$IMG_FILE" >"${IMG_FILE}.md5"

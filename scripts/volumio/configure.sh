@@ -4,8 +4,7 @@
 ##
 
 set -eo pipefail
-function exit_error()
-{
+function exit_error() {
   log "Volumio config failed" "err" "$(basename "$0")"
 }
 
@@ -19,13 +18,13 @@ cp "${SRC}"/volumio/etc/apt/sources.list."${BUILD}" "${ROOTFS}/etc/apt/sources.l
 if [[ $BUILD == x86 ]]; then
   log 'Copying X86 related Configuration files'
   #Grub2 conf file
-    cp "${SRC}/volumio/etc/default/grub" "${ROOTFS}/etc/default/grub"
-    cp "${SRC}/volumio/splash/volumio.png" "${ROOTFS}/boot"
+  cp "${SRC}/volumio/etc/default/grub" "${ROOTFS}/etc/default/grub"
+  cp "${SRC}/volumio/splash/volumio.png" "${ROOTFS}/boot"
   #FSTAB File
-    cp "${SRC}/volumio/etc/fstab.x86" "${ROOTFS}/etc/fstab"
+  cp "${SRC}/volumio/etc/fstab.x86" "${ROOTFS}/etc/fstab"
 else
   log 'Setting time for ARM devices with fakehwclock to build time'
-  date -u '+%Y-%m-%d %H:%M:%S' > "${ROOTFS}/etc/fake-hwclock.data"
+  date -u '+%Y-%m-%d %H:%M:%S' >"${ROOTFS}/etc/fake-hwclock.data"
 fi
 
 log "Copying misc config/tweaks to rootfs" "info"
@@ -43,7 +42,7 @@ fi
 
 # TODO: Streamline this!!
 # map files from ${SRC}/volumio => ${ROOTFS}?
-#  
+#
 
 #Edimax Power Saving Fix + Alsa modprobe
 cp -r "${SRC}/volumio/etc/modprobe.d" "${ROOTFS}/etc/"
@@ -63,13 +62,13 @@ cp -r "${SRC}/volumio/etc/udev" "${ROOTFS}/etc/"
 
 #Polkit for USB mounts
 cp -r "${SRC}/volumio/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla" \
- "${ROOTFS}/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla"
+  "${ROOTFS}/etc/polkit-1/localauthority/50-local.d/50-mount-as-pi.pkla"
 
 #Inittab file
 cp "${SRC}/volumio/etc/inittab" "${ROOTFS}/etc/inittab"
 
-#MOTD 
-# Seems to get overwritten later 
+#MOTD
+# Seems to get overwritten later
 # rm -f "${ROOTFSMNT}/etc/motd" "${ROOTFSMNT}"/etc/update-motd.d/*
 # cp "${SRC}"/volumio/etc/update-motd.d/* "${ROOTFS}/etc/update-motd.d/"
 
@@ -97,7 +96,7 @@ cp -r "${SRC}"/volumio/lib "${ROOTFS}"/
 cp -r "${SRC}"/volumio/etc/network/* "${ROOTFS}"/etc/network
 
 # Wpa Supplicant
-echo " " > "${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
+echo " " >"${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 "${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
 
 #Shairport
@@ -129,7 +128,7 @@ cp "${SRC}/volumio/bin/rename_netiface0.sh" "${ROOTFS}/bin/rename_netiface0.sh"
 chmod a+x "${ROOTFS}/bin/rename_netiface0.sh"
 
 #Plymouth & upmpdcli files
-cp -rp "${SRC}"/volumio/usr/*  "${ROOTFS}/usr/"
+cp -rp "${SRC}"/volumio/usr/* "${ROOTFS}/usr/"
 
 #CPU TWEAK
 cp "${SRC}/volumio/bin/volumio_cpu_tweak" "${ROOTFS}/bin/volumio_cpu_tweak"

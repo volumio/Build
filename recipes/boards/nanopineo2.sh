@@ -25,16 +25,13 @@ VOLINITUPDATER=no
 ## Partition info
 BOOT_START=21
 BOOT_END=84
-BOOT_TYPE=msdos  # msdos or gpt
+BOOT_TYPE=msdos          # msdos or gpt
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
-
-
 
 # Modules that will be added to intramsfs
 MODULES=("overlay" "overlayfs" "squashfs" "nls_cp437" "fuse")
 # Packages that will be installed
 PACKAGES=("u-boot-tools")
-
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -51,7 +48,7 @@ write_device_files() {
   #     ${ROOTFSMNT}/boot/sun50i-h5-nanopi-neo2.dtb
 }
 
-write_device_bootloader(){
+write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
 
   dd if="${PLTDIR}/${DEVICE}/u-boot/sunxi-spl.bin" of="${LOOP_DEV}" bs=1024 seek=8
@@ -59,7 +56,7 @@ write_device_bootloader(){
 }
 
 # Will be called by the image builder for any customisation
-device_image_tweaks(){
+device_image_tweaks() {
   :
 }
 
@@ -74,12 +71,11 @@ device_chroot_tweaks_pre() {
   touch /etc/udev/rules.d/99-gpio.rules
   echo "SUBSYSTEM==\"gpio\", ACTION==\"add\", RUN=\"/bin/sh -c '
           chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
-          chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH\
-    '\"" > /etc/udev/rules.d/99-gpio.rules
+          chown -R root:gpio /sys$DEVPATH && chmod -R 770 /sys$DEVPATH    '\"" >/etc/udev/rules.d/99-gpio.rules
 }
 
 # Will be run in chroot - Post initramfs
-device_chroot_tweaks_post(){
+device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   #TODO This can be done outside chroot,

@@ -10,14 +10,14 @@ log "Computing Volumio folder Hash Checksum" "info"
 HASH="$(md5deep -r -l -s -q ${ROOTFSMNT}/volumio | sort | md5sum | awk '{print $1}')"
 # HASH=`/usr/bin/md5deep -r -l -s -q ${ROOTFSMNT}/volumio | sort | md5sum | tr -d "-" | tr -d " \t\n\r"`
 log "HASH: ${HASH}" "dbg"
-cat <<-EOF >> ${ROOTFSMNT}/etc/os-release
+cat <<-EOF >>${ROOTFSMNT}/etc/os-release
 VOLUMIO_HASH="${HASH}"
 EOF
 
 log "Cleaning stuff to save space" "info"
 log "Cleaning docs"
 find ${ROOTFSMNT}/usr/share/doc -depth -type f ! -name copyright -delete #| xargs rm
-find ${ROOTFSMNT}/usr/share/doc -empty -delete #|xargs rmdir || true
+find ${ROOTFSMNT}/usr/share/doc -empty -delete                           #|xargs rmdir || true
 
 if [[ $BUILD != "x86" ]]; then
   log "Cleaning man and caches"
@@ -34,13 +34,13 @@ cp "${SRC}"/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
 
 #TODO: This doesn't seem to be doing much atm
 log "Stripping binaries"
-STRP_DIRECTORIES=("${ROOTFSMNT}/lib/" \
-                  "${ROOTFSMNT}/bin/" \
-                  "${ROOTFSMNT}/usr/sbin" \
-                  "${ROOTFSMNT}/usr/local/bin/")
+STRP_DIRECTORIES=("${ROOTFSMNT}/lib/"
+  "${ROOTFSMNT}/bin/"
+  "${ROOTFSMNT}/usr/sbin"
+  "${ROOTFSMNT}/usr/local/bin/")
 
 for DIR in "${STRP_DIRECTORIES[@]}"; do
   log "$DIR Pre strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
-  find "$DIR" -type f  -exec strip --strip-all {} ';' > /dev/null 2>&1
+  find "$DIR" -type f -exec strip --strip-all {} ';' >/dev/null 2>&1
   log "$DIR Post strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
 done

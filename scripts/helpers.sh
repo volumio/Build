@@ -7,9 +7,9 @@
 if [[ $TERM == dumb ]]; then
 	export TERM=ansi
 fi
-if test -t; then # if terminal
-	ncolors=$(command -v tput > /dev/null && tput colors) # supports colour
-	if [[ $ncolors -ge  8 ]]; then
+if test -t; then                                      # if terminal
+	ncolors=$(command -v tput >/dev/null && tput colors) # supports colour
+	if [[ $ncolors -ge 8 ]]; then
 		export termcols=$(tput cols)
 		export bold="$(tput bold)"
 		export underline="$(tput smul)"
@@ -27,64 +27,63 @@ if test -t; then # if terminal
 fi
 
 # Make logging a bit more legible and intuitive
-log()
-{
-  local tmp=""
+log() {
+	local tmp=""
 	local char=".."
 	if [[ $CHROOT == yes ]]; then
 		char="--"
-  fi
+	fi
 
-  [[ -n $3 ]] && tmp="${normal}[${yellow} $3 ${normal}]"
+	[[ -n $3 ]] && tmp="${normal}[${yellow} $3 ${normal}]"
 
-  case $2 in
-    err)
-      echo -e "[${red} ${bold}error ${normal}]${red} $1 ${normal}$tmp"
-      ;;
+	case $2 in
+	err)
+		echo -e "[${red} ${bold}error ${normal}]${red} $1 ${normal}$tmp"
+		;;
 
-    cfg)
-      echo -e "[${cyan} ${bold}cfg ${normal}]${yellow} $1 ${normal}$tmp"
-      ;;
+	cfg)
+		echo -e "[${cyan} ${bold}cfg ${normal}]${yellow} $1 ${normal}$tmp"
+		;;
 
-    wrn)
-      echo -e "[${magenta}${bold} warn ${normal}] $1 $tmp"
-      ;;
+	wrn)
+		echo -e "[${magenta}${bold} warn ${normal}] $1 $tmp"
+		;;
 
-    dbg)
-      echo -e "[${standout} dbg ${normal}] ${blue} $1 ${normal} $tmp"
-      ;;
+	dbg)
+		echo -e "[${standout} dbg ${normal}] ${blue} $1 ${normal} $tmp"
+		;;
 
-    info)
-      echo -e "[${green} $char$char ${normal}]${cyan} $1 $tmp ${normal}"
-      ;;
+	info)
+		echo -e "[${green} $char$char ${normal}]${cyan} $1 $tmp ${normal}"
+		;;
 
-    okay)
-      echo -e "[${green} o.k. ${normal}]${green} $1 ${normal} $tmp"
-      ;;
+	okay)
+		echo -e "[${green} o.k. ${normal}]${green} $1 ${normal} $tmp"
+		;;
 
 	"")
-	  echo -e "[${green} $char ${normal}] $1 $tmp "
-	  ;;
+		echo -e "[${green} $char ${normal}] $1 $tmp "
+		;;
 
-    *)
-			[[ !  -z  $2  ]] && tmp="[${yellow} $2 ${normal}]"
-      echo -e "[${green} .. ${normal}] $1 $tmp "
-      ;;
+	*)
+		[[ ! -z $2 ]] && tmp="[${yellow} $2 ${normal}]"
+		echo -e "[${green} .. ${normal}] $1 $tmp "
+		;;
 
-  esac
+	esac
 }
 
 # Check if device/path is mounted
 # where: -r = --raw, -n = --noheadings, -o = --output
 # return exit codes: 0 = found, 1 = not found
-isMounted() { findmnt -rno SOURCE,TARGET "$1" >/dev/null;}
+isMounted() { findmnt -rno SOURCE,TARGET "$1" >/dev/null; }
 
 time_it() {
-	time=$(( $1-$2 ))
+	time=$(($1 - $2))
 	if [[ $time -lt 60 ]]; then
 		TIME_STR="$time sec"
 	else
-		TIME_STR="$(( time/60 )) min"
+		TIME_STR="$((time / 60)) min"
 	fi
 	export TIME_STR
 }

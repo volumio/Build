@@ -26,16 +26,13 @@ VOLINITUPDATER=no
 ## Partition info
 BOOT_START=1
 BOOT_END=64
-BOOT_TYPE=msdos  # msdos or gpt
+BOOT_TYPE=msdos          # msdos or gpt
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
-
-
 
 # Modules that will be added to intramsfs
 MODULES=("overlay" "overlayfs" "squashfs" "nls_cp437")
 # Packages that will be installed
 PACKAGES=("u-boot-tools")
-
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -47,14 +44,14 @@ write_device_files() {
   cp -pdR "${PLTDIR}/${DEVICE}/lib/firmware" "${ROOTFSMNT}/lib"
 }
 
-write_device_bootloader(){
+write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
 
   dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot-sunxi-with-spl.bin" of="${LOOP_DEV}" bs=1024 seek=8 conv=notrunc
 }
 
 # Will be called by the image builder for any customisation
-device_image_tweaks(){
+device_image_tweaks() {
   :
 }
 
@@ -66,7 +63,7 @@ device_chroot_tweaks_pre() {
   groupadd -f --system gpio
   usermod -aG gpio volumio
   # Works with newer kernels as well
-  cat<<-EOF > /etc/udev/rules.d/99-gpio.rules
+  cat <<-EOF >/etc/udev/rules.d/99-gpio.rules
 SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'find -L /sys/class/gpio/ -maxdepth 2 -exec chown root:gpio {} \; -exec chmod 770 {} \; || true'"
 EOF
   # touch /etc/udev/rules.d/99-gpio.rules
@@ -77,7 +74,7 @@ EOF
 }
 
 # Will be run in chroot - Post initramfs
-device_chroot_tweaks_post(){
+device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   #TODO This can be done outside chroot,

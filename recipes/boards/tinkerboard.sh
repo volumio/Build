@@ -26,16 +26,13 @@ KIOSKMODE=yes
 ## Partition info
 BOOT_START=1
 BOOT_END=64
-BOOT_TYPE=msdos  # msdos or gpt
+BOOT_TYPE=msdos          # msdos or gpt
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
-
-
 
 # Modules that will be added to intramsfs
 MODULES=("overlay" "overlayfs" "squashfs" "nls_cp437")
 # Packages that will be installed
 PACKAGES=("u-boot-tools" "plymouth" "plymouth-themes")
-
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -48,7 +45,7 @@ write_device_files() {
 
 }
 
-write_device_bootloader(){
+write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
 
   dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot.img" of="${LOOP_DEV}" seek=64 conv=notrunc
@@ -56,7 +53,7 @@ write_device_bootloader(){
 }
 
 # Will be called by the image builder for any customisation
-device_image_tweaks(){
+device_image_tweaks() {
   :
 }
 
@@ -68,14 +65,14 @@ device_chroot_tweaks_pre() {
   # Grab latest kernel version
   mapfile -t kernel_versions < <(ls -t /lib/modules | sort)
   log "Creating extlinux.conf for Kernel -- ${kernel_versions[0]}"
-  cat<<-EOF > /boot/extlinux/extlinux.conf
-label $(awk -F . '{print "kernel-"$1"."$2}' <<< "${kernel_versions[0]}")
+  cat <<-EOF >/boot/extlinux/extlinux.conf
+label $(awk -F . '{print "kernel-"$1"."$2}' <<<"${kernel_versions[0]}")
   kernel /zImage
   fdt /dtb/rk3288-miniarm.dtb
   initrd /uInitrd
   append  earlyprintk splash console=tty1 console=ttyS3,115200n8 rw init=/sbin/init imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf logo.nologo vt.global_cursor_default=0 loglevel=8
 EOF
-  cat<<-EOF > /usr/local/bin/tinker-init.sh
+  cat <<-EOF >/usr/local/bin/tinker-init.sh
 #!/bin/sh
 echo 2 > /proc/irq/45/smp_affinity
 EOF
@@ -108,9 +105,8 @@ EOF
   #sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 }
 
-
 # Will be run in chroot - Post initramfs
-device_chroot_tweaks_post(){
+device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   #TODO This can be done outside chroot,
