@@ -131,7 +131,7 @@ echo "Copying (so)Pine64(LTS) kernel modules"
 cp -pdR platform-pine64/sopine64lts/lib/modules /mnt/volumio/rootfs/lib/
 
 echo "Confguring ALSA with sane defaults"
-#cp platform-pine64/sopine64lts/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
+cp platform-pine64/sopine64lts/var/lib/alsa/* /mnt/volumio/rootfs/var/lib/alsa
 
 echo "Copying firmware"
 cp -R platform-pine64/sopine64lts/firmware/* /mnt/volumio/rootfs/lib/firmware

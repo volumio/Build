@@ -22,12 +22,20 @@ tmpfs   /dev/shm                tmpfs   defaults,nosuid,noexec,nodev        0 0
 echo "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
 echo "abi.cp15_barrier=2" >> /etc/sysctl.conf
 
-#echo "Adding default sound modules and wifi"
-#echo "sunxi_codec
-#sunxi_i2s
-#sunxi_sndcodec
-#8723bs
-#" >> /etc/modules
+echo "Adding 'unmute headphone' script"
+echo "#!/bin/bash
+CARD=\`aplay -l | grep \"Headphone Out\" | awk -F'[^0-9]*' '{print \$2}'\`
+STATE=\`amixer -c $CARD cget numid=13 | grep \": values=\" | awk -F'[=]' '{print \$2}'\`
+
+if [ $STATE == off,off ]; then
+   amixer -c $CARD cset numid=13 on
+   amixer -c $CARD sget 'AIF1 Slot 0 Digital DAC'
+else
+   echo \"Already enabled\"
+fi
+
+exit 0
+"> /etc/rc.local
 
 echo "Installing additonal packages"
 apt-get update
@@ -93,4 +101,5 @@ mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 
 echo "Creating uInitrd from 'volumio.initrd'"
 mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+rm /boot/volumio.initrd
 
