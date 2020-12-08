@@ -283,12 +283,11 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/udooqdlimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
-  pine64) echo 'Writing Pine64 Image File'
+  pine64plus|pine64solts) echo 'Writing Pine64 Model Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
-# this will be changed to armv8 once the volumio packges have been re-compiled for aarch64
-    sh scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    sh scripts/pine64image.sh -v "$VERSION" -p "$PATCH" -a armv7 -m ${DEVICE}
     ;;
-   nanopi64) echo 'Writing NanoPI A64 Image File'
+  nanopi64) echo 'Writing NanoPI A64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/nanopi64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
@@ -312,10 +311,6 @@ case "$DEVICE" in
   primo) echo 'Writing Volumio Primo Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/primoimage.sh -v "$VERSION" -p "$PATCH" -a armv7
-    ;;
-  sopine64) echo 'Writing Sopine64 Image File'
-    check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/sopine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   rock64) echo 'Writing Rock64 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
