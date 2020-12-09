@@ -86,20 +86,6 @@ else
 	cd ..
 fi
 
-#mainline u-boot
-case $MODEL in
-	pine64|pine64plus )
-		FAMILY=pine64-plus	
-	;;
-	pine64solts )
-    	FAMILY=pine64-so-lts
-	;;
-esac
- 
-dd if=platform-pine64/pine64-all/u-boot/${FAMILY}/sunxi-spl.bin of=${LOOP_DEV} conv=fsync bs=8k seek=1
-dd if=platform-pine64/pine64-all/u-boot/${FAMILY}/u-boot.itb of=${LOOP_DEV} conv=fsync bs=8k seek=5
-sync
-
 echo "Preparing for Volumio rootfs"
 if [ -d /mnt ]
 then
@@ -131,11 +117,18 @@ mkdir /mnt/volumio/rootfs/boot/dtb
 cp platform-pine64/pine64-all/boot/Image /mnt/volumio/rootfs/boot
 cp -R platform-pine64/pine64-all/boot/dtb/* /mnt/volumio/rootfs/boot/dtb
 
-case $FAM in
+case $MODEL in
 	pine64|pine64plus )
+		echo "Copying specific (u)boot files for pine64/pine64plus"
+		dd if=platform-pine64/pine64-all/u-boot/pine64-plus/sunxi-spl.bin of=${LOOP_DEV} conv=fsync bs=8k seek=1
+		dd if=platform-pine64/pine64-all/u-boot/pine64-plus/u-boot.itb of=${LOOP_DEV} conv=fsync bs=8k seek=5
 		cp platform-pine64/pine64-all/boot/uEnv.txt.pine64 /mnt/volumio/rootfs/boot/uEnv.txt
 		;;
+
 	pine64solts )
+		echo "Copying specific (u)boot files for sopine64/ pine64lts"
+		dd if=platform-pine64/pine64-all/u-boot/pine64-so-lts/sunxi-spl.bin of=${LOOP_DEV} conv=fsync bs=8k seek=1
+		dd if=platform-pine64/pine64-all/u-boot/pine64-so-lts/u-boot.itb of=${LOOP_DEV} conv=fsync bs=8k seek=5
 		cp platform-pine64/pine64-all/boot/uEnv.txt.pine64-so-lts /mnt/volumio/rootfs/boot/uEnv.txt
 		;;
 esac
