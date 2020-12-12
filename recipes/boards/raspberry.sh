@@ -142,6 +142,7 @@ device_chroot_tweaks_pre() {
 		[5.4.51]="8382ece2b30be0beb87cac7f3b36824f194d01e9"
 		[5.4.59]="caf7070cd6cece7e810e6f2661fc65899c58e297"
 		[5.4.79]="0642816ed05d31fb37fc8fbbba9e1774b475113f"
+		[5.10.0]="7378e549a785bd486c19dc2ed737ca4a1e983351"
 	)
 	# Version we want
 	KERNEL_VERSION="4.19.118"
@@ -196,6 +197,7 @@ device_chroot_tweaks_pre() {
 		log "Installing Node for ${arch}"
 		dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
 		log "Installed Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
+		rm -rf /volumio/customNode
 
 		# Block upgrade of nodejs from raspi repos
 		log "Blocking nodejs updgrades for ${NODE_VERSION}"
@@ -220,23 +222,6 @@ device_chroot_tweaks_pre() {
 	log "Starting Raspi platform tweaks" "info"
 	plymouth-set-default-theme volumio
 
-	log "Adding /opt/vc/lib to LD_LIBRARY_PATH"
-	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib/
-
-	log "Symlinking vc bins"
-	# https://github.com/RPi-Distro/firmware/blob/debian/debian/libraspberrypi-bin.links
-	VC_BINS=("edidparser" "raspistill" "raspivid" "raspividyuv" "raspiyuv"
-		"tvservice" "vcdbg" "vcgencmd" "vchiq_test"
-		"dtoverlay" "dtoverlay-pre" "dtoverlay-post" "dtmerge")
-	for bin in "${VC_BINS[@]}"; do
-		ln -s "/opt/vc/bin/${bin}" "/usr/bin/${bin}"
-	done
-
-	log "Fixing vcgencmd permissions"
-	cat <<-EOF >"/etc/udev/rules.d/10-vchiq.rules"
-		SUBSYSTEM=="vchiq",GROUP="video",MODE="0660"
-	EOF
-
 	log "Adding gpio & spi group and permissions"
 	groupadd -f --system gpio
 	groupadd -f --system spi
@@ -253,11 +238,35 @@ device_chroot_tweaks_pre() {
 	log "Adding volumio to gpio,i2c,spi group"
 	usermod -a -G gpio,i2c,spi,input volumio
 
+	log "Handling Video Core quirks" "info"
+
+	log "Adding /opt/vc/lib to linker"
+	cat <<-EOF >/etc/ld.so.conf.d/00-vmcs.conf
+		/opt/vc/lib
+	EOF
+	log "Updating LD_LIBRARY_PATH"
+	ldconfig
+
+	log "Symlinking vc bins"
+	# https://github.com/RPi-Distro/firmware/blob/debian/debian/libraspberrypi-bin.links
+	VC_BINS=("edidparser" "raspistill" "raspivid" "raspividyuv" "raspiyuv"
+		"tvservice" "vcdbg" "vcgencmd" "vchiq_test"
+		"dtoverlay" "dtoverlay-pre" "dtoverlay-post" "dtmerge")
+	for bin in "${VC_BINS[@]}"; do
+		ln -s "/opt/vc/bin/${bin}" "/usr/bin/${bin}"
+	done
+
+	log "Fixing vcgencmd permissions"
+	cat <<-EOF >/etc/udev/rules.d/10-vchiq.rules
+		SUBSYSTEM=="vchiq",GROUP="video",MODE="0660"
+	EOF
+
+	log "Setting bootparms and modules" "info"
 	log "Enabling i2c-dev module"
 	echo "i2c-dev" >>/etc/modules
 
 	log "Writing config.txt file"
-	cat <<-EOF >>/boot/config.txt
+	cat <<-EOF >/boot/config.txt
 		initramfs volumio.initrd
 		gpu_mem=32
 		max_usb_current=1
@@ -299,13 +308,26 @@ device_chroot_tweaks_pre() {
 	# Buster tweaks
 	kernel_params+=("${DISABLE_PN}")
 	# ALSA tweaks
-	# ALSA compatibility needs to be set depending on kernel version, so use hacky semver check here
+	# ALSA compatibility needs to be set depending on kernel version,
+	# so use hacky semver check here in the odd case we want to go back to a lower kernel
 	[[ ${KERNEL_SEMVER[0]} == 5 ]] && compat_alsa=0 || compat_alsa=1
-	kernel_params+=("snd-bcm2835.enable_compat_alsa=${compat_alsa}" "snd_bcm2835.enable_headphones=1")
+	# https://github.com/raspberrypi/linux/commit/88debfb15b3ac9059b72dc1ebc5b82f3394cac87
+	if [[ ${KERNEL_SEMVER[0]} == 5 ]] && [[ ${KERNEL_SEMVER[2]} -lt 79 ]]; then
+		kernel_params+=("snd_bcm2835.enable_headphones=1")
+	fi
+	kernel_params+=("snd-bcm2835.enable_compat_alsa=${compat_alsa}" "snd_bcm2835.enable_hdmi=1")
+
 	if [[ $DEBUG_IMAGE == yes ]]; then
+		log "Creaing debug image" "wrn"
 		log "Adding Serial Debug parameters"
 		echo "dtoverlay=pi3-miniuart-bt" >/boot/userconfig.txt
 		KERNEL_LOGLEVEL="loglevel=8" # KERN_DEBUG
+		log "Enabling SSH"
+		touch /boot/ssh
+		if [[ -f /boot/bootcode.bin ]]; then
+			log "Enable serial boot debug"
+			sed -i -e "s/BOOT_UART=0/BOOT_UART=1/" /boot/bootcode.bin
+		fi
 	fi
 
 	kernel_params+=("${KERNEL_LOGLEVEL}")
@@ -315,11 +337,6 @@ device_chroot_tweaks_pre() {
 		${kernel_params[@]}
 	EOF
 
-	if [[ $DEBUG_IMAGE == yes ]] && [[ -f /boot/bootcode.bin ]]; then
-		log "Enable serial boot debug"
-		sed -i -e "s/BOOT_UART=0/BOOT_UART=1/" /boot/bootcode.bin
-	fi
-
 	# Rerun depmod for new drivers
 	log "Finalising drivers installation with depmod on $KERNEL_VERSION+,-v7+ and -v7l+"
 	depmod $KERNEL_VERSION+     # Pi 1, Zero, Compute Module
@@ -328,11 +345,6 @@ device_chroot_tweaks_pre() {
 
 	log "Raspi Kernel and Modules installed" "okay"
 
-	log "linking libsox for Spop"
-	ln -s /usr/lib/arm-linux-gnueabihf/libsox.so /usr/local/lib/libsox.so.2
-	log "linking libvchiq_arm and libvcos for mpd"
-	ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/arm-linux-gnueabihf/
-	ln -s /opt/vc/lib/libvcos.so /usr/lib/arm-linux-gnueabihf/
 }
 
 # Will be run in chroot - Post initramfs
