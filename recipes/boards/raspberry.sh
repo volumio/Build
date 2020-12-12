@@ -37,13 +37,13 @@ PACKAGES=(# Bluetooth packages
 	"bluez" "bluez-firmware" "pi-bluetooth"
 	# Foundation stuff
 	"raspberrypi-sys-mods"
+	# "rpi-eeprom"\ Needs raspberrypi-bootloader that we hold back
 	# GPIO stuff
 	"wiringpi"
 	# Boot splash
 	"plymouth" "plymouth-themes"
 	# Wireless firmware
 	"firmware-atheros" "firmware-ralink" "firmware-realtek" "firmware-brcm80211"
-	"libsox-dev"
 )
 
 ### Device customisation
@@ -59,7 +59,7 @@ write_device_bootloader() {
 
 # Will be called by the image builder for any customisation
 device_image_tweaks() {
-	log "Custom dtoverlay pre and post" "ext"
+	# log "Custom dtoverlay pre and post" "ext"
 	# mkdir -p "${ROOTFSMNT}/opt/vc/bin/"
 	# cp -rp "${SRC}"/volumio/opt/vc/bin/* "${ROOTFSMNT}/opt/vc/bin/"
 	log "Copying shairport-sync service for arm"
@@ -91,15 +91,8 @@ device_image_tweaks() {
 	# [ -f /opt/vc/bin/vcgencmd ] && alias vcgencmd="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib /opt/vc/bin/vcgencmd"
 	# [ -f /opt/vc/bin/tvservice ] && alias tvservice="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib /opt/vc/bin/tvservice"
 	# EOF
-	# log "Symlinking vc bins"
-	# # https://github.com/RPi-Distro/firmware/blob/debian/debian/libraspberrypi-bin.links
-	# VC_BINS=("edidparser" "raspistill" "raspivid" "raspividyuv" "raspiyuv" \
-	#          "tvservice" "vcdbg" "vcgencmd" "vchiq_test" \
-	#           "dtoverlay" "dtoverlay" "dtoverlay-pre" "dtoverlay-post" "dtmerge")
-	# for bin in "${VC_BINS[@]}"; do
-	#     ln -s /opt/vc/bin/${bin} /usr/bin/${bin}
-	# done
 
+	log "Adding archive.raspberrypi debian repo"
 	cat <<-EOF >"${ROOTFSMNT}/etc/apt/sources.list.d/raspi.list"
 		deb http://archive.raspberrypi.org/debian/ buster main ui
 		# Uncomment line below then 'apt-get update' to enable 'apt-get source'
@@ -148,16 +141,18 @@ device_chroot_tweaks_pre() {
 		[4.19.118]="e1050e94821a70b2e4c72b318d6c6c968552e9a2"
 		[5.4.51]="8382ece2b30be0beb87cac7f3b36824f194d01e9"
 		[5.4.59]="caf7070cd6cece7e810e6f2661fc65899c58e297"
+		[5.4.79]="0642816ed05d31fb37fc8fbbba9e1774b475113f"
 	)
 	# Version we want
 	KERNEL_VERSION="4.19.118"
-	KERNEL_VERSION="5.4.59"
+	KERNEL_VERSION="5.4.79"
+
 	IFS=\. read -ra KERNEL_SEMVER <<<"$KERNEL_VERSION"
 	# List of custom firmware -
 	# github archives that can be extracted directly
 	declare -A CustomFirmware=(
 		[AlloPiano]="https://github.com/allocom/piano-firmware/archive/master.tar.gz"
-		# [TauDAC]="https://github.com/taudac/modules/archive/rpi-volumio-${KERNEL_VERSION}-taudac-modules.tar.gz" \
+		[TauDAC]="https://github.com/taudac/modules/archive/rpi-volumio-${KERNEL_VERSION}-taudac-modules.tar.gz"
 		[Bassowl]="https://raw.githubusercontent.com/Darmur/bassowl-hat/master/driver/archives/modules-rpi-${KERNEL_VERSION}-bassowl.tar.gz"
 	)
 
@@ -189,7 +184,7 @@ device_chroot_tweaks_pre() {
 	log "Node version installed:" "dbg" "${NODE_VERSION}"
 	# drop the leading v
 	NODE_VERSION=${NODE_VERSION:1}
-	if [[ ${NODE_VERSION%%.*} -ge 8 ]]; then
+	if [[ ${USE_NODE_ARMV6:-yes} == yes && ${NODE_VERSION%%.*} -ge 8 ]]; then
 		log "Using a compatible nodejs version for all pi images" "info"
 		# Get rid of armv7 nodejs and pick up the armv6l version
 		if dpkg -s nodejs &>/dev/null; then
@@ -215,18 +210,32 @@ device_chroot_tweaks_pre() {
 	getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
 	getent passwd shairport-sync &>/dev/null || useradd -r -M -g shairport-sync -s /usr/bin/nologin -G audio shairport-sync >/dev/null
 
-	log "Adding /opt/vc/lib to LD_LIBRARY_PATH"
-	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib/
-
 	log "Adding Custom DAC firmware from github" "info"
 	for key in "${!CustomFirmware[@]}"; do
-		wget -nv "${CustomFirmware[$key]}" -O "$key.tar.gz"
+		wget -nv "${CustomFirmware[$key]}" -O "$key.tar.gz" || log "Failed to get firmware:" "err" "${key}" && continue
 		tar --strip-components 1 --exclude "*.hash" --exclude "*.md" -xf "$key.tar.gz"
 		rm "$key.tar.gz"
 	done
 
 	log "Starting Raspi platform tweaks" "info"
 	plymouth-set-default-theme volumio
+
+	log "Adding /opt/vc/lib to LD_LIBRARY_PATH"
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib/
+
+	log "Symlinking vc bins"
+	# https://github.com/RPi-Distro/firmware/blob/debian/debian/libraspberrypi-bin.links
+	VC_BINS=("edidparser" "raspistill" "raspivid" "raspividyuv" "raspiyuv"
+		"tvservice" "vcdbg" "vcgencmd" "vchiq_test"
+		"dtoverlay" "dtoverlay-pre" "dtoverlay-post" "dtmerge")
+	for bin in "${VC_BINS[@]}"; do
+		ln -s "/opt/vc/bin/${bin}" "/usr/bin/${bin}"
+	done
+
+	log "Fixing vcgencmd permissions"
+	cat <<-EOF >"/etc/udev/rules.d/10-vchiq.rules"
+		SUBSYSTEM=="vchiq",GROUP="video",MODE="0660"
+	EOF
 
 	log "Adding gpio & spi group and permissions"
 	groupadd -f --system gpio
@@ -310,19 +319,6 @@ device_chroot_tweaks_pre() {
 		log "Enable serial boot debug"
 		sed -i -e "s/BOOT_UART=0/BOOT_UART=1/" /boot/bootcode.bin
 	fi
-
-	# TODO is this still needed?
-	# log "Linking DTOverlay utility"
-	# ln -s /opt/vc/lib/libdtovl.so /usr/lib/libdtovl.so
-	# ln -s /opt/vc/bin/dtoverlay /usr/bin/dtoverlay
-	# ln -s /opt/vc/bin/dtoverlay-pre /usr/bin/dtoverlay-pre
-	# ln -s /opt/vc/bin/dtoverlay-post /usr/bin/dtoverlay-post
-	# log "Linking Vcgencmd"
-	# ln -s /opt/vc/lib/libvchiq_arm.so /usr/lib/libvchiq_arm.so
-	# ln -s /opt/vc/bin/vcgencmd /usr/bin/vcgencmd
-	# ln -s /opt/vc/lib/libvcos.so /usr/lib/libvcos.so
-	# log "Exporting /opt/vc/bin variable"
-	# export LD_LIBRARY_PATH=/opt/vc/lib/:LD_LIBRARY_PATH
 
 	# Rerun depmod for new drivers
 	log "Finalising drivers installation with depmod on $KERNEL_VERSION+,-v7+ and -v7l+"
