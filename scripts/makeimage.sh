@@ -139,11 +139,11 @@ cp "${SRC}"/scripts/initramfs/mkinitramfs-buster.sh ${ROOTFSMNT}/usr/local/sbin
 cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
 [ "$KIOSKMODE" == yes ] && cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}
 echo "$PATCH" >${ROOTFSMNT}/patch
-if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "config.js" ]]; then
-  log "Starting config.js" "ext" "${PATCH}"
-  node config.js "${PATCH}"
+if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "${SDK_PATH}"/config.js ]]; then
+  log "Starting ${SDK_PATH}/config.js" "ext" "${PATCH}"
+  node "${SDK_PATH}"/config.js "${PATCH}"
   status=$?
-  [[ ${status} ]] && log "config.js failed with ${status}" "err" "${PATCH}" && exit 10
+  [[ ${status} -ne 0 ]] && log "config.js failed with ${status}" "err" "${PATCH}" && exit 10
   log "Completed config.js" "ext" "${PATCH}"
 fi
 # Copy across custom bits and bobs from device config

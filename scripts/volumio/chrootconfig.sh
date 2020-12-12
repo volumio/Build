@@ -42,8 +42,7 @@ declare -fF device_chroot_tweaks &>/dev/null &&
   device_chroot_tweaks
 
 ## Activate modules
-# shellcheck disable=SC2116
-log "Activating ${#MODULES[@]} custom modules:" "" "$(echo "${MODULES[@]}")"
+log "Activating ${#MODULES[@]} custom modules:" "" "${MODULES[*]}"
 mod_list=$(printf "%s\n" "${MODULES[@]}")
 cat <<-EOF >>/etc/initramfs-tools/modules
 # Volumio modules
@@ -51,14 +50,13 @@ ${mod_list}
 EOF
 
 ## Adding board specific packages
-# shellcheck disable=SC2116
-log "Installing ${#PACKAGES[@]} custom packages:" "" "$(echo "${PACKAGES[@]}")"
+log "Installing ${#PACKAGES[@]} custom packages:" "" "${PACKAGES[*]}"
 apt-get update
 apt-get install -y "${PACKAGES[@]}"
 
 # Custom packages for Volumio
-[ -f "/install-kiosk.sh" ] && bash install-kiosk.sh
-if [ -d "/volumio/customPkgs/" ]; then
+[ -f "/install-kiosk.sh" ] && log "Installing kiosk" "info" && bash install-kiosk.sh
+if [[ -d "/volumio/customPkgs" ]]; then
   log "Installing Volumio customPkgs" "info"
   for deb in /volumio/customPkgs/*.deb; do
     log "Installing ${deb}"
@@ -73,7 +71,7 @@ log "Cleaning APT Cache and remove policy file" "info"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 rm /usr/sbin/policy-rc.d
-rm -r /volumio/customPkgs
+[[ -d /volumio/customPkgs ]] && rm -r "/volumio/customPkgs"
 
 # Fix services for tmpfs logs
 log "Ensuring /var/log has right folders and permissions"

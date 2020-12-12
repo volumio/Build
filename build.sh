@@ -92,23 +92,20 @@ exit_error() {
 
 trap exit_error INT ERR
 
-#$1 = ${BUILD} $2 = ${VERSION} $3 = ${DEVICE}"
 function check_os_release() {
-  ## This shouldn't be required anymore - we pack the rootfs tarball at base level
-  # local build=$1
-  # VERSION=$2
-  # DEVICE=$3
-  os_release="build/${BUILD}/root/etc/os-release"
-  HAS_VERSION="grep -c VOLUMIO_VERSION $os_release"
-  if $HAS_VERSION; then
-    log "Removing previous VOLUMIO_VERSION"
+  os_release="${ROOTFS}/etc/os-release"
+  # This shouldn't be required anymore - we pack the rootfs tarball at base level
+  if grep "VOLUMIO_VERSION" ${os_release}; then
     # os-release already has a VERSION number
     # remove prior version and hardware
-    sed -i '/^\(VOLUMIO_VERSION\|VOLUMIO_HARDWARE\)/d' "$os_release"
+    log "Removing previous VOLUMIO_VERSION and VOLUMIO_HARDWARE from os-release"
+    sed -i '/^\(VOLUMIO_VERSION\|VOLUMIO_HARDWARE\)/d' "${os_release}"
   fi
   log "Adding ${VERSION} and ${DEVICE} to os-release" "info"
-  echo "VOLUMIO_VERSION=\"${VERSION}\"" >>"$os_release"
-  echo "VOLUMIO_HARDWARE=\"${DEVICE}\"" >>"$os_release"
+  cat <<-EOF >>"${os_release}"
+	VOLUMIO_VERSION="${VERSION}"
+	VOLUMIO_HARDWARE="${DEVICE}"
+	EOF
 }
 
 ## Fetch the NodeJS BE and FE
@@ -302,7 +299,7 @@ if [ -n "${BUILD}" ]; then
   CUR_DATE=$(date)
   #Write some Version information
   log "Writing system information"
-  cat <<-EOF >>"build/${BUILD}/root/etc/os-release"
+  cat <<-EOF >>"${ROOTFS}"/etc/os-release
 	VOLUMIO_VARIANT="${VARIANT}"
 	VOLUMIO_TEST="FALSE"
 	VOLUMIO_BUILD_DATE="${CUR_DATE}"
@@ -415,6 +412,7 @@ if [[ -n "$DEVICE" ]]; then
   # TODO: Streamline node versioning!
   # Major version modules tarballs should be sufficient.
   IFS=\. read -ra NODE_SEMVER <<<"$NODE_VERSION"
+  log "Adding custom Packages and Modules" "info"
   if [[ ${USE_LOCAL_NODE_MODULES:-no} == yes ]]; then
     log "Extracting node_modules for Node v${NODE_VERSION}"
     tar xf "${SRC}"/modules/node_modules_${BUILD}_v${NODE_VERSION%%.*}.*.tar.xz -C "${ROOTFS}/volumio"
@@ -429,21 +427,26 @@ if [[ -n "$DEVICE" ]]; then
   fi
 
   ## Copy custom packages for Volumio
-  mkdir -p "${ROOTFS}"/volumio/customPkgs
   if [[ ${USE_LOCAL_PACKAGES:-no} == yes ]]; then
+    mkdir -p "${ROOTFS}"/volumio/customPkgs
     log "Adding packages from local ${SRC}/customPkgs/"
     cp "${SRC}"/customPkgs/*"${BUILD}".deb "${ROOTFS}"/volumio/customPkgs/
     # Pi's need an armvl6 build of nodejs (for Node > v8)
-    [[ ${DEVICE} == raspberry && ${NODE_SEMVER[0]} -gt 8 ]] && mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${SRC}"/customPkgs/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
-    ls "${ROOTFS}"/volumio/customPkgs
-  else
+    if [[ ${DEVICE} == raspberry && ${USE_NODE_ARMV6:-yes} == yes && ${NODE_SEMVER[0]} -ge 8 ]]; then
+      mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${SRC}"/customPkgs/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
+      log "Added custom Node binary:" "" "$(ls "${ROOTFS}"/volumio/customNode)"
+    fi
+  elif [[ ${CUSTOM_PKGS[*]} ]]; then
     log "Adding customPkgs from external repo" "info"
     for key in "${!CUSTOM_PKGS[@]}"; do
       log "Fetching ${key} from ${CUSTOM_PKGS[$key]}"
       wget -nv "${CUSTOM_PKGS[$key]}" -P "${ROOTFS}"/volumio/customPkgs/
     done
+  else 
+    log "No customPkgs added!" "wrn"
   fi
-
+  # shellcheck disable=SC2012
+  [[ -d "${ROOTFS}"/volumio/customPkgs ]] && log "Added custom packages:" "" "$(ls -b "${ROOTFS}"/volumio/customPkgs | tr '\n' ' ')"
   # Prepare Images
   start_img=$(date +%s)
   BUILDDATE=$(date -I)

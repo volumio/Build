@@ -8,11 +8,17 @@ set -eo pipefail
 log "Computing Volumio folder Hash Checksum" "info"
 
 HASH="$(md5deep -r -l -s -q ${ROOTFSMNT}/volumio | sort | md5sum | awk '{print $1}')"
-# HASH=`/usr/bin/md5deep -r -l -s -q ${ROOTFSMNT}/volumio | sort | md5sum | tr -d "-" | tr -d " \t\n\r"`
 log "HASH: ${HASH}" "dbg"
 cat <<-EOF >>${ROOTFSMNT}/etc/os-release
 VOLUMIO_HASH="${HASH}"
 EOF
+# base-files updates can overwrite our custom info.
+log "Checking os-release"
+if grep "VOLUMIO_HARDWARE" ${ROOTFSMNT}/etc/os-release; then
+  log "Missing VOLUMIO_ info in /etc/os-release!" "err"
+  cat ${ROOTFSMNT}/etc/os-release
+  exit 10 # Bail!
+fi
 
 log "Cleaning stuff to save space" "info"
 log "Cleaning docs"

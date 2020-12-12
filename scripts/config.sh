@@ -4,7 +4,7 @@
 declare -A SecureApt=(
   [debian_10.gpg]="https://ftp-master.debian.org/keys/archive-key-10.asc"
   [nodesource.gpg]="https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
-  [lesbonscomptes.gpg]="https://www.lesbonscomptes.com/pages/jf-at-dockes.org.pgp"
+  [lesbonscomptes.gpg]="https://www.lesbonscomptes.com/pages/jf-at-dockes.org.pub"
   #TODO Not needed for arm64 and x86
   [raspbian.gpg]="https://archive.raspbian.org/raspbian.public.key"
   [raspberrypi.gpg]="http://archive.raspberrypi.org/debian/raspberrypi.gpg.key"
@@ -21,8 +21,8 @@ declare -A VOLBINS=(
 ## Array of custom packages
 # TODO: merge into VOLBINS!
 declare -A CUSTOM_PKGS=(
-  # For example only. This particular package isn't going to work on buster.
-  [wiringpi]="https://repo.volumio.org/Volumio2/Binaries/wiringpi-2.29-1.deb"
+  # For example only. wiringpi isn't going to work on buster, and already exists in upstream repo.
+  # [wiringpi]="https://repo.volumio.org/Volumio2/Binaries/wiringpi-2.29-1.deb"
 )
 
 ## Backend and Frontend Repository details

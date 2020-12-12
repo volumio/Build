@@ -2,6 +2,7 @@
 build
 logs
 platform-*
+myVolumioSDK
 
 # We don't need logs and image artifacts
 *.log
