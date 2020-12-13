@@ -300,11 +300,6 @@ log "Preventing hotspot (hostapd/dnsmasq) services from starting at boot"
 systemctl disable hostapd.service
 systemctl disable dnsmasq.service
 
-# We no longer need this as we don't use it
-# log "Preventing un-needed dhcp servers to start automatically"
-# systemctl disable isc-dhcp-server.service
-# systemctl disable dhcpd.service
-
 log "Linking Volumio Command Line Client"
 ln -s /volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh /usr/local/bin/volumio
 chmod a+x /usr/local/bin/volumio

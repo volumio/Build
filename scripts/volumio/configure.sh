@@ -87,10 +87,6 @@ cp "${SRC}/volumio/etc/systemd/journald.conf" "${ROOTFS}/etc/systemd/journald.co
 #Volumio SystemD Services
 cp -r "${SRC}"/volumio/lib "${ROOTFS}"/
 
-# Netplug
-# removed , we are using ifplugd
-#cp -rp ${SRC}/volumio/etc/netplug ${ROOTFS}/etc/
-#chmod +x ${ROOTFS}/etc/netplug/netplug
 
 # Network
 cp -r "${SRC}"/volumio/etc/network/* "${ROOTFS}"/etc/network
@@ -109,19 +105,11 @@ cp "${SRC}/volumio/etc/nsswitch.conf" "${ROOTFS}/etc/nsswitch.conf"
 #firststart
 cp "${SRC}/volumio/bin/firststart.sh" "${ROOTFS}/bin/firststart.sh"
 
-#hotspot
-# We don't need this anymore with buster, and use hostapd directly
-# cp ${SRC}/volumio/bin/hotspot.sh ${ROOTFS}/bin/hotspot.sh
-
 #dynswap
 cp "${SRC}/volumio/bin/dynswap.sh" "${ROOTFS}/bin/dynswap.sh"
 
 #Wireless
 cp "${SRC}/volumio/bin/wireless.js" "${ROOTFS}/volumio/app/plugins/system_controller/network/wireless.js"
-
-#dhcpcd
-# We don't need this anymore by switching to dnsmasq on buster
-# cp -rp ${SRC}/volumio/etc/dhcpcd.conf ${ROOTFS}/etc/
 
 #udev script
 cp "${SRC}/volumio/bin/rename_netiface0.sh" "${ROOTFS}/bin/rename_netiface0.sh"
