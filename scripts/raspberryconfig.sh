@@ -59,9 +59,7 @@ apt-get -y install binutils i2c-tools
 #apt-get -y install libnewt0.52 whiptail triggerhappy lua5.1 locales
 
 echo "Installing Kernel from Rpi-Update"
-# Temporary fix for PI4 check partition, until it gets merged
-sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/volumio/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
-#sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
+sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
 
 touch /boot/start.elf
 mkdir /lib/modules
