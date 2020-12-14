@@ -33,10 +33,6 @@ if [[ $SUITE == "buster" ]]; then
   log "Enabling buster specific tweaks" "info"
   log "Updating Backend .env"
   sed -i 's/^NODE_MOUNT_HANDLER=false/NODE_MOUNT_HANDLER=true/' "${ROOTFS}/volumio/.env"
-
-  log "Copying headless wifi setup service"
-  cp "${SRC}/volumio/lib/systemd/system/headless_wireless.service" "${ROOTFS}/etc/systemd/system/multi-user.target.wants/"
-
   log "Confirm if following tweaks are still required for Debain - $SUITE" "wrn"
 fi
 
@@ -49,10 +45,6 @@ cp -r "${SRC}/volumio/etc/modprobe.d" "${ROOTFS}/etc/"
 
 #Hosts file
 cp -p "${SRC}/volumio/etc/hosts" "${ROOTFS}/etc/hosts"
-
-#Dhcp conf file
-# cp ${SRC}/volumio/etc/dhcp/dhclient.conf ${ROOTFS}/etc/dhcp/dhclient.conf
-# cp ${SRC}/volumio/etc/dhcp/dhcpd.conf ${ROOTFS}/etc/dhcp/dhcpd.conf
 
 #Samba conf file
 cp "${SRC}/volumio/etc/samba/smb.conf" "${ROOTFS}/etc/samba/smb.conf"
@@ -74,8 +66,6 @@ cp "${SRC}/volumio/etc/inittab" "${ROOTFS}/etc/inittab"
 
 #SSH
 cp "${SRC}/volumio/etc/ssh/sshd_config" "${ROOTFS}/etc/ssh/sshd_config"
-cp "${SRC}/volumio/bin/volumiossh.sh" "${ROOTFS}/bin/volumiossh.sh"
-chmod a+x "${ROOTFS}/bin/volumiossh.sh"
 
 #Mpd
 cp "${SRC}/volumio/etc/mpd.conf" "${ROOTFS}/etc/mpd.conf"

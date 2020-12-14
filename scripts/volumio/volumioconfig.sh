@@ -76,13 +76,12 @@ log "Prepare Volumio Debain customization" "info"
 log "Existing locales: " && locale -a
 
 # Enable LANG_def='en_US.UTF-8'
-[[ -f /etc/locale.gen ]] &&
+[[ -e /etc/locale.gen ]] &&
   sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 locale-gen
-update-locale LANG=en_US:en LC_ALL=en_US.UTF-8 LANGUAGE=en_US.UTF-8
-
+update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 LANGUAGE=en_US.UTF-8
 log "Final locale list"
-locale
+locale -a
 
 #Adding Main user Volumio
 log "Adding Volumio User"
@@ -134,10 +133,6 @@ alias systemctl="sudo /bin/systemctl"
 alias killall="sudo /usr/bin/killall"
 alias service="sudo /usr/sbin/service"
 alias ifconfig="sudo /sbin/ifconfig"
-# tv-service
-alias tvservice="/opt/vc/bin/tvservice"
-# vcgencmd
-alias vcgencmd="/opt/vc/bin/vcgencmd"
 EOF
 
 #Sudoers Nopasswd
@@ -273,8 +268,20 @@ log "Setting Permissions for /etc/modules"
 chmod 777 /etc/modules
 
 log "Setting up services.." "info"
+#https://wiki.archlinux.org/index.php/Systemd#Writing_unit_files
+#TODO: These should be in /etc/systemd/system/
+# This won't work as the files are copied over only later in `configure.sh`
+# mv /lib/systemd/system/volumio.service /etc/systemd/system/
+# mv /lib/systemd/system/volumiossh.service /etc/systemd/system/
+# So create empty symlinks now and place the files there later.
+
+# log "Enable Volumio SSH enabler"
+# systemctl --no-reload enable volumiossh
+
+# log "Enable headless_wireless"
+# systemctl enable headless_wireless
+
 log "Adding Volumio Parent Service to Startup"
-#systemctl enable volumio.service
 ln -s /lib/systemd/system/volumio.service /etc/systemd/system/multi-user.target.wants/volumio.service
 
 log "Adding First start script"
@@ -285,6 +292,9 @@ ln -s /lib/systemd/system/dynamicswap.service /etc/systemd/system/multi-user.tar
 
 log "Adding Iptables Service"
 ln -s /lib/systemd/system/iptables.service /etc/systemd/system/multi-user.target.wants/iptables.service
+
+log "Adding headless_wireless Service"
+ln -s /lib/systemd/system/headless_wireless.service /etc/systemd/system/multi-user.target.wants/headless_wireless.service
 
 log "Disabling SSH by default"
 systemctl disable ssh.service

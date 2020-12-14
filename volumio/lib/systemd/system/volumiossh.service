@@ -1,13 +1,12 @@
 [Unit]
-Description = Volumio SSH enabler
+Description=Volumio SSH enabler
+ConditionPathExistsGlob=/boot/ssh{,.txt}
 
 [Service]
-ExecStart=/bin/volumiossh.sh
-StandardOutput=syslog
-StandardError=syslog
+Type=oneshot
+ExecStartPre=echo "SSH file found, enabling SSH"
+ExecStart=/bin/sh -c "systemctl enable --now ssh"
 SyslogIdentifier=volumiossh
-User=volumio
-Group=volumio
 
 [Install]
 WantedBy=multi-user.target
