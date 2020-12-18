@@ -307,7 +307,11 @@ if [ -n "${BUILD}" ]; then
   else
     end_multistrap=$(date +%s)
     time_it "$end_multistrap" "$start"
-    [[ -e "${ROOTFS}/etc/apt/sources.list.d/multistrap-base.list" ]] && rm "${ROOTFS}/etc/apt/sources.list.d/multistrap-base.list"
+    # Incase multistrap's list are left over
+    if compgen -G "${ROOTFS}/etc/apt/sources.list.d/multistrap-*.list" >/dev/null; then
+      log "Removing multistrap-*.list" "wrn"
+      rm "${ROOTFS}"/etc/apt/sources.list.d/multistrap-*.list
+    fi
     [[ -e "${SRC}/${RASPBIANCONF}" ]] && rm "${SRC}/${RASPBIANCONF}"
     log "Finished setting up Multistrap rootfs" "okay" "$TIME_STR"
   fi
