@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Central location for Build System configuration
+# Central location for Build System configuration(s)
 
 declare -A SecureApt=(
   [debian_10.gpg]="https://ftp-master.debian.org/keys/archive-key-10.asc"
@@ -8,6 +8,12 @@ declare -A SecureApt=(
   #TODO Not needed for arm64 and x86
   [raspbian.gpg]="https://archive.raspbian.org/raspbian.public.key"
   [raspberrypi.gpg]="http://archive.raspberrypi.org/debian/raspberrypi.gpg.key"
+)
+
+# Repo locations that are utilised to create source.list in the rootfs
+declare -A APTSOURCE=(
+  [Debian]="http://httpredir.debian.org/debian"
+  [Raspbian]="http://raspbian.raspberrypi.org/raspbian/"
 )
 
 ## Path to the volumio repo
@@ -29,7 +35,7 @@ declare -A CUSTOM_PKGS=(
 # VOL_BE_REPO="https://github.com/ashthespy/Volumio2.git"
 # VOL_BE_REPO_BRANCH="buster_upstream"
 VOL_BE_REPO="https://github.com/volumio/Volumio2.git"
-VOL_BE_REPO_BRANCH="master"
+VOL_BE_REPO_BRANCH="buster"
 
 ## NodeJS Controls
 # Semver is only used w.t.r modules fetched from repo,
@@ -40,4 +46,4 @@ NODE_VERSION=8.11.1
 # expected format node_modules_{arm/x86}-v${NODE_VERSION}.tar.gz
 NODE_MODULES_REPO="http://repo.volumio.org/Volumio2/"
 
-export SecureApt VOLBINSREPO VOLBINS VOL_BE_REPO VOL_BE_REPO_BRANCH NODE_VERSION NODE_MODULES_REPO CUSTOM_PKGS
+export SecureApt APTSOURCE VOLBINSREPO VOLBINS VOL_BE_REPO VOL_BE_REPO_BRANCH NODE_VERSION NODE_MODULES_REPO CUSTOM_PKGS

@@ -14,7 +14,7 @@ VOLUMIO_HASH="${HASH}"
 EOF
 # base-files updates can overwrite our custom info.
 log "Checking os-release"
-if grep "VOLUMIO_HARDWARE" ${ROOTFSMNT}/etc/os-release; then
+if ! grep "VOLUMIO_HARDWARE" ${ROOTFSMNT}/etc/os-release; then
   log "Missing VOLUMIO_ info in /etc/os-release!" "err"
   cat ${ROOTFSMNT}/etc/os-release
   exit 10 # Bail!

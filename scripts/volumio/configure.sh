@@ -13,8 +13,16 @@ trap exit_error INT ERR
 log "Copying Custom Volumio System Files" "info"
 
 # Apt sources
-log "Copying Apt lists" "sources.list.${BUILD}"
-cp "${SRC}"/volumio/etc/apt/sources.list."${BUILD}" "${ROOTFS}/etc/apt/sources.list"
+log "Creating Apt lists for ${BASE}"
+AptComponents=("main" "contrib" "non-free")
+[[ $BASE == "Raspbian" ]] && AptComponents+=("rpi")
+log "Setting repo to ${APTSOURCE[${BASE}]} ${SUITE} ${AptComponents[*]}"
+cat <<-EOF >"${ROOTFS}/etc/apt/sources.list"
+deb ${APTSOURCE[${BASE}]} ${SUITE} ${AptComponents[*]}
+# Uncomment line below then 'apt-get update' to enable 'apt-get source'
+#deb-src ${APTSOURCE[${BASE}]} ${SUITE} ${AptComponents[*]}
+EOF
+
 if [[ $BUILD == x86 ]]; then
   log 'Copying X86 related Configuration files'
   #Grub2 conf file
@@ -33,7 +41,7 @@ if [[ $SUITE == "buster" ]]; then
   log "Enabling buster specific tweaks" "info"
   log "Updating Backend .env"
   sed -i 's/^NODE_MOUNT_HANDLER=false/NODE_MOUNT_HANDLER=true/' "${ROOTFS}/volumio/.env"
-  log "Confirm if following tweaks are still required for Debain - $SUITE" "wrn"
+  log "Confirm if following tweaks are still required for Debian - $SUITE" "wrn"
 fi
 
 # TODO: Streamline this!!
@@ -76,7 +84,6 @@ cp "${SRC}/volumio/etc/systemd/journald.conf" "${ROOTFS}/etc/systemd/journald.co
 
 #Volumio SystemD Services
 cp -r "${SRC}"/volumio/lib "${ROOTFS}"/
-
 
 # Network
 cp -r "${SRC}"/volumio/etc/network/* "${ROOTFS}"/etc/network

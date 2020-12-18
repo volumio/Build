@@ -70,7 +70,7 @@ device_chroot_tweaks_pre
 log "Cleaning APT Cache and remove policy file" "info"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
-rm /usr/sbin/policy-rc.d
+# rm /usr/sbin/policy-rc.d
 [[ -d /volumio/customPkgs ]] && rm -r "/volumio/customPkgs"
 
 # Fix services for tmpfs logs

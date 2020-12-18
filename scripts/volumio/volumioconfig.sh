@@ -30,11 +30,12 @@ DISTRO_NAME="$(lsb_release -s -c)"
 packages=nodejs
 
 log "Preparing to run Debconf in chroot" "info"
-log "Prevent services starting during install, running under chroot"
-cat <<-EOF >/usr/sbin/policy-rc.d
-exit 101
-EOF
-chmod +x /usr/sbin/policy-rc.d
+# Not required, we have mounted /proc, systemd will be smart enough
+# log "Prevent services starting during install, running under chroot"
+# cat <<-EOF >/usr/sbin/policy-rc.d
+# exit 101
+# EOF
+# chmod +x /usr/sbin/policy-rc.d
 
 log "Configuring dpkg to not include Manual pages and docs"
 cat <<-EOF >/etc/bash.bashrc
@@ -62,33 +63,37 @@ else
   /var/lib/dpkg/info/dash.preinst install
 fi
 
-log "Configuring packages" "info"
+log "Configuring packages, this may take some time.." "info"
+start_dpkg_configure=$(date +%s)
 #TODO do we need to log full output
 # shellcheck disable=SC2069
 if ! dpkg --configure --pending 2>&1 >/dpkg.log; then # if ! { dpkg --configure -a  > /dev/null; } 2>&1
   log "Failed configuring packages!" "err"
 else
-  log "Finished configuring packages" "okay"
+  end_dpkg_configure=$(date +%s)
+  time_it "$end_dpkg_configure" "$start_dpkg_configure"
+  log "Finished configuring packages" "okay" "$TIME_STR"
 fi
 
 #Reduce locales to just one beyond C.UTF-8
 log "Prepare Volumio Debain customization" "info"
-log "Existing locales: " && locale -a
+log "Existing locales: " "" "$(locale -a | tr '\n' ' ')"
 
 # Enable LANG_def='en_US.UTF-8'
 [[ -e /etc/locale.gen ]] &&
   sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 locale-gen
 update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 LANGUAGE=en_US.UTF-8
-log "Final locale list"
-locale -a
+log "Final locale list: " "" "$(locale -a | tr '\n' ' ')"
 
 #Adding Main user Volumio
 log "Adding Volumio User"
 groupadd volumio
+# shellcheck disable=SC2016
 useradd -c volumio -d /home/volumio -m -g volumio -G adm,dialout,cdrom,floppy,audio,dip,video,plugdev,netdev,lp -s /bin/bash -p '$6$tRtTtICB$Ki6z.DGyFRopSDJmLUcf3o2P2K8vr5QxRx5yk3lorDrWUhH64GKotIeYSNKefcniSVNcGHlFxZOqLM6xiDa.M.' volumio
 
 #Setting Root Password
+# shellcheck disable=SC2016
 echo 'root:$1$JVNbxLRo$pNn5AmZxwRtWZ.xF.8xUq/' | chpasswd -e
 
 #Global BashRC Aliases"
@@ -146,17 +151,9 @@ volumio ALL=(ALL) NOPASSWD: /bin/sh /volumio/app/plugins/system_controller/volum
 EOF
 chmod 0440 ${SUDOERS_FILE}
 
-log "Setting up hostname"
-echo volumio >/etc/hostname
-chmod 777 /etc/hostname
-chmod 777 /etc/hosts
-
-log "Creating an empty dhcpd.leases if required"
-lease_file="/var/lib/dhcp/dhcpd.leases"
-[[ ! -f $lease_file ]] && mkdir -p "$(dirname $lease_file)" && touch $lease_file
-echo "nameserver 208.67.220.220" >/etc/resolv.conf
-
 # Fix qmeu 64 bit host issues for 32bit binaries on buster
+# TODO: This is just one manifestation of the underlying error,
+# probably safer to use 32bit qmeu
 log "Testing for SSL issues" "dbg"
 curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes
 log " SSL Issues: ${CURLFAIL:-no}"
@@ -218,6 +215,11 @@ source /etc/os-release
 # hostapd-edimax
 # LINN Songcast - sc2mpd
 # Node modules!
+
+# TODO: Think about restructuring this, copy all bits into rootfs first?
+log "Setting up nameserver for apt resolution" "dbg"
+echo "nameserver 208.67.220.220" >/etc/resolv.conf
+
 log "Installing custom packages for ${VOLUMIO_ARCH} and ${DISTRO_VER}" "info"
 log "Prepare external source lists"
 log "Attempting to install Node version: ${NODE_VERSION}"
@@ -261,6 +263,7 @@ $RECYCLE.BIN
 RECYCLER
 EOF
 
+# This is not going to work
 log "Setting mpc to bind to unix socket"
 export MPD_HOST=/run/mpd/socket
 
@@ -324,13 +327,16 @@ usermod -a -G audio volumio
 usermod -a -G audio mpd
 
 log "Setting RT Priority to Audio Group"
-echo '@audio - rtprio 99
-@audio - memlock unlimited' >>/etc/security/limits.conf
+cat <<-EOF >>/etc/security/limits.conf
+@audio - rtprio 99
+@audio - memlock unlimited
+EOF
 
 log "Alsa Optimizations" "info"
 log "Creating Alsa state file"
-touch /var/lib/alsa/asound.state
-echo '#' >/var/lib/alsa/asound.state
+cat <<-EOF >/var/lib/alsa/asound.state
+#
+EOF
 chmod 777 /var/lib/alsa/asound.state
 
 log "Setting USB DAC ordering"
@@ -346,12 +352,22 @@ EOF
 #####################
 #Network Settings and Optimizations#-----------------------------------------
 #####################
-log "Network Optimizations" "info"
-log "Tuning LAN"
-echo 'fs.inotify.max_user_watches = 524288' >>/etc/sysctl.conf
+log "Network settings and optimizations" "info"
+# log "Setting up networking defaults" "info"
 
-log "Disabling IPV6"
+log "Set default hostname"
+echo volumio >/etc/hostname
+chmod 777 /etc/hostname
+chmod 777 /etc/hosts
+
+log "Creating an empty dhcpd.leases if required"
+lease_file="/var/lib/dhcp/dhcpd.leases"
+[[ ! -f $lease_file ]] && mkdir -p "$(dirname $lease_file)" && touch $lease_file
+
+log "Disabling IPV6, increasing inotify watchers"
 cat <<-EOF >>/etc/sysctl.conf
+# Increase inotify watchers
+fs.inotify.max_user_watches = 524288
 #disable ipv6
 net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.default.disable_ipv6 = 1
@@ -448,7 +464,7 @@ cat <<-EOF >/etc/xbindkeysrc
 XF86AudioRaiseVolume'
 EOF
 
-log "Enabling xbindkeys"
-ln -s /lib/systemd/system/xbindkeysrc.service /etc/systemd/system/multi-user.target.wants/xbindkeysrc.service
+# log "Enabling xbindkeys"
+# ln -s /lib/systemd/system/xbindkeysrc.service /etc/systemd/system/multi-user.target.wants/xbindkeysrc.service
 
 log "Finished Volumio chroot configuration for ${DISTRO_NAME}" "okay"
