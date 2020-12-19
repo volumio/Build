@@ -171,7 +171,7 @@ sudo umount -l /mnt/volumio/rootfs/sys
 echo "X86 device installed"
 
 echo "Finalizing Rootfs creation"
-sh scripts/finalize.sh
+source scripts/volumio/finalize.sh
 
 echo "Preparing rootfs base for SquashFS"
 
@@ -198,7 +198,7 @@ echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
 echo "Creating SquashFS, removing any previous one"
-rm -r Volumio.sqsh
+rm -r Volumio.sqsh || echo "No previous SquashFS found to clean"
 mksquashfs /mnt/squash/* Volumio.sqsh
 
 echo "Squash filesystem created"
@@ -214,13 +214,14 @@ echo "Unmounting Temp Devices"
 sudo umount -l /mnt/volumio/images
 sudo umount -l /mnt/volumio/rootfs/boot
 
-echo "Avoiding fsck errors on boot"
-# as the syslinux boot sector has no backup, no idea why (yet), simply fix that by coyping to the backup)
-fsck.vfat -r "${BOOT_PART}" >/dev/null 2>&1 <<EOF
-1
-1
-y
-EOF
+# This errors out, so disabling it for now
+# echo "Avoiding fsck errors on boot"
+# # as the syslinux boot sector has no backup, no idea why (yet), simply fix that by coyping to the backup)
+# fsck.vfat -r "${BOOT_PART}" >/dev/null 2>&1 <<EOF
+# 1
+# 1
+# y
+# EOF
 
 echo "Cleaning build environment"
 #rm -rf /mnt/volumio /mnt/boot

@@ -127,7 +127,6 @@ UUID_DATA="$(blkid -s UUID -o value "${DATA_PART}")"
 
 log "Adding board pretty name to os-release"
 echo "VOLUMIO_DEVICENAME=\"${DEVICENAME}\"" >>${ROOTFSMNT}/etc/os-release
-
 # Ensure all file systems operations are completed before entering chroot again
 sync
 
@@ -137,7 +136,12 @@ start_chroot_final=$(date +%s)
 cp "${SRC}/scripts/initramfs/${INIT_TYPE}" ${ROOTFSMNT}/root/init
 cp "${SRC}"/scripts/initramfs/mkinitramfs-buster.sh ${ROOTFSMNT}/usr/local/sbin
 cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
-[ "$KIOSKMODE" == yes ] && cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}
+
+if [[ "$KIOSKMODE" == yes ]]; then
+  log "Copying kiosk scripts to rootfs"
+  cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}
+fi
+
 echo "$PATCH" >${ROOTFSMNT}/patch
 if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "${SDK_PATH}"/config.js ]]; then
   log "Starting ${SDK_PATH}/config.js" "ext" "${PATCH}"
@@ -146,6 +150,7 @@ if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "${SDK_PATH}"/config.js ]]
   [[ ${status} -ne 0 ]] && log "config.js failed with ${status}" "err" "${PATCH}" && exit 10
   log "Completed config.js" "ext" "${PATCH}"
 fi
+
 # Copy across custom bits and bobs from device config
 # This is in the hope that <./recipes/boards/${DEVICE}>
 # doesn't grow back into the old <xxxxconfig.sh>
@@ -155,12 +160,15 @@ fi
 cat <<-EOF >$ROOTFSMNT/chroot_device_config.sh
 DEVICENAME="${DEVICENAME}"
 ARCH="${ARCH}"
+BUILD="${BUILD}"
 DEBUG_IMAGE="${DEBUG_IMAGE:-no}"
 KIOSKMODE="${KIOSKMODE:-no}"
 VOLVARIANT="${VOLVARIANT:-volumio}"
 UUID_BOOT=${UUID_BOOT}
 UUID_IMG=${UUID_IMG}
 UUID_DATA=${UUID_DATA}
+BOOT_PART=${BOOT_PART}
+LOOP_DEV=${LOOP_DEV}
 MODULES=($(printf '\"%s\" ' "${MODULES[@]}"))
 PACKAGES=($(printf '\"%s\" ' "${PACKAGES[@]}"))
 $(declare -f device_chroot_tweaks)

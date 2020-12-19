@@ -56,11 +56,22 @@ Example: Build a Raspberry PI image from scratch, version 2.0 :
 
 mount_chroot() {
   local base=$1
+  local
   log "Mounting temp devices for chroot at ${base}" "info"
-  mount /proc "${base}/proc" -t proc
-  mount /sys "${base}/sys" -t sysfs
-  mount chdev "${base}/dev" -t devtmpfs || mount --bind /dev "${base}/dev"
-  mount chpts "${base}/dev/pts" -t devpts
+  if [[ ${BUILD} == x86 ]]; then
+    log "Mounting /dev for x86 chroot" "dbg"
+    # x86's grub-mkconfig (well grub-probe) needs /dev mounted
+    mount --bind /proc "${base}/proc"
+    mount --bind /sys "${base}/sys"
+    mount --bind /dev "${base}/dev"
+    mount --bind /dev/pts "${base}/dev/pts"
+    mount --bind /run "${base}/run"
+  else
+    mount /sys "${base}/sys" -t sysfs
+    mount /proc "${base}/proc" -t proc
+    mount chdev "${base}/dev" -t devtmpfs || mount --bind /dev "${base}/dev"
+    mount chpts "${base}/dev/pts" -t devpts
+  fi
 
   # Lets record this, might come in handy.
   CHROOT=yes
@@ -73,6 +84,7 @@ unmount_chroot() {
   umount -l "${base}/dev" || log "umount dev failed" "wrn"
   umount -l "${base}/proc" || log "umount proc failed" "wrn"
   umount -l "${base}/sys" || log "umount sys failed" "wrn"
+  umount -l "${base}/run" || log "umount run failed" "wrn"
 
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
   if [[ -d "${base}/run/cgmanager/fs" ]]; then
@@ -312,7 +324,7 @@ if [ -n "${BUILD}" ]; then
       log "Removing multistrap-*.list" "wrn"
       rm "${ROOTFS}"/etc/apt/sources.list.d/multistrap-*.list
     fi
-    [[ -e "${SRC}/${RASPBIANCONF}" ]] && rm "${SRC}/${RASPBIANCONF}"
+    [[ -n ${RASPBIANCONF} ]] && [[ -e "${SRC}/${RASPBIANCONF}" ]] && rm "${SRC}/${RASPBIANCONF}"
     log "Finished setting up Multistrap rootfs" "okay" "$TIME_STR"
   fi
 
@@ -491,9 +503,14 @@ if [[ -n "$DEVICE" ]]; then
   BUILDDATE=$(date -I)
   IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-${DEVICE}.img"
 
-  # shellcheck source=scripts/makeimage.sh
-  source "${SRC}/scripts/makeimage.sh"
-
+  if [[ ${OLD_X86BUILD:no} == yes ]] && [[ ${BUILD} == x86 ]]; then
+    log "Using old x86 image script to build image"
+    # shellcheck source=scripts/x86image.sh
+    source "${SRC}/scripts/x86image.sh"
+  else
+    # shellcheck source=scripts/makeimage.sh
+    source "${SRC}/scripts/makeimage.sh"
+  fi
   end_img=$(date +%s)
   time_it "$end_img" "$start_img"
   log "Image ${IMG_FILE} Created" "okay" "$TIME_STR"
