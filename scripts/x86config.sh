@@ -1,48 +1,62 @@
 #!/bin/bash
+set -eo pipefail
 
 PATCH=$(cat /patch)
 # This script will be run in chroot.
 echo "Initializing.."
 . init.sh
 
-echo "Installing the kernel and creating initramfs"
-# Kernel version not known yet
-# Not brilliant, but safe enough as x86.sh only copied one image and one firmware package version
+echo "Installing the kernel"
+# Exact kernel version not known
+# Not brilliant, but safe enough as x86image.sh only copied one image
 dpkg -i linux-image-*_i386.deb
-dpkg -i linux-firmware-*_i386.deb
+
+echo "Add script to set sane defaults for baytrail/cherrytrail soundcards"
+#TODO: add this to the Intel HD Audio tweak script see below
+echo "#!/bin/sh -e
+/usr/local/bin/bytcr-init.sh" >/etc/rc.local
+
+echo "Tweaking HDA Intel soundcards"
+echo "/usr/local/bin/volumio_hda_intel_tweak.sh
+exit 0" >>/etc/rc.local
 
 echo "Creating node/ nodejs symlinks to stay compatible with the armv6/v7 platforms"
 ln -s /usr/bin/nodejs /usr/local/bin/nodejs
 
 echo "Blacklisting PC speaker"
-echo "blacklist snd_pcsp" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist snd_pcsp
+blacklist pcspkr" >>/etc/modprobe.d/blacklist.conf
 
 echo "X86 USB Card Ordering"
 echo "# USB DACs will have device number 5 in whole Volumio device range
-options snd-usb-audio index=5" >> /etc/modprobe.d/alsa-base.conf
+options snd-usb-audio index=5" >>/etc/modprobe.d/alsa-base.conf
 
 echo "Installing Syslinux Legacy BIOS"
 syslinux -v
 syslinux "${BOOT_PART}"
 
 echo "Getting the current kernel filename"
-KRNL=`ls -l /boot |grep vmlinuz | awk '{print $9}'`
+KRNL=$(ls -l /boot | grep vmlinuz | awk '{print $9}')
 
 echo "Creating run-time template for syslinux config"
-DEBUG="USE_KMSG=no"
+# keep "splash" as default, just remove "quiet" when debugging is required
+# no: print initramfs messages to stdout, display according to loglevel & quiet option
+#DEBUG="splash quiet loglevel=0"
+DEBUG="loglevel=8 splash"
 echo "DEFAULT volumio
 
 LABEL volumio
   SAY Legacy Boot Volumio Audiophile Music Player (default)
   LINUX ${KRNL}
-  APPEND ro imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% imgfile=volumio_current.sqsh quiet splash plymouth.ignore-serial-consoles vt.global_cursor_default=0 loglevel=0 ${DEBUG}
+  APPEND net.ifnames=0 biosdevname=0 imgpart=UUID=%%IMGPART%% bootpart=UUID=%%BOOTPART%% datapart=UUID=%%DATAPART%% imgfile=volumio_current.sqsh plymouth.ignore-serial-consoles vt.global_cursor_default=0 ${DEBUG}
   INITRD volumio.initrd
-" > /boot/syslinux.tmpl
+" >/boot/syslinux.tmpl
 
 echo "Creating syslinux.cfg from template"
 cp /boot/syslinux.tmpl /boot/syslinux.cfg
 sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
 sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
+sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /boot/syslinux.cfg
 
 echo "Editing the Grub UEFI config template"
 # Make grub boot menu transparent
@@ -70,19 +84,22 @@ chmod +w /boot/grub/grub.cfg
 echo "Coyping the new Grub config to the EFI bootloader folder"
 cp /boot/grub/grub.cfg /boot/efi/BOOT/grub.cfg
 
-echo "Telling the bootloader to read an external config" 
-echo 'configfile ${cmdpath}/grub.cfg' > /grub-redir.cfg
+echo "Telling the bootloader to read an external config"
+echo 'configfile ${cmdpath}/grub.cfg' >/grub-redir.cfg
 
 echo "Using current grub.cfg as run-time template for kernel updates"
 cp /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.tmpl
 sed -i "s/${UUID_BOOT}/%%BOOTPART%%/g" /boot/efi/BOOT/grub.tmpl
+sed -i "s/${UUID_DATA}/%%DATAPART%%/g" /boot/efi/BOOT/grub.tmpl
 
 echo "Inserting root and boot partition UUIDs (building the boot cmdline used in initramfs)"
 # Opting for finding partitions by-UUID
 sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
 sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
+sed -i "s/datapart=%%DATAPART%%/datapart=UUID=${UUID_DATA}/g" /boot/efi/BOOT/grub.cfg
+sed -i "s/splash quiet loglevel=0/loglevel=8/g" /boot/efi/BOOT/grub.cfg
 
-cat > /usr/sbin/policy-rc.d << EOF
+cat >/usr/sbin/policy-rc.d <<EOF
 exit 101
 EOF
 chmod +x /usr/sbin/policy-rc.d
@@ -92,8 +109,8 @@ apt-get update
 apt-get -y install grub-efi-amd64-bin
 grub-mkstandalone --compress=gz -O x86_64-efi -o /boot/efi/BOOT/BOOTX64.EFI "boot/grub/grub.cfg=grub-redir.cfg" -d /usr/lib/grub/x86_64-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes=""
 if [ ! -e /boot/efi/BOOT/BOOTX64.EFI ]; then
-	echo "Fatal error, no 64bit bootmanager created, aborting..." 
-    exit 1
+  echo "Fatal error, no 64bit bootmanager created, aborting..."
+  exit 1
 fi
 
 #we cannot install grub-efi-amd64 and grub-efi-ia32 on the same machine.
@@ -103,15 +120,16 @@ apt-get -y --purge remove grub-efi-amd64-bin
 
 echo "Installing grub-efi-ia32 to make the 32bit UEFI bootloader"
 apt-get -y install grub-efi-ia32-bin
-grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI "boot/grub/grub.cfg=grub-redir.cfg" -d /usr/lib/grub/i386-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes="" 
+grub-mkstandalone --compress=gz -O i386-efi -o /boot/efi/BOOT/BOOTIA32.EFI "boot/grub/grub.cfg=grub-redir.cfg" -d /usr/lib/grub/i386-efi --modules="part_gpt part_msdos" --fonts="unicode" --themes=""
 if [ ! -e /boot/efi/BOOT/BOOTIA32.EFI ]; then
-	echo "Fatal error, no 32bit bootmanager created, aborting..." 
-    exit 1
+  echo "Fatal error, no 32bit bootmanager created, aborting..."
+  exit 1
 fi
 #and remove it again
 echo "Uninstalling grub-efi-ia32-bin and cleaning up grub install"
 apt-get -y --purge remove grub-efi-ia32-bin
-apt-get -y --purge remove efibootmgr libefivar0
+apt-get -y --purge remove efibootmgr libefiboot1 libefivar1
+apt -y autoremove
 rm /grub-redir.cfg
 rm -r /boot/grub
 
@@ -129,13 +147,16 @@ sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
 echo "Installing Japanese, Korean, Chinese and Taiwanese fonts"
 apt-get -y install fonts-arphic-ukai fonts-arphic-gbsn00lp fonts-unfonts-core
 
+echo "Installing firmware needed by the b43 kernel driver for some Broadcom 43xx wireless network cards"
+apt-get install -y firmware-b43-installer
+
 echo "Configuring boot splash"
-apt-get -y install plymouth plymouth-themes plymouth-x11
+#moved to recipes: apt-get -y install plymouth plymouth-themes plymouth-x11
 plymouth-set-default-theme volumio
 echo "[Daemon]
 Theme=volumio
 ShowDelay=0
-" > /usr/share/plymouth/plymouthd.defaults
+" >/usr/share/plymouth/plymouthd.defaults
 
 echo "Setting up in kiosk-mode"
 echo "Creating chromium kiosk start script"
@@ -148,11 +169,9 @@ openbox-session &
 while true; do
   rm -rf ~/.{config,cache}/chromium/
   /usr/bin/chromium --disable-session-crashed-bubble --disable-infobars --kiosk --no-first-run  'http://localhost:3000'
-done" > /opt/volumiokiosk.sh
+done" >/opt/volumiokiosk.sh
 chmod +x /opt/volumiokiosk.sh
 
-#echo "  Editing rc.local to start the chromium kiosk"
-#sed -i "s|\\# By default this script does nothing.|\\nsudo -u volumio startx /etc/X11/Xsession /opt/volumiokiosk.sh|" /etc/rc.local
 echo "[Unit]
 Description=Start Volumio Kiosk
 Wants=volumio.service
@@ -166,7 +185,7 @@ ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh
 TimeoutSec=300
 [Install]
 WantedBy=multi-user.target
-" > /lib/systemd/system/volumio-kiosk.service
+" >/lib/systemd/system/volumio-kiosk.service
 ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
 
 echo "Hide Mouse cursor"
@@ -188,80 +207,84 @@ xsetroot -cursor_name left_ptr &  # setta il cursore di X
 
 exec openbox-session              # avvia il window manager
 
-exec unclutter &" > /root/.xinitrc
-
+exec unclutter &" >/root/.xinitrc
 
 echo "Allowing volumio to start an xsession"
-sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
+echo "allowed_users=anybody
+needs_root_rights=yes" >/etc/X11/Xwrapper.config
 
 echo "Creating initramfs"
 echo "Adding custom modules"
-echo "overlay" >> /etc/initramfs-tools/modules
-echo "squashfs" >> /etc/initramfs-tools/modules
-echo "usbcore" >> /etc/initramfs-tools/modules
-echo "usb_common" >> /etc/initramfs-tools/modules
-echo "mmc_core" >> /etc/initramfs-tools/modules
-echo "sdhci" >> /etc/initramfs-tools/modules
-echo "sdhci_pci" >> /etc/initramfs-tools/modules
-echo "sdhci_acpi" >> /etc/initramfs-tools/modules
-echo "ehci_pci" >> /etc/initramfs-tools/modules
-echo "ohci_pci" >> /etc/initramfs-tools/modules
-echo "uhci_hcd" >> /etc/initramfs-tools/modules
-echo "ehci_hcd" >> /etc/initramfs-tools/modules
-echo "xhci_hcd" >> /etc/initramfs-tools/modules
-echo "ohci_hcd" >> /etc/initramfs-tools/modules
-echo "usbhid" >> /etc/initramfs-tools/modules
-echo "hid_cherry" >> /etc/initramfs-tools/modules
-echo "hid_generic" >> /etc/initramfs-tools/modules
-echo "hid" >> /etc/initramfs-tools/modules
-echo "nls_cp437" >> /etc/initramfs-tools/modules
-echo "nls_utf8" >> /etc/initramfs-tools/modules
-echo "vfat" >> /etc/initramfs-tools/modules
+echo "overlay" >>/etc/initramfs-tools/modules
+echo "squashfs" >>/etc/initramfs-tools/modules
+echo "usbcore" >>/etc/initramfs-tools/modules
+echo "usb_common" >>/etc/initramfs-tools/modules
+echo "mmc_core" >>/etc/initramfs-tools/modules
+echo "mmc_block" >>/etc/initramfs-tools/modules
+echo "nvme_core" >>/etc/initramfs-tools/modules
+echo "nvme" >>/etc/initramfs-tools/modules
+echo "sdhci" >>/etc/initramfs-tools/modules
+echo "sdhci_pci" >>/etc/initramfs-tools/modules
+echo "sdhci_acpi" >>/etc/initramfs-tools/modules
+echo "ehci_pci" >>/etc/initramfs-tools/modules
+echo "ohci_pci" >>/etc/initramfs-tools/modules
+echo "uhci_hcd" >>/etc/initramfs-tools/modules
+echo "ehci_hcd" >>/etc/initramfs-tools/modules
+echo "xhci_hcd" >>/etc/initramfs-tools/modules
+echo "ohci_hcd" >>/etc/initramfs-tools/modules
+echo "usbhid" >>/etc/initramfs-tools/modules
+echo "hid_cherry" >>/etc/initramfs-tools/modules
+echo "hid_generic" >>/etc/initramfs-tools/modules
+echo "hid" >>/etc/initramfs-tools/modules
+echo "nls_cp437" >>/etc/initramfs-tools/modules
+echo "nls_utf8" >>/etc/initramfs-tools/modules
+echo "vfat" >>/etc/initramfs-tools/modules
 echo "Adding ata modules for various chipsets"
-cat /ata-modules.x86 >> /etc/initramfs-tools/modules
+cat /ata-modules.x86 >>/etc/initramfs-tools/modules
 echo "Adding modules for Plymouth"
-echo "intel_agp" >> /etc/initramfs-tools/modules
-echo "drm" >> /etc/initramfs-tools/modules
-echo "i915 modeset=1" >> /etc/initramfs-tools/modules
-echo "nouveau modeset=1" >> /etc/initramfs-tools/modules
-echo "radeon modeset=1" >> /etc/initramfs-tools/modules
+echo "intel_agp" >>/etc/initramfs-tools/modules
+echo "drm" >>/etc/initramfs-tools/modules
+echo "i915 modeset=1" >>/etc/initramfs-tools/modules
+echo "nouveau modeset=1" >>/etc/initramfs-tools/modules
+echo "radeon modeset=1" >>/etc/initramfs-tools/modules
 
 echo "Copying volumio initramfs updater"
 cd /root/
 mv volumio-init-updater /usr/local/sbin
 
-echo "Creating initramfs 'volumio.initrd'"
+cp /root/init /usr/share/initramfs-tools/
+# (Add -v for verbose output from mkinitramfs)
 mkinitramfs-custom.sh -o /tmp/initramfs-tmp
+rm -r /tmp/initramfs-tmp
 
 echo "No need to keep the original initrd"
-DELFILE=`ls -l /boot |grep initrd.img | awk '{print $9}'`
-echo "Found "$DELFILE", deleting"
+DELFILE=$(ls -l /boot | grep initrd.img | awk '{print $9}')
 rm /boot/${DELFILE}
 echo "No need for the system map either"
-DELFILE=`ls -l /boot |grep System.map | awk '{print $9}'`
+DELFILE=$(ls -l /boot | grep System.map | awk '{print $9}')
 echo "Found "$DELFILE", deleting"
 rm /boot/${DELFILE}
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
-echo "No Patch To Apply"
+  echo "No Patch To Apply"
 else
-echo "Applying Patch ${PATCH}"
-PATCHPATH=/${PATCH}
-cd $PATCHPATH
-#Check the existence of patch script
-if [ -f "patch.sh" ]; then
-sh patch.sh
-else
-echo "Cannot Find Patch File, aborting"
-fi
-if [ -f "install.sh" ]; then
-sh install.sh
-fi
-cd /
-rm -rf ${PATCH}
+  echo "Applying Patch ${PATCH}"
+  PATCHPATH=/${PATCH}
+  cd $PATCHPATH
+  #Check the existence of patch script
+  if [ -f "patch.sh" ]; then
+    chmod a+x patch.sh
+    sh patch.sh
+  else
+    echo "Cannot Find Patch File, aborting"
+  fi
+  if [ -f "install.sh" ]; then
+    sh install.sh
+  fi
+  cd /
+  rm -rf ${PATCH}
 fi
 rm /patch
-
 
 echo "Bootloader configuration and initrd.img complete"
