@@ -35,6 +35,7 @@ parted -s "${LOOP_DEV}" mkpart primary fat32 "${BOOT_START:-0}" "${BOOT_END}"
 parted -s "${LOOP_DEV}" mkpart primary ext3 "${BOOT_END}" 2500
 parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
 parted -s "${LOOP_DEV}" set 1 boot on
+[[ "${BOOT_TYPE}" == gpt ]] && parted -s "${LOOP_DEV}" set 1 legacy_boot on # for non UEFI systems
 parted -s "${LOOP_DEV}" print
 partprobe "${LOOP_DEV}"
 kpartx -a "${LOOP_DEV}" -s
