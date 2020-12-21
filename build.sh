@@ -56,23 +56,11 @@ Example: Build a Raspberry PI image from scratch, version 2.0 :
 
 mount_chroot() {
   local base=$1
-  local
   log "Mounting temp devices for chroot at ${base}" "info"
-  if [[ ${BUILD} == x86 ]]; then
-    log "Mounting /dev for x86 chroot" "dbg"
-    # x86's grub-mkconfig (well grub-probe) needs /dev mounted
-    mount --bind /proc "${base}/proc"
-    mount --bind /sys "${base}/sys"
-    mount --bind /dev "${base}/dev"
-    mount --bind /dev/pts "${base}/dev/pts"
-    mount --bind /run "${base}/run"
-  else
-    mount /sys "${base}/sys" -t sysfs
-    mount /proc "${base}/proc" -t proc
-    mount chdev "${base}/dev" -t devtmpfs || mount --bind /dev "${base}/dev"
-    mount chpts "${base}/dev/pts" -t devpts
-  fi
-
+  mount /sys "${base}/sys" -t sysfs
+  mount /proc "${base}/proc" -t proc
+  mount chdev "${base}/dev" -t devtmpfs || mount --bind /dev "${base}/dev"
+  mount chpts "${base}/dev/pts" -t devpts
   # Lets record this, might come in handy.
   CHROOT=yes
   export CHROOT
@@ -84,7 +72,6 @@ unmount_chroot() {
   umount -l "${base}/dev" || log "umount dev failed" "wrn"
   umount -l "${base}/proc" || log "umount proc failed" "wrn"
   umount -l "${base}/sys" || log "umount sys failed" "wrn"
-  umount -l "${base}/run" || log "umount run failed" "wrn"
 
   # Setting up cgmanager under chroot/qemu leaves a mounted fs behind, clean it up
   if [[ -d "${base}/run/cgmanager/fs" ]]; then
