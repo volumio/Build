@@ -27,7 +27,8 @@ VOLINITUPDATER=no # Temporary until the repo is fixed
 ## Partition info
 BOOT_START=1
 BOOT_END=512
-BOOT_TYPE=gpt        # msdos or gpt
+BOOT_TYPE=gpt # msdos or gpt
+BOOT_USE_UUID=yes
 INIT_TYPE="init.x86" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramfs
@@ -146,9 +147,9 @@ device_chroot_tweaks_pre() {
 
   log "Preparing BIOS" "info"
 
-  log "Installing Syslinux Legacy BIOS"
+  log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
   syslinux -v
-  syslinux "${BOOT_PART-?BOOT_PART is not known}"
+  syslinux "${BOOT_PART}"
 
   log "Preparing boot configurations" "info"
 
@@ -221,11 +222,8 @@ device_chroot_tweaks_pre() {
 
   log "Finished setting up boot config" "okay"
 
-  log "Copying fstab as a template to be used in initrd"
-  cp /etc/fstab /etc/fstab.tmpl
-
-  log "Editing fstab to use UUID=<uuid of boot partition>"
-  sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
+  log "Creating fstab template to be used in initrd"
+  sed -i "s/UUID=${UUID_BOOT}/%%BOOTPART%%/g" /etc/fstab >/etc/fstab.tmpl
 
   log "Setting plymouth theme to volumio"
   plymouth-set-default-theme volumio

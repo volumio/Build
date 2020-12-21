@@ -155,7 +155,9 @@ fi
 # Copy across custom bits and bobs from device config
 # This is in the hope that <./recipes/boards/${DEVICE}>
 # doesn't grow back into the old <xxxxconfig.sh>
-
+BOOT_FS_SPEC="/dev/mmcblk0p1"
+[[ ${BOOT_USE_UUID} == yes ]] && BOOT_FS_SPEC="UUID=${UUID_BOOT}"
+log "Setting /boot fs_sepc to ${BOOT_FS_SPEC}"
 #TODO: Should we just copy the
 # whole thing into the chroot to make life easier?
 cat <<-EOF >$ROOTFSMNT/chroot_device_config.sh
@@ -165,6 +167,7 @@ BUILD="${BUILD}"
 DEBUG_IMAGE="${DEBUG_IMAGE:-no}"
 KIOSKMODE="${KIOSKMODE:-no}"
 VOLVARIANT="${VOLVARIANT:-volumio}"
+BOOT_FS_SPEC=${BOOT_FS_SPEC}
 UUID_BOOT=${UUID_BOOT}
 UUID_IMG=${UUID_IMG}
 UUID_DATA=${UUID_DATA}
