@@ -74,15 +74,18 @@ write_device_files() {
   log "Copying Alsa Use Case Manager files"
   cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
 
-  #TODO: not checked with other Intel SST bytrt/cht audio boards yet, needs more input
-  #      to bew added to the snd_hda_audio tweaks (see below)
   mkdir -p "${ROOTFSMNT}"/usr/local/bin/
-  cp "${pkg_root}"/bytcr-init/bytcr-init.sh "${ROOTFSMNT}"/usr/local/bin/
-  chmod +x "${ROOTFSMNT}"/usr/local/bin/bytcr-init.sh
-
-  log "Adding hda sound tweaks..."
-  cp volumio/bin/volumio_hda_intel_tweak.sh "${ROOTFSMNT}"/usr/local/bin/volumio_hda_intel_tweak.sh
-  chmod +x "${ROOTFSMNT}"/usr/local/bin/volumio_hda_intel_tweak.sh
+  declare -A CustomScripts=(
+    [bytcr_init.sh]="bytcr-init/bytcr-init.sh"
+    [volumio_hda_intel_tweak.sh]="hda-intel-tweaks/volumio_hda_intel_tweak.sh"
+  )
+  #TODO: not checked with other Intel SST bytrt/cht audio boards yet, needs more input
+  #      to be added to the snd_hda_audio tweaks (see below)
+  log "Adding ${#CustomScripts[@]} custom scripts to /usr/local/bin: " "" "${CustomScripts[@]}"
+  for script in "${!CustomScripts[@]}"; do
+    cp "${pkg_root}/${CustomScripts[$script]}" "${ROOTFSMNT}"/usr/local/bin/"${script}"
+    chmod +x "${ROOTFSMNT}"/usr/local/bin/"${script}"
+  done
 
   log "Creating efi folders"
   mkdir -p "${ROOTFSMNT}"/boot/efi
@@ -110,9 +113,9 @@ device_image_tweaks() {
   #TODO: add this to the Intel HD Audio tweak script see below
   cat <<-EOF >"${ROOTFSMNT}/etc/rc.local"
 	#!/bin/sh -e
-  /usr/local/bin/bytcr-init.sh
+  /usr/local/bin/bytcr_init.sh
   /usr/local/bin/volumio_hda_intel_tweak.sh
-  exut 0
+  exit 0
 	EOF
 
   log "Blacklisting PC speaker"
@@ -142,6 +145,7 @@ device_chroot_tweaks_pre() {
   log "Getting the current kernel filename and version"
   #TODO: Why not just symlink to /boot/vmlinuz
   # So that initramfs just needs to update that symlink, rather than adjusing boot files each time?
+  mapfile -t KRNL_VERS < <(ls -t /boot/vmlinuz)
   KRNL=$(ls -l /boot | grep vmlinuz | awk '{print $9}')
   IFS=- read -ra KVER <<<"$KRNL"
   log "Finished Kernel ${KVER[1]} installation" "okay" "${KRNL}"

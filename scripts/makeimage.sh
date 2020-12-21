@@ -100,7 +100,7 @@ elif [[ -n $DEVICEREPO ]]; then
   log "Unpacking $DEVICE files"
   log "This isn't really consistent across platforms right now!" "dbg"
   # mkdir -p ${PLTDIR}/${DEVICE}
-  tar xfJ "platform-${DEVICEBASE}/${DEVICE}.tar.xz" -C "${PLTDIR}"
+  tar xfJ "platform-${DEVICEBASE}/${DEVICE}.tar.xz" -C "${PLTDIR}" || log "No archive found, assuming you know what you are doing!" "wrn"
   HAS_PLTDIR=yes
 else
   log "No platfrom-${DEVICE} found, skipping this step"
