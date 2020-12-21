@@ -23,6 +23,7 @@ DEVICEREPO="http://github.com/volumio/platform-x86"
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
 VOLINITUPDATER=no # Temporary until the repo is fixed
+KIOSKMODE=yes
 
 ## Partition info
 BOOT_START=1
@@ -234,11 +235,10 @@ device_chroot_tweaks_pre() {
 device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
+  log "Cleaning up /boot"
+  ls -la /boot
   log "No need to keep the original initrd"
-  DELFILE=$(ls -l /boot | grep initrd.img | awk '{print $9}')
-  rm "/boot/${DELFILE}"
+  rm /boot/initrd.img-*
   log "No need for the system map either"
-  DELFILE=$(ls -l /boot | grep System.map | awk '{print $9}')
-  log "Found ${DELFILE}, deleting"
-  rm "/boot/${DELFILE}"
+  rm /boot/System.map-*
 }
