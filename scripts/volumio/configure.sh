@@ -28,8 +28,6 @@ if [[ $BUILD == x86 ]]; then
   #Grub2 conf file
   cp "${SRC}/volumio/etc/default/grub" "${ROOTFS}/etc/default/grub"
   cp "${SRC}/volumio/splash/volumio.png" "${ROOTFS}/boot"
-  #FSTAB File
-  cp "${SRC}/volumio/etc/fstab.x86" "${ROOTFS}/etc/fstab"
 else
   log 'Setting time for ARM devices with fakehwclock to build time'
   date -u '+%Y-%m-%d %H:%M:%S' >"${ROOTFS}/etc/fake-hwclock.data"

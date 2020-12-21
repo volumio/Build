@@ -27,7 +27,8 @@ VOLINITUPDATER=no # Temporary until the repo is fixed
 ## Partition info
 BOOT_START=1
 BOOT_END=512
-BOOT_TYPE=gpt        # msdos or gpt
+BOOT_TYPE=gpt # msdos or gpt
+BOOT_USE_UUID=yes
 INIT_TYPE="init.x86" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramfs
@@ -82,19 +83,22 @@ write_device_files() {
   cp volumio/bin/volumio_hda_intel_tweak.sh "${ROOTFSMNT}"/usr/local/bin/volumio_hda_intel_tweak.sh
   chmod +x "${ROOTFSMNT}"/usr/local/bin/volumio_hda_intel_tweak.sh
 
+  log "Creating efi folders"
+  mkdir -p "${ROOTFSMNT}"/boot/efi
+  mkdir -p "${ROOTFSMNT}"/boot/efi/EFI/debian
+  mkdir -p "${ROOTFSMNT}"/boot/efi/BOOT/
+  log "Copying bootloaders and grub configuration template"
+  mkdir -p "${ROOTFSMNT}"/boot/grub
+  cp "${pkg_root}"/efi/BOOT/grub.cfg "${ROOTFSMNT}"/boot/efi/BOOT/grub.tmpl
+  cp "${pkg_root}"/efi/BOOT/BOOTIA32.EFI "${ROOTFSMNT}"/boot/efi/BOOT/BOOTIA32.EFI
+  cp "${pkg_root}"/efi/BOOT/BOOTX64.EFI "${ROOTFSMNT}"/boot/efi/BOOT/BOOTX64.EFI
+
 }
 
 write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
   log "Copying the Syslinux boot sector"
   dd conv=notrunc bs=440 count=1 if="${ROOTFSMNT}"/usr/lib/syslinux/mbr/gptmbr.bin of="${LOOP_DEV}"
-
-  log "Creating efi folders"
-  mkdir -p "${ROOTFSMNT}"/boot/efi
-  mkdir -p "${ROOTFSMNT}"/boot/efi/EFI/debian
-  mkdir -p "${ROOTFSMNT}"/boot/efi/BOOT/
-  log "Copying bootloaders and grub configuration template"
-  cp -R "${pkg_root}"/efi/* "${ROOTFSMNT}"/boot/efi
 }
 
 # Will be called by the image builder for any customisation
@@ -119,7 +123,7 @@ device_image_tweaks() {
 
 # Will be run in chroot (before other things)
 device_chroot_tweaks() {
-#log "Running device_image_tweaks" "ext"
+  #log "Running device_image_tweaks" "ext"
   :
 }
 
@@ -135,21 +139,19 @@ device_chroot_tweaks_pre() {
   dpkg -i linux-image-*_i386.deb
 
   log "Getting the current kernel filename and version"
+  #TODO: Why not just symlink to /boot/vmlinuz
+  # So that initramfs just needs to update that symlink, rather than adjusing boot files each time?
   KRNL=$(ls -l /boot | grep vmlinuz | awk '{print $9}')
-  KVER=$(echo $KRNL | awk -F '-' '{print $2}')
-
-  log "Finished Kernel installation" "okay" "${KRNL}"
+  IFS=- read -ra KVER <<<"$KRNL"
+  log "Finished Kernel ${KVER[1]} installation" "okay" "${KRNL}"
 
   log "Preparing BIOS" "info"
 
-  log "Installing Syslinux Legacy BIOS"
+  log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
   syslinux -v
-  syslinux "${BOOT_PART-?BOOT_PART is not known}"
+  syslinux "${BOOT_PART}"
 
   log "Preparing boot configurations" "info"
-
-  log "Creating run-time template for syslinux config"
-  log "Writing cmdline.txt file"
 
   KERNEL_LOGLEVEL="loglevel=0" # Default to KERN_EMERG
   DISABLE_PN="net.ifnames=0"   # For legacy ifnames in buster
@@ -161,9 +163,9 @@ device_chroot_tweaks_pre() {
     # Boot screen stuff
     "splash" "plymouth.ignore-serial-consoles"
     # Output console device and options.
-    "quiet" "console=serial0,115200" "kgdboc=serial0,115200" "console=tty1"
+    "quiet"
     # Boot params
-    "imgpart=UUID=%%IMGPART%%" "bootpart=UUID=%%BOOTPART%%" "datapart=UUID=%%DATAPART%%"
+    "ro" "imgpart=UUID=%%IMGPART%%" "bootpart=UUID=%%BOOTPART%%" "datapart=UUID=%%DATAPART%%"
     # Image params
     "imgfile=/volumio_current.sqsh"
     # Disable linux logo during boot
@@ -181,6 +183,8 @@ device_chroot_tweaks_pre() {
 
   log "Setting ${#kernel_params[@]} Kernel params:" "" "${kernel_params[*]}"
 
+  log "Setting up syslinux and grub configs" "info"
+  log "Creating run-time template for syslinux config"
   # Create a template for init to use later in `update_config_UUIDs`
   cat <<-EOF >/boot/syslinux.tmpl
 	DEFAULT volumio
@@ -191,32 +195,35 @@ device_chroot_tweaks_pre() {
 	INITRD volumio.initrd
 	EOF
 
-  log "Creating syslinux.cfg from template"
+  log "Creating syslinux.cfg from syslinux template"
   cp /boot/syslinux.tmpl /boot/syslinux.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/syslinux.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/syslinux.cfg
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /boot/syslinux.cfg
 
-  log "Setting up Grub configuration" "info"
-  log "Editing the Grub UEFI config template"
-  log "Using current grub.cfg as run-time template for kernel updates"
-  cp /boot/efi/BOOT/grub.cfg /boot/efi/BOOT/grub.tmpl
+  log "Setting up Grub configuration"
+  grub_tmpl=/boot/efi/BOOT/grub.tmpl
+  grub_cfg=/boot/efi/BOOT/grub.cfg
+  log "Inserting our kernel paramters to grub.tmpl"
+
+  # Use a different delimiter as we might have some `/` paths
+  sed -i "s|%%CMDLINE_LINUX%%|""${kernel_params[*]}""|g" ${grub_tmpl}
+
+  log "Creating grub.cfg from grub template"
+  cp ${grub_tmpl} ${grub_cfg}
 
   log "Inserting root and boot partition UUIDs (building the boot cmdline used in initramfs)"
   # Opting for finding partitions by-UUID
-  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /boot/efi/BOOT/grub.cfg
-  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /boot/efi/BOOT/grub.cfg
-  sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /boot/efi/BOOT/grub.cfg
-  sed -i "s/%%KVER%%/${KVER}/g" boot/efi/BOOT/grub.cfg
-  sed -i "s/splash quiet loglevel=0/loglevel=8/g" /boot/efi/BOOT/grub.cfg
+  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" ${grub_cfg}
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" ${grub_cfg}
+  sed -i "s/%%DATAPART%%/${UUID_DATA}/g" ${grub_cfg}
+  sed -i "s/%%KRNL%%/${KRNL}/g" ${grub_cfg}
+  sed -i "s/%%KVER%%/${KVER[1]}/g" ${grub_cfg}
 
   log "Finished setting up boot config" "okay"
 
-  log "Copying fstab as a template to be used in initrd"
-  cp /etc/fstab /etc/fstab.tmpl
-
-  log "Editing fstab to use UUID=<uuid of boot partition>"
-  sed -i "s/%%BOOTPART%%/UUID=${UUID_BOOT}/g" /etc/fstab
+  log "Creating fstab template to be used in initrd"
+  sed -i "s/UUID=${UUID_BOOT}/%%BOOTPART%%/g" /etc/fstab >/etc/fstab.tmpl
 
   log "Setting plymouth theme to volumio"
   plymouth-set-default-theme volumio

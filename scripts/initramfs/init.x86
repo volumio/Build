@@ -1,4 +1,5 @@
 #!/bin/busybox sh
+# shellcheck shell=dash
 #
 #
 # Unlike arm devices, an x86 device is much more diverse when it comes to storage devices.
@@ -39,25 +40,34 @@ print_msg() {
 }
 
 update_config_UUIDs() {
-  mkdir /mnt/configs
-  mount -t vfat ${BOOTPART} /mnt/configs
+  local root_dir=/mnt/configs
+  mkdir ${root_dir}
+  mount -t vfat "${BOOTPART}" "${root_dir}"
 
-  UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
-  UUID_IMG=$(blkid -s UUID -o value ${IMGPART})
-  UUID_DATA=$(blkid -s UUID -o value ${DATAPART})
+  UUID_BOOT=$(blkid -s UUID -o value "${BOOTPART}")
+  UUID_IMG=$(blkid -s UUID -o value "${IMGPART}")
+  UUID_DATA=$(blkid -s UUID -o value "${DATAPART}")
+  #TODO: Why not just symlink to /boot/vmlinuz
+  # So we don't need to update the grub/syslinux with kernel versions?
+  KRNL=$(ls -l ${root_dir} | grep vmlinuz | awk '{print $9}')
+  KVER=$(echo "${KRNL}" | awk -F '-' '{print $2}')
 
-  mv /mnt/configs/syslinux.cfg /mnt/configs/syslinux.cfg.old
-  mv /mnt/configs/syslinux.tmpl /mnt/configs/syslinux.cfg
-  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" /mnt/configs/syslinux.cfg
-  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /mnt/configs/syslinux.cfg
-  sed -i "s/%%DATAPART%%/${UUID_DATA}/g" /mnt/configs/syslinux.cfg
+  mv "${root_dir}"/syslinux.cfg "${root_dir}"/syslinux.cfg.old
+  mv "${root_dir}"/syslinux.tmpl "${root_dir}"/syslinux.cfg
+  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" "${root_dir}"/syslinux.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" "${root_dir}"/syslinux.cfg
+  sed -i "s/%%DATAPART%%/${UUID_DATA}/g" "${root_dir}"/syslinux.cfg
+  # Replace the whole line
+  sed -i "/LINUX/c LINUX ${KRNL}" syslinux.tmpl
 
-  mv /mnt/configs/efi/BOOT/grub.cfg /mnt/configs/efi/BOOT/grub.cfg.old
-  mv /mnt/configs/efi/BOOT/grub.tmpl /mnt/configs/efi/BOOT/grub.cfg
-  sed -i "s/root=imgpart=%%IMGPART%%/imgpart=UUID=${UUID_IMG}/g" /mnt/configs/efi/BOOT/grub.cfg
-  sed -i "s/bootpart=%%BOOTPART%%/bootpart=UUID=${UUID_BOOT}/g" /mnt/configs/efi/BOOT/grub.cfg
-  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" /mnt/configs/efi/BOOT/grub.cfg
-  sed -i "s/datapart=%%DATAPART%%/datapart=UUID=${UUID_DATA}/g" /mnt/configs/efi/BOOT/grub.cfg
+  mv "${root_dir}"/efi/BOOT/grub.cfg "${root_dir}"/efi/BOOT/grub.cfg.old
+  mv "${root_dir}"/efi/BOOT/grub.tmpl "${root_dir}"/efi/BOOT/grub.cfg
+  sed -i "s/%%IMGPART%%/${UUID_IMG}/g" "${root_dir}"/efi/BOOT/grub.cfg
+  sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" "${root_dir}"/efi/BOOT/grub.cfg
+  sed -i "s/%%DATAPART%%/${UUID_DATA}/g" "${root_dir}"/efi/BOOT/grub.cfg
+
+  sed -i "s/%%KRNL%%/${KRNL}/g" "${root_dir}"/efi/BOOT/grub.cfg
+  sed -i "s/%%KVER%%/${KVER}/g" "${root_dir}"/efi/BOOT/grub.cfg
 
   sync
   umount /mnt/configs
@@ -165,7 +175,9 @@ if [ $USE_KMSG == no ]; then
 fi
 
 if [ -z "${BOOTPART}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "Missing BOOTPART"
+  print_msg "Current command: ${CMDLINE}"
+  print_msg "Specify the boot, data and squash image partition on the kernel command"
   print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
@@ -174,7 +186,9 @@ if [ -z "${BOOTPART}" ]; then
 fi
 
 if [ -z "${IMGPART}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "Missing IMGPART"
+  print_msg "Current command: ${CMDLINE}"
+  print_msg "Specify the boot, data and squash image partition on the kernel command"
   print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
@@ -183,7 +197,9 @@ if [ -z "${IMGPART}" ]; then
 fi
 
 if [ -z "${DATAPART}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "Missing DATAPART"
+  print_msg "Current command: ${CMDLINE}"
+  print_msg "Specify the boot, data and squash image partition on the kernel command"
   print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
@@ -192,7 +208,9 @@ if [ -z "${DATAPART}" ]; then
 fi
 
 if [ -z "${IMGFILE}" ]; then
-  print_msg "Specify the boot, data and squash image partition on the kernel command ${CMDLINE}"
+  print_msg "Missing IMGFILE"
+  print_msg "Current command: ${CMDLINE}"
+  print_msg "Specify the boot, data and squash image partition on the kernel command"
   print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
   print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"

@@ -24,21 +24,17 @@ log "Running final config for ${DEVICENAME}"
 
 ## Setup Fstab
 log "Creating fstab" "info"
-# TODO: Can't we make this simpler and just and just sed out the /dev/mmcblk0p1 to %%BOOTPART
-# Instead of copying a seperate file just for that?
-if [[ ! $BUILD == x86 ]]; then
-  cat <<-EOF >/etc/fstab
-	# ${DEVICENAME} fstab
-	
-	proc           /proc                proc    defaults                                  0 0
-	/dev/mmcblk0p1 /boot                vfat    defaults,utf8,user,rw,umask=111,dmask=000 0 1
-	tmpfs          /var/log             tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4,  0 0
-	tmpfs          /var/spool/cups      tmpfs   defaults,noatime,mode=0755                0 0
-	tmpfs          /var/spool/cups/tmp  tmpfs   defaults,noatime,mode=0755                0 0
-	tmpfs          /tmp                 tmpfs   defaults,noatime,mode=0755                0 0
-	tmpfs          /dev/shm             tmpfs   defaults,nosuid,noexec,nodev              0 0
-	EOF
-fi
+cat <<-EOF >/etc/fstab
+# ${DEVICENAME} fstab
+
+proc            /proc                proc    defaults                                  0 0
+${BOOT_FS_SPEC} /boot                vfat    defaults,utf8,user,rw,umask=111,dmask=000 0 1
+tmpfs           /var/log             tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4,  0 0
+tmpfs           /var/spool/cups      tmpfs   defaults,noatime,mode=0755                0 0
+tmpfs           /var/spool/cups/tmp  tmpfs   defaults,noatime,mode=0755                0 0
+tmpfs           /tmp                 tmpfs   defaults,noatime,mode=0755                0 0
+tmpfs           /dev/shm             tmpfs   defaults,nosuid,noexec,nodev              0 0
+EOF
 
 ## Initial chroot config
 declare -fF device_chroot_tweaks &>/dev/null &&
