@@ -355,7 +355,16 @@ EOF
 log "Network settings and optimizations" "info"
 # log "Setting up networking defaults" "info"
 
-log "Set default hostname"
+log "Set default hostname to volumio"
+cat <<-EOF >/etc/hosts
+127.0.0.1       localhost
+127.0.1.1       volumio
+
+# The following lines are desirable for IPv6 capable hosts
+::1             localhost volumio ip6-localhost ip6-loopback
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters
+EOF
 echo volumio >/etc/hostname
 chmod 777 /etc/hostname
 chmod 777 /etc/hosts

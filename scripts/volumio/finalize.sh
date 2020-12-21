@@ -50,3 +50,8 @@ fi
 log "Updating MOTD"
 rm -f ${ROOTFSMNT}/etc/motd ${ROOTFSMNT}/etc/update-motd.d/*
 cp "${SRC}"/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
+
+log "Add Volumio WebUI IP"
+cat <<-EOF >>${ROOTFSMNT}/etc/issue
+Volumio WebUI available at \n.\o (\4)
+EOF

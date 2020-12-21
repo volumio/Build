@@ -49,9 +49,6 @@ fi
 #Edimax Power Saving Fix + Alsa modprobe
 cp -r "${SRC}/volumio/etc/modprobe.d" "${ROOTFS}/etc/"
 
-#Hosts file
-cp -p "${SRC}/volumio/etc/hosts" "${ROOTFS}/etc/hosts"
-
 #Samba conf file
 cp "${SRC}/volumio/etc/samba/smb.conf" "${ROOTFS}/etc/samba/smb.conf"
 
