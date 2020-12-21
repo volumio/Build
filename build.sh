@@ -387,7 +387,7 @@ fi
 
 #TODO: Streamline this for multiple devices that are siblings
 if [[ -n "$DEVICE" ]]; then
-  DEV_CONFIG="${SRC}/recipes/boards/${DEVICE}.sh"
+  DEV_CONFIG="${SRC}/recipes/devices/${DEVICE}.sh"
   if [[ -f $DEV_CONFIG ]]; then
     # shellcheck source=/dev/null
     source "$DEV_CONFIG"

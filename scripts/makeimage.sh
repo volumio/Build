@@ -153,7 +153,7 @@ if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "${SDK_PATH}"/config.js ]]
 fi
 
 # Copy across custom bits and bobs from device config
-# This is in the hope that <./recipes/boards/${DEVICE}>
+# This is in the hope that <./recipes/devices/${DEVICE}>
 # doesn't grow back into the old <xxxxconfig.sh>
 BOOT_FS_SPEC="/dev/mmcblk0p1"
 [[ ${BOOT_USE_UUID} == yes ]] && BOOT_FS_SPEC="UUID=${UUID_BOOT}"
