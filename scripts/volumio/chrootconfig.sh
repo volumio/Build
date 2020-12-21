@@ -90,6 +90,7 @@ touch /boot/resize-volumio-datapart
 PATCH=$(cat /patch)
 if [ "$PATCH" = "volumio" ]; then
   log "No Patch To Apply" "wrn"
+  rm /patch
 else
   log "Applying Patch ${PATCH}" "wrn"
   #Check the existence of patch script(s)
@@ -106,8 +107,8 @@ else
   else
     log "Cannot Find Patch, aborting" "err"
   fi
-  rm -rf "${PATCH}" /patch
   log "Finished on the fly patching" "ok"
+  rm -rf "${PATCH}" /patch
 fi
 
 log "Creating initramfs 'volumio.initrd'" "info"

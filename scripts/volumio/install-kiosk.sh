@@ -1,30 +1,60 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eo pipefail
+
+CMP_NAME=$(basename "$(dirname "${BASH_SOURCE[0]}")")
+CMP_NAME=volumio-kiosk
+log "Installing $CMP_NAME" "ext"
+
+#shellcheck source=/dev/null
+source /etc/os-release
 export DEBIAN_FRONTEND=noninteractive
 
-log "Installing Kiosk" "info"
-kiosk_pkgs="keyboard-configuration xinit xorg openbox libexif12 unclutter"
-# Browser of choice
-kiosk_pkgs+=" midori"
+CMP_PACKAGES=(
+  # Keyboard config
+  "keyboard-configuration"
+  # Display stuff
+  "openbox" "unclutter" "xorg" "xinit"
+  # Browser
+  "chromium" "chromium-l10n"
+  # Fonts
+  "fonts-arphic-ukai" "fonts-arphic-gbsn00lp" "fonts-unfonts-core"
+)
 
-apt-get install -y $kiosk_pkgs --no-install-recommends
-log "Kiosk dependencies installed" "okay"
-log "Creating Kiosk start script"
+log "Installing ${#CMP_PACKAGES[@]} ${CMP_NAME} packages:" "" "${CMP_PACKAGES[@]}"
+apt-get install -y "${CMP_PACKAGES[@]}" --no-install-recommends
+
+log "${CMP_NAME} Dependencies installed!"
+
+log "Creating ${CMP_NAME} dirs and scripts"
+mkdir /data/volumiokiosk
+
 cat <<-EOF >/opt/volumiokiosk.sh
-#!/bin/bash
-mkdir -p /data/volumiokiosk
-export DISPLAY=:0
-xset s off -dpms
-export XDG_CACHE_HOME=/data/volumiokiosk
-rm -rf /data/volumiokiosk/Singleton*
+#!/usr/bin/env bash
+#set -eo pipefail
+while true; do timeout 3 bash -c \"</dev/tcp/127.0.0.1/3000\" >/dev/null 2>&1 && break; done
+sed -i 's/\"exited_cleanly\":false/\"exited_cleanly\":true/' /data/volumiokiosk/Default/Preferences
+sed -i 's/\"exit_type\":\"Crashed\"/\"exit_type\":\"None\"/' /data/volumiokiosk/Default/Preferences
 openbox-session &
-sleep 4
 while true; do
-  midori -a http://localhost:3000 -e Fullscreen
+  /usr/bin/chromium-browser \\
+    --simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT' \\
+    --disable-pinch \\
+    --kiosk \\
+    --no-first-run \\
+    --noerrdialogs \\
+    --disable-3d-apis \\
+    --disable-breakpad \\
+    --disable-crash-reporter \\
+    --disable-infobars \\
+    --disable-session-crashed-bubble \\
+    --disable-translate \\
+    --user-data-dir='/data/volumiokiosk' \
+    http://localhost:3000
 done
 EOF
 chmod +x /opt/volumiokiosk.sh
 
-log "Creating Systemd Unit for Kiosk"
+log "Creating Systemd Unit for ${CMP_NAME}"
 cat <<-EOF >/lib/systemd/system/volumio-kiosk.service
 [Unit]
 Description=Start Volumio Kiosk
@@ -34,38 +64,30 @@ After=volumio.service
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh
-# Give a reasonable amount of time for the server to start up/shut down
-TimeoutSec=300
+ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh -- -keeptty
 [Install]
 WantedBy=multi-user.target
 EOF
 
-log "Enabling kiosk"
+log "Enabling ${CMP_NAME} service"
 ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
 
-log "  Allowing volumio to start an Xsession"
-sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
+# log "  Allowing volumio to start an Xsession"
+# sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
 
-log "Hide Mouse cursor"
-
-cat <<-EOF >/root/.xinitrc
-#!/bin/sh
-if [ -d /etc/X11/xinit/xinitrc.d ]; then
-  for f in /etc/X11/xinit/xinitrc.d/*; do
-    [ -x "$f" ] && . "$f"
-  done
-  unset f
+echo "Setting localhost"
+echo '{"localhost": "http://127.0.0.1:3000"}' >/volumio/http/www/app/local-config.json
+if [ -d "/volumio/http/www3" ]; then
+  echo '{"localhost": "http://127.0.0.1:3000"}' >/volumio/http/www3/app/local-config.json
 fi
-xrdb -merge ~/.Xresources
-xsetroot -cursor_name left_ptr &
-exec openbox-session
-exec unclutter &
-EOF
 
-log "Enabling UI for HDMI output selection"
-echo '[{"value": false,"id":"section_hdmi_settings","attribute_name": "hidden"}]' >/volumio/app/plugins/system_controller/system/override.json
+if [[ ${VOLUMIO_HARDWARE} != motivo ]]; then
 
-log "Setting HDMI UI enabled by default"
-config_path="/volumio/app/plugins/system_controller/system/config.json"
-cat <<<$"(jq '.hdmi_enabled={value:true, type:\"boolean\"}' ${config_path})" >${config_path}
+  log "Enabling UI for HDMI output selection"
+  echo '[{"value": false,"id":"section_hdmi_settings","attribute_name": "hidden"}]' >/volumio/app/plugins/system_controller/system/override.json
+
+  log "Setting HDMI UI enabled by default"
+  config_path="/volumio/app/plugins/system_controller/system/config.json"
+  # Should be okay right?
+  cat <<<"$(jq '.hdmi_enabled={value:true, type:"boolean"}' ${config_path})" >${config_path}
+fi

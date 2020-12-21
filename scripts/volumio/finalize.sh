@@ -53,5 +53,7 @@ cp "${SRC}"/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
 
 log "Add Volumio WebUI IP"
 cat <<-EOF >>${ROOTFSMNT}/etc/issue
-Volumio WebUI available at \n.\o (\4)
+\l 
+Welcome to Volumio!
+WebUI available at \n.local (\4)
 EOF

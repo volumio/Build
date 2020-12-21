@@ -149,6 +149,7 @@ device_chroot_tweaks_pre() {
   KRNL=$(ls -l /boot | grep vmlinuz | awk '{print $9}')
   IFS=- read -ra KVER <<<"$KRNL"
   log "Finished Kernel ${KVER[1]} installation" "okay" "${KRNL}"
+  rm linux-image-*_i386.deb
 
   log "Preparing BIOS" "info"
 
@@ -228,8 +229,7 @@ device_chroot_tweaks_pre() {
   log "Finished setting up boot config" "okay"
 
   log "Creating fstab template to be used in initrd"
-  sed -i "s/UUID=${UUID_BOOT}/%%BOOTPART%%/g" /etc/fstab >/etc/fstab.tmpl
-
+  sed "s/^UUID=${UUID_BOOT}/%%BOOTPART%%/g" /etc/fstab >/etc/fstab.tmpl
   log "Setting plymouth theme to volumio"
   plymouth-set-default-theme volumio
 
