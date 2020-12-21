@@ -49,7 +49,7 @@ update_config_UUIDs() {
   UUID_DATA=$(blkid -s UUID -o value "${DATAPART}")
   #TODO: Why not just symlink to /boot/vmlinuz
   # So we don't need to update the grub/syslinux with kernel versions?
-  KRNL=$(ls -l /boot | grep vmlinuz | awk '{print $9}')
+  KRNL=$(ls -l ${root_dir} | grep vmlinuz | awk '{print $9}')
   KVER=$(echo "${KRNL}" | awk -F '-' '{print $2}')
 
   mv "${root_dir}"/syslinux.cfg "${root_dir}"/syslinux.cfg.old
