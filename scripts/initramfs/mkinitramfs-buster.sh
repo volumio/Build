@@ -1,6 +1,7 @@
-#!/bin/bash
-function error()
-{
+#!/usr/bin/env bash
+#set -eo pipefail Disabled for now
+
+function error() {
   log "mkinitramfs failed" "$(basename "$0")" "err"
 }
 
@@ -21,9 +22,8 @@ verbose="n"
 BUSYBOXDIR=
 export BUSYBOXDIR
 
-usage()
-{
-  cat << EOF
+usage() {
+  cat <<EOF
 
 Usage: mkinitramfs [option]... -o outfile [version]
 
@@ -39,8 +39,7 @@ See mkinitramfs(8) for further details.
 EOF
 }
 
-usage_error()
-{
+usage_error() {
   usage >&2
   exit 2
 }
@@ -51,66 +50,66 @@ eval set -- "$OPTIONS"
 
 while true; do
   case "$1" in
-    -c)
-      compress="$2"
-      shift 2
-      ;;
-    -d)
-      CONFDIR="$2"
-      shift 2
-      if [ ! -d "${CONFDIR}" ]; then
-        echo "${0}: ${CONFDIR}: Not a directory" >&2
-        exit 1
-      fi
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    -o)
-      outfile="$2"
-      shift 2
-      ;;
-    -k)
-      keep="y"
-      shift
-      ;;
-    -r)
-      ROOT="$2"
-      shift 2
-      ;;
-    -v)
-      verbose="y"
-      shift
-      ;;
-    --)
-      shift
-      break
-      ;;
-    *)
-      echo "Internal error!" >&2
+  -c)
+    compress="$2"
+    shift 2
+    ;;
+  -d)
+    CONFDIR="$2"
+    shift 2
+    if [ ! -d "${CONFDIR}" ]; then
+      echo "${0}: ${CONFDIR}: Not a directory" >&2
       exit 1
-      ;;
+    fi
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -o)
+    outfile="$2"
+    shift 2
+    ;;
+  -k)
+    keep="y"
+    shift
+    ;;
+  -r)
+    ROOT="$2"
+    shift 2
+    ;;
+  -v)
+    verbose="y"
+    shift
+    ;;
+  --)
+    shift
+    break
+    ;;
+  *)
+    echo "Internal error!" >&2
+    exit 1
+    ;;
   esac
 done
 
 # For dependency ordered mkinitramfs hook scripts.
 . /usr/share/initramfs-tools/scripts/functions
 . /usr/share/initramfs-tools/hook-functions
-# shellcheck disable=SC1090
+# shellcheck source=/dev/null
 . "${CONFDIR}/initramfs.conf"
 
 EXTRA_CONF=''
 maybe_add_conf() {
-  if [ -e "$1" ] && \
-    basename "$1" \
-    | grep '^[[:alnum:]][[:alnum:]\._-]*$' \
-    | grep -qv '\.dpkg-.*$'; then
+  if [ -e "$1" ] &&
+    basename "$1" |
+    grep '^[[:alnum:]][[:alnum:]\._-]*$' |
+      grep -qv '\.dpkg-.*$'; then
     if [ -d "$1" ]; then
       echo "W: $1 is a directory instead of file" >&2
     else
       EXTRA_CONF="${EXTRA_CONF} $1"
-      # shellcheck disable=SC1090
+      # shellcheck source=/dev/null
       . "$1"
     fi
   fi
@@ -164,19 +163,19 @@ build_initramfs() {
   fi
 
   case "${version}" in
-    /lib/modules/*/[!/]*)
-      ;;
-    /lib/modules/[!/]*)
-      version="${version#/lib/modules/}"
-      version="${version%%/*}"
-      ;;
+  /lib/modules/*/[!/]*) ;;
+
+  /lib/modules/[!/]*)
+    version="${version#/lib/modules/}"
+    version="${version%%/*}"
+    ;;
   esac
 
   case "${version}" in
-    */*)
-      echo "$PROG: ${version} is not a valid kernel version" >&2
-      exit 2
-      ;;
+  */*)
+    echo "$PROG: ${version} is not a valid kernel version" >&2
+    exit 2
+    ;;
   esac
 
   if [ -z "${compress:-}" ]; then
@@ -186,25 +185,25 @@ build_initramfs() {
 
   if ! command -v "${compress}" >/dev/null 2>&1; then
     compress=gzip
-    [ "${verbose}" = y ] && \
+    [ "${verbose}" = y ] &&
       echo "No ${compress} in ${PATH}, using gzip"
   fi
 
   case "${compress}" in
-    gzip)	# If we're doing a reproducible build, use gzip -n
-      if [ -n "${SOURCE_DATE_EPOCH}" ]; then
-        compress="gzip -n"
-        # Otherwise, substitute pigz if it's available
-      elif command -v pigz >/dev/null; then
-        compress=pigz
-      fi
-      ;;
-    lz4)	compress="lz4 -9 -l" ;;
-    xz)	compress="xz --check=crc32" ;;
-    bzip2|lzma|lzop)
-      # no parameters needed
-      ;;
-    *)	echo "W: Unknown compression command ${compress}" >&2 ;;
+  gzip) # If we're doing a reproducible build, use gzip -n
+    if [ -n "${SOURCE_DATE_EPOCH}" ]; then
+      compress="gzip -n"
+      # Otherwise, substitute pigz if it's available
+    elif command -v pigz >/dev/null; then
+      compress=pigz
+    fi
+    ;;
+  lz4) compress="lz4 -9 -l" ;;
+  xz) compress="xz --check=crc32" ;;
+  bzip2 | lzma | lzop)
+    # no parameters needed
+    ;;
+  *) echo "W: Unknown compression command ${compress}" >&2 ;;
   esac
 
   if [ -d "${outfile}" ]; then
@@ -236,7 +235,7 @@ build_initramfs() {
     fi
   }
   trap clean_on_exit EXIT
-  trap "exit 1" INT TERM	# makes the EXIT trap effective even when killed
+  trap "exit 1" INT TERM # makes the EXIT trap effective even when killed
 
   # Create temporary directory and files for initramfs contents
   [ -n "${TMPDIR}" ] && [ ! -w "${TMPDIR}" ] && unset TMPDIR
@@ -292,24 +291,24 @@ build_initramfs() {
 
   # MODULES=most is default
   case "${MODULES}" in
-    dep)
-      dep_add_modules
-      ;;
-    most)
-      auto_add_modules
-      ;;
-    netboot)
-      auto_add_modules base
-      auto_add_modules net
-      ;;
-    list)
-      # nothing to add
-      ;;
-    *)
-      echo "W: mkinitramfs: unsupported MODULES setting: ${MODULES}." >&2
-      echo "W: mkinitramfs: Falling back to MODULES=most." >&2
-      auto_add_modules
-      ;;
+  dep)
+    dep_add_modules
+    ;;
+  most)
+    auto_add_modules
+    ;;
+  netboot)
+    auto_add_modules base
+    auto_add_modules net
+    ;;
+  list)
+    # nothing to add
+    ;;
+  *)
+    echo "W: mkinitramfs: unsupported MODULES setting: ${MODULES}." >&2
+    echo "W: mkinitramfs: Falling back to MODULES=most." >&2
+    auto_add_modules
+    ;;
   esac
 
   # Resolve hidden dependencies
@@ -320,21 +319,21 @@ build_initramfs() {
 
   # add existant boot scripts
   for b in $(cd /usr/share/initramfs-tools/scripts/ && find . \
-      -regextype posix-extended -regex '.*/[[:alnum:]\._-]+$' -type f); do
-    [ -d "${DESTDIR}/scripts/$(dirname "${b}")" ] \
-      || mkdir -p "${DESTDIR}/scripts/$(dirname "${b}")"
+    -regextype posix-extended -regex '.*/[[:alnum:]\._-]+$' -type f); do
+    [ -d "${DESTDIR}/scripts/$(dirname "${b}")" ] ||
+      mkdir -p "${DESTDIR}/scripts/$(dirname "${b}")"
     cp -p "/usr/share/initramfs-tools/scripts/${b}" \
       "${DESTDIR}/scripts/$(dirname "${b}")/"
   done
   # Prune dot-files/directories and limit depth to exclude VCS files
   for b in $(cd "${CONFDIR}/scripts" && find . -maxdepth 2 -name '.?*' -prune -o \
-      -regextype posix-extended -regex '.*/[[:alnum:]\._-]+$' -type f -print); do
-    [ -d "${DESTDIR}/scripts/$(dirname "${b}")" ] \
-      || mkdir -p "${DESTDIR}/scripts/$(dirname "${b}")"
+    -regextype posix-extended -regex '.*/[[:alnum:]\._-]+$' -type f -print); do
+    [ -d "${DESTDIR}/scripts/$(dirname "${b}")" ] ||
+      mkdir -p "${DESTDIR}/scripts/$(dirname "${b}")"
     cp -p "${CONFDIR}/scripts/${b}" "${DESTDIR}/scripts/$(dirname "${b}")/"
   done
 
-  echo "DPKG_ARCH=${DPKG_ARCH}" > "${DESTDIR}/conf/arch.conf"
+  echo "DPKG_ARCH=${DPKG_ARCH}" >"${DESTDIR}/conf/arch.conf"
   cp -p "${CONFDIR}/initramfs.conf" "${DESTDIR}/conf"
   for i in ${EXTRA_CONF}; do
     copy_file config "${i}" /conf/conf.d
@@ -342,10 +341,10 @@ build_initramfs() {
 
   # ROOT hardcoding
   if [ -n "${ROOT:-}" ]; then
-    echo "ROOT=${ROOT}" > "${DESTDIR}/conf/conf.d/root"
+    echo "ROOT=${ROOT}" >"${DESTDIR}/conf/conf.d/root"
   fi
 
-  if ! command -v ldd >/dev/null 2>&1 ; then
+  if ! command -v ldd >/dev/null 2>&1; then
     echo "E: no ldd around - install libc-bin" >&2
     exit 1
   fi
@@ -358,8 +357,8 @@ build_initramfs() {
   copy_exec /sbin/modprobe /sbin
   copy_exec /sbin/rmmod /sbin
   mkdir -p "${DESTDIR}/etc/modprobe.d" "${DESTDIR}/lib/modprobe.d"
-  for file in /etc/modprobe.d/*.conf /lib/modprobe.d/*.conf ; do
-    if test -e "$file" || test -L "$file" ; then
+  for file in /etc/modprobe.d/*.conf /lib/modprobe.d/*.conf; do
+    if test -e "$file" || test -L "$file"; then
       copy_file config "$file"
     fi
   done
@@ -387,9 +386,9 @@ build_initramfs() {
 
   # make sure that library search path is up to date
   cp -ar /etc/ld.so.conf* "$DESTDIR"/etc/
-  if ! ldconfig -r "$DESTDIR" ; then
-    [ "$(id -u)" != "0" ] \
-      && echo "ldconfig might need uid=0 (root) for chroot()" >&2
+  if ! ldconfig -r "$DESTDIR"; then
+    [ "$(id -u)" != "0" ] &&
+      echo "ldconfig might need uid=0 (root) for chroot()" >&2
   fi
   # The auxiliary cache is not reproducible and is always invalid at boot
   # (see #845034)
@@ -411,7 +410,7 @@ build_initramfs() {
   # dirty hack for armhf's double-linker situation; if we have one of
   # the two known eglibc linkers, nuke both and re-create sanity
   if [ "$DPKG_ARCH" = armhf ]; then
-    if [ -e "${DESTDIR}/lib/arm-linux-gnueabihf/ld-linux.so.3" ] || \
+    if [ -e "${DESTDIR}/lib/arm-linux-gnueabihf/ld-linux.so.3" ] ||
       [ -e "${DESTDIR}/lib/ld-linux-armhf.so.3" ]; then
       rm -f "${DESTDIR}/lib/arm-linux-gnueabihf/ld-linux.so.3"
       rm -f "${DESTDIR}/lib/ld-linux-armhf.so.3"
@@ -426,7 +425,7 @@ build_initramfs() {
     cat "${__TMPEARLYCPIO}" >"${outfile}" || exit 1
   else
     # truncate
-    true > "${outfile}"
+    true >"${outfile}"
   fi
 
   (
@@ -436,7 +435,7 @@ build_initramfs() {
     # if SOURCE_DATE_EPOCH is set, try and create a reproducible image
     if [ -n "${SOURCE_DATE_EPOCH}" ]; then
       # ensure that no timestamps are newer than $SOURCE_DATE_EPOCH
-      find "${DESTDIR}" -newermt "@${SOURCE_DATE_EPOCH}" -print0 | \
+      find "${DESTDIR}" -newermt "@${SOURCE_DATE_EPOCH}" -print0 |
         xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
 
       # --reproducible requires cpio >= 2.12
@@ -450,18 +449,20 @@ build_initramfs() {
     ec3=1
     exec 3>&1
     eval "$(
-	# http://cfaj.freeshell.org/shell/cus-faq-2.html
-	exec 4>&1 >&3 3>&-
-	cd  "${DESTDIR}"
-	{
-		find . 4>&-; echo "ec1=$?;" >&4
-	} | {
-		LC_ALL=C sort
-	} | {
-		# shellcheck disable=SC2086
-		cpio --quiet $cpio_owner_root $cpio_reproducible -o -H newc 4>&-; echo "ec2=$?;" >&4
-	} | ${compress} >>"${outfile}"
-	echo "ec3=$?;" >&4
+      # http://cfaj.freeshell.org/shell/cus-faq-2.html
+      exec 4>&1 >&3 3>&-
+      cd "${DESTDIR}"
+      {
+        find . 4>&-
+        echo "ec1=$?;" >&4
+      } | {
+        LC_ALL=C sort
+      } | {
+        # shellcheck disable=SC2086
+        cpio --quiet $cpio_owner_root $cpio_reproducible -o -H newc 4>&-
+        echo "ec2=$?;" >&4
+      } | ${compress} >>"${outfile}"
+      echo "ec3=$?;" >&4
     )"
     if [ "$ec1" -ne 0 ]; then
       echo "E: mkinitramfs failure find $ec1 cpio $ec2 $compress $ec3" >&2
@@ -486,17 +487,17 @@ build_initramfs() {
 ## Prepare a initramfs for Volumio.initrd
 build_volumio_initramfs() {
   log "Creating Volumio intramsfs" "info"
+  #shellcheck disable=SC2012 #We know it's going to be alphanumeric only!
   mapfile -t versions < <(ls -t /lib/modules | sort)
   # Pick how many kernels we want to add
   # (Future proofing for Rpi 5,6,7 etc..) ¯\_(ツ)_/¯
 
   num_ker_max=3
 
-  log "Found ${#versions[@]} kernel version(s)"
-  for ver in "${!versions[@]}"
-  do
+  log "Found ${#versions[@]} kernel version(s)" "${versions[@]}"
+  for ver in "${!versions[@]}"; do
     log "Building intramsfs for Kernel[${ver}]: ${versions[ver]}" "info"
-    build_initramfs ${versions[ver]}
+    build_initramfs "${versions[ver]}"
     log "initramfs built for Kernel[${ver}]: ${versions[ver]} at ${DESTDIR}" "okay"
     if [[ $ver -eq 0 ]]; then
       # The first initramfs location
@@ -517,18 +518,18 @@ build_volumio_initramfs() {
   # Add in VolumioOS customisation
   log "Addig Volumio specific binaries" "info"
   # Add VolumioOS binaries
-  volbins=('/sbin/parted' '/sbin/findfs' '/sbin/mkfs.ext4' \
-      '/sbin/e2fsck' '/sbin/resize2fs' \
+  volbins=('/sbin/parted' '/sbin/findfs' '/sbin/mkfs.ext4'
+    '/sbin/e2fsck' '/sbin/resize2fs'
     '/usr/bin/i2crw1')
-  if [[ ${DPKG_ARCH} = 'i386' ]]; then
-    log "Adding x86 specific binaries (gdisk/lsblk/dmidecode..etc)"
-    volbins+=('/sbin/fdisk' '/sbin/gdisk' '/bin/lsblk' '/usr/sbin/dmidecode')
+  if [[ ${DPKG_ARCH} = 'i386' ]] || [[ ${DPKG_ARCH} = 'amd64' ]]; then
+    log "Adding x86/x64 specific binaries (sgdisk/lsblk/dmidecode..etc)"
+    volbins+=('/sbin/fdisk' '/sbin/sgdisk' '/bin/lsblk' '/usr/sbin/dmidecode')
   fi
 
   for bin in "${volbins[@]}"; do
     if [[ -f ${bin} ]]; then
       log "Adding $bin to /sbin"
-      copy_exec $bin /sbin
+      copy_exec "$bin" /sbin
     else
       log "$bin not found!" "wrn"
     fi
@@ -543,7 +544,6 @@ build_volumio_initramfs() {
   fi
 }
 
-
 ## Create initrd image from initramsfs
 build_initrd() {
   log "Creating volumio.initrd Image from ${DESTDIR}" "info"
@@ -551,14 +551,13 @@ build_initrd() {
   rm -rf "${DESTDIR}/scripts"
   cp /root/init "${DESTDIR}"
   cd "${DESTDIR}"
-  OPTS="-o"
-  [ "${verbose}" = y ] && OPTS="-v ${OPTS}"
-  find . -print0 | cpio --quiet ${OPTS} -0 --format=newc | gzip -9 > /boot/volumio.initrd
+  OPTS=("-o")
+  [ "${verbose}" = y ] && OPTS+=("-v") || OPTS+=("--quiet")
+  find . -print0 | cpio "${OPTS[@]}" -0 --format=newc | gzip -9 >/boot/volumio.initrd
   # Check size
   log "Created: /boot/volumio.initrd" "okay"
   log "Boot partition info:" "dbg" "$(du -sh /boot)"
 }
-
 
 build_volumio_initramfs
 build_initrd

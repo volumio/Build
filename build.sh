@@ -159,6 +159,14 @@ function setup_multistrap() {
     apt-key --keyring "${DirEtctrustedparts}/${key}" \
       adv --fetch-keys "${SecureApt[$key]}"
   done
+  if [[ ${ARCH} == $(dpkg --print-architecture) ]]; then
+    # Some packages need more help, give it to them
+    log "Creating /dev/urandom for multistrap on native arch"
+    mkdir "${ROOTFS}/dev/"
+    mknod "${ROOTFS}/dev/urandom" c 1 9
+    chmod 640 "${ROOTFS}/dev/urandom"
+    chown 0:0 "${ROOTFS}/dev/urandom"
+  fi
 }
 
 function patch_multistrap_conf_raspbian() {
@@ -459,9 +467,11 @@ if [[ -n "$DEVICE" ]]; then
     # Current Volumio repo knows only {arm|x86} which is conveniently the same length
     # TODO: Consolidate the naming scheme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz
     log "Attempting to fetch node_modules for ${NODE_VERSION} -- ${NODE_SEMVER[*]}"
-    modules_url="${NODE_MODULES_REPO}/node_modules_${BUILD:0:3}-${NODE_VERSION}.tar.gz"
+    # Workaround for x64 - will still fail for native modules, but it's a start!
+    B=${BUILD:0:3}
+    modules_url="${NODE_MODULES_REPO}/node_modules_${B/64/86}-${NODE_VERSION}.tar.gz"
     log "Fetching node_modules from ${modules_url}"
-    curl -L "${modules_url}" | tar xz -C "${ROOTFS}/volumio"
+    curl -L "${modules_url}" | tar xz -C "${ROOTFS}/volumio" || log "Failed fetching node modules!!" "err"
   fi
 
   ## Copy custom packages for Volumio

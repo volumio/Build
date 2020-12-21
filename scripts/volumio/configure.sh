@@ -5,10 +5,10 @@
 
 set -eo pipefail
 function exit_error() {
-  log "Volumio config failed" "err" "$(basename "$0")"
+  log "Volumio config failed" "err" "echo ""${1}" "$(basename "$0")"""
 }
 
-trap exit_error INT ERR
+trap 'exit_error $LINENO' INT ERR
 
 log "Copying Custom Volumio System Files" "info"
 
@@ -23,10 +23,8 @@ deb ${APTSOURCE[${BASE}]} ${SUITE} ${AptComponents[*]}
 #deb-src ${APTSOURCE[${BASE}]} ${SUITE} ${AptComponents[*]}
 EOF
 
-if [[ $BUILD == x86 ]]; then
-  log 'Copying X86 related Configuration files'
-  #Grub2 conf file
-  cp "${SRC}/volumio/etc/default/grub" "${ROOTFS}/etc/default/grub"
+if [[ $BUILD == x86 ]] || [[ ${BUILD} == x64 ]]; then
+  log "Copying ${BUILD} related Configuration files"
   cp "${SRC}/volumio/splash/volumio.png" "${ROOTFS}/boot"
 else
   log 'Setting time for ARM devices with fakehwclock to build time'

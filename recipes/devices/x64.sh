@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
-## Setup for x86 devices
+## Setup for x64 devices
+
+#TODO: Streamline this with x86 so we can merge/unify them both.
 
 ## WIP: this should be refactored out to a higher level
 # Aka base config for arm,armv7,armv8 and x86
 # Base system
 BASE="Debian"
-ARCH="i386"
-BUILD="x86"
+ARCH="amd64"
+BUILD="x64"
 
 DEBUG_BUILD=no
 ### Device information
-DEVICENAME="x86"
+DEVICENAME="x64"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="x86"
+DEVICEBASE="x64"
 
 # Disable to ensure the script doesn't look for `platform-xxx`
+#We just need the bootloader files for now..
 DEVICEREPO="http://github.com/volumio/platform-x86"
 
 ### What features do we want to target
@@ -23,7 +26,7 @@ DEVICEREPO="http://github.com/volumio/platform-x86"
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
 VOLINITUPDATER=no # Temporary until the repo is fixed
-KIOSKMODE=yes
+KIOSKMODE=no
 
 ## Partition info
 BOOT_START=1
@@ -51,41 +54,18 @@ MODULES=("overlay" "squashfs"
   "pata_sil680" "pata_sis" "pata_triflex" "pata_via" "pdc_adma" "sata_mv" "sata_nv" "sata_promise"
   "sata_qstor" "sata_sil24" "sata_sil" "sata_sis" "sata_svw" "sata_sx4" "ata_uli" "sata_via" "sata_vsc"
 )
+
 # Packages that will be installed
 PACKAGES=(
-  # Wireless firmware
-  "firmware-b43-installer"
+  "linux-image-amd64" "firmware-linux"
 )
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
 write_device_files() {
   log "Running write_device_files" "ext"
-  log "Copying kernel files"
-  pkg_root="${PLTDIR}/packages-buster"
-  cp "${pkg_root}"/linux-image-*.deb "${ROOTFSMNT}"
-  log "Copying the latest firmware into /lib/firmware"
-  tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
 
-  log "Copying firmware additions"
-  tar xf "${pkg_root}"/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz -C "${ROOTFSMNT}"
-  cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
-
-  log "Copying Alsa Use Case Manager files"
-  cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
-
-  mkdir -p "${ROOTFSMNT}"/usr/local/bin/
-  declare -A CustomScripts=(
-    [bytcr_init.sh]="bytcr-init/bytcr-init.sh"
-    [volumio_hda_intel_tweak.sh]="hda-intel-tweaks/volumio_hda_intel_tweak.sh"
-  )
-  #TODO: not checked with other Intel SST bytrt/cht audio boards yet, needs more input
-  #      to be added to the snd_hda_audio tweaks (see below)
-  log "Adding ${#CustomScripts[@]} custom scripts to /usr/local/bin: " "" "${CustomScripts[@]}"
-  for script in "${!CustomScripts[@]}"; do
-    cp "${pkg_root}/${CustomScripts[$script]}" "${ROOTFSMNT}"/usr/local/bin/"${script}"
-    chmod +x "${ROOTFSMNT}"/usr/local/bin/"${script}"
-  done
+  pkg_root="${PLTDIR/64/86}/packages-buster"
 
   log "Creating efi folders"
   mkdir -p "${ROOTFSMNT}"/boot/efi
@@ -107,22 +87,8 @@ write_device_bootloader() {
 
 # Will be called by the image builder for any customisation
 device_image_tweaks() {
-  log "Running device_image_tweaks" "ext"
-
-  log "Add script to set sane defaults for baytrail/cherrytrail soundcards"
-  #TODO: add this to the Intel HD Audio tweak script see below
-  cat <<-EOF >"${ROOTFSMNT}/etc/rc.local"
-	#!/bin/sh -e
-  /usr/local/bin/bytcr_init.sh
-  /usr/local/bin/volumio_hda_intel_tweak.sh
-  exit 0
-	EOF
-
-  log "Blacklisting PC speaker"
-  cat <<-EOF >>"${ROOTFSMNT}/etc/modprobe.d/blacklist.conf"
-	blacklist snd_pcsp
-	blacklist pcspkr
-	EOF
+  #log "Running device_image_tweaks" "ext"
+  :
 }
 
 # Will be run in chroot (before other things)
@@ -135,29 +101,29 @@ device_chroot_tweaks() {
 # TODO Try and streamline this!
 device_chroot_tweaks_pre() {
   log "Performing device_chroot_tweaks_pre" "ext"
-  log "Preparing kernel stuff" "info"
 
-  log "Installing the kernel"
-  # Exact kernel version not known
-  # Not brilliant, but safe enough as x86image.sh only copied one image
-  ls /
-  dpkg -i linux-image-*_i386.deb
-  rm linux-image-*_i386.deb
-  log "Getting the current kernel filename and version"
-  #TODO: Why not just symlink to /boot/vmlinuz
-  # Since our boot partition is FAT, it doesn't support sylminks.
+  log "Preparing kernel stuff" "info"
+  log "Getting the latest kernel filename and version"
   #shellcheck disable=SC2012 # We know it's going to be alphanumeric only!
   mapfile -t KRNL_VERS < <(ls -t /boot/vmlinuz* | sort)
   log "Found ${#KRNL_VERS[@]} kernel(s)" "${KRNL_VERS[@]}"
   KRNL=${KRNL_VERS[0]##*/}
+
+  #TODO: Why not just symlink to /boot/vmlinuz
+  # So that initramfs just needs to update that symlink, rather than adjusing boot files each time?
+  # cur_vmlinuz=/boot/vmlinuz
+  # new_vmlinuz=/boot/${KRNL}
+  # # update vmlinuz symlink if required
+  # if [[ ! -e ${cur_vmlinuz} ]] || [[ $(readlink ${cur_vmlinuz}) != "${new_vmlinuz}" ]]; then
+  #   log "Updating ${cur_vmlinuz} to point to ${new_vmlinuz}"
+  #   ln -sf "${new_vmlinuz}" "${cur_vmlinuz}"
+  # else
+  #   log "vmlinuz already points to:" "$(readlink ${cur_vmlinuz})"
+  # fi
+  # KRNL=$(ls -l /boot | grep vmlinuz | awk '{print $9}')
+  # Since our boot partition is FAT, it doesn't support sylminks.
   IFS=- read -ra KVER <<<"$KRNL"
   log "Finished Kernel ${KVER[1]} installation" "okay" "${KRNL}"
-
-  log "Preparing BIOS" "info"
-
-  log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
-  syslinux -v
-  syslinux "${BOOT_PART}"
 
   log "Preparing BIOS" "info"
 

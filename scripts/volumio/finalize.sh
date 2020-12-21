@@ -25,7 +25,7 @@ log "Cleaning docs"
 find ${ROOTFSMNT}/usr/share/doc -depth -type f ! -name copyright -delete #| xargs rm
 find ${ROOTFSMNT}/usr/share/doc -empty -delete                           #|xargs rmdir || true
 
-if [[ $BUILD != "x86" ]]; then
+if [[ ${BUILD:0:3} == arm ]]; then
   log "Cleaning man and caches"
   rm -rf ${ROOTFSMNT}/usr/share/man/* ${ROOTFSMNT}/usr/share/groff/* ${ROOTFSMNT}/usr/share/info/*
   rm -rf ${ROOTFSMNT}/usr/share/lintian/* ${ROOTFSMNT}/usr/share/linda/* ${ROOTFSMNT}/var/cache/man/*
@@ -35,15 +35,16 @@ if [[ $BUILD != "x86" ]]; then
   STRP_DIRECTORIES=("${ROOTFSMNT}/lib/"
     "${ROOTFSMNT}/bin/"
     "${ROOTFSMNT}/usr/sbin"
-    "${ROOTFSMNT}/usr/local/bin/")
+    "${ROOTFSMNT}/usr/local/bin/"
+    "${ROOTFSMNT}/lib/modules/")
 
   for DIR in "${STRP_DIRECTORIES[@]}"; do
     log "$DIR Pre strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
-    find "$DIR" -type f -exec strip --strip-all {} ';' >/dev/null 2>&1
+    find "$DIR" -type f -exec strip --strip-unneeded {} ';' >/dev/null 2>&1
     log "$DIR Post strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
   done
 else
-  log "x86 environment detected, not cleaning/stripping libs"
+  log "${BUILD} environment detected, not cleaning/stripping libs"
 fi
 
 # Got to do this here to make it stick
@@ -53,7 +54,6 @@ cp "${SRC}"/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
 
 log "Add Volumio WebUI IP"
 cat <<-EOF >>${ROOTFSMNT}/etc/issue
-\l 
 Welcome to Volumio!
 WebUI available at \n.local (\4)
 EOF
