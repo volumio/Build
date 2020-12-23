@@ -21,6 +21,7 @@ export -f isMounted
 # Load config
 # shellcheck source=./scripts/config.sh
 source "${SRC}/scripts/config.sh"
+mapfile -t DEVICE_LIST < <(basename -s .sh "${SRC}"/recipes/devices/*.sh | sort)
 
 log "Running Volumio Image Builder -" "info"
 
@@ -37,11 +38,8 @@ Basic usage: ./build.sh -b arm -d pi -v 2.0
 Switches:
   -b <arch> Build a full system image with Multistrap.
             Options for the target architecture are 'arm' (Raspbian), 'armv7' (Debian arm64), 'armv8' (Debian arm64) or 'x86' (Debian i386).
-  -d        Create Image for Specific Devices. Supported device names:
-              pi, udooneo, udooqdl, cuboxi, cubietruck, compulab,
-              odroidc1, odroidc2, odroidxu4, sparky, bbb, pine64,
-              bpim2u, bpipro, tinkerboard, sopine64, rock64, voltastream0, nanopi64,
-              nanopineo2, nanopineo, nanopineo
+  -d        Create Image for Specific Devices. Supported device names         
+$(printf "\t\t%s\n" "${DEVICE_LIST[@]}")
   -v <vers> Version must be a dot separated number. Example 1.102 .
 
   -l <repo> Create docker layer. Give a Docker Repository name as the argument.
@@ -405,6 +403,7 @@ if [[ -n "$DEVICE" ]]; then
     ROOTFS="${SRC}/build/${BUILD}/root"
   else
     log "No configuration found for <${DEVICE}>" "err"
+    log "Build system currently supports ${#DEVICE_LIST} devices:" "${DEVICE_LIST[*]}"
     exit 1
   fi
 
