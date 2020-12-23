@@ -73,6 +73,7 @@ rm -f /var/lib/apt/lists/*archive*
 apt-get clean
 # rm /usr/sbin/policy-rc.d
 [[ -d /volumio/customPkgs ]] && rm -r "/volumio/customPkgs"
+[[ -f /install-kiosk.sh ]] && rm "/install-kiosk.sh"
 
 # Fix services for tmpfs logs
 log "Ensuring /var/log has right folders and permissions"
