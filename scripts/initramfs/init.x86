@@ -86,6 +86,7 @@ modprobe overlay
 modprobe squashfs
 modprobe nls_cp437
 modprobe nls_utf8
+#modprobe nls_ascii
 modprobe fuse
 modprobe nvme_core
 modprobe nvme
@@ -285,9 +286,8 @@ fi
 #
 if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   print_msg "Creating factory image, this will take a minute, please wait..."
-  #cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
-  #print_msg "Factory image created"
-  print_msg "WARNING!!: Debug image, skipping this!"
+  cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
+  print_msg "Factory image created"
   print_msg "Creating archive for factory kernel..."
   mkdir /mnt/factory
   echo "Mounting ${BOOTPART}"

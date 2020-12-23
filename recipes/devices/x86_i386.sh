@@ -19,11 +19,11 @@ DEVICEBASE="x86"
 DEVICEREPO="http://github.com/volumio/platform-x86"
 
 ### What features do we want to target
-# TODO: Not fully implement
+# TODO: Not fully implemented
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
 VOLINITUPDATER=no # Temporary until the repo is fixed
-KIOSKMODE=no
+KIOSKMODE=yes
 
 ## Partition info
 BOOT_START=1
@@ -33,12 +33,13 @@ BOOT_USE_UUID=yes
 INIT_TYPE="init.x86" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramfs
-# Reveiw these for more mordern kernels?
+# Review these for more modern kernels?
 MODULES=("overlay" "squashfs"
   # USB/FS modules
   "usbcore" "usb_common" "mmc_core" "mmc_block" "nvme_core" "nvme" "sdhci" "sdhci_pci" "sdhci_acpi"
   "ehci_pci" "ohci_pci" "uhci_hcd" "ehci_hcd" "xhci_hcd" "ohci_hcd" "usbhid" "hid_cherry" "hid_generic"
   "hid" "nls_cp437" "nls_utf8" "vfat" "fuse"
+  # nls_ascii might be needed on some kernels (debian upstream for example)
   # Plymouth modules
   "intel_agp" "drm" "i915 modeset=1" "nouveau modeset=1" "radeon modeset=1"
   # Ata modules
@@ -54,7 +55,7 @@ MODULES=("overlay" "squashfs"
 # Packages that will be installed
 PACKAGES=(
   # Wireless firmware
-  "firmware-b43-installer" "firmware-linux"
+  "firmware-b43-installer"
 )
 
 ### Device customisation
@@ -63,13 +64,13 @@ write_device_files() {
   log "Running write_device_files" "ext"
   log "Copying kernel files"
   pkg_root="${PLTDIR}/packages-buster"
-  cp "${pkg_root}"/linux-image-*.deb "${ROOTFSMNT}"
-  # log "Copying the latest firmware into /lib/firmware"
-  # tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
+  cp "${pkg_root}"/linux-image-*_${ARCH}.deb "${ROOTFSMNT}"
+  log "Copying the latest firmware into /lib/firmware"
+  tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
 
-  # log "Copying firmware additions"
-  # tar xf "${pkg_root}"/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz -C "${ROOTFSMNT}"
-  # cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
+  log "Copying firmware additions"
+  tar xf "${pkg_root}"/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz -C "${ROOTFSMNT}"
+  cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
 
   log "Copying Alsa Use Case Manager files"
   cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
@@ -139,10 +140,11 @@ device_chroot_tweaks_pre() {
 
   log "Installing the kernel"
   # Exact kernel version not known
-  # Not brilliant, but safe enough as x86image.sh only copied one image
-  ls /
-  dpkg -i linux-image-*_i386.deb
-  rm linux-image-*_i386.deb
+  # Not brilliant, but safe enough as platform repo *should* have only a single kernel package
+  # Confirm anyway
+  ls -la /
+  dpkg -i linux-image-*_"${ARCH}".deb
+  rm linux-image-*_"${ARCH}".deb
   log "Getting the current kernel filename and version"
   #TODO: Why not just symlink to /boot/vmlinuz
   # Since our boot partition is FAT, it doesn't support sylminks.
