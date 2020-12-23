@@ -23,7 +23,7 @@ DEVICEREPO="http://github.com/volumio/platform-x86"
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
 VOLINITUPDATER=no # Temporary until the repo is fixed
-KIOSKMODE=yes
+KIOSKMODE=no
 
 ## Partition info
 BOOT_START=1
@@ -38,7 +38,7 @@ MODULES=("overlay" "squashfs"
   # USB/FS modules
   "usbcore" "usb_common" "mmc_core" "mmc_block" "nvme_core" "nvme" "sdhci" "sdhci_pci" "sdhci_acpi"
   "ehci_pci" "ohci_pci" "uhci_hcd" "ehci_hcd" "xhci_hcd" "ohci_hcd" "usbhid" "hid_cherry" "hid_generic"
-  "hid" "nls_cp437" "nls_utf8" "vfat"
+  "hid" "nls_cp437" "nls_utf8" "vfat" "fuse"
   # Plymouth modules
   "intel_agp" "drm" "i915 modeset=1" "nouveau modeset=1" "radeon modeset=1"
   # Ata modules
@@ -54,7 +54,7 @@ MODULES=("overlay" "squashfs"
 # Packages that will be installed
 PACKAGES=(
   # Wireless firmware
-  "firmware-b43-installer"
+  "firmware-b43-installer" "firmware-linux"
 )
 
 ### Device customisation
@@ -64,12 +64,12 @@ write_device_files() {
   log "Copying kernel files"
   pkg_root="${PLTDIR}/packages-buster"
   cp "${pkg_root}"/linux-image-*.deb "${ROOTFSMNT}"
-  log "Copying the latest firmware into /lib/firmware"
-  tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
+  # log "Copying the latest firmware into /lib/firmware"
+  # tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
 
-  log "Copying firmware additions"
-  tar xf "${pkg_root}"/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz -C "${ROOTFSMNT}"
-  cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
+  # log "Copying firmware additions"
+  # tar xf "${pkg_root}"/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz -C "${ROOTFSMNT}"
+  # cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
 
   log "Copying Alsa Use Case Manager files"
   cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
