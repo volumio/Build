@@ -140,7 +140,7 @@ cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
 
 if [[ "$KIOSKMODE" == yes ]]; then
   log "Copying kiosk scripts to rootfs"
-  cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}
+  cp "${SRC}/scripts/volumio/${KIOSKINSTALL}" ${ROOTFSMNT}/install-kiosk.sh
 fi
 
 echo "$PATCH" >${ROOTFSMNT}/patch
@@ -166,6 +166,7 @@ ARCH="${ARCH}"
 BUILD="${BUILD}"
 DEBUG_IMAGE="${DEBUG_IMAGE:-no}"
 KIOSKMODE="${KIOSKMODE:-no}"
+KIOSKINSTALL="${KIOSKMODE:-install-kiosk.sh}"
 VOLVARIANT="${VOLVARIANT:-volumio}"
 BOOT_FS_SPEC=${BOOT_FS_SPEC}
 UUID_BOOT=${UUID_BOOT}
