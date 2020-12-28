@@ -7,7 +7,7 @@ Wants=network-online.target
 After=network.target network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/shairport-sync --configfile=/tmp/shairport-sync.conf
+ExecStart=/usr/bin/shairport-sync --configfile=/tmp/shairport-sync.conf
 User=shairport-sync
 Group=shairport-sync
 
