@@ -65,7 +65,11 @@ write_device_files() {
   log "Running write_device_files" "ext"
   log "Copying kernel files"
   pkg_root="${PLTDIR}/packages-buster"
-  cp "${pkg_root}"/linux-image-*_${ARCH}.deb "${ROOTFSMNT}"
+  # Copy in the kernel version we are interested in
+  # This will be expanded as a glob, you can be as specific or vague as required
+  KERNEL_VER=4.19
+  # KERNEL_VER=5.10
+  cp "${pkg_root}"/linux-image-${KERNEL_VER}*_${ARCH}.deb "${ROOTFSMNT}"
   log "Copying the latest firmware into /lib/firmware"
   tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
 
@@ -193,7 +197,7 @@ device_chroot_tweaks_pre() {
 
   if [[ $DEBUG_IMAGE == yes ]]; then
     log "Creaing debug image" "wrn"
-    KERNEL_LOGLEVEL="loglevel=8" # KERN_DEBUG
+    KERNEL_LOGLEVEL="loglevel=3" # KERN_DEBUG
     kernel_params+=("debug")     # keep intiramfs logs
     # kernel_params+=("use_kmsg=yes") # intiramfs logs buffer
     log "Enabling ssh on boot"
