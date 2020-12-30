@@ -22,7 +22,6 @@ VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
 VOLINITUPDATER=no
 KIOSKMODE=yes
-KIOSKINSTALL=install-kiosk.sh
 
 ## Partition info
 BOOT_START=1

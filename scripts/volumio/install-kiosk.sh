@@ -14,15 +14,14 @@ CMP_PACKAGES=(
   "keyboard-configuration"
   # Display stuff
   "openbox" "unclutter" "xorg" "xinit"
-  #TODO: Figure out new x configuration later, for now legacy FTW
-  "xserver-xorg-legacy"
   # Browser
+  # TODO: Why not firefox? it seems to work OTB on most devices with less hassle?
   "chromium" "chromium-l10n"
   # Fonts
   "fonts-arphic-ukai" "fonts-arphic-gbsn00lp" "fonts-unfonts-core"
 )
 
-log "Installing ${#CMP_PACKAGES[@]} ${CMP_NAME} packages:" "" "${CMP_PACKAGES[@]}"
+log "Installing ${#CMP_PACKAGES[@]} ${CMP_NAME} packages:" "" "${CMP_PACKAGES[*]}"
 apt-get install -y "${CMP_PACKAGES[@]}" --no-install-recommends
 
 log "${CMP_NAME} Dependencies installed!"
@@ -30,29 +29,75 @@ log "${CMP_NAME} Dependencies installed!"
 log "Creating ${CMP_NAME} dirs and scripts"
 mkdir /data/volumiokiosk
 
+#TOOD: Document these!
+# A lot of these flags are wrong/deprecated/not required
+# eg. https://chromium.googlesource.com/chromium/src/+/4baa4206fac22a91b3c76a429143fc061017f318
+# Translate: remove --disable-translate flag
+
+CHROMIUM_FLAGS=(
+  "--kiosk"
+  "--touch-events"
+  "--disable-touch-drag-drop"
+  "--disable-overlay-scrollbar"
+  "--enable-touchview"
+  "--enable-pinch"
+  "--window-position=0,0"
+  "--disable-session-crashed-bubble"
+  "--disable-infobars"
+  "--no-first-run"
+  "--no-sandbox"
+  "--user-data-dir='/data/volumiokiosk'"
+  "--disable-translate"
+  "--show-component-extension-options"
+  "--disable-background-networking"
+  "--enable-remote-extensions"
+  "--enable-native-gpu-memory-buffers"
+  "--disable-quic"
+  "--enable-fast-unload"
+  "--enable-tcp-fast-open"
+)
+
+if [[ ${BUILD:0:3} != 'arm' ]]; then
+  log "Adding additional chromium flags for x86"
+  # Again, these flags probably need to be revisited and checked!
+  CHROMIUM_FLAGS+=(
+    #GPU
+    "--ignore-gpu-blacklist"
+    "--use-gl=desktop"
+    "--disable-gpu-compositing"
+    "--force-gpu-rasterization"
+    "--enable-zero-copy"
+  )
+fi
+
+log "Adding ${#CHROMIUM_FLAGS[@]} Chromium flags"
+#TODO: Instead of all this careful escaping, make a simple template and add in CHROMIUM_FLAGS?
 cat <<-EOF >/opt/volumiokiosk.sh
 #!/usr/bin/env bash
-#set -eo pipefail
-while true; do timeout 3 bash -c \"</dev/tcp/127.0.0.1/3000\" >/dev/null 2>&1 && break; done
-sed -i 's/\"exited_cleanly\":false/\"exited_cleanly\":true/' /data/volumiokiosk/Default/Preferences
-sed -i 's/\"exit_type\":\"Crashed\"/\"exit_type\":\"None\"/' /data/volumiokiosk/Default/Preferences
+set -eo pipefail
+exec >/var/log/volumiokiosk.log 2>&1
+
+echo "Starting Kiosk"
+start=\$(date +%s)
+res=\$(xdpyinfo | awk '/dimensions:/ { print \$2; exit }')
+#res=\${res/x/,}
+echo "Current probed resolution: \${res}"
+export DISPLAY=:0
 xset -dpms
 xset s off
+[[ -e /data/volumiokiosk/Default/Preferences ]] && {
+  sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /data/volumiokiosk/Default/Preferences
+  sed -i 's/"exit_type":"Crashed"/"exit_type":"None"/' /data/volumiokiosk/Default/Preferences
+}
+
+# Wait for Volumio webUI to be available
+while true; do timeout 3 bash -c "</dev/tcp/127.0.0.1/3000" >/dev/null 2>&1 && break; done
+echo "Waited \$((\$(date +%s) - start)) sec for Volumio UI"
+
 openbox-session &
 while true; do
-  /usr/bin/chromium-browser \\
-    --simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT' \\
-    --disable-pinch \\
-    --kiosk \\
-    --no-first-run \\
-    --noerrdialogs \\
-    --disable-3d-apis \\
-    --disable-breakpad \\
-    --disable-crash-reporter \\
-    --disable-infobars \\
-    --disable-session-crashed-bubble \\
-    --disable-translate \\
-    --user-data-dir='/data/volumiokiosk' \
+  /usr/bin/chromium \\
+	$(printf '    %s \\\n' "${CHROMIUM_FLAGS[@]}")
     http://localhost:3000
 done
 EOF
@@ -68,7 +113,7 @@ After=volumio.service
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh
+ExecStart=/usr/bin/startx /etc/X11/Xsession /opt/volumiokiosk.sh -- -keeptty
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -76,30 +121,7 @@ EOF
 log "Enabling ${CMP_NAME} service"
 ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.target.wants/volumio-kiosk.service
 
-log "Allowing volumio to start an Xsession"
-sed -i "s/allowed_users=console/allowed_users=anybody/" /etc/X11/Xwrapper.config
-
-log "Hiding mouse cursor"
-cat <<-'EOF' >/root/.xinitrc
-#!/bin/sh
-
-if [ -d /etc/X11/xinit/xinitrc.d ]; then
-  for f in /etc/X11/xinit/xinitrc.d/*; do
-    [ -x "$f" ] && . "$f"
-  done
-  unset f
-fi
-
-xrdb -merge ~/.Xresources         # aggiorna x resources db
-
-#xscreensaver -no-splash &         # avvia il demone di xscreensaver
-xsetroot -cursor_name left_ptr &  # setta il cursore di X
-#sh ~/.fehbg &                     # setta lo sfondo con feh
-
-exec openbox-session              # avvia il window manager
-exec unclutter &
-EOF
-echo "Setting localhost"
+log "Setting localhost"
 echo '{"localhost": "http://127.0.0.1:3000"}' >/volumio/http/www/app/local-config.json
 if [ -d "/volumio/http/www3" ]; then
   echo '{"localhost": "http://127.0.0.1:3000"}' >/volumio/http/www3/app/local-config.json
@@ -113,5 +135,6 @@ if [[ ${VOLUMIO_HARDWARE} != motivo ]]; then
   log "Setting HDMI UI enabled by default"
   config_path="/volumio/app/plugins/system_controller/system/config.json"
   # Should be okay right?
+  #shellcheck disable=SC2094
   cat <<<"$(jq '.hdmi_enabled={value:true, type:"boolean"}' ${config_path})" >${config_path}
 fi

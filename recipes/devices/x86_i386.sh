@@ -24,7 +24,6 @@ VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
 VOLINITUPDATER=no # Temporary until the repo is fixed
 KIOSKMODE=yes
-KIOSKINSTALL=install-kiosk_x86.sh
 
 ## Partition info
 BOOT_START=1

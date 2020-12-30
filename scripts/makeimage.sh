@@ -140,7 +140,7 @@ cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
 
 if [[ "$KIOSKMODE" == yes ]]; then
   log "Copying kiosk scripts to rootfs"
-  cp "${SRC}/scripts/volumio/${KIOSKINSTALL}" ${ROOTFSMNT}/install-kiosk.sh
+  cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}/install-kiosk.sh
 fi
 
 echo "$PATCH" >${ROOTFSMNT}/patch
@@ -195,7 +195,7 @@ end_chroot_final=$(date +%s)
 time_it "$end_chroot_final" "$start_chroot_final"
 log "Finished chroot image configuration" "okay" "$TIME_STR"
 
-log "Finalizing Rootfs (Cleaning, Stripping, Hash)" "info"
+log "Finalizing Rootfs (Cleaning, Stripping, Hashing)" "info"
 # shellcheck source=./scripts/volumio/finalize.sh
 source "${SRC}/scripts/volumio/finalize.sh"
 
