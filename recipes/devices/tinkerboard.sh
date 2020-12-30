@@ -93,9 +93,6 @@ EOF
   log "Configuring boot splash"
   plymouth-set-default-theme volumio
 
-  log "Switching iptables"
-  update-alternatives --set iptables /usr/sbin/iptables-legacy
-
   # echo "Installing Kiosk"
   # sh /install-kiosk.sh
 

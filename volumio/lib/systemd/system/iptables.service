@@ -1,13 +1,17 @@
 [Unit]
 Description = Volumio Iptables Module
+StartLimitBurst=2 
 
 [Service]
 ExecStart=/sbin/iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000
+# Workaround for Buster using nf_tables, which seems supported on some kernels/archs, but not on others
+ExecStopPost=/bin/bash -c 'if [[ "$$EXIT_STATUS" -ne 0 ]]; then update-alternatives --set iptables /usr/sbin/iptables-legacy; fi'
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=iptables
 User=root
 Group=root
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
