@@ -23,13 +23,14 @@ deb ${APTSOURCE[${BASE}]} ${SUITE} ${AptComponents[*]}
 #deb-src ${APTSOURCE[${BASE}]} ${SUITE} ${AptComponents[*]}
 EOF
 
-if [[ $BUILD == x86 ]] || [[ ${BUILD} == x64 ]]; then
-  log "Copying ${BUILD} related Configuration files"
-  cp "${SRC}/volumio/splash/volumio.png" "${ROOTFS}/boot"
-else
+log "Copying ${BUILD} related Configuration files"
+if [[ ${BUILD:0:3} == arm ]]; then
   log 'Setting time for ARM devices with fakehwclock to build time'
   date -u '+%Y-%m-%d %H:%M:%S' >"${ROOTFS}/etc/fake-hwclock.data"
 fi
+
+# Copy splash, that is utilised for devices with a screen
+cp "${SRC}/volumio/splash/volumio.png" "${ROOTFS}/boot"
 
 log "Copying misc config/tweaks to rootfs" "info"
 
@@ -86,8 +87,9 @@ echo " " >"${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 "${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
 
 #Shairport
-cp "${SRC}/volumio/etc/shairport-sync.conf" "${ROOTFS}/etc/shairport-sync.conf"
-chmod 777 "${ROOTFS}/etc/shairport-sync.conf"
+# Is not used - tmpl is created by BE
+# cp "${SRC}/volumio/etc/shairport-sync.conf" "${ROOTFS}/etc/shairport-sync.conf"
+# chmod 777 "${ROOTFS}/etc/shairport-sync.conf"
 
 #nsswitch
 cp "${SRC}/volumio/etc/nsswitch.conf" "${ROOTFS}/etc/nsswitch.conf"
