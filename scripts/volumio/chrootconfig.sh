@@ -82,6 +82,12 @@ sed -i '/^ExecStart=.*/i ExecStartPre=chown volumio /var/log/mpd.log' /lib/syste
 sed -i '/^ExecStart=.*/i ExecStartPre=mkdir -m 700 -p /var/log/samba/cores' /lib/systemd/system/nmbd.service
 # sed -i '/^ExecStart=.*/i ExecStartPre=chmod 700 /var/log/samba/cores' /lib/systemd/system/nmbd.service
 
+# Fix for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=934540
+# that will not make it into buster
+log "Applying buster specific {n,s}mpd.service PID tweaks"
+sed -i 's|^PIDFile=/var/run/samba/smbd.pid|PIDFile=/run/samba/smbd.pid|' /lib/systemd/system/smbd.service
+sed -i 's|^PIDFile=/var/run/samba/nmbd.pid|PIDFile=/run/samba/nmbd.pid|' /lib/systemd/system/nmbd.service
+
 #First Boot operations
 log "Signalling the init script to re-size the Volumio data partition"
 touch /boot/resize-volumio-datapart
