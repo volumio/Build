@@ -100,9 +100,6 @@ cp "${SRC}/volumio/bin/firststart.sh" "${ROOTFS}/bin/firststart.sh"
 #dynswap
 cp "${SRC}/volumio/bin/dynswap.sh" "${ROOTFS}/bin/dynswap.sh"
 
-#Wireless
-cp "${SRC}/volumio/bin/wireless.js" "${ROOTFS}/volumio/app/plugins/system_controller/network/wireless.js"
-
 #udev script
 cp "${SRC}/volumio/bin/rename_netiface0.sh" "${ROOTFS}/bin/rename_netiface0.sh"
 chmod a+x "${ROOTFS}/bin/rename_netiface0.sh"

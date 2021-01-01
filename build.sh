@@ -112,26 +112,39 @@ function fetch_volumio_from_repo() {
 
   mkdir "${ROOTFS}/volumio"
 
-  if [ -n "$PATCH" ]; then
-    log "Cloning Volumio with all its history"
-    git clone https://github.com/volumio/Volumio2.git "${ROOTFS}/volumio"
-  else
-    log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
-    git clone --depth 1 -b "${VOL_BE_REPO_BRANCH}" --single-branch "${VOL_BE_REPO}" "${ROOTFS}/volumio"
-  fi
+  log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
+  git clone --depth 1 -b "${VOL_BE_REPO_BRANCH}" --single-branch "${VOL_BE_REPO}" "${ROOTFS}/volumio"
 
+  log "Adding wireless.js"
+  cp "${SRC}/volumio/bin/wireless.js" "${ROOTFS}/volumio/app/plugins/system_controller/network/wireless.js"
   log 'Cloning Volumio UI'
   git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www"
   git clone --depth 1 -b dist3 --single-branch https://github.com/volumio/Volumio2-UI.git "${ROOTFS}/volumio/http/www3"
-  log "Adding Volumio revision information to os-release"
-  cat <<-EOF >>"${ROOTFS}/etc/os-release"
-	VOLUMIO_BUILD_VERSION="$(git rev-parse HEAD)"
-	VOLUMIO_FE_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www/.git" rev-parse HEAD)"
-	VOLUMIO_FE3_VERSION="$(git --git-dir "${ROOTFS}/volumio/http/www3/.git" rev-parse HEAD)"
-	VOLUMIO_BE_VERSION="$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)"
-	VOLUMIO_ARCH="${BUILD}"
-	EOF
 
+  log "Adding Volumio revision information to os-release"
+  BUILD_VER=$(git rev-parse HEAD)
+  FE_VER=$(git --git-dir "${ROOTFS}/volumio/http/www/.git" rev-parse HEAD)
+  FE3_VER=$(git --git-dir "${ROOTFS}/volumio/http/www3/.git" rev-parse HEAD)
+  BE_VER=$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)
+
+  if grep -q VOLUMIO_FE_VERSION "${ROOTFS}"/etc/os-release; then
+    log "Updating Volumio rev"
+    sed -i -e "s|\(^VOLUMIO_BUILD_VERSION=\).*|\1\"${BUILD_VER}\"|" \
+      -e "s|\(^VOLUMIO_FE_VERSION=\).*|\1\"${FE_VER}\"|" \
+      -e "s|\(^VOLUMIO_FE3_VERSION=\).*|\1\"${FE3_VER}\"|" \
+      -e "s|\(^VOLUMIO_BE_VERSION=\).*|\1\"${BE_VER}\"|" \
+      "${ROOTFS}"/etc/os-release
+  else
+    log "Appending Volumio rev"
+    cat <<-EOF >>"${ROOTFS}"/etc/os-release
+		VOLUMIO_BUILD_VERSION="${BUILD_VER}"
+		VOLUMIO_FE_VERSION="${FE_VER}"
+		VOLUMIO_FE3_VERSION="${FE3_VER}"
+		VOLUMIO_BE_VERSION="${BE_VER}"
+		VOLUMIO_ARCH="${BUILD}"
+		EOF
+  fi
+  cat "${ROOTFS}"/etc/os-release
   # Clean up git repo
   rm -rf "${ROOTFS}/volumio/http/www/.git"
   rm -rf "${ROOTFS}/volumio/http/www3/.git"
@@ -514,7 +527,7 @@ if [[ -n "$DEVICE" ]]; then
   # Prepare Images
   start_img=$(date +%s)
   BUILDDATE=$(date -I)
-  IMG_FILE="Volumio-${VERSION}-${BUILDDATE}-${DEVICE}.img"
+  IMG_FILE="${VARIANT^}-${VERSION}-${BUILDDATE}-${DEVICE}.img"
 
   if [[ ${OLD_X86BUILD:no} == yes ]] && [[ ${BUILD} == x86 ]]; then
     log "Using old x86 image script to build image"
