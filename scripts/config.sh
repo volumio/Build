@@ -35,7 +35,7 @@ declare -A CUSTOM_PKGS=(
 # VOL_BE_REPO="https://github.com/ashthespy/Volumio2.git"
 # VOL_BE_REPO_BRANCH="buster_upstream"
 VOL_BE_REPO="https://github.com/volumio/Volumio2.git"
-VOL_BE_REPO_BRANCH="buster"
+VOL_BE_REPO_BRANCH="buster/master"
 
 ## NodeJS Controls
 # Semver is only used w.t.r modules fetched from repo,
