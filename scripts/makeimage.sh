@@ -3,21 +3,45 @@
 
 set -eo pipefail
 
+mount_image_tmp_devices() {
+  mount -t ext4 "${IMG_PART}" "${VOLMNT}"/images
+  mount -t vfat "${BOOT_PART}" "${ROOTFSMNT}"/boot
+}
+
+unmount_image_tmp_devices() {
+  umount -l "${VOLMNT}"/images || log "umount ${VOLMNT}/images failed" "wrn"
+  umount -l "${ROOTFSMNT}"/boot || log "umount ${ROOTFSMNT}/boot failed" "wrn"
+}
+
+clean_loop_devices() {
+  log "Cleaning loop device $LOOP_DEV" "$(losetup -j "${IMG_FILE}")"
+  dmsetup remove_all
+  losetup -d "${LOOP_DEV}" || {
+    log "Checking loop devices associations" "dbg"
+    losetup
+  }
+}
+
 exit_error() {
   log "Imagebuilder script failed!!" "err"
   # Check if there are any mounts that need cleaning up
+  if isMounted "${ROOTFSMNT}"/boot; then
+    log "Cleaning up image_tmp mounts"
+    unmount_image_tmp_devices
+  fi
   # If dev is mounted, the rest should also be mounted (right?)
   if isMounted "$ROOTFSMNT/dev"; then
     unmount_chroot "${ROOTFSMNT}"
   fi
-
-  # dmsetup remove_all
-  log "Cleaning loop device $LOOP_DEV" "wrn"
-  losetup -j "${IMG_FILE}"
-  dmsetup remove "${LOOP_DEV}" &&
-    losetup -d "${LOOP_DEV}"
-  log "Deleting image file"
-  [[ -f ${IMG_FILE} ]] && rm "${IMG_FILE}"
+  # Overkill, INT will call exit_error twice
+  # So check if we need to cleanup our LOOP_DEV
+  # if losetup | grep -q "${LOOP_DEV}"; then
+  clean_loop_devices
+  # fi
+  if [[ -f ${IMG_FILE} ]]; then
+    log "Deleting image file"
+    rm "${IMG_FILE}"
+  fi
 }
 
 trap exit_error INT ERR
@@ -72,8 +96,7 @@ mkdir ${VOLMNT}/images
 mkdir -p ${ROOTFSMNT}/boot
 # Boot is vfat
 
-mount -t ext4 "${IMG_PART}" ${VOLMNT}/images
-mount -t vfat "${BOOT_PART}" ${ROOTFSMNT}/boot
+mount_image_tmp_devices
 
 #TODO -pPR?
 log "Copying Volumio RootFs" "info"
@@ -242,12 +265,10 @@ sync
 
 log "Cleaning up" "info"
 log "Unmounting temp devices"
-umount -l ${VOLMNT}/images
-umount -l ${ROOTFSMNT}/boot
+unmount_image_tmp_devices
 
 log "Cleaning up loop devices"
-dmsetup remove_all
-losetup -d "${LOOP_DEV}"
+clean_loop_devices
 sync
 
 log "Removing Volumio.sqsh"
