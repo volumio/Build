@@ -13,7 +13,9 @@ BUILD="armv7"
 ### Device information
 DEVICENAME="Asus Tinkerboard"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="tinkerboard"
+DEVICEFAMILY="tinkerboard"
+# tarball from DEVICEFAMILY repo to use
+#DEVICEBASE=${DEVICE} # Defaults to ${DEVICE} if unset
 DEVICEREPO="https://github.com/volumio/platform-asus.git"
 
 ### What features do we want to target

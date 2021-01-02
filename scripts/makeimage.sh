@@ -112,27 +112,27 @@ if [[ $VOLINITUPDATER == yes ]]; then
     ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater
 fi
 
-log "Getting device specific files for ${DEVICE} from platform-${DEVICEBASE}" "info"
-PLTDIR="${SRC}/platform-${DEVICEBASE}"
+log "Getting device specific files for ${DEVICE} from platform-${DEVICEFAMILY}" "info"
+PLTDIR="${SRC}/platform-${DEVICEFAMILY}"
 if [[ -d $PLTDIR ]]; then
-  log "Platform folder exists, keeping it" "" "platform-${DEVICEBASE}"
+  log "Platform folder exists, keeping it" "" "platform-${DEVICEFAMILY}"
   HAS_PLTDIR=yes
 elif [[ -n $DEVICEREPO ]]; then
-  log "Cloning platform-${DEVICEBASE} from ${DEVICEREPO}"
-  git clone --depth 1 "${DEVICEREPO}" "platform-${DEVICEBASE}"
+  log "Cloning platform-${DEVICEFAMILY} from ${DEVICEREPO}"
+  git clone --depth 1 "${DEVICEREPO}" "platform-${DEVICEFAMILY}"
   log "Unpacking $DEVICE files"
   log "This isn't really consistent across platforms right now!" "dbg"
-  # mkdir -p ${PLTDIR}/${DEVICE}
-  tar xfJ "platform-${DEVICEBASE}/${DEVICE}.tar.xz" -C "${PLTDIR}" || log "No archive found, assuming you know what you are doing!" "wrn"
+  # If DEVICEBASE was provided, use it, else default to ${DEVICE}
+  tar xfJ "platform-${DEVICEFAMILY}/${DEVICEBASE-${DEVICE}}.tar.xz" -C "${PLTDIR}" || log "No archive found, assuming you know what you are doing!" "wrn"
   HAS_PLTDIR=yes
 else
-  log "No platfrom-${DEVICE} found, skipping this step"
+  log "No platfrom-${DEVICEFAMILY} found, skipping this step"
   HAS_PLTDIR=no
 fi
 
 if [[ $HAS_PLTDIR == yes ]]; then
   # This is pulled in from each device's config script
-  log "Copying ${DEVICE} boot files from platform-${DEVICEBASE}" "info"
+  log "Copying ${DEVICE} boot files from platform-${DEVICEFAMILY}/${DEVICEBASE}.tar.xz" "info"
   log "Entering write_device_files" "cfg"
   write_device_files
   log "Entering write_device_bootloader" "cfg"

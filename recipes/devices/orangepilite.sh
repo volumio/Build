@@ -14,7 +14,9 @@ BUILD="armv7"
 ### Device information
 DEVICENAME="Orange Pi" # Pretty name
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="orangepi"
+DEVICEFAMILY="orangepi"
+# tarball from DEVICEFAMILY repo to use
+#DEVICEBASE=${DEVICE} # Defaults to ${DEVICE} if unset
 DEVICEREPO="https://github.com/ashthespy/platform-orangepi"
 
 ### What features do we want to target

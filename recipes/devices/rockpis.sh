@@ -13,8 +13,10 @@ BUILD="armv7"
 ### Device information
 DEVICENAME="ROCK Pi S"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="rockpis"
-DEVICEREPO="https://github.com/ashthespy/platform-rockpis.git"
+DEVICEFAMILY="rockpis"
+# tarball from DEVICEFAMILY repo to use
+#DEVICEBASE=${DEVICE} # Defaults to ${DEVICE} if unset
+DEVICEREPO="https://github.com/ashthespy/platform-${DEVICEFAMILY}.git"
 
 ### What features do we want to target
 # TODO: Not fully implement
