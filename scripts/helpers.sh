@@ -66,7 +66,7 @@ log() {
 		;;
 
 	*)
-		[[ ! -z $2 ]] && tmp="[${yellow} $2 ${normal}]"
+		[[ -n $2 ]] && tmp="[${yellow} $2 ${normal}]"
 		echo -e "[${green} .. ${normal}] $1 $tmp "
 		;;
 
@@ -83,7 +83,7 @@ time_it() {
 	if [[ $time -lt 60 ]]; then
 		TIME_STR="$time sec"
 	else
-		TIME_STR="$((time / 60)) min"
+		TIME_STR="$((time / 60)):$((time % 60)) min"
 	fi
 	export TIME_STR
 }

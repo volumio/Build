@@ -36,7 +36,7 @@ declare -A CUSTOM_PKGS=(
 # VOL_BE_REPO_BRANCH="buster_upstream"
 VOL_BE_REPO="https://github.com/volumio/Volumio2.git"
 VOL_BE_REPO_BRANCH="buster/master"
-
+VOL_BE_REPO_SHA="d7a5678" # Workaround for BE repo having incompatible package.json for Node v8
 ## NodeJS Controls
 # Semver is only used w.t.r modules fetched from repo,
 # actual node version installs only respects the current major versions (Major.x)
@@ -46,4 +46,4 @@ NODE_VERSION=8.11.1
 # expected format node_modules_{arm/x86}-v${NODE_VERSION}.tar.gz
 NODE_MODULES_REPO="http://repo.volumio.org/Volumio2/"
 
-export SecureApt APTSOURCE VOLBINSREPO VOLBINS VOL_BE_REPO VOL_BE_REPO_BRANCH NODE_VERSION NODE_MODULES_REPO CUSTOM_PKGS
+export SecureApt APTSOURCE VOLBINSREPO VOLBINS VOL_BE_REPO VOL_BE_REPO_BRANCH VOL_BE_REPO_SHA NODE_VERSION NODE_MODULES_REPO CUSTOM_PKGS
