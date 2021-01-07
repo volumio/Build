@@ -73,7 +73,7 @@ update_config_UUIDs() {
 
 #Set up default values
 USE_KMSG="no"
-DEBUG="yes"
+DEBUG="no"
 
 #  -- checking if a firmware update is available on the
 #     first partition of any additional USB device
@@ -510,7 +510,6 @@ UUID_BOOT=$(blkid -s UUID -o value "${BOOTPART}")
 print_msg "Checking if fstab needs to be updated.."
 print_msg "Current ${BOOTPART} - UUID=${UUID_BOOT}"
 print_msg "Current fstb \boot"
-grep '/boot' /mnt/ext/union/etc/fstab
 # Check if we need to update fstab
 if ! grep -q "^UUID=${UUID_BOOT}" /mnt/ext/union/etc/fstab; then
   print_msg "Updating fstab"
@@ -522,7 +521,8 @@ print_msg "Finishing initramfs, switching rootfs and starting the boot process..
 
 # Move /run to the root so our logs are there when we boot
 mount -n -o move /run /mnt/ext/union/run
-rm log_pipe
+[ -f log_pipe ] && rm log_pipe
+
 umount /proc
 umount /sys
 

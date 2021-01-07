@@ -50,14 +50,15 @@ log "Stage [2]: Creating Image" "info"
 log "Image file: ${IMG_FILE}"
 log "Using DEBUG_IMAGE: ${DEBUG_IMAGE:-no}"
 VOLMNT=/mnt/volumio
-dd if=/dev/zero of="${IMG_FILE}" bs=1M count=2800
+IMAGE_END=${IMAGE_END-2500}
+dd if=/dev/zero of="${IMG_FILE}" bs=1M count=`expr ${IMAGE_END} + 300`
 LOOP_DEV=$(losetup -f --show "${IMG_FILE}")
 
 # Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel "${BOOT_TYPE}"
 parted -s "${LOOP_DEV}" mkpart primary fat32 "${BOOT_START:-0}" "${BOOT_END}"
-parted -s "${LOOP_DEV}" mkpart primary ext3 "${BOOT_END}" 2500
-parted -s "${LOOP_DEV}" mkpart primary ext3 2500 100%
+parted -s "${LOOP_DEV}" mkpart primary ext3 "${BOOT_END}" "${IMAGE_END}"
+parted -s "${LOOP_DEV}" mkpart primary ext3 "${IMAGE_END}" 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 [[ "${BOOT_TYPE}" == gpt ]] && parted -s "${LOOP_DEV}" set 1 legacy_boot on # for non UEFI systems
 parted -s "${LOOP_DEV}" print

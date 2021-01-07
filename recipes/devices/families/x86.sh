@@ -198,9 +198,10 @@ device_chroot_tweaks_pre() {
     log "Creaing debug image" "wrn"
     KERNEL_LOGLEVEL="loglevel=8" # KERN_DEBUG
     kernel_params+=("debug")     # keep intiramfs logs
-    # kernel_params+=("use_kmsg=yes") # intiramfs logs buffer
     log "Enabling ssh on boot"
     touch /boot/ssh
+  else
+    kernel_params+=("use_kmsg=yes") # initramfs logs buffer
   fi
   kernel_params+=("${DISABLE_PN}")
   kernel_params+=("${KERNEL_LOGLEVEL}")
