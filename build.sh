@@ -98,10 +98,12 @@ function check_os_release() {
     log "Removing previous VOLUMIO_VERSION and VOLUMIO_HARDWARE from os-release"
     sed -i '/^\(VOLUMIO_VERSION\|VOLUMIO_HARDWARE\)/d' "${os_release}"
   fi
-  log "Adding ${VERSION} and ${DEVICE} to os-release" "info"
+  # We keep backward compatibly for some cases for devices with ambiguous names
+  # mainly raspberry -> pi
+  log "Adding ${VERSION} and ${VOL_DEVICE_ID-${DEVICE}} to os-release" "info"
   cat <<-EOF >>"${os_release}"
 	VOLUMIO_VERSION="${VERSION}"
-	VOLUMIO_HARDWARE="${DEVICE}"
+	VOLUMIO_HARDWARE="${VOL_DEVICE_ID-${DEVICE}}"
 	EOF
 }
 

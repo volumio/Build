@@ -11,9 +11,11 @@ BUILD="arm"
 
 DEBUG_BUILD=no
 ### Device information
+# Used to identify devices (VOLUMIO_HARDWARE) and keep backward compatibility
+VOL_DEVICE_ID="pi"
 DEVICENAME="Raspberry Pi"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="raspberry"
+#DEVICEFAMILY="raspberry"
 
 # Disable to ensure the script doesn't look for `platform-xxx`
 #DEVICEREPO=""
@@ -142,11 +144,11 @@ device_chroot_tweaks_pre() {
 		[5.4.51]="8382ece2b30be0beb87cac7f3b36824f194d01e9"
 		[5.4.59]="caf7070cd6cece7e810e6f2661fc65899c58e297"
 		[5.4.79]="0642816ed05d31fb37fc8fbbba9e1774b475113f"
-		[5.10.0]="7378e549a785bd486c19dc2ed737ca4a1e983351"
+		[5.10.3]="da59cb1161dc7c75727ec5c7636f632c52170961"
 	)
 	# Version we want
 	KERNEL_VERSION="4.19.118"
-	KERNEL_VERSION="5.4.79"
+	KERNEL_VERSION="5.10.3"
 
 	IFS=\. read -ra KERNEL_SEMVER <<<"$KERNEL_VERSION"
 	# List of custom firmware -
@@ -214,7 +216,11 @@ device_chroot_tweaks_pre() {
 
 	log "Adding Custom DAC firmware from github" "info"
 	for key in "${!CustomFirmware[@]}"; do
-		wget -nv "${CustomFirmware[$key]}" -O "$key.tar.gz" || log "Failed to get firmware:" "err" "${key}" && continue
+		wget -nv "${CustomFirmware[$key]}" -O "$key.tar.gz" || {
+			log "Failed to get firmware:" "err" "${key}"
+			rm "$key.tar.gz"
+			continue
+		}
 		tar --strip-components 1 --exclude "*.hash" --exclude "*.md" -xf "$key.tar.gz"
 		rm "$key.tar.gz"
 	done

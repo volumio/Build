@@ -13,8 +13,10 @@ BUILD="armv8"
 ### Device information
 DEVICENAME="NanoPi Neo2"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEBASE="nanopi"
-DEVICEREPO="https://github.com/ashthespy/platform-nanopi"
+DEVICEFAMILY="nanopi"
+# tarball from DEVICEFAMILY repo to use
+#DEVICEBASE=${DEVICE} # Defaults to ${DEVICE} if unset
+DEVICEREPO="https://github.com/ashthespy/platform-${DEVICEFAMILY}"
 
 ### What features do we want to target
 # TODO: Not fully implement
