@@ -115,7 +115,11 @@ function fetch_volumio_from_repo() {
   mkdir "${ROOTFS}/volumio"
 
   log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
-  git clone --depth 1 -b "${VOL_BE_REPO_BRANCH}" --single-branch "${VOL_BE_REPO}" "${ROOTFS}/volumio"
+  git clone --depth 10 -b "${VOL_BE_REPO_BRANCH}" --single-branch "${VOL_BE_REPO}" "${ROOTFS}/volumio"
+  if [[ ${VOL_BE_REPO_SHA} ]]; then
+    log "Setting BE_REPO to commit" "${VOL_BE_REPO_SHA}"
+    git -C "${ROOTFS}/volumio/" reset --hard "${VOL_BE_REPO_SHA}"
+  fi
 
   log "Adding wireless.js"
   cp "${SRC}/volumio/bin/wireless.js" "${ROOTFS}/volumio/app/plugins/system_controller/network/wireless.js"
@@ -283,7 +287,7 @@ if [ -n "${BUILD}" ]; then
     SUITE="buster"
   fi
 
-  MULTSTRAPCONF=${BUILD}
+  MULTISTRAPCONF=${BUILD}
   if [ "${BUILD}" = arm ] || [ "${BUILD}" = arm-dev ]; then
     ARCH="armhf"
     BUILD="arm"
@@ -300,16 +304,16 @@ if [ -n "${BUILD}" ]; then
     BUILD="x86"
   elif [ "${BUILD}" = x64 ] || [ "${BUILD}" = x64-dev ]; then
     patch_multistrap_conf "x64"
-    MULTSTRAPCONF=x86
+    MULTISTRAPCONF=x86
     ARCH="amd64"
     BUILD="x64"
   fi
 
   # For easier debugging we add config flag
   if [[ ${USE_MULTISTRAP_CASCADE:-yes} == yes ]]; then
-    CONF="${SRC}/recipes/base/${MULTSTRAPCONF}.conf"
+    CONF="${SRC}/recipes/base/${MULTISTRAPCONF}.conf"
   else
-    CONF="${SRC}/recipes/base/${MULTSTRAPCONF}-$SUITE.conf"
+    CONF="${SRC}/recipes/base/${MULTISTRAPCONF}-$SUITE.conf"
   fi
 
   if [[ ! -f $CONF ]]; then
@@ -333,7 +337,7 @@ if [ -n "${BUILD}" ]; then
 
   #### Build stage 0 - Multistrap
   log "Running multistrap for ${BUILD} (${ARCH})" "" "${CONF##*/}"
-
+  multistrap -a "$ARCH" -d "${ROOTFS}" -f "$CONF" --simulate >"${LOG_DIR}/multistrap_packages.log"
   # shellcheck disable=SC2069
   if ! multistrap -a "$ARCH" -d "${ROOTFS}" -f "$CONF" 2>&1 >"${LOG_DIR}/multistrap.log"; then # if ! { multistrap -a "$ARCH" -f "$CONF" > /dev/null; } 2>&1
     log "Multistrap failed. Exiting" "err"
@@ -432,7 +436,7 @@ if [[ -n "$DEVICE" ]]; then
     ROOTFS="${SRC}/build/${BUILD}/root"
   else
     log "No configuration found for <${DEVICE}>" "err"
-    log "Build system currently supports ${#DEVICE_LIST} devices:" "${DEVICE_LIST[*]}"
+    log "Build system currently supports ${#DEVICE_LIST[@]} devices:" "${DEVICE_LIST[*]}"
     exit 1
   fi
 

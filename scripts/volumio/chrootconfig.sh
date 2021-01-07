@@ -124,3 +124,16 @@ log "Finished creating initramfs" "okay"
 
 log "Entering device_chroot_tweaks_post" "cfg"
 device_chroot_tweaks_post
+
+# Check permissions again
+log "Checking dir owners again"
+voldirs=("/volumio" "/myvolumio")
+for dir in "${voldirs[@]}"; do
+  [[ ! -d ${dir} ]] && continue
+  voldirperms=$(stat -c '%U:%G' "${dir}")
+  log "${dir} -- ${voldirperms}"
+  if [[ ${voldirperms} != "volumio:volumio" ]]; then
+    log "Fixing dir perms for ${dir}"
+    chown -R volumio:volumio "${dir}"
+  fi
+done
