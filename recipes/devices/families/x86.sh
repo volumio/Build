@@ -67,7 +67,7 @@ write_device_files() {
   # Copy in the kernel version we are interested in
   # This will be expanded as a glob, you can be as specific or vague as required
   # KERNEL_VER=4.19
-  KERNEL_VER=5.10.0
+  KERNEL_VER=5.10
   cp "${pkg_root}"/linux-image-${KERNEL_VER}*_${ARCH}.deb "${ROOTFSMNT}"
   log "Copying the latest firmware into /lib/firmware"
   tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
