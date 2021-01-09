@@ -26,6 +26,7 @@ KIOSKMODE=no
 BOOT_START=1
 BOOT_END=64
 BOOT_TYPE=msdos          # msdos or gpt
+BOOT_USE_UUID=yes        # Add UUID to fstab
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
@@ -60,22 +61,20 @@ write_device_bootloader() {
 
 # Will be called by the image builder for any customisation
 device_image_tweaks() {
-  :  
+  :
 }
 
 # Will be run in chroot - Pre initramfs
 device_chroot_tweaks_pre() {
   log "Performing device_chroot_tweaks_pre" "ext"
-  log "Update fstab with UUIDs"
-  sed -i "s_/dev/mmcblk0p1_UUID=${UUID_BOOT}_" /etc/fstab
 
   log "Creating boot.ini from template"
   sed -i "s/%%VOLUMIO-PARAMS%%/imgpart=UUID=${UUID_IMG} imgfile=\/volumio_current.sqsh hwdevice=Odroid-N2 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=boot.ini loglevel=0/" /boot/boot.ini
 
   log "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
-  cat <<-EOF >> /etc/sysctl.conf
-abi.cp15_barrier=2
-EOF
+  cat <<-EOF >>/etc/sysctl.conf
+	abi.cp15_barrier=2
+	EOF
 
 }
 

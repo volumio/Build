@@ -29,6 +29,7 @@ KIOSKMODE=yes
 BOOT_START=1
 BOOT_END=64
 BOOT_TYPE=msdos          # msdos or gpt
+BOOT_USE_UUID=yes        # Add UUID to fstab
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
@@ -62,22 +63,20 @@ device_image_tweaks() {
 # Will be run in chroot - Pre initramfs
 device_chroot_tweaks_pre() {
   log "Performing device_chroot_tweaks_pre" "ext"
-  log "Update fstab with UUIDs"
-  sed -i "s_/dev/mmcblk0p1_UUID=${UUID_BOOT}_" /etc/fstab
   # Grab latest kernel version
   mapfile -t kernel_versions < <(ls -t /lib/modules | sort)
   log "Creating extlinux.conf for Kernel -- ${kernel_versions[0]}"
   cat <<-EOF >/boot/extlinux/extlinux.conf
-label $(awk -F . '{print "kernel-"$1"."$2}' <<<"${kernel_versions[0]}")
-  kernel /zImage
-  fdt /dtb/rk3288-miniarm.dtb
-  initrd /uInitrd
-  append  earlyprintk splash console=tty1 console=ttyS3,115200n8 rw init=/sbin/init imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf logo.nologo vt.global_cursor_default=0 loglevel=8
-EOF
+	label $(awk -F . '{print "kernel-"$1"."$2}' <<<"${kernel_versions[0]}")
+	  kernel /zImage
+	  fdt /dtb/rk3288-miniarm.dtb
+	  initrd /uInitrd
+	  append  earlyprintk splash console=tty1 console=ttyS3,115200n8 rw init=/sbin/init imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf logo.nologo vt.global_cursor_default=0 loglevel=8
+	EOF
   cat <<-EOF >/usr/local/bin/tinker-init.sh
-#!/bin/sh
-echo 2 > /proc/irq/45/smp_affinity
-EOF
+	#!/bin/sh
+	echo 2 > /proc/irq/45/smp_affinity
+	EOF
   chmod +x /usr/local/bin/tinker-init.sh
 
   log "Installing Tinkerboard Bluetooth Utils and Firmware"
