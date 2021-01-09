@@ -100,7 +100,7 @@ function check_os_release() {
   fi
   # We keep backward compatibly for some cases for devices with ambiguous names
   # mainly raspberry -> pi
-  log "Adding ${VERSION} and ${VOL_DEVICE_ID-${DEVICE}} to os-release" "info"
+  log "Adding ${VERSION} and ${VOL_DEVICE_ID:-${DEVICE}} to os-release" "info"
   cat <<-EOF >>"${os_release}"
 	VOLUMIO_VERSION="${VERSION}"
 	VOLUMIO_HARDWARE="${VOL_DEVICE_ID-${DEVICE}}"
@@ -223,7 +223,7 @@ if [ "$NUMARGS" -eq 0 ]; then
   HELP
 fi
 
-while getopts b:v:d:p:t:e:h: FLAG; do
+while getopts b:v:d:p:t:h: FLAG; do
   case $FLAG in
   b)
     BUILD=$OPTARG
@@ -234,11 +234,6 @@ while getopts b:v:d:p:t:e:h: FLAG; do
   v)
     VERSION=$OPTARG
     ;;
-    # l)
-    #   #Create docker layer
-    #   CREATE_DOCKER_LAYER=1
-    #   DOCKER_REPOSITORY_NAME=$OPTARG
-    # ;;
   p)
     PATCH=$OPTARG
     ;;
@@ -248,13 +243,13 @@ while getopts b:v:d:p:t:e:h: FLAG; do
   t)
     VARIANT=$OPTARG
     ;;
-  /?) #unrecognized option - show help
+  \?) #unrecognized option - show help
     echo -e \\n"Option -${bold}$OPTARG${normal} not allowed."
     HELP
     ;;
   esac
 done
-
+# move past our parsed args
 shift $((OPTIND - 1))
 
 log "Checking whether we are running as root"
@@ -265,14 +260,19 @@ fi
 
 start=$(date +%s)
 
-## Setup logging
+## Setup logging and dirs
 #TODO make this smarter.
-log "Creating log directory"
-LOG_DIR=${SRC}/logging/build_"$(date +%Y-%m-%d_%H-%M-%S)"
-mkdir -p "$LOG_DIR"
-# But it's annoying if root needs to delete it, soo
-chmod 777 "$LOG_DIR"/
+OUTPUT_DIR=${OUTPUT_DIR:-.}
+LOG_DIR="${OUTPUT_DIR}/debug_$(date +%Y-%m-%d_%H-%M-%S)"
+LOCAL_PKG_DIR=${LOCAL_PKG_DIR:-customPkgs}
+LOCAL_MODULES_DIR=${LOCAL_MODULES_DIR:-modules}
 
+if [[ -n ${BUILD} ]]; then
+  log "Creating log directory"
+  mkdir -p "$LOG_DIR"
+  # But it's annoying if root needs to delete it, soo
+  chmod -R 777 "$LOG_DIR"/
+fi
 if [ -z "${VARIANT}" ]; then
   log "Setting default Volumio variant"
   VARIANT="volumio"
@@ -446,8 +446,8 @@ if [[ -n "$DEVICE" ]]; then
   ## How do we work with this -
   #TODO
   if [ -n "$PATCH" ]; then
-    log "Copying Patch ${PATCH} to Rootfs"
-    cp -rp "$PATCH" "${ROOTFS}/"
+    log "Copying Patch ${SDK_PATH-.}/${PATCH} to Rootfs"
+    cp -rp "${SDK_PATH-.}/${PATCH}" "${ROOTFS}/"
   else
     log "No patches found, defaulting to Volumio rootfs"
     PATCH='volumio'
@@ -493,7 +493,7 @@ if [[ -n "$DEVICE" ]]; then
   log "Adding custom Packages and Modules" "info"
   if [[ ${USE_LOCAL_NODE_MODULES:-no} == yes ]]; then
     log "Extracting node_modules for Node v${NODE_VERSION}"
-    tar xf "${SRC}"/modules/node_modules_${BUILD}_v${NODE_VERSION%%.*}.*.tar.xz -C "${ROOTFS}/volumio"
+    tar xf "${LOCAL_MODULES_DIR}"/node_modules_${BUILD}_v${NODE_VERSION%%.*}.*.tar.xz -C "${ROOTFS}/volumio"
     ls "${ROOTFS}/volumio/node_modules"
   else
     # Current Volumio repo knows only {arm|x86} which is conveniently the same length
@@ -510,13 +510,14 @@ if [[ -n "$DEVICE" ]]; then
   fi
 
   ## Copy custom packages for Volumio
+  # Default dir is ./customPkgs
   if [[ ${USE_LOCAL_PACKAGES:-no} == yes ]]; then
     mkdir -p "${ROOTFS}"/volumio/customPkgs
-    log "Adding packages from local ${SRC}/customPkgs/"
-    cp "${SRC}"/customPkgs/*"${BUILD}".deb "${ROOTFS}"/volumio/customPkgs/
+    log "Adding packages from dir ${LOCAL_PKG_DIR}"
+    cp "${LOCAL_PKG_DIR}"/*"${BUILD}".deb "${ROOTFS}"/volumio/customPkgs/
     # Pi's need an armvl6 build of nodejs (for Node > v8)
     if [[ ${DEVICE} == raspberry && ${USE_NODE_ARMV6:-yes} == yes && ${NODE_SEMVER[0]} -ge 8 ]]; then
-      mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${SRC}"/customPkgs/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
+      mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${LOCAL_PKG_DIR}"/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
       log "Added custom Node binary:" "" "$(ls "${ROOTFS}"/volumio/customNode)"
     fi
   elif [[ ${CUSTOM_PKGS[*]} ]]; then
@@ -548,12 +549,12 @@ if [[ -n "$DEVICE" ]]; then
   log "Image ${IMG_FILE} Created" "okay" "$TIME_STR"
   log "Compressing image"
   start_zip=$(date +%s)
-  ZIP_FILE=${IMG_FILE%.*}.zip
+  ZIP_FILE="${OUTPUT_DIR}/$(basename -s .img "${IMG_FILE}").zip"
   zip "${ZIP_FILE}" "${IMG_FILE}"*
   end_zip=$(date +%s)
   time_it "$end_zip" "$start_zip"
   log "Image ${ZIP_FILE} Created [ ${yellow}${standout}$(du -h "${ZIP_FILE}" | cut -f1)${normal} ]" "okay" "$TIME_STR"
-  [[ ${CLEAN_IMAGE_FILE:-no} == yes ]] && rm "${IMG_FILE}"*
+  [[ ${CLEAN_IMAGE_FILE:-yes} == yes ]] && rm "${IMG_FILE}"*
 else
   log "No device specified, only base rootfs created!" "wrn"
 fi

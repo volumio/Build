@@ -46,12 +46,13 @@ exit_error() {
 
 trap exit_error INT ERR
 
+IMG_FILE="${OUTPUT_DIR}/${IMG_FILE}"
 log "Stage [2]: Creating Image" "info"
 log "Image file: ${IMG_FILE}"
 log "Using DEBUG_IMAGE: ${DEBUG_IMAGE:-no}"
 VOLMNT=/mnt/volumio
-IMAGE_END=${IMAGE_END-2500}
-dd if=/dev/zero of="${IMG_FILE}" bs=1M count=`expr ${IMAGE_END} + 300`
+IMAGE_END=${IMAGE_END:-2500}
+dd if=/dev/zero of="${IMG_FILE}" bs=1M count=$((IMAGE_END + 300))
 LOOP_DEV=$(losetup -f --show "${IMG_FILE}")
 
 # Note: leave the first 20Mb free for the firmware
@@ -124,7 +125,7 @@ elif [[ -n $DEVICEREPO ]]; then
   log "Unpacking $DEVICE files"
   log "This isn't really consistent across platforms right now!" "dbg"
   # If DEVICEBASE was provided, use it, else default to ${DEVICE}
-  tar xfJ "platform-${DEVICEFAMILY}/${DEVICEBASE-${DEVICE}}.tar.xz" -C "${PLTDIR}" || log "No archive found, assuming you know what you are doing!" "wrn"
+  tar xfJ "platform-${DEVICEFAMILY}/${DEVICEBASE:-${DEVICE}}.tar.xz" -C "${PLTDIR}" || log "No archive found, assuming you know what you are doing!" "wrn"
   HAS_PLTDIR=yes
 else
   log "No platfrom-${DEVICEFAMILY} found, skipping this step"
@@ -249,6 +250,7 @@ log "Creating Kernel archive"
 tar cf "${VOLMNT}/kernel_current.tar" --exclude='resize-volumio-datapart' \
   -C $SQSHMNT/boot/ .
 
+[[ ${CLEAN_IMAGE_FILE:-yes} != yes ]] && cp -rp "${VOLMNT}"/kernel_current.tar "${OUTPUT_DIR}"/kernel_current.tar
 log "Removing the Kernel from SquashFS"
 rm -rf ${SQSHMNT:?}/boot/*
 
@@ -272,7 +274,8 @@ log "Cleaning up loop devices"
 clean_loop_devices
 sync
 
-log "Removing Volumio.sqsh"
+log "Clearning up Volumio.sqsh"
+[[ ${CLEAN_IMAGE_FILE:-yes} != yes ]] && mv "${SRC}"/Volumio.sqsh "${OUTPUT_DIR}/"
 [[ -f "${SRC}"/Volumio.sqsh ]] && rm "${SRC}"/Volumio.sqsh
 
 log "Hashing image" "info"
