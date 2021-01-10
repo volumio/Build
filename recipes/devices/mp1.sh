@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 
-## Setup for Asus Tinerboard device
+## Setup for Khadas VIM boards
 # Import the Khadas vims configuration
 # shellcheck source=./recipes/devices/families/kvims.sh
 source "${SRC}"/recipes/devices/families/kvims.sh

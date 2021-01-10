@@ -40,6 +40,9 @@ PACKAGES=("u-boot-tools" "lirc" "fbset" "mc" "abootimg" "bluez-firmware"
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
 write_device_files() {
+
+  trap exit_error INT ERR
+
   log "Running write_device_files" "ext"
 
   cp -R "${PLTDIR}/${DEVICEBASE}/boot" "${ROOTFSMNT}"
@@ -106,6 +109,9 @@ fi
 }
 
 write_device_bootloader() {
+
+  trap exit_error INT ERR
+
   log "Running write_device_bootloader u-boot.$BOARD.sd.bin" "ext"
  
   dd if="${PLTDIR}/${DEVICEBASE}/uboot/u-boot.${KHADASBOARDNAME}.sd.bin" of=${LOOP_DEV} bs=444 count=1 conv=fsync> /dev/null 2>&1

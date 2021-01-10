@@ -61,6 +61,7 @@ PACKAGES=(
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
 write_device_files() {
+  trap exit_error INT ERR
   log "Running write_device_files" "ext"
   log "Copying kernel files"
   pkg_root="${PLTDIR}/packages-buster"
@@ -105,6 +106,7 @@ write_device_files() {
 }
 
 write_device_bootloader() {
+  trap exit_error INT ERR
   log "Running write_device_bootloader" "ext"
   log "Copying the Syslinux boot sector"
   dd conv=notrunc bs=440 count=1 if="${ROOTFSMNT}"/usr/lib/syslinux/mbr/gptmbr.bin of="${LOOP_DEV}"

@@ -53,6 +53,7 @@ PACKAGES=(
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
 write_device_files() {
+  trap exit_error INT ERR
   log "Running write_device_files" "ext"
 
   log "Copy boot files"
@@ -77,6 +78,7 @@ write_device_files() {
 }
 
 write_device_bootloader() {
+  trap exit_error INT ERR
   log "Running write_device_bootloader" "ext"
 
   dd if="${PLTDIR}/${DEVICE}/u-boot/sunxi-spl.bin" of=${LOOP_DEV} conv=fsync bs=8k seek=1
