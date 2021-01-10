@@ -66,8 +66,8 @@ device_chroot_tweaks_pre() {
   usermod -aG gpio volumio
   # Works with newer kernels as well
   cat <<-EOF >/etc/udev/rules.d/99-gpio.rules
-SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'find -L /sys/class/gpio/ -maxdepth 2 -exec chown root:gpio {} \; -exec chmod 770 {} \; || true'"
-EOF
+	SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'find -L /sys/class/gpio/ -maxdepth 2 -exec chown root:gpio {} \; -exec chmod 770 {} \; || true'"
+	EOF
   # touch /etc/udev/rules.d/99-gpio.rules
   # echo "SUBSYSTEM==\"gpio\", ACTION==\"add\", RUN=\"/bin/sh -c '
   #         chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\

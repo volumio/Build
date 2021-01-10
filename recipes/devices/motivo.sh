@@ -28,17 +28,18 @@ BOOT_START=21
 BOOT_END=84
 IMAGE_END=3200
 BOOT_TYPE=msdos          # msdos or gpt
+BOOT_USE_UUID=yes        # Add UUID to fstab
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
 MODULES=(
   # Base for initramfs
-  "overlay" "squashfs" "nls_cp437" 
+  "overlay" "squashfs" "nls_cp437"
   # Touchscreen panels
   "panel-feiyang-fy07024di26a30d" "panel-motivo-mt1280800"
   # lima
   "lima"
- ) 
+)
 
 # Packages that will be installed
 PACKAGES=(
@@ -81,38 +82,36 @@ write_device_bootloader() {
   trap exit_error INT ERR
   log "Running write_device_bootloader" "ext"
 
-  dd if="${PLTDIR}/${DEVICE}/u-boot/sunxi-spl.bin" of=${LOOP_DEV} conv=fsync bs=8k seek=1
-  dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot.itb" of=${LOOP_DEV} conv=fsync bs=8k seek=5
+  dd if="${PLTDIR}/${DEVICE}/u-boot/sunxi-spl.bin" of="${LOOP_DEV}" conv=fsync bs=8k seek=1
+  dd if="${PLTDIR}/${DEVICE}/u-boot/u-boot.itb" of="${LOOP_DEV}" conv=fsync bs=8k seek=5
 }
 
 # Will be called by the image builder for any customisation
 device_image_tweaks() {
-  :  
+  :
 }
 
 # Will be run in chroot - Pre initramfs
 device_chroot_tweaks_pre() {
   log "Performing device_chroot_tweaks_pre" "ext"
-  log "Update fstab with UUIDs"
-  sed -i "s_/dev/mmcblk0p1_UUID=${UUID_BOOT}_" /etc/fstab
 
   log "Modify uEnv.txt template"
   sed -i "s/%%BOOT-SD%%/rebootmode=file bootdev=mmcblk0 bootpart=\/dev\/mmcblk0p1 imgpart=\/dev\/mmcblk0p2 datapart=\/dev\/mmcblk0p3/g" /boot/uEnv.txt
   sed -i "s/%%BOOT-EMMC%%/rebootmode=file bootdev=mmcblk2 bootpart=\/dev\/mmcblk2p1 imgpart=\/dev\/mmcblk2p2 datapart=\/dev\/mmcblk2p3/g" /boot/uEnv.txt
 
   log "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
-  cat <<-EOF >> /etc/sysctl.conf
-abi.cp15_barrier=2
-EOF
+  cat <<-EOF >>/etc/sysctl.conf
+	abi.cp15_barrier=2
+	EOF
 
   log "Enabling Bluetooth Adapter auto-poweron"
-  cat <<-EOF > /etc/bluetooth/main.conf
-[Policy]
-AutoEnable=true
-EOF 
+  cat <<-EOF >/etc/bluetooth/main.conf
+	[Policy]
+	AutoEnable=true
+	EOF
 
   log "Installing tslib for ts calibration purposes"
-  dpkg -i -f noninteractive /libts0_1.19-1_armhf.deb 
+  dpkg -i -f noninteractive /libts0_1.19-1_armhf.deb
   dpkg -i /libts-bin_1.19-1_armhf.deb
 
   log "Cleanup unused .debs"
@@ -127,23 +126,23 @@ EOF
   rm xf86-video-fbturbo_1.00-1_armhf.deb
 
   log "Adding motivo-specific counter-clockwise screen rotation"
-  cat <<-EOF > /etc/X11/xorg.conf
-Section "Device"
-  Identifier "LCD"
-  Driver "fbturbo"
-  Option "fbdev" "/dev/fb0"
-  Option "Rotate" "CCW"
-  Option "SwapbuffersWait" "true"
-  Option "HWCursor" "false"
-  Option "RandRRotation" "on"
-EndSection
-
-Section "InputClass"
-  Identifier   "calibration"
-  MatchProduct "Goodix Capacitive TouchScreen"
-  Option       "Calibration" "0 1280 0 800"
-EndSection
-EOF
+  cat <<-EOF >/etc/X11/xorg.conf
+	Section "Device"
+	  Identifier "LCD"
+	  Driver "fbturbo"
+	  Option "fbdev" "/dev/fb0"
+	  Option "Rotate" "CCW"
+	  Option "SwapbuffersWait" "true"
+	  Option "HWCursor" "false"
+	  Option "RandRRotation" "on"
+	EndSection
+	
+	Section "InputClass"
+	  Identifier   "calibration"
+	  MatchProduct "Goodix Capacitive TouchScreen"
+	  Option       "Calibration" "0 1280 0 800"
+	EndSection
+	EOF
 
 }
 
