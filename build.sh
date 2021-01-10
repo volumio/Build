@@ -249,6 +249,14 @@ while getopts b:v:d:p:t:h: FLAG; do
     ;;
   esac
 done
+
+DEV_CONFIG="${SRC}/recipes/devices/${DEVICE}.sh"
+if [[ ! -f $DEV_CONFIG ]]; then
+  log "No configuration found for <${DEVICE}>" "err"
+  log "Build system currently supports ${#DEVICE_LIST[@]} devices:" "${DEVICE_LIST[*]}"
+  exit 1
+fi
+
 # move past our parsed args
 shift $((OPTIND - 1))
 
@@ -413,8 +421,6 @@ fi
 
 #TODO: Streamline this for multiple devices that are siblings
 if [[ -n "$DEVICE" ]]; then
-  DEV_CONFIG="${SRC}/recipes/devices/${DEVICE}.sh"
-  if [[ -f $DEV_CONFIG ]]; then
     # shellcheck source=/dev/null
     source "$DEV_CONFIG"
     log "Preparing an image for ${DEVICE} using $BASE - ${BUILD}"
@@ -434,11 +440,6 @@ if [[ -n "$DEVICE" ]]; then
         tar xp --xattrs -C ./build/${BUILD}/root
     fi
     ROOTFS="${SRC}/build/${BUILD}/root"
-  else
-    log "No configuration found for <${DEVICE}>" "err"
-    log "Build system currently supports ${#DEVICE_LIST[@]} devices:" "${DEVICE_LIST[*]}"
-    exit 1
-  fi
 
   ## Add in our version details
   check_os_release
