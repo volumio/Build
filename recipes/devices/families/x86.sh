@@ -28,8 +28,8 @@ KIOSKMODE=yes
 ## Partition info
 BOOT_START=1
 BOOT_END=512
-BOOT_TYPE=gpt # msdos or gpt
-BOOT_USE_UUID=yes
+BOOT_TYPE=gpt        # msdos or gpt
+BOOT_USE_UUID=yes    # Add UUID to fstab
 INIT_TYPE="init.x86" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramfs
