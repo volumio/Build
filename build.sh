@@ -421,25 +421,25 @@ fi
 
 #TODO: Streamline this for multiple devices that are siblings
 if [[ -n "$DEVICE" ]]; then
-    # shellcheck source=/dev/null
-    source "$DEV_CONFIG"
-    log "Preparing an image for ${DEVICE} using $BASE - ${BUILD}"
-    if [[ $use_rootfs_tarball == yes ]]; then
-      log "Trying to use prior base system" "info"
-      if [[ -d ${SRC}/build/${BUILD} ]]; then
-        log "Prior ${BUILD} rootfs dir found!" "dbg" "$(date -r "${SRC}/build/${BUILD}" "+%m-%d-%Y %H:%M:%S")"
-        [[ ${CLEAN_ROOTFS:-yes} == yes ]] &&
-          log "Cleaning prior rootfs directory" "wrn" && rm -rf "${SRC}/build/${BUILD}"
-      fi
-      rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
-      [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
-      log "Using prior Base tarball"
-      mkdir -p ./build/${BUILD}/root
-      pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" |
-        lz4 -dc |
-        tar xp --xattrs -C ./build/${BUILD}/root
+  # shellcheck source=/dev/null
+  source "$DEV_CONFIG"
+  log "Preparing an image for ${DEVICE} using $BASE - ${BUILD}"
+  if [[ $use_rootfs_tarball == yes ]]; then
+    log "Trying to use prior base system" "info"
+    if [[ -d ${SRC}/build/${BUILD} ]]; then
+      log "Prior ${BUILD} rootfs dir found!" "dbg" "$(date -r "${SRC}/build/${BUILD}" "+%m-%d-%Y %H:%M:%S")"
+      [[ ${CLEAN_ROOTFS:-yes} == yes ]] &&
+        log "Cleaning prior rootfs directory" "wrn" && rm -rf "${SRC}/build/${BUILD}"
     fi
-    ROOTFS="${SRC}/build/${BUILD}/root"
+    rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
+    [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
+    log "Using prior Base tarball"
+    mkdir -p ./build/${BUILD}/root
+    pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" |
+      lz4 -dc |
+      tar xp --xattrs -C ./build/${BUILD}/root
+  fi
+  ROOTFS="${SRC}/build/${BUILD}/root"
 
   ## Add in our version details
   check_os_release
