@@ -21,7 +21,7 @@ git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted d
 where switches are :
 
  * -b `<arch>` Build a full system image with Multistrap.
- Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit).
+ Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit) or **x64** (Debian 64bit).
  * -d `<dev>`  Create Image for Specific Devices. Supported device names:
              **motivo** **mp1** **nanopineo2** **odroidn2** **orangepilite** **raspberry** **rockpis** **tinkerboard** **x86_amd64** **x86_i386**
  * -v `<vers>` Version
