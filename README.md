@@ -20,19 +20,19 @@ git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted d
 
 where switches are :
 
- * -b `<arch>` Build a full system image with Multistrap. 
+ * -b `<arch>` Build a full system image with Multistrap.
  Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit).
  * -d `<dev>`  Create Image for Specific Devices. Supported device names:
              **pi**, **odroidc1/2/xu4/x2**, **udooneo**, **udooqdl**, **cuboxi**, **pine64**, **sparky**, **bbb**, **bpipro**, bpim2u, cubietruck, compulab, **x86**
  * -l `<repo>` Create docker layer. Give a Docker Repository name as the argument.
  * -v `<vers>` Version
 
-Example: Build a Raspberry PI image from scratch, version 2.0 : 
+Example: Build a Raspberry PI image from scratch, version 2.0 :
 ```
-./build.sh -b arm -d pi -v 2.0 -l reponame 
+./build.sh -b arm -d pi -v 2.0 -l reponame
 ```
 
-You do not have to build the architecture and the image at the same time. 
+You do not have to build the architecture and the image at the same time.
 
 Example: Build the architecture for x86 first and the image version MyVersion in a second step:
 ```
@@ -41,7 +41,7 @@ Example: Build the architecture for x86 first and the image version MyVersion in
 ./build.sh -d x86 -v MyVersion
 ```
 
-#### Sources 
+#### Sources
 
 Kernel Sources
 
@@ -59,7 +59,7 @@ Main Packages Sources
 * [MPD](https://github.com/volumio/MPD) by Max Kellerman
 * [Shairport-Sync](https://github.com/volumio/shairport-sync) by Mike Brady
 * [Node.JS](https://github.com/volumio/node) by Ryan Dahl
-* [SnapCast](https://github.com/volumio/snapcast) by Badaix 
+* [SnapCast](https://github.com/volumio/snapcast) by Badaix
 * [Upmpdcli](https://github.com/volumio/upmpdcli) by Justin Maggard
 
 Debian Packages Sources (x86)
@@ -70,13 +70,13 @@ Raspbian Packages Sources (armhf)
 
 All Raspbian-retrieved packages sources can be found at the [raspbian-sources Repository](https://github.com/volumio/raspbian-sources)
 
-If any information, source package or license is missing, please report it to info at volumio dot org  
+If any information, source package or license is missing, please report it to info at volumio dot org
 
 ### armbian-based images
 
 In case of lacking native support in volumio there is the option to build
 images based on Armbian ( www.armbian.com ) which supports a variety of
-PI clones - 
+PI clones -
 
 Example:
 
