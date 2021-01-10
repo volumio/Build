@@ -24,12 +24,11 @@ where switches are :
  Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit).
  * -d `<dev>`  Create Image for Specific Devices. Supported device names:
              **motivo** **mp1** **nanopineo2** **odroidn2** **orangepilite** **raspberry** **rockpis** **tinkerboard** **x86_amd64** **x86_i386**
- * -l `<repo>` Create docker layer. Give a Docker Repository name as the argument.
  * -v `<vers>` Version
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
 ```
-./build.sh -b arm -d raspberry -v 2.0 -l reponame
+./build.sh -b arm -d raspberry -v 2.0
 ```
 
 You do not have to build the architecture and the image at the same time.
