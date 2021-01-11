@@ -37,7 +37,6 @@ PACKAGES=("u-boot-tools" "lirc" "fbset")
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
 write_device_files() {
-  trap exit_error INT ERR
   log "Running write_device_files" "ext"
 
   cp -dR "${PLTDIR}/${DEVICE}/boot" "${ROOTFSMNT}"
@@ -55,7 +54,6 @@ write_device_files() {
 }
 
 write_device_bootloader() {
-  trap exit_error INT ERR
   log "Running write_device_bootloader" "ext"
 
   dd if="${PLTDIR}/${DEVICE}/uboot/u-boot.bin" of="${LOOP_DEV}" conv=fsync,notrunc bs=512 seek=1
