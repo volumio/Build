@@ -54,7 +54,8 @@ cp volumio/etc/motd build/$BUILD/root/etc/motd
 cp volumio/etc/ssh/sshd_config build/$BUILD/root/etc/ssh/sshd_config
 #Mpd
 cp volumio/etc/mpd.conf build/$BUILD/root/etc/mpd.conf
-chmod 777 build/$BUILD/root/etc/mpd.conf
+chown root:mpd build/$BUILD/root/etc/mpd.conf
+chmod 660 build/$BUILD/root/etc/mpd.conf
 #Log via JournalD in RAM
 cp volumio/etc/systemd/journald.conf build/$BUILD/root/etc/systemd/journald.conf
 #Volumio SystemD Services
@@ -67,10 +68,12 @@ cp -r volumio/lib build/$BUILD/root/
 cp -r volumio/etc/network/* build/$BUILD/root/etc/network
 # Wpa Supplicant
 echo " " > build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
-chmod 777 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
+chown root:adm build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
+chmod 660 build/$BUILD/root/etc/wpa_supplicant/wpa_supplicant.conf
 #Shairport
 cp volumio/etc/shairport-sync.conf build/$BUILD/root/etc/shairport-sync.conf
-chmod 777 build/$BUILD/root/etc/shairport-sync.conf
+chown root:shairport-sync build/$BUILD/root/etc/shairport-sync.conf
+chmod 660 build/$BUILD/root/etc/shairport-sync.conf
 #nsswitch
 cp volumio/etc/nsswitch.conf build/$BUILD/root/etc/nsswitch.conf
 #firststart
