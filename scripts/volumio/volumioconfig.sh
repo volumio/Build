@@ -175,8 +175,9 @@ mkdir /imgpart
 chown -R volumio:volumio /imgpart
 
 log "Changing os-release permissions"
+# may be /usr/lib/os-release? /etc/os-release this is a symlink on /usr/lib/os-release
 chown volumio:volumio /etc/os-release
-chmod 777 /etc/os-release
+chmod 664 /etc/os-release
 
 log "Setting proper permissions for ping"
 chmod u+s /bin/ping
@@ -250,8 +251,10 @@ ln -s /mnt/INTERNAL /var/lib/mpd/music
 # MPD configuration
 log "Prepping MPD environment"
 touch /var/lib/mpd/tag_cache
-chmod 777 /var/lib/mpd/tag_cache
-chmod 777 /var/lib/mpd/playlists
+chown mpd:audio /var/lib/mpd/tag_cache
+chmod 664 /var/lib/mpd/tag_cache
+chown mpd:audio /var/lib/mpd/playlists
+chmod 664 /var/lib/mpd/playlists
 
 log "Setting mpdignore file"
 cat <<-EOF >/var/lib/mpd/music/.mpdignore
@@ -268,7 +271,9 @@ log "Setting mpc to bind to unix socket"
 export MPD_HOST=/run/mpd/socket
 
 log "Setting Permissions for /etc/modules"
-chmod 777 /etc/modules
+chown root:adm /etc/modules
+# 
+chmod 774 /etc/modules
 
 log "Setting up services.." "info"
 #https://wiki.archlinux.org/index.php/Systemd#Writing_unit_files
@@ -337,7 +342,8 @@ log "Creating Alsa state file"
 cat <<-EOF >/var/lib/alsa/asound.state
 #
 EOF
-chmod 777 /var/lib/alsa/asound.state
+chown root:adm /var/lib/alsa/asound.state
+chmod 664 /var/lib/alsa/asound.state
 
 log "Setting USB DAC ordering"
 ## Set USB card ordering
@@ -366,8 +372,11 @@ ff02::1         ip6-allnodes
 ff02::2         ip6-allrouters
 EOF
 echo volumio >/etc/hostname
-chmod 777 /etc/hostname
-chmod 777 /etc/hosts
+
+chown root:adm /etc/hostname
+chmod 664 /etc/hostname
+chown root:adm /etc/hosts
+chmod 664 /etc/hosts
 
 log "Creating an empty dhcpd.leases if required"
 lease_file="/var/lib/dhcp/dhcpd.leases"
@@ -428,7 +437,8 @@ wpa_passphrase=volumio2
 EOF
 
 cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.tmpl
-chmod -R 777 /etc/hostapd
+chown -R root:adm /etc/hostapd
+chmod -R 660 /etc/hostapd
 
 log "Empty resolv.conf.head for custom DNS settings"
 touch /etc/resolv.conf.head
@@ -439,7 +449,8 @@ cat <<-EOF >/etc/resolv.conf.tail.tmpl
 nameserver 208.67.222.222
 nameserver 208.67.220.220
 EOF
-chmod 666 /etc/resolv.conf.*
+chown root:adm /etc/resolv.conf*
+chmod 664 /etc/resolv.conf*
 
 ln -s /etc/resolv.conf.tail.tmpl /etc/resolv.conf.tail
 
