@@ -52,7 +52,7 @@ write_device_files() {
   rm "${ROOTFSMNT}/boot/aml_autoscript"
   rm "${ROOTFSMNT}/boot/aml_autoscript.cmd"
 
-  log "Retain copies of u-boot files for Volumio Updater"
+  log "Retain copies of u-boot files for Volumio Installer"
   cp -r "${PLTDIR}/${DEVICEBASE}/uboot" "${ROOTFSMNT}/boot"
   cp -r "${PLTDIR}/${DEVICEBASE}/uboot-mainline" "${ROOTFSMNT}/boot"
 
