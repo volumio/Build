@@ -250,11 +250,13 @@ while getopts b:v:d:p:t:h: FLAG; do
   esac
 done
 
-DEV_CONFIG="${SRC}/recipes/devices/${DEVICE}.sh"
-if [[ ! -f $DEV_CONFIG ]]; then
-  log "No configuration found for <${DEVICE}>" "err"
-  log "Build system currently supports ${#DEVICE_LIST[@]} devices:" "${DEVICE_LIST[*]}"
-  exit 1
+if [ ${DEVICE:=none} != none ]; then
+  DEV_CONFIG="${SRC}/recipes/devices/${DEVICE}.sh"
+  if [[ ! -f $DEV_CONFIG ]]; then
+    log "No configuration found for <${DEVICE}>" "err"
+    log "Build system currently supports ${#DEVICE_LIST[@]} devices:" "${DEVICE_LIST[*]}"
+    exit 1
+  fi
 fi
 
 # move past our parsed args
