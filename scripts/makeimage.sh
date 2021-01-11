@@ -23,7 +23,7 @@ clean_loop_devices() {
 }
 
 exit_error() {
-  log "Imagebuilder script failed!!" "err"
+  log "Imagebuilder script failed!!" "err" "Line:$1"
   # Check if there are any mounts that need cleaning up
   if isMounted "${ROOTFSMNT}"/boot; then
     log "Cleaning up image_tmp mounts"
@@ -44,7 +44,7 @@ exit_error() {
   fi
 }
 
-trap exit_error INT ERR
+trap 'exit_error $LINENO' INT ERR
 
 IMG_FILE="${OUTPUT_DIR}/${IMG_FILE}"
 log "Stage [2]: Creating Image" "info"
