@@ -197,7 +197,15 @@ device_chroot_tweaks_pre() {
 		fi
 		arch=armv6l
 		log "Installing Node for ${arch}"
-		dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
+		# We don't know in advance what version is in the repo, so we have to hard code it.
+		# This is temporary fix - make this smarter!
+		declare -A NodeVersion=(
+			[14]="https://repo.volumio.org/Volumio2/nodejs_14.15.4-1unofficial_armv6l.deb"
+			[8]="https://repo.volumio.org/Volumio2/nodejs_8.17.0-1unofficial_armv6l.deb"
+		)
+
+		wget -nv "${NodeVersion[${NODE_VERSION%%.*}]}" -P /volumio/customNode && dpkg -i /volumio/customNode/*.deb
+		# dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
 		log "Installed Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
 		rm -rf /volumio/customNode
 
