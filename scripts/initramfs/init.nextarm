@@ -15,9 +15,6 @@ mknod /dev/tty c 5 0
 
 mdev -s
 
-#######TODO: replace or delete the following when the restart issue for Tinkerboard has been solved
-echo 5 > /proc/sys/kernel/panic
-
 #Defaults which may be overridden by cmdline parameters
 USE_KMSG="yes"
 HWDEVICE="empty"
@@ -29,6 +26,27 @@ DPS="p"
 IMGPART="/dev/${BOOTDEV}${DPS}2"
 DATAPART="/dev/${BOOTDEV}${DPS}3"
 BOOTPART="/dev/${BOOTDEV}${DPS}1"
+BOOTDELAY=5
+REBOOTMODE=normal
+
+for p in ${CMDLINE};
+do
+  key=${p%%=*}
+  value=${p#*=}
+  case $key in
+    bootdelay)
+	  BOOTDELAY=$value
+	  ;;
+  esac
+done
+
+if [ ! -z "$BOOTDELAY" ]; then
+  sleep $BOOTDELAY
+  mdev -s
+fi
+
+#######TODO: replace or delete the following when the restart issue for Tinkerboard has been solved
+echo 5 > /proc/sys/kernel/panic
 
 # Display a message or print directly to /dev/kmsg
 print_msg() {
@@ -57,6 +75,38 @@ parse_disk() {
     # $1 is unrecognized.
     echo "unknown-disk"
   fi
+
+}
+
+do_reboot() {
+
+  case $REBOOTMODE in
+    normal)
+      echo b > /proc/sysrq-trigger
+      ;;
+    file)
+      echo "Rebooting via mcu control at next system start..."
+      mkdir /boot
+      mount -t vfat ${BOOTPART} /boot
+      echo "" > /boot/executereboot
+      sync
+      umount /boot
+      rm -r /boot
+      ;;
+    mcu)
+      echo "Immediately rebooting via mcu control..."
+      /bin/i2crw1 w 33 25 1
+      ;;
+    manual)
+      echo "Manual reboot, dropping to a shell..."
+      sh
+      exit 0
+      ;;
+    *)
+      echo "Invalid reboot mode option in kernel cmd parameters, using normal reboot..."
+      echo b > /proc/sysrq-trigger
+      ;;
+  esac
 }
 
 DO_GEN=no
@@ -67,7 +117,18 @@ do
   value=${p#*=}
   case $key in
   imgpart)
-    IMGPART=`parse_disk $value`
+
+  for i in 1 2 3 4 5 
+	do
+	  IMGPART=`parse_disk $value`
+	  if [ -z "${IMGPART}" ]; then
+		print_msg  "Image partition not ready, retry $1"
+		sleep 1
+		mdev -s
+	  else
+		break
+      fi
+    done
     ;;
   imgfile)
     IMGFILE=$value
@@ -100,6 +161,9 @@ do
   hwdevice)
     HWDEVICE=$value
     ;;
+  rebootmode)
+    REBOOTMODE=$value
+    ;;
   esac
 done
 
@@ -109,6 +173,7 @@ if [ $DO_GEN == yes ]; then
     DATAPART="/dev/${BOOTDEV}${DPS}3"
     BOOTPART="/dev/${BOOTDEV}${DPS}1"
 fi
+
 #Hardware specific adaptions
 
 #When we did not already get the device name from the cmdline, try getting it from cpuinfo
@@ -139,6 +204,7 @@ else
 fi
 modprobe squashfs
 modprobe nls_cp437
+modprobe fuse
 
 if [ -z "${IMGPART}" ]; then
   print_msg "Specify the squash image partition after the kernel command ${CMDLINE}"
@@ -162,15 +228,12 @@ if [ ! -z "${UUIDFMT}" ]; then
     exit 0
   fi
 fi
+
 print_msg IMGPART=${IMGPART}
 print_msg IMGFILE=${IMGFILE}
 print_msg DATAPART=${DATAPART}
 print_msg BOOTPART=${BOOTPART}
 print_msg BOOTCONFIG=${BOOTCONFIG}
-
-if [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Boot delay (except first time) will be ${BOOTDELAY} seconds"
-fi
 
 # Retry mdev -s 3 times before throwing the towel
 for i in 1 2 3 4 5 6
@@ -214,9 +277,6 @@ if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
   umount /mnt/factory
   rm -r /mnt/factory
   sync
-elif [ ! -z "${BOOTDELAY}" ]; then
-  print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
-  sleep ${BOOTDELAY}
 fi
 
 print_msg "Checking for USB updates if you did not boot from USB..."
@@ -236,7 +296,8 @@ if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
     umount /mnt/boot
     rm -r /mnt/boot
     print_msg "Restarting"
-    echo b > /proc/sysrq-trigger
+    do_reboot
+    #echo b > /proc/sysrq-trigger
   fi
   if [ -e /mnt/usb/factory_reset ]; then
     print_msg "Factory Reset on USB"
@@ -312,7 +373,8 @@ if [ -e "/mnt/factory/factory_reset" ]; then
     rm -r /boot
   fi
   print_msg "Restarting"
-  echo b > /proc/sysrq-trigger
+  do_reboot
+  #echo b > /proc/sysrq-trigger
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
@@ -388,7 +450,8 @@ if [ -e "/boot/kernel_update" ]; then
   sync
   umount /boot
   rm -rf /boot
-  echo b > /proc/sysrq-trigger
+  do_reboot
+  #echo b > /proc/sysrq-trigger
 fi
 
 # if data partition needs to be resized
@@ -459,12 +522,16 @@ if [ ! -z "${DEVFSTAB}" ]; then
   fi
 else
   DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "^/dev/[a-z]{3,6}[0-9]{1,2}[a-z]{0,1}[0-9]{0,2}" -o`
-  if [ ! -z "${DEVFSTAB}" ]; then
-    print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
-    if [ ! $BOOTPART == $DEVFSTAB ]; then
-      sed -i "s/${DEVFSTAB}/${BOOTPART}/g" /mnt/ext/union/etc/fstab
-      print_msg "fstab entry updated to ${DEVFSTAB}"
-    fi
+  if [ -z "${DEVFSTAB}" ]; then
+#   normally never gets here ;)
+    print_msg "Incompatible fstab, no entry found for /boot"
+    exec sh
+    exit 0
+  fi
+  print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
+  if [ ! $BOOTPART == $DEVFSTAB ]; then
+    sed -i "s/${DEVFSTAB}/${BOOTPART}/g" /mnt/ext/union/etc/fstab
+    print_msg "fstab entry updated to ${DEVFSTAB}"
   fi
 fi
 
