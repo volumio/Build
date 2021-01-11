@@ -62,12 +62,12 @@ log() {
 		;;
 
 	"")
-		echo -e "[${green} $char ${normal}] $1 $tmp "
+		echo -e "[${green} $char ${normal}] $1 $tmp"
 		;;
 
 	*)
 		[[ -n $2 ]] && tmp="[${yellow} $2 ${normal}]"
-		echo -e "[${green} .. ${normal}] $1 $tmp "
+		echo -e "[${green} $char ${normal}] $1 $tmp"
 		;;
 
 	esac

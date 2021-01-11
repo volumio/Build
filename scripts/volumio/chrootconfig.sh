@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -eo pipefail
-
+set -o errtrace
 # This script will be run in chroot under qemu.
 # Re import helpers in chroot
 # shellcheck source=./scripts/helpers.sh
@@ -15,7 +15,8 @@ export -f time_it
 source /chroot_device_config.sh
 
 function exit_error() {
-  log "Volumio chroot config failed" "$(basename "$0")" "err"
+  log "Volumio chroot config failed" "err" "$(basename "$0")"
+  log "Error stack $(printf '[%s] <= ' "${FUNCNAME[@]:1}")" "err" "$(caller)"
 }
 
 trap exit_error INT ERR

@@ -2,6 +2,10 @@
 # Image creating script
 
 set -eo pipefail
+# Bubble up errors from functions so that trap can catch them.
+# This should protect against errors in functions from the device template
+# Such as write_device_files, write_device_bootloader and friends
+set -o errtrace
 
 mount_image_tmp_devices() {
   mount -t ext4 "${IMG_PART}" "${VOLMNT}"/images
@@ -23,7 +27,9 @@ clean_loop_devices() {
 }
 
 exit_error() {
-  log "Imagebuilder script failed!!" "err" "Line:$1"
+  log "Imagebuilder script failed!!" "err"
+  # Try and provide some more info about the error
+  log "Error stack $(printf '[%s] <= ' "${FUNCNAME[@]:1}")" "err" "$(caller)"
   # Check if there are any mounts that need cleaning up
   if isMounted "${ROOTFSMNT}"/boot; then
     log "Cleaning up image_tmp mounts"
@@ -201,9 +207,9 @@ BOOT_PART=${BOOT_PART}
 LOOP_DEV=${LOOP_DEV}
 MODULES=($(printf '\"%s\" ' "${MODULES[@]}"))
 PACKAGES=($(printf '\"%s\" ' "${PACKAGES[@]}"))
-$(declare -f device_chroot_tweaks)
-$(declare -f device_chroot_tweaks_pre)
-$(declare -f device_chroot_tweaks_post)
+$(declare -f device_chroot_tweaks || true)      # Don't trigger our trap when function is empty
+$(declare -f device_chroot_tweaks_pre || true)
+$(declare -f device_chroot_tweaks_post || true)
 EOF
 
 mount_chroot "${ROOTFSMNT}"
