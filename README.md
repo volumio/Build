@@ -4,8 +4,32 @@ Copyright Michelangelo Guarise - 2016
 
 #### Requirements
 
+On a Debian (buster) host, the following packages are required: 
 ```
-git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support qemu-utils pv hashdeep jq lz4
+build-essential
+ca-certificates
+curl
+debootstrap
+dosfstools
+git
+jq
+kpartx
+libssl-dev
+lz4
+lzop
+md5deep
+multistrap
+parted
+patch
+pv
+qemu-user-static
+qemu-utils
+qemu
+squashfs-tools
+sudo
+u-boot-tools
+xz-utils
+zip
 ```
 
 #### How to
@@ -71,50 +95,3 @@ All Raspbian-retrieved packages sources can be found at the [raspbian-sources Re
 
 If any information, source package or license is missing, please report it to info at volumio dot org
 
-### armbian-based images
-
-In case of lacking native support in volumio there is the option to build
-images based on Armbian ( www.armbian.com ) which supports a variety of
-PI clones -
-
-Example:
-
-```
-./build.sh -b arm -d armbian_bananapipro_vanilla -v 2.0
-```
-
-where
-
-* armbian_ prefix is used to indicate the use of armbian
-* boardtype in the notation of armbian
-* _vanilla as postfix for mainline kernel or _legacy for android kernel
-
-#### armbian kernels
-
-please see notes in armbiam community which kernel is the best - or
-if there are any restrictions that apply in your case
-e.g. some mainline kernel still do not have stable ports of all devices, e.g. ethernet driver, while legacy kernel may miss other features.
-In all cases even lecagy kernels come with overlayfs and squashfs support.
-
-sucessfully tested images:
-
-* armbian_bananapi_legacy
-* armbian_bananapipro_legacy
-* armbian_cubieboard2_legacy
-* armbian_cubietruck_legacy
-* armbian_bananapi_vanilla
-* armbian_bananapipro_vanilla
-* armbian_cubieboard2_vanilla
-* armbian_cubietruck_vanilla
-
-#### notes and known issues armbian
-
-* current sunxi bootloader version 5.25/armbian is not working, solved by explicitely using 5.23 (be careful with apt-get upgrade later on)
-* Partition 1 has been changed from vfat to ext4 because armbian scripts are
-using symbolic links
-* kernel, ramdisk and squashfs may be larger compared to native support images due to extra packages required by armbian build routines
-
-* armbian_orangepipc_legacy ... not booting
-
-others may work at once or with minor adaptions
-*
