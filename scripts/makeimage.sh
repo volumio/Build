@@ -128,14 +128,20 @@ if [[ -d $PLTDIR ]]; then
 elif [[ -n $DEVICEREPO ]]; then
   log "Cloning platform-${DEVICEFAMILY} from ${DEVICEREPO}"
   git clone --depth 1 "${DEVICEREPO}" "platform-${DEVICEFAMILY}"
-  log "Unpacking $DEVICE files"
-  log "This isn't really consistent across platforms right now!" "dbg"
-  # If DEVICEBASE was provided, use it, else default to ${DEVICE}
-  tar xfJ "platform-${DEVICEFAMILY}/${DEVICEBASE:-${DEVICE}}.tar.xz" -C "${PLTDIR}" || log "No archive found, assuming you know what you are doing!" "wrn"
   HAS_PLTDIR=yes
 else
   log "No platfrom-${DEVICEFAMILY} found, skipping this step"
   HAS_PLTDIR=no
+fi
+
+# Check if we need to unpack our tarball
+# If DEVICEBASE was provided, use it, else default to DEVICE
+if [[ ${HAS_PLTDIR} == yes ]] && [[ ! -d ${PLTDIR}/${DEVICEBASE:=${DEVICE}} ]]; then
+  log "Unpacking $DEVICEBASE files"
+  tar xfJ "platform-${DEVICEFAMILY}/${DEVICEBASE}.tar.xz" -C "${PLTDIR}" || {
+    log "This isn't really consistent across platforms right now!" "dbg"
+    log "No archive found, assuming you know what you are doing!" "wrn"
+  }
 fi
 
 if [[ $HAS_PLTDIR == yes ]]; then
