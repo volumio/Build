@@ -553,7 +553,7 @@ if [[ -n "$DEVICE" ]]; then
   log "Compressing image"
   start_zip=$(date +%s)
   ZIP_FILE="${OUTPUT_DIR}/$(basename -s .img "${IMG_FILE}").zip"
-  zip "${ZIP_FILE}" "${IMG_FILE}"*
+  zip -j "${ZIP_FILE}" "${IMG_FILE}"*
   end_zip=$(date +%s)
   time_it "$end_zip" "$start_zip"
   log "Image ${ZIP_FILE} Created [ ${yellow}${standout}$(du -h "${ZIP_FILE}" | cut -f1)${normal} ]" "okay" "$TIME_STR"
