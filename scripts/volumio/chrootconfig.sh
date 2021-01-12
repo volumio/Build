@@ -57,8 +57,9 @@ apt-get update
 apt-get install -y "${PACKAGES[@]}"
 
 # Custom packages for Volumio
+#TODO THIS SHALL RUN ONLY FOR SOME DEVICES WHERE WE WANT TO INSTALL KIOSK
 [ -f "/install-kiosk.sh" ] && log "Installing kiosk" "info" && bash install-kiosk.sh
-if [[ -d "/volumio/customPkgs" ]]; then
+if [[ -d "/volumio/customPkgs" ]] && [[ $(ls /volumio/customPkgs/*.deb 2> /dev/null) ]]; then
   log "Installing Volumio customPkgs" "info"
   for deb in /volumio/customPkgs/*.deb; do
     log "Installing ${deb}"

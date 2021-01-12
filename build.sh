@@ -517,12 +517,13 @@ if [[ -n "$DEVICE" ]]; then
   if [[ ${USE_LOCAL_PACKAGES:-no} == yes ]]; then
     mkdir -p "${ROOTFS}"/volumio/customPkgs
     log "Adding packages from dir ${LOCAL_PKG_DIR}"
-    cp "${LOCAL_PKG_DIR}"/*"${BUILD}".deb "${ROOTFS}"/volumio/customPkgs/
+    [[ -d "${LOCAL_PKG_DIR}"/ ]] && cp "${LOCAL_PKG_DIR}"/*"${BUILD}".deb "${ROOTFS}"/volumio/customPkgs/
+    #TODO REMOVE IF NOT NEEDED
     # Pi's need an armvl6 build of nodejs (for Node > v8)
-    if [[ ${DEVICE} == raspberry && ${USE_NODE_ARMV6:-yes} == yes && ${NODE_SEMVER[0]} -ge 8 ]]; then
-      mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${LOCAL_PKG_DIR}"/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
-      log "Added custom Node binary:" "" "$(ls "${ROOTFS}"/volumio/customNode)"
-    fi
+    #if [[ ${DEVICE} == raspberry && ${USE_NODE_ARMV6:-yes} == yes && ${NODE_SEMVER[0]} -ge 8 ]]; then
+    #  mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${LOCAL_PKG_DIR}"/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
+    #  log "Added custom Node binary:" "" "$(ls "${ROOTFS}"/volumio/customNode)"
+    #fi
   elif [[ ${CUSTOM_PKGS[*]} ]]; then
     log "Adding customPkgs from external repo" "info"
     for key in "${!CUSTOM_PKGS[@]}"; do
