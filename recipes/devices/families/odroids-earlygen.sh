@@ -24,9 +24,10 @@ KIOSKMODE=no
 ## Partition info
 BOOT_START=1
 BOOT_END=64
-BOOT_TYPE=msdos          # msdos or gpt
-BOOT_USE_UUID=no        # Add UUID to fstab
-INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
+BOOT_TYPE=msdos                           # msdos or gpt
+BOOT_USE_UUID=no                          # Add UUID to fstab
+FLAGS_EXT4=("-O" "^metadata_csum,^64bit") # Disable ext4 metadata checksums
+INIT_TYPE="init.nextarm"                  # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
 MODULES=("overlayfs" "overlay" "squashfs" "nls_cp437")
@@ -81,7 +82,7 @@ device_image_tweaks() {
 device_chroot_tweaks_pre() {
   log "Performing device_chroot_tweaks_pre" "ext"
   log "Adding default sound modules"
-  cat <<-EOF > /etc/modules
+  cat <<-EOF >/etc/modules
 snd_soc_pcm5102
 snd_soc_odroid_dac
 EOF
@@ -90,7 +91,7 @@ EOF
   ln -s /lib/systemd/system/odroiddac.service /etc/systemd/system/multi-user.target.wants/odroiddac.service
 
   log "Adding framebuffer init script"
-  cat <<-EOF > /etc/rc.local
+  cat <<-EOF >/etc/rc.local
 #!/bin/sh -e
 /usr/local/bin/c1-init.sh
 exit 0
