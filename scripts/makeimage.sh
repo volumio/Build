@@ -183,7 +183,7 @@ fi
 echo "$PATCH" >${ROOTFSMNT}/patch
 if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "${SDK_PATH}"/config.js ]]; then
   log "Starting ${SDK_PATH}/config.js" "ext" "${PATCH}"
-  node "${SDK_PATH}"/config.js "${PATCH}"
+  ROOTFSMNT="${ROOTFSMNT}" node "${SDK_PATH}"/config.js "${PATCH}"
   status=$?
   [[ ${status} -ne 0 ]] && log "config.js failed with ${status}" "err" "${PATCH}" && exit 10
   log "Completed config.js" "ext" "${PATCH}"
