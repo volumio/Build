@@ -76,7 +76,7 @@ else
 fi
 
 #Reduce locales to just one beyond C.UTF-8
-log "Prepare Volumio Debain customization" "info"
+log "Prepare Volumio Debian customization" "info"
 log "Existing locales: " "" "$(locale -a | tr '\n' ' ')"
 
 # Enable LANG_def='en_US.UTF-8'
