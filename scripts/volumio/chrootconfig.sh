@@ -120,6 +120,9 @@ else
   rm -rf "${PATCH}" /patch
 fi
 
+# TEMPORARY FIX TO CHECK mke2fs
+cp -rp /sbin/mke2fs /sbin/mke2fsfull
+
 log "Creating initramfs 'volumio.initrd'" "info"
 mkinitramfs-buster.sh -o /tmp/initramfs-tmp
 log "Finished creating initramfs" "okay"
