@@ -83,8 +83,11 @@ fi
 
 log "Creating filesystem" "info"
 mkfs -t vfat -n boot "${BOOT_PART}"
-mkfs -F -t ext4 -L volumio "${IMG_PART}"
-mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+# Older kernels may not support metadata checksums (available since Linux 3.6) for Ext4 file systems
+# so we let devices pass in extra flags (such as -O ^metadata_csum,^64bit) to disable these features
+# that are now default since `e2fsprogs` 1.44 or later
+mkfs -F -t ext4 "${FLAGS_EXT4[@]}" -L volumio "${IMG_PART}"
+mkfs -F -t ext4 "${FLAGS_EXT4[@]}" -L volumio_data "${DATA_PART}"
 #sync
 
 log "Copying Volumio rootfs" "info"
@@ -122,21 +125,21 @@ fi
 
 log "Getting device specific files for ${DEVICE} from platform-${DEVICEFAMILY}" "info"
 PLTDIR="${SRC}/platform-${DEVICEFAMILY}"
-if [[ -d $PLTDIR ]]; then
+if [[ -d "${PLTDIR}" ]]; then
   log "Platform folder exists, keeping it" "" "platform-${DEVICEFAMILY}"
   HAS_PLTDIR=yes
-elif [[ -n $DEVICEREPO ]]; then
+elif [[ -n "${DEVICEREPO}" ]]; then
   log "Cloning platform-${DEVICEFAMILY} from ${DEVICEREPO}"
   git clone --depth 1 "${DEVICEREPO}" "platform-${DEVICEFAMILY}"
   HAS_PLTDIR=yes
 else
-  log "No platfrom-${DEVICEFAMILY} found, skipping this step"
+  log "No platform-${DEVICEFAMILY} found, skipping this step"
   HAS_PLTDIR=no
 fi
 
 # Check if we need to unpack our tarball
 # If DEVICEBASE was provided, use it, else default to DEVICE
-if [[ ${HAS_PLTDIR} == yes ]] && [[ ! -d ${PLTDIR}/${DEVICEBASE:=${DEVICE}} ]]; then
+if [[ "${HAS_PLTDIR}" == yes ]] && [[ ! -d ${PLTDIR}/${DEVICEBASE:=${DEVICE}} ]]; then
   log "Unpacking $DEVICEBASE files"
   tar xfJ "platform-${DEVICEFAMILY}/${DEVICEBASE}.tar.xz" -C "${PLTDIR}" || {
     log "This isn't really consistent across platforms right now!" "dbg"
@@ -144,7 +147,7 @@ if [[ ${HAS_PLTDIR} == yes ]] && [[ ! -d ${PLTDIR}/${DEVICEBASE:=${DEVICE}} ]]; 
   }
 fi
 
-if [[ $HAS_PLTDIR == yes ]]; then
+if [[ "${HAS_PLTDIR}" == yes ]]; then
   # This is pulled in from each device's config script
   log "Copying ${DEVICE} boot files from platform-${DEVICEFAMILY}/${DEVICEBASE}.tar.xz" "info"
   log "Entering write_device_files" "cfg"
@@ -175,7 +178,7 @@ cp "${SRC}/scripts/initramfs/${INIT_TYPE}" ${ROOTFSMNT}/root/init
 cp "${SRC}"/scripts/initramfs/mkinitramfs-buster.sh ${ROOTFSMNT}/usr/local/sbin
 cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
 
-if [[ "$KIOSKMODE" == yes ]]; then
+if [[ "${KIOSKMODE}" == yes ]]; then
   log "Copying kiosk scripts to rootfs"
   cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}/install-kiosk.sh
 fi
@@ -193,7 +196,7 @@ fi
 # This is in the hope that <./recipes/devices/${DEVICE}>
 # doesn't grow back into the old <xxxxconfig.sh>
 BOOT_FS_SPEC="/dev/mmcblk0p1"
-[[ ${BOOT_USE_UUID} == yes ]] && BOOT_FS_SPEC="UUID=${UUID_BOOT}"
+[[ "${BOOT_USE_UUID}" == yes ]] && BOOT_FS_SPEC="UUID=${UUID_BOOT}"
 log "Setting /boot fs_sepc to ${BOOT_FS_SPEC}"
 #TODO: Should we just copy the
 # whole thing into the chroot to make life easier?
@@ -242,7 +245,7 @@ log "Rootfs created" "okay"
 log "Preparing rootfs base for SquashFS" "info"
 
 SQSHMNT="$VOLMNT/squash"
-if [[ -d $SQSHMNT ]]; then
+if [[ -d "${SQSHMNT}" ]]; then
   log "Volumio SquashFS Temp Dir Exists - Cleaning it"
   rm -rf ${SQSHMNT:?}/*
 else
@@ -253,7 +256,7 @@ log "Copying Volumio rootfs to SquashFS Dir"
 cp -rp $ROOTFSMNT/* $SQSHMNT
 
 log "Creating Kernel Partition Archive" "info"
-if [ -e $VOLMNT/kernel_current.tar ]; then
+if [ -e "${VOLMNT}/kernel_current.tar" ]; then
   log "Volumio Kernel Partition Archive exists - Cleaning it"
   rm -rf $VOLMNT/kernel_current.tar
 fi
@@ -262,7 +265,7 @@ log "Creating Kernel archive"
 tar cf "${VOLMNT}/kernel_current.tar" --exclude='resize-volumio-datapart' \
   -C $SQSHMNT/boot/ .
 
-[[ ${CLEAN_IMAGE_FILE:-yes} != yes ]] && cp -rp "${VOLMNT}"/kernel_current.tar "${OUTPUT_DIR}"/kernel_current.tar
+[[ "${CLEAN_IMAGE_FILE:-yes}" != yes ]] && cp -rp "${VOLMNT}"/kernel_current.tar "${OUTPUT_DIR}"/kernel_current.tar
 log "Removing the Kernel from SquashFS"
 rm -rf ${SQSHMNT:?}/boot/*
 
@@ -287,7 +290,7 @@ clean_loop_devices
 sync
 
 log "Clearning up Volumio.sqsh"
-[[ ${CLEAN_IMAGE_FILE:-yes} != yes ]] && mv "${SRC}"/Volumio.sqsh "${OUTPUT_DIR}/"
+[[ "${CLEAN_IMAGE_FILE:-yes}" != yes ]] && mv "${SRC}"/Volumio.sqsh "${OUTPUT_DIR}/"
 [[ -f "${SRC}"/Volumio.sqsh ]] && rm "${SRC}"/Volumio.sqsh
 
 log "Hashing image" "info"
