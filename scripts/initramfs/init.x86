@@ -383,7 +383,7 @@ mkdir /mnt/factory
 mount -t vfat "${BOOTPART}" /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Executing factory reset..."
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 "${DATAPART}" -L volumio_data
+  mke2fs -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 "${DATAPART}" -L volumio_data
   print_msg "Factory reset executed: part I - User Data Part"
   tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
   update_config_UUIDs
@@ -400,7 +400,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data..."
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 "${DATAPART}" -L volumio_data
+  mke2fs -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 "${DATAPART}" -L volumio_data
   update_config_UUIDs
   rm /mnt/factory/user_data
 

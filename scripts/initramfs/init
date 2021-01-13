@@ -231,7 +231,7 @@ mkdir /mnt/factory
 mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Executing factory reset"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
+  mke2fs -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
   print_msg "Factory reset executed: part I - User DATA Part"
   if [ -e "/mnt/imgpart/kernel_fallback.tar" ]; then
      rm /mnt/imgpart/kernel_fallback.tar
@@ -254,7 +254,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
-  mkfs.ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
+  mke2fs -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
   rm /mnt/factory/user_data
   print_msg "User Data successfully deleted "
 fi
