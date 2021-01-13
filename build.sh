@@ -532,8 +532,11 @@ if [[ -n "${DEVICE}" ]]; then
   elif [[ ${CUSTOM_PKGS[*]} ]]; then
     log "Adding customPkgs from external repo" "info"
     for key in "${!CUSTOM_PKGS[@]}"; do
-      log "Fetching ${key} from ${CUSTOM_PKGS[$key]}"
-      wget -nv "${CUSTOM_PKGS[$key]}" -P "${ROOTFS}"/volumio/customPkgs/
+      # TODO: Test if key is specific to BUILD or not!
+      url=${CUSTOM_PKGS[$key]}
+      [[ "$url" != *".deb"$ ]] && url="${url}_${BUILD}.deb"
+      # log "Fetching ${key} from ${url}"
+      wget -nv "${url}" -P "${ROOTFS}/volumio/customPkgs/" || log "${key} not found for ${BUILD}!" "err"
     done
   else
     log "No customPkgs added!" "wrn"
