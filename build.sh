@@ -513,12 +513,12 @@ if [[ -n "$DEVICE" ]]; then
   fi
 
   ## Copy custom packages for Volumio
+  #TODO: Remove this once local debugging is done, and all debs are online somewhere
   # Default dir is ./customPkgs
   if [[ ${USE_LOCAL_PACKAGES:-no} == yes ]]; then
     mkdir -p "${ROOTFS}"/volumio/customPkgs
     log "Adding packages from dir ${LOCAL_PKG_DIR}"
     [[ -d "${LOCAL_PKG_DIR}"/ ]] && cp "${LOCAL_PKG_DIR}"/*"${BUILD}".deb "${ROOTFS}"/volumio/customPkgs/
-    #TODO REMOVE IF NOT NEEDED
     # Pi's need an armvl6 build of nodejs (for Node > v8)
     #if [[ ${DEVICE} == raspberry && ${USE_NODE_ARMV6:-yes} == yes && ${NODE_SEMVER[0]} -ge 8 ]]; then
     #  mkdir -p "${ROOTFS}"/volumio/customNode/ && cp "${LOCAL_PKG_DIR}"/nodejs_${NODE_VERSION%%.*}*-1unofficial_armv6l.deb "$_"
