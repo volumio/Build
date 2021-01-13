@@ -52,6 +52,11 @@ Example: Build a Raspberry PI image from scratch, version 2.0 :
   exit 1
 }
 
+unmount_ramdisk() {
+  umount -l "${ROOTFS}" || log "umount Ramdisk failed on ${ROOTFS}" "wrn"
+  umount -l "${VOLMNT}" || log "umount Ramdisk failed on ${VOLMNT}" "wrn"
+}
+
 mount_chroot() {
   local base=$1
   log "Mounting temp devices for chroot at ${base}" "info"
@@ -84,6 +89,9 @@ exit_error() {
   # If dev is mounted, the rest should also be mounted (right?)
   if isMounted "${ROOTFS}/dev"; then
     unmount_chroot "${ROOTFS}"
+    if [[ ${USE_RAMDISK:-no} == yes ]]; then
+      unmount_ramdisk
+    fi
   fi
 }
 
@@ -345,7 +353,10 @@ if [ -n "${BUILD}" ]; then
   fi
   ROOTFS="${SRC}/build/${BUILD}/root"
   mkdir -p "${ROOTFS}"
-
+  if [[ ${USE_RAMDISK:-no} == yes ]]; then
+    log "Creating Ramdisk on ${ROOTFS}"
+    mount -t tmpfs -o size=5g tmpfs "${ROOTFS}"
+  fi
   setup_multistrap
 
   log "Building ${BASE} System for ${BUILD} ($ARCH)" "info"
@@ -576,6 +587,10 @@ time_it "$end_build" "$start"
 
 log "Cleaning up rootfs.." "info" "build/${BUILD}/"
 rm -r build/${BUILD:?}/ || log "Couldn't clean rootfs" "wrn"
+
+if [[ ${USE_RAMDISK:-no} == yes ]]; then
+  unmount_ramdisk
+fi
 
 log "Volumio Builder finished: \
 $([[ -n ${BUILD} ]] && echo "${yellow}BUILD=${standout}${BUILD}${normal} ")\

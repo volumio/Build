@@ -100,6 +100,11 @@ else
   mkdir -p ${VOLMNT}
 fi
 
+if [[ ${USE_RAMDISK:-no} == yes ]]; then
+  log "Creating Ramdisk on ${VOLMNT}"
+  mount -t tmpfs -o size=5g tmpfs "${VOLMNT}"
+fi
+
 # Create mount point for image partitions
 log "Creating mount point for the images partition"
 ROOTFSMNT=${VOLMNT}/rootfs
