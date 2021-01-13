@@ -24,10 +24,9 @@ KIOSKMODE=no
 ## Partition info
 BOOT_START=1
 BOOT_END=64
-BOOT_TYPE=msdos                           # msdos or gpt
-BOOT_USE_UUID=no                          # Add UUID to fstab
-FLAGS_EXT4=("-O" "^metadata_csum,^64bit") # Disable ext4 metadata checksums
-INIT_TYPE="init.nextarm"                  # init.{x86/nextarm/nextarm_tvbox}
+BOOT_TYPE=msdos          # msdos or gpt
+BOOT_USE_UUID=no        # Add UUID to fstab
+INIT_TYPE="init" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
 MODULES=("overlayfs" "overlay" "squashfs" "nls_cp437")
@@ -53,7 +52,7 @@ write_device_files() {
   cp ${PLTDIR}/${DEVICE}/etc/odroiddac.sh ${ROOTFSMNT}/opt/
 
   log "Copying ${DEVICENAME} framebuffer init script"
-  cp ${PLTDIR}/${DEVICE}/etc/${FRAMEBUFFERINIT} ${ROOTFSMNT}/usr/local/bin/${FRAMEBUFFERINIT}
+  cp ${PLTDIR}/${DEVICE}/etc/${FRAMEBUFFERINIT} ${ROOTFSMNT}/usr/local/bin/c_init.sh
 
   log "Copying ${DEVICENAME} inittab"
   cp ${PLTDIR}/${DEVICE}/etc/inittab ${ROOTFSMNT}/etc/
@@ -93,9 +92,13 @@ EOF
   log "Adding framebuffer init script"
   cat <<-EOF >/etc/rc.local
 #!/bin/sh -e
-/usr/local/bin/c1-init.sh
+/usr/local/bin/c_init.sh
 exit 0
 EOF
+
+log "Changing initramfs module config to 'modules=list' to limit uInitrd size" "cfg"
+sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
+
 }
 
 # Will be run in chroot - Post initramfs
@@ -113,7 +116,7 @@ device_chroot_tweaks_post() {
   # saving some time!
   if [[ -f /boot/volumio.initrd ]]; then
     log "Creating uInitrd from 'volumio.initrd'" "info"
-    mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+    mkimage -v -A ${UINITRD_ARCH} -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
     rm /boot/volumio.initrd
   fi
 }
