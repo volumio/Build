@@ -20,15 +20,17 @@ declare -A APTSOURCE=(
 VOLBINSREPO="https://repo.volumio.org/Volumio2/Buster/Custom%20Packages"
 
 ## Array of volumio binaries
+#TODO: Fix naming scheme and repo location
 declare -A VOLBINS=(
   [init - updater]="volumio-init-updater-v2"
 )
 
 ## Array of custom packages
-# TODO: merge into VOLBINS!
+# The expected naming scheme is
+# name_version-${BUILD}.deb
+# Note the use of $BUILD (arm/armv7/armv8/x86/x64) and not $ARCH(armel/armhf/arm64/i386/amd64) thanks to raspberrypi compatibility naming quirks
 declare -A CUSTOM_PKGS=(
-  # For example only. wiringpi isn't going to work on buster, and already exists in upstream repo.
-  # [wiringpi]="https://repo.volumio.org/Volumio2/Binaries/wiringpi-2.29-1.deb"
+  [volumio_remote_updater]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/volumio-remote-updater_1.6"
 )
 
 ## Backend and Frontend Repository details
