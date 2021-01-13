@@ -217,11 +217,25 @@ function patch_multistrap_conf() {
   esac
 }
 
+function check_supported_device() {
+
+  if [[ -n "${DEVICE}" ]]; then # Device flag was provided
+    DEV_CONFIG="${SRC}/recipes/devices/${DEVICE}.sh"
+    if [[ ! -f "${DEV_CONFIG}" ]]; then
+      log "No configuration found for <${DEVICE}>" "err"
+      log "Build system currently supports ${#DEVICE_LIST[@]} devices:" "${DEVICE_LIST[*]}"
+      exit 1
+    fi
+  elif [[ -n "${BUILD}" ]]; then # Build flag with no Device
+    log "No device flag passed to builder, building only ${BASE}" "wrn"
+  else
+    log "No Base or Device flag found.." "wrn"
+    HELP
+  fi
+}
+
 #Check the number of arguments. If none are passed, print help and exit.
-NUMARGS=$#
-if [ "$NUMARGS" -eq 0 ]; then
-  HELP
-fi
+[[ "$#" -eq 0 ]] && HELP
 
 while getopts b:v:d:p:t:h: FLAG; do
   case $FLAG in
@@ -249,18 +263,10 @@ while getopts b:v:d:p:t:h: FLAG; do
     ;;
   esac
 done
-
-if [ ${DEVICE:=none} != none ]; then
-  DEV_CONFIG="${SRC}/recipes/devices/${DEVICE}.sh"
-  if [[ ! -f $DEV_CONFIG ]]; then
-    log "No configuration found for <${DEVICE}>" "err"
-    log "Build system currently supports ${#DEVICE_LIST[@]} devices:" "${DEVICE_LIST[*]}"
-    exit 1
-  fi
-fi
-
 # move past our parsed args
 shift $((OPTIND - 1))
+
+check_supported_device
 
 log "Checking whether we are running as root"
 if [ "$(id -u)" -ne 0 ]; then
@@ -421,8 +427,7 @@ fi
 
 #### Build stage 1 - Device specific image creation
 
-#TODO: Streamline this for multiple devices that are siblings
-if [[ -n "$DEVICE" ]]; then
+if [[ -n "${DEVICE}" ]]; then
   # shellcheck source=/dev/null
   source "$DEV_CONFIG"
   log "Preparing an image for ${DEVICE} using $BASE - ${BUILD}"
@@ -435,7 +440,7 @@ if [[ -n "$DEVICE" ]]; then
     fi
     rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
     [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
-    log "Using prior Base tarball"
+    log "Using prior Base tarball" "$(date -r "rootfs_tarball.lz4" "+%m-%d-%Y %H:%M:%S")"
     mkdir -p ./build/${BUILD}/root
     pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" |
       lz4 -dc |
