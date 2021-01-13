@@ -39,36 +39,36 @@ write_device_files() {
   log "Running write_device_files" "ext"
 
   log "Copying ${DEVICENAME} boot files"
-  cp ${PLTDIR}/${DEVICE}/boot/boot.ini* ${ROOTFSMNT}/boot
-  cp ${PLTDIR}/${DEVICE}/boot/${DTBFILENAME} ${ROOTFSMNT}/boot
-  cp ${PLTDIR}/${DEVICE}/boot/${KERNELFILENAME} ${ROOTFSMNT}/boot
+  cp ${PLTDIR}/${DEVICEBASE}/boot/boot.ini* ${ROOTFSMNT}/boot
+  cp ${PLTDIR}/${DEVICEBASE}/boot/${DTBFILENAME} ${ROOTFSMNT}/boot
+  cp ${PLTDIR}/${DEVICEBASE}/boot/${KERNELFILENAME} ${ROOTFSMNT}/boot
 
   log "Copying ${DEVICENAME}  modules and firmware"
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/modules ${ROOTFSMNT}/lib/
-  cp -pdR ${PLTDIR}/${DEVICE}/lib/firmware ${ROOTFSMNT}/lib/
+  cp -pdR ${PLTDIR}/${DEVICEBASE}/lib/modules ${ROOTFSMNT}/lib/
+  cp -pdR ${PLTDIR}/${DEVICEBASE}/lib/firmware ${ROOTFSMNT}/lib/
 
   log "Copying ${DEVICENAME}  DAC detection service"
-  cp ${PLTDIR}/${DEVICE}/etc/odroiddac.service ${ROOTFSMNT}/lib/systemd/system/
-  cp ${PLTDIR}/${DEVICE}/etc/odroiddac.sh ${ROOTFSMNT}/opt/
+  cp ${PLTDIR}/${DEVICEBASE}/etc/odroiddac.service ${ROOTFSMNT}/lib/systemd/system/
+  cp ${PLTDIR}/${DEVICEBASE}/etc/odroiddac.sh ${ROOTFSMNT}/opt/
 
   log "Copying ${DEVICENAME} framebuffer init script"
-  cp ${PLTDIR}/${DEVICE}/etc/${FRAMEBUFFERINIT} ${ROOTFSMNT}/usr/local/bin/c_init.sh
+  cp ${PLTDIR}/${DEVICEBASE}/etc/${FRAMEBUFFERINIT} ${ROOTFSMNT}/usr/local/bin/c_init.sh
 
   log "Copying ${DEVICENAME} inittab"
-  cp ${PLTDIR}/${DEVICE}/etc/inittab ${ROOTFSMNT}/etc/
+  cp ${PLTDIR}/${DEVICEBASE}/etc/inittab ${ROOTFSMNT}/etc/
 
   log "Copying LIRC configuration files for HK stock remote"
-  cp "${PLTDIR}/${DEVICE}/etc/lirc/lircd.conf" "${ROOTFSMNT}"
-  cp "${PLTDIR}/${DEVICE}/etc/lirc/hardware.conf" "${ROOTFSMNT}"
-  cp "${PLTDIR}/${DEVICE}/etc/lirc/lircrc" "${ROOTFSMNT}"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/lirc/lircd.conf" "${ROOTFSMNT}"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/lirc/hardware.conf" "${ROOTFSMNT}"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/lirc/lircrc" "${ROOTFSMNT}"
 
 }
 
 write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
-  dd if=${PLTDIR}/${DEVICE}/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
-  dd if=${PLTDIR}/${DEVICE}/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
-  dd if=${PLTDIR}/${DEVICE}/uboot/u-boot.bin of=${LOOP_DEV} ${DDUBOOTPARMS}
+  dd if=${PLTDIR}/${DEVICEBASE}/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=1 count=442
+  dd if=${PLTDIR}/${DEVICEBASE}/uboot/bl1.bin.hardkernel of=${LOOP_DEV} bs=512 skip=1 seek=1
+  dd if=${PLTDIR}/${DEVICEBASE}/uboot/u-boot.bin of=${LOOP_DEV} ${DDUBOOTPARMS}
 
 }
 

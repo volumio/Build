@@ -38,27 +38,27 @@ PACKAGES=("u-boot-tools" "lirc" "fbset")
 write_device_files() {
   log "Running write_device_files" "ext"
 
-  cp ${PLTDIR}/${DEVICE}/boot/*.ini "${ROOTFSMNT}/boot"
-  cp -dR "${PLTDIR}/${DEVICE}/boot/amlogic" "${ROOTFSMNT}/boot"
-  cp "${PLTDIR}/${DEVICE}/boot/Image.gz" "${ROOTFSMNT}/boot"
-  cp ${PLTDIR}/${DEVICE}/boot/config-* "${ROOTFSMNT}/boot"
-  cp -pdR "${PLTDIR}/${DEVICE}/lib/modules" "${ROOTFSMNT}/lib"
-  cp -pdR "${PLTDIR}/${DEVICE}/lib/firmware" "${ROOTFSMNT}/lib"
+  cp ${PLTDIR}/${DEVICEBASE}/boot/*.ini "${ROOTFSMNT}/boot"
+  cp -dR "${PLTDIR}/${DEVICEBASE}/boot/amlogic" "${ROOTFSMNT}/boot"
+  cp "${PLTDIR}/${DEVICEBASE}/boot/Image.gz" "${ROOTFSMNT}/boot"
+  cp ${PLTDIR}/${DEVICEBASE}/boot/config-* "${ROOTFSMNT}/boot"
+  cp -pdR "${PLTDIR}/${DEVICEBASE}/lib/modules" "${ROOTFSMNT}/lib"
+  cp -pdR "${PLTDIR}/${DEVICEBASE}/lib/firmware" "${ROOTFSMNT}/lib"
 
   echo "Copying rc.local for ${DEVICENAME} performance tweaks"
-  cp "${PLTDIR}/${DEVICE}/etc/rc.local" "${ROOTFSMNT}/etc"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/rc.local" "${ROOTFSMNT}/etc"
 
   log "Copying LIRC configuration files for HK stock remote"
-  cp "${PLTDIR}/${DEVICE}/etc/lirc/lircd.conf" "${ROOTFSMNT}"
-  cp "${PLTDIR}/${DEVICE}/etc/lirc/hardware.conf" "${ROOTFSMNT}"
-  cp "${PLTDIR}/${DEVICE}/etc/lirc/lircrc" "${ROOTFSMNT}"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/lirc/lircd.conf" "${ROOTFSMNT}"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/lirc/hardware.conf" "${ROOTFSMNT}"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/lirc/lircrc" "${ROOTFSMNT}"
 
 }
 
 write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
 
-  dd if="${PLTDIR}/${DEVICE}/uboot/u-boot.bin" of="${LOOP_DEV}" conv=fsync,notrunc bs=512 seek=1
+  dd if="${PLTDIR}/${DEVICEBASE}/uboot/u-boot.bin" of="${LOOP_DEV}" conv=fsync,notrunc bs=512 seek=1
 }
 
 # Will be called by the image builder for any customisation

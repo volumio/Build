@@ -12,3 +12,4 @@ DTBFILENAME="meson8b_odroidc.dtb"
 FRAMEBUFFERINIT="C1_init.sh"
 DDUBOOTPARMS="seek=64"
 UINITRD_ARCH="arm"
+FLAGS_EXT4=("-O" "^metadata_csum,^64bit") # Disable ext4 metadata checksums
