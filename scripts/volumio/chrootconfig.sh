@@ -120,7 +120,7 @@ else
   rm -rf "${PATCH}" /patch
 fi
 
-# TEMPORARY FIX TO CHECK mke2fs
+# #mke2fsfull is used since busybox mke2fs does not include ext4 support
 cp -rp /sbin/mke2fs /sbin/mke2fsfull
 
 log "Creating initramfs 'volumio.initrd'" "info"
