@@ -487,7 +487,8 @@ if [[ -n "${DEVICE}" ]]; then
   readarray -t COMMIT_DETAILS <<<"$(jq -r '.commit.sha, .commit.commit.message' <<<"${GIT_STATUS}")"
   log "Upstream Volumio BE details" "dbg" "${COMMIT_DETAILS[0]:0:8} ${COMMIT_DETAILS[1]}"
   [[ ! "$(git --git-dir "${ROOTFS}/volumio/.git" rev-parse HEAD)" == "${COMMIT_DETAILS[0]}" ]] && log "Rootfs git is not in sync with upstream repo!" "wrn"
-  if [[ ${UPDATE_VOLUMIO:-no} == yes ]]; then
+  # Update only if we are using a prior rootfs -- if we just built one, it should already be up to spec
+  if [[ ${use_rootfs_tarball} == yes ]] && [[ ${UPDATE_VOLUMIO:-yes} == yes ]]; then
     log "Updating Volumio Node BE/FE"
     fetch_volumio_from_repo
   else
