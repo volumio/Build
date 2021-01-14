@@ -19,7 +19,7 @@ DEVICEREPO="https://github.com/volumio/platform-pine64.git"
 ### What features do we want to target
 # TODO: Not fully implement
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
-MYVOLUMIO=no
+MYVOLUMIO=yes
 VOLINITUPDATER=no
 KIOSKMODE=no
 
@@ -41,7 +41,7 @@ write_device_files() {
   log "Running write_device_files" "ext"
 
   cp ${PLTDIR}/${DEVICEBASE}/boot/Image ${ROOTFSMNT}/boot
-  cp -R ${PLTDIR}/${DEVICEBASE}/boot/dtb/* ${ROOTFSMNT}/boot/dtb
+  cp -dR ${PLTDIR}/${DEVICEBASE}/boot/dtb ${ROOTFSMNT}/boot
   
   log "Copying kernel configuration file"
   cp ${PLTDIR}/${DEVICEBASE}/boot/config* ${ROOTFSMNT}/boot
@@ -61,7 +61,7 @@ write_device_files() {
 
   log "Copying boot script & uboot environment configuration extension"
   cp ${PLTDIR}/${DEVICEBASE}/boot/boot.cmd ${ROOTFSMNT}/boot
-  cp ${PLTDIR}/${DEVICEBASE}/boot/${BOOTCONFIG_EXT} ${ROOTFSMNT}/boot/uEnv.txt
+  cp ${PLTDIR}/${DEVICEBASE}/boot/uEnv.txt.${DEVICE} ${ROOTFSMNT}/boot/uEnv.txt
 
 }
 
@@ -69,8 +69,8 @@ write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
 
   log "Copying specific (u)boot files"
-  dd if=${PLTDIR}/${DEVICEBASE}/u-boot/${UBOOT_MODEL}/sunxi-spl.bin of=${LOOP_DEV} conv=fsync bs=8k seek=1
-  dd if=${PLTDIR}/${DEVICEBASE}/u-boot/${UBOOT_MODEL}/u-boot.itb of=${LOOP_DEV} conv=fsync bs=8k seek=5
+  dd if=${PLTDIR}/${DEVICEBASE}/u-boot/${UBOOT_VARIANT}/sunxi-spl.bin of=${LOOP_DEV} conv=fsync bs=8k seek=1
+  dd if=${PLTDIR}/${DEVICEBASE}/u-boot/${UBOOT_VARIANT}/u-boot.itb of=${LOOP_DEV} conv=fsync bs=8k seek=5
   
 }
 

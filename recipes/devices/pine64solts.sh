@@ -7,6 +7,5 @@ source "${SRC}"/recipes/devices/families/pine64.sh
 
 DEVICENAME="soPine64-Pine64LTS"
 DEVICE="pine64solts"
-BOOTCONFIG_EXT="uEnv.txt.pine64-so-lts"
-UBOOT_MODEL="pine64-so-lts"
+UBOOT_VARIANT="pine64solts"
 
