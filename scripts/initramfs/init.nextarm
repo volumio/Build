@@ -335,13 +335,13 @@ mount -t squashfs $loop_free /mnt/static
 
 VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 
-#if there is factory file then format data partition
+#if there is user_data file then format data partition
 #
 mkdir /mnt/factory
 mount -t auto ${BOOTPART} /mnt/factory
 if [ -e "/mnt/factory/factory_reset" ]; then
   print_msg "Executing factory reset"
-  mke2fs -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
+  mke2fs -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
   print_msg "Factory reset executed: part I - User DATA Part"
   if [ -e "/mnt/imgpart/kernel_fallback.tar" ]; then
      rm /mnt/imgpart/kernel_fallback.tar
@@ -378,7 +378,7 @@ if [ -e "/mnt/factory/factory_reset" ]; then
 fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
-  mke2fs -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
+  mke2fs -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
   rm /mnt/factory/user_data
   print_msg "User Data successfully deleted "
 # In case UUIDs are used: New data partition also means UUID has changed, fix it
