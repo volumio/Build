@@ -17,8 +17,8 @@ DEVICEREPO="https://github.com/volumio/platform-odroid.git"
 ### What features do we want to target
 # TODO: Not fully implement
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
-MYVOLUMIO=no
-VOLINITUPDATER=no
+MYVOLUMIO=yes
+VOLINITUPDATER=yes
 KIOSKMODE=no
 
 ## Partition info
