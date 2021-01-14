@@ -12,7 +12,7 @@ BUILD="arm"
 DEBUG_BUILD=no
 ### Device information
 # Used to identify devices (VOLUMIO_HARDWARE) and keep backward compatibility
-VOL_DEVICE_ID="pi"
+#VOL_DEVICE_ID="pi"
 DEVICENAME="Raspberry Pi"
 # This is useful for multiple devices sharing the same/similar kernel
 #DEVICEFAMILY="raspberry"
@@ -21,7 +21,7 @@ DEVICENAME="Raspberry Pi"
 #DEVICEREPO=""
 
 ### What features do we want to target
-# TODO: Not fully implement
+# TODO: Not fully implemented
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
 VOLINITUPDATER=yes
@@ -86,13 +86,6 @@ device_image_tweaks() {
 		ssid=Volumio
 		wpa_passphrase=volumio2
 	EOF
-
-	#   log "Fixing vcgencmd and tvservice for Kodi"
-	#   cat <<-EOF > ${ROOFTFSMNT}/etc/profile.d/vc-fix.sh
-	# # Add aliases for vcgencmd and tvservice with proper paths
-	# [ -f /opt/vc/bin/vcgencmd ] && alias vcgencmd="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib /opt/vc/bin/vcgencmd"
-	# [ -f /opt/vc/bin/tvservice ] && alias tvservice="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/vc/lib /opt/vc/bin/tvservice"
-	# EOF
 
 	log "Adding archive.raspberrypi debian repo"
 	cat <<-EOF >"${ROOTFSMNT}/etc/apt/sources.list.d/raspi.list"
@@ -189,26 +182,28 @@ device_chroot_tweaks_pre() {
 	NODE_VERSION=${NODE_VERSION:1}
 	if [[ ${USE_NODE_ARMV6:-yes} == yes && ${NODE_VERSION%%.*} -ge 8 ]]; then
 		log "Using a compatible nodejs version for all pi images" "info"
-		# Get rid of armv7 nodejs and pick up the armv6l version
-		if dpkg -s nodejs &>/dev/null; then
-			log "Removing previous nodejs installation from $(command -v node)"
-			log "Removing Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
-			apt-get -y purge nodejs
-		fi
-		arch=armv6l
-		log "Installing Node for ${arch}"
 		# We don't know in advance what version is in the repo, so we have to hard code it.
 		# This is temporary fix - make this smarter!
 		declare -A NodeVersion=(
 			[14]="https://repo.volumio.org/Volumio2/nodejs_14.15.4-1unofficial_armv6l.deb"
 			[8]="https://repo.volumio.org/Volumio2/nodejs_8.17.0-1unofficial_armv6l.deb"
 		)
-
-		wget -nv "${NodeVersion[${NODE_VERSION%%.*}]}" -P /volumio/customNode && dpkg -i /volumio/customNode/*.deb
-		# dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
-		log "Installed Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
-		rm -rf /volumio/customNode
-
+		# TODO: Warn and proceed or exit the build?
+		wget -nv "${NodeVersion[${NODE_VERSION%%.*}]}" -P /volumio/customNode || log "Failed fetching Nodejs for armv6!!" "wrn"
+		# Proceed only if there is a deb to install
+		if compgen -G "/volumio/customNode/nodejs_*-1unofficial_${arch}.deb" >/dev/null; then
+			# Get rid of armv7 nodejs and pick up the armv6l version
+			if dpkg -s nodejs &>/dev/null; then
+				log "Removing previous nodejs installation from $(command -v node)"
+				log "Removing Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
+				apt-get -y purge nodejs
+			fi
+			local arch=armv6l
+			log "Installing Node for ${arch}"
+			dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
+			log "Installed Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
+			rm -rf /volumio/customNode
+		fi
 		# Block upgrade of nodejs from raspi repos
 		log "Blocking nodejs updgrades for ${NODE_VERSION}"
 		cat <<-EOF >"${ROOTFSMNT}/etc/apt/preferences.d/nodejs"
@@ -217,8 +212,8 @@ device_chroot_tweaks_pre() {
 			Pin-Priority: -1
 		EOF
 	fi
+	#TODO: Is this still required?
 	log "Adding Shairport-Sync User"
-
 	getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
 	getent passwd shairport-sync &>/dev/null || useradd -r -M -g shairport-sync -s /usr/bin/nologin -G audio shairport-sync >/dev/null
 
@@ -289,7 +284,6 @@ device_chroot_tweaks_pre() {
 		dtparam=i2c_arm=on
 		disable_splash=1
 		hdmi_force_hotplug=1
-		enable_uart=1
 
 		include userconfig.txt
 	EOF
@@ -326,7 +320,7 @@ device_chroot_tweaks_pre() {
 	# so use hacky semver check here in the odd case we want to go back to a lower kernel
 	[[ ${KERNEL_SEMVER[0]} == 5 ]] && compat_alsa=0 || compat_alsa=1
 	# https://github.com/raspberrypi/linux/commit/88debfb15b3ac9059b72dc1ebc5b82f3394cac87
-	if [[ ${KERNEL_SEMVER[0]} == 5 ]] && [[ ${KERNEL_SEMVER[2]} -lt 79 ]]; then
+	if [[ ${KERNEL_SEMVER[0]} == 5 ]] && [[ ${KERNEL_SEMVER[2]} -le 4 ]] && [[ ${KERNEL_SEMVER[2]} -le 79 ]]; then
 		kernel_params+=("snd_bcm2835.enable_headphones=1")
 	fi
 	kernel_params+=("snd-bcm2835.enable_compat_alsa=${compat_alsa}" "snd_bcm2835.enable_hdmi=1")
@@ -334,7 +328,10 @@ device_chroot_tweaks_pre() {
 	if [[ $DEBUG_IMAGE == yes ]]; then
 		log "Creaing debug image" "wrn"
 		log "Adding Serial Debug parameters"
-		echo "dtoverlay=pi3-miniuart-bt" >/boot/userconfig.txt
+		cat <<-EOF >/boot/userconfig.txt
+			enable_uart=1
+			dtoverlay=pi3-miniuart-bt
+		EOF
 		KERNEL_LOGLEVEL="loglevel=8" # KERN_DEBUG
 		log "Enabling SSH"
 		touch /boot/ssh
@@ -345,8 +342,7 @@ device_chroot_tweaks_pre() {
 	fi
 
 	kernel_params+=("${KERNEL_LOGLEVEL}")
-	# shellcheck disable=SC2116
-	log "Setting ${#kernel_params[@]} Kernel params:" "" "$(echo "${kernel_params[@]}")"
+	log "Setting ${#kernel_params[@]} Kernel params:" "${kernel_params[*]}"
 	cat <<-EOF >/boot/cmdline.txt
 		${kernel_params[@]}
 	EOF
