@@ -17,12 +17,12 @@ declare -A APTSOURCE=(
 )
 
 ## Path to the volumio repo
-VOLBINSREPO="https://repo.volumio.org/Volumio2/Buster/Custom%20Packages"
+VOLBINSREPO="https://repo.volumio.org/Volumio2/Buster/CustomPackages/"
 
 ## Array of volumio binaries
 #TODO: Fix naming scheme and repo location
 declare -A VOLBINS=(
-  [init - updater]="volumio-init-updater-v2"
+  [init_updater]="volumio-init-updater-v2"
 )
 
 ## Array of custom packages

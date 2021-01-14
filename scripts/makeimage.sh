@@ -116,11 +116,8 @@ cp -pdR "${ROOTFS}"/* ${ROOTFSMNT}
 # Refactor this to support more binaries
 if [[ $VOLINITUPDATER == yes ]]; then
   log "Fetching volumio-init-updater"
-  wget -P ${ROOTFSMNT}/usr/local/sbin \
-    -nv "${VOLBINSREPO}/${BUILD}/${VOLBINS[init - updater]}"
-  # initramfs doesn't know about v2
-  mv ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater-v2 \
-    ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater
+  wget -O ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater \
+    -nv "${VOLBINSREPO}/${VOLBINS[init_updater]}_${BUILD}" || log "Failed installing init-updater" "wrn"
 fi
 
 log "Getting device specific files for ${DEVICE} from platform-${DEVICEFAMILY}" "info"
