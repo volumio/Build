@@ -440,7 +440,7 @@ if [[ -n "${DEVICE}" ]]; then
     fi
     rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
     [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
-    log "Using prior Base tarball" "$(date -r "rootfs_tarball.lz4" "+%m-%d-%Y %H:%M:%S")"
+    log "Using prior Base tarball" "$(date -r "${rootfs_tarball}.lz4" "+%m-%d-%Y %H:%M:%S")"
     mkdir -p ./build/${BUILD}/root
     pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" |
       lz4 -dc |
@@ -548,14 +548,8 @@ if [[ -n "${DEVICE}" ]]; then
   BUILDDATE=$(date -I)
   IMG_FILE="${VARIANT^}-${VERSION}-${BUILDDATE}-${DEVICE}.img"
 
-  if [[ ${OLD_X86BUILD:no} == yes ]] && [[ ${BUILD} == x86 ]]; then
-    log "Using old x86 image script to build image"
-    # shellcheck source=scripts/x86image.sh
-    source "${SRC}/scripts/x86image.sh"
-  else
-    # shellcheck source=scripts/makeimage.sh
-    source "${SRC}/scripts/makeimage.sh"
-  fi
+  # shellcheck source=scripts/makeimage.sh
+  source "${SRC}/scripts/makeimage.sh"
   end_img=$(date +%s)
   time_it "$end_img" "$start_img"
   log "Image ${IMG_FILE} Created" "okay" "$TIME_STR"
