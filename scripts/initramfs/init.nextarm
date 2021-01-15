@@ -118,7 +118,7 @@ do
   case $key in
   imgpart)
 
-  for i in 1 2 3 4 5 
+  for i in 1 2 3 4 5
 	do
 	  IMGPART=`parse_disk $value`
 	  if [ -z "${IMGPART}" ]; then
@@ -260,25 +260,6 @@ fi
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
-#create recovery image when not yet present
-#when already present and a bootdelay parameter was specified then give the kernel the additional headstart
-#
-if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
-  print_msg "Creating factory image, this will take a minute, please wait..."
-# TODO, ALLOW FOR INTERRUPTION IN FACTORY IMAGE CREATION
-# USE THE FILE APPROACH TO SIGNAL WHEN CREATION HAS BEEN EXECUTED CORRECTLY
-  cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
-  print_msg "Factory image created"
-  print_msg "Creating archive for factory kernel..."
-  mkdir /mnt/factory
-  mount -t vfat ${BOOTPART} /mnt/factory
-  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
-  cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
-  umount /mnt/factory
-  rm -r /mnt/factory
-  sync
-fi
-
 print_msg "Checking for USB updates if you did not boot from USB..."
 [ -e /dev/sda1 ] || mdev -s
 if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
@@ -303,7 +284,7 @@ if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
     print_msg "Factory Reset on USB"
     mkdir /mnt/factory
     mount -t auto ${BOOTPART} /mnt/factory
-    echo " " > /mnt/factory/factory_reset
+    echo " " > /mnt/factory/user_data
     umount /mnt/factory
     rm -r /mnt/factory
     rm /mnt/usb/factory_reset
@@ -313,7 +294,7 @@ if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
 else
   if [ "/dev/sda1" == "${BOOTPART}" ]; then
     print_msg "Not checking for firmware if you boot from USB. Sorry!"
-  else 
+  else
     print_msg "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
   fi
 fi
@@ -339,44 +320,7 @@ VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
 #
 mkdir /mnt/factory
 mount -t auto ${BOOTPART} /mnt/factory
-if [ -e "/mnt/factory/factory_reset" ]; then
-  print_msg "Executing factory reset"
-  #mke2fsfull is used since busybox mke2fs does not include ext4 support
-  /sbin/mke2fsfull -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 ${DATAPART} -L volumio_data
-  print_msg "Factory reset executed: part I - User DATA Part"
-  if [ -e "/mnt/imgpart/kernel_fallback.tar" ]; then
-     rm /mnt/imgpart/kernel_fallback.tar
-  fi
-  tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
-  print_msg "Factory reset executed: part II - Kernel"
-  if [ -e "/mnt/imgpart/volumio_fallback.sqsh" ]; then
-     rm /mnt/imgpart/volumio_fallback.sqsh
-  fi
-  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh
-  print_msg "Factory reset executed: part III - Squash"
-  print_msg "Factory reset successfully executed"
-  sync
-  rm /mnt/factory/factory_reset
 
-  umount /mnt/factory
-  rm -r /mnt/factory
-
-# In case UUIDs are used: New data partition also means UUID has changed, fix it
-  if [ ! -z "${UUIDFMT}" ]; then
-    mkdir boot
-    mount -t vfat ${BOOTPART} /boot
-    UUID_DATA=$(blkid -s UUID -o value ${DATAPART})
-    cp $BOOTCONFIG $BOOTCONFIG.old
-    sed -i "s/datapart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/datapart=UUID=${UUID_DATA}/g" ${BOOTCONFIG}
-    rm /boot/resize-volumio-datapart
-    sync
-    umount /boot
-    rm -r /boot
-  fi
-  print_msg "Restarting"
-  do_reboot
-  #echo b > /proc/sysrq-trigger
-fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
   #mke2fsfull is used since busybox mke2fs does not include ext4 support
@@ -497,7 +441,7 @@ mount -t ext4 -o noatime ${DATAPART} /mnt/ext
 if [ $OVERLAY == WITHWRKDIR ]; then
   [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
   print_msg "With Option:" $OVERLAY
-  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
+  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
 else
   print_msg "Without Option:" $OVERLAY
   mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
@@ -546,4 +490,3 @@ exec switch_root /mnt/ext/union /sbin/init
 
 print_msg "Failed to switch_root, dropping to a shell"
 exec sh
-

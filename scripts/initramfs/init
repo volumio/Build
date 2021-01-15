@@ -160,21 +160,7 @@ mount -t ext4 ${IMGPART} /mnt/imgpart
 #create recovery image when not yet present
 #when already present and a bootdelay parameter was specified then give the kernel the additional headstart
 #
-if [ ! -e "/mnt/imgpart/volumio_factory.sqsh" ]; then
-  print_msg "Creating factory image, this will take a minute, please wait..."
-  # TODO, ALLOW FOR INTERRUPTION IN FACTORY IMAGE CREATION
-  # USE THE FILE APPROACH TO SIGNAL WHEN CREATION HAS BEEN EXECUTED CORRECTLY
-  cp /mnt/imgpart/volumio_current.sqsh /mnt/imgpart/volumio_factory.sqsh
-  print_msg "Factory image created"
-  print_msg "Creating archive for factory kernel..."
-  mkdir /mnt/factory
-  mount -t vfat /dev/${BOOTDEV}p1 /mnt/factory
-  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
-  cp /mnt/imgpart/kernel_current.tar /mnt/imgpart/kernel_factory.tar
-  umount /mnt/factory
-  rm -r /mnt/factory
-  sync
-elif [ ! -z "${BOOTDELAY}" ]; then
+if [ ! -z "${BOOTDELAY}" ]; then
   print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
   sleep ${BOOTDELAY}
 fi
@@ -202,7 +188,7 @@ if [ -e /dev/sda1 ]; then
     print_msg "Factory Reset on USB"
     mkdir /mnt/factory
     mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
-    echo " " > /mnt/factory/factory_reset
+    echo " " > /mnt/factory/user_data
     umount /mnt/factory
     rm -r /mnt/factory
     rm /mnt/usb/factory_reset
@@ -240,30 +226,6 @@ if [ $HWDEVICE == motivo ]; then
   /bin/busybox lzop -d -c /mnt/factory/motivosplash > /dev/fb0
 fi
 
-if [ -e "/mnt/factory/factory_reset" ]; then
-  print_msg "Executing factory reset"
-  #mke2fsfull is used since busybox mke2fs does not include ext4 support
-  /sbin/mke2fsfull -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 /dev/${BOOTDEV}p3 -L volumio_data
-  print_msg "Factory reset executed: part I - User DATA Part"
-  if [ -e "/mnt/imgpart/kernel_fallback.tar" ]; then
-     rm /mnt/imgpart/kernel_fallback.tar
-  fi
-  tar xf /mnt/imgpart/kernel_factory.tar -C /mnt/factory
-  print_msg "Factory reset executed: part II - Kernel"
-  if [ -e "/mnt/imgpart/volumio_fallback.sqsh" ]; then
-     rm /mnt/imgpart/volumio_fallback.sqsh
-  fi
-  cp  /mnt/imgpart/volumio_factory.sqsh /mnt/imgpart/volumio_current.sqsh
-  print_msg "Factory reset executed: part III - Squash"
-  print_msg "Factory reset successfully executed"
-  sync
-  rm /mnt/factory/factory_reset
-
-  umount /mnt/factory
-  rm -r /mnt/factory
-  print_msg "Restarting"
-  echo b > /proc/sysrq-trigger
-fi
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data"
   #mke2fsfull is used since busybox mke2fs does not include ext4 support
@@ -335,7 +297,7 @@ mount -t ext4 -o noatime /dev/${BOOTDEV}p3 /mnt/ext
 if [ $OVERLAY == WITHWRKDIR ]; then
   [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
   print_msg "With Option:" $OVERLAY
-  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union 
+  mount -t overlay -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work overlay /mnt/ext/union
 else
   print_msg "Without Option:" $OVERLAY
   mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
@@ -357,4 +319,3 @@ exec switch_root /mnt/ext/union /sbin/init
 
 print_msg "Failed to switch_root, dropping to a shell"
 exec sh
-
