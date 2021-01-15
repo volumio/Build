@@ -67,7 +67,7 @@ Example: Build the architecture for x86 first and the image version MyVersion in
 ```
 ./build.sh -b x86
 
-./build.sh -d x86 -v MyVersion
+./build.sh -d x86_i386 -v MyVersion
 ```
 
 #### Sources
