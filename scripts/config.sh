@@ -12,7 +12,7 @@ declare -A SecureApt=(
 
 # Repo locations that are utilised to create source.list in the rootfs
 declare -A APTSOURCE=(
-  [Debian]="http://httpredir.debian.org/debian"
+  [Debian]="http://deb.debian.org/debian"
   [Raspbian]="http://raspbian.raspberrypi.org/raspbian/"
 )
 
