@@ -4,7 +4,7 @@ Copyright Michelangelo Guarise - 2016
 
 #### Requirements
 
-On a Debian (buster) host, the following packages are required: 
+On a Debian (buster) host, the following packages are required:
 ```
 build-essential
 ca-certificates
