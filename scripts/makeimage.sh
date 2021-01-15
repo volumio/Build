@@ -57,8 +57,8 @@ log "Stage [2]: Creating Image" "info"
 log "Image file: ${IMG_FILE}"
 log "Using DEBUG_IMAGE: ${DEBUG_IMAGE:-no}"
 VOLMNT=/mnt/volumio
-IMAGE_END=${IMAGE_END:-2500}
-dd if=/dev/zero of="${IMG_FILE}" bs=1M count=$((IMAGE_END + 300))
+IMAGE_END=${IMAGE_END:-2800}
+dd if=/dev/zero of="${IMG_FILE}" bs=1M count=$((IMAGE_END + 10))
 LOOP_DEV=$(losetup -f --show "${IMG_FILE}")
 
 # Note: leave the first 20Mb free for the firmware
