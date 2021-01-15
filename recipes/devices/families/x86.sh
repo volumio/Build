@@ -185,7 +185,7 @@ device_chroot_tweaks_pre() {
     # Output console device and options.
     "quiet"
     # Boot params
-    "ro" "imgpart=UUID=%%IMGPART%%" "bootpart=UUID=%%BOOTPART%%" "datapart=UUID=%%DATAPART%%"
+    "ro" "rootwait" "imgpart=UUID=%%IMGPART%%" "bootpart=UUID=%%BOOTPART%%" "datapart=UUID=%%DATAPART%%"
     # Image params
     "imgfile=/volumio_current.sqsh"
     # Disable linux logo during boot
