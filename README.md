@@ -4,7 +4,7 @@ Copyright Michelangelo Guarise - 2016
 
 #### Requirements
 
-On a Debian (buster) host, the following packages are required: 
+On a Debian (buster) host, the following packages are required:
 ```
 build-essential
 ca-certificates
@@ -45,9 +45,15 @@ zip
 where switches are :
 
  * -b `<arch>` Build a full system image with Multistrap.
- Options for the target architecture are **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit) or **x64** (Debian 64bit).
- * -d `<dev>`  Create Image for Specific Devices. Supported device names:
-             **mp1** **nanopineo2** **odroidn2** **orangepilite** **raspberry** **rockpis** **tinkerboard** **x86_amd64** **x86_i386**
+
+   Options for the target architecture are:
+       **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit) or **x64** (Debian 64bit).
+ * -d `<dev>`  Create Image for Specific Devices.
+
+   Example supported device names:
+       **mp1**, **nanopineo2**, **odroidn2**, **orangepilite**, **pi**, **rockpis**, **tinkerboard**, **x86_amd64**, **x86_i386**
+
+   Run ```./build.sh -h``` for a definitive list; new devices are being added as time allows.
  * -v `<vers>` Version
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
@@ -61,7 +67,7 @@ Example: Build the architecture for x86 first and the image version MyVersion in
 ```
 ./build.sh -b x86
 
-./build.sh -d x86 -v MyVersion
+./build.sh -d x86_i386 -v MyVersion
 ```
 
 #### Sources
