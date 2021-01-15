@@ -248,6 +248,11 @@ device_chroot_tweaks_pre() {
   log "Setting plymouth theme to volumio"
   plymouth-set-default-theme volumio
 
+  log "Notebook-specific: ignore 'cover closed' event"
+  sed -i "s/#HandleLidSwitch=suspend/HandleLidSwitch=ignore/g" /etc/systemd/logind.conf
+  sed -i "s/#HandleLidSwitchExternalPower=suspend/HandleLidSwitchExternalPower=ignore/g" /etc/systemd/logind.conf
+  cat /etc/systemd/logind.conf
+
 }
 
 # Will be run in chroot - Post initramfs
