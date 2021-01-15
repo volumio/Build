@@ -170,11 +170,19 @@ for p in ${CMDLINE}; do
   imgfile)
     IMGFILE=$value
     ;;
+  bootdelay)
+    BOOTDELAY=$value
+    ;;
   use_kmsg)
     USE_KMSG=$value
     ;;
   esac
 done
+
+# Setting default boot delay of 5 seconds
+if [ -z "$BOOTDELAY" ]; then
+  BOOTDELAY=5
+fi
 
 # Mount a tempfs to such that it's accessable later on
 mount -t tmpfs -o "noexec,nosuid,size=${RUNSIZE:-10%},mode=0755" tmpfs /run
@@ -285,6 +293,11 @@ fi
 #         or factory reset file on usb
 # =======================================
 #
+if [ ! -z "${BOOTDELAY}" ]; then
+  print_msg "Doing a ${BOOTDELAY} second delay here to give kernel load a headstart"
+  sleep ${BOOTDELAY}
+fi
+
 print_msg "Detecting additional removable devices"
 mkdir /mnt/usb
 usb_done=/dev/
