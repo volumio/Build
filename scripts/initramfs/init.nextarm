@@ -400,20 +400,21 @@ if [ -e "/boot/kernel_update" ]; then
   #echo b > /proc/sysrq-trigger
 fi
 
-# if data partition needs to be resized
-if [ -e "/boot/resize-volumio-datapart" ]; then
-  DATADEV=$(echo $DATAPART | grep -o mmcblk)
+DATADEV=$(echo $DATAPART | grep -o mmcblk)
+if [ ! -z "${DATADEV}" ]; then
+  DATADEV=$(echo ${DATAPART} | awk -F'/' '{print substr($3,0,7)}')
+else
+  DATADEV=$(echo ${DATAPART} | grep -o sd)
   if [ ! -z "${DATADEV}" ]; then
-    DATADEV=$(echo ${DATAPART} | awk -F'/' '{print substr($3,0,7)}')
+    DATADEV=$(echo ${DATAPART} | awk -F'/' '{print substr($3,0,3)}')
   else
-    DATADEV=$(echo $DATAPART | grep -o sd)
-    if [ ! -z "${DATADEV}" ]; then
-	  DATADEV=$(echo ${DATAPART} | awk -F'/' '{print substr($3,0,3)}')
-    else
-      print_msg "Unexpected data device, DATAPART=${DATAPART}, aborting"
-	  exec sh
-    fi
+    print_msg "Unexpected data device, DATAPART=${DATAPART}, aborting"
+    exec sh
   fi
+fi
+
+FREESIZE="$(parted -s /dev/${DATADEV} unit MB print free | tail -n 2 | grep Free | awk '{print $3}' | awk -F 'MB' '{print $1}')"
+if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   print_msg "Re-sizing Volumio data partition"
   END="$(parted -s /dev/${DATADEV} unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
   parted -s /dev/${DATADEV} resizepart 3 ${END}
