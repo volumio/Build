@@ -20,7 +20,7 @@ DEVICEREPO="https://github.com/volumio/platform-pine64.git"
 # TODO: Not fully implement
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=yes
-VOLINITUPDATER=no
+VOLINITUPDATER=yes
 KIOSKMODE=no
 
 ## Partition info
@@ -89,7 +89,7 @@ abi.cp15_barrier=2
 EOF
 
   log "Enabling Bluetooth Adapter auto-poweron"
-  cat <<-EOF >> /etc/bluetooth/main.conf 
+  cat <<-EOF >>/etc/bluetooth/main.conf
 [Policy]
 AutoEnable=true
 EOF

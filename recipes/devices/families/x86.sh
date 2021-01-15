@@ -22,7 +22,7 @@ DEVICEREPO="http://github.com/volumio/platform-${DEVICEFAMILY}"
 # TODO: Not fully implemented
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
-VOLINITUPDATER=no # Temporary until the repo is fixed
+VOLINITUPDATER=yes
 KIOSKMODE=yes
 
 ## Partition info
