@@ -204,9 +204,18 @@ fi
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
 mount -t ext4 ${IMGPART} /mnt/imgpart
 
-#create recovery image when not yet present
-#when already present and a bootdelay parameter was specified then give the kernel the additional headstart
-#
+if [ ! -e "/mnt/imgpart/kernel_current.tar" ] || [ -e "/mnt/imgpart/curret_kernel_creation" ]; then
+  print_msg "Creating archive for current kernel..."
+  touch /mnt/imgpart/curret_kernel_creation
+  mkdir /mnt/factory
+  mount -t vfat /dev/${BOOTDEV}p1 /mnt/factory
+  tar cf /mnt/imgpart/kernel_current.tar -C /mnt/factory .
+  umount /mnt/factory
+  rm -r /mnt/factory
+  rm /mnt/imgpart/curret_kernel_creation
+  sync
+fi
+
 print_msg "Checking for USB updates if you did not boot from USB..."
 [ -e /dev/sda1 ] || mdev -s
 if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then

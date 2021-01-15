@@ -280,8 +280,6 @@ rm -rf --one-file-system $SQSHMNT
 log "Preparing boot partition" "info"
 #copy the squash image inside the imgpart partition
 cp "${SRC}"/Volumio.sqsh ${VOLMNT}/images/volumio_current.sqsh
-cp "${VOLMNT}"/kernel_current.tar ${VOLMNT}/images/kernel_current.tar
-#copy kernel current inside the imgpart partition
 sync
 
 log "Cleaning up" "info"
