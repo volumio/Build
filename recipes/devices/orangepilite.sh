@@ -23,7 +23,7 @@ DEVICEREPO="https://github.com/ashthespy/platform-orangepi"
 # TODO: Not fully implement
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
-VOLINITUPDATER=no
+VOLINITUPDATER=yes
 
 ## Partition info
 BOOT_START=1

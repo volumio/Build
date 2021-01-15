@@ -22,7 +22,7 @@ DEVICEREPO="https://github.com/ashthespy/platform-${DEVICEFAMILY}.git"
 # TODO: Not fully implement
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
 MYVOLUMIO=no
-VOLINITUPDATER=no
+VOLINITUPDATER=yes
 
 ## Partition info
 BOOT_START=20

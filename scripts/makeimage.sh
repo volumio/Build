@@ -116,8 +116,11 @@ cp -pdR "${ROOTFS}"/* ${ROOTFSMNT}
 # Refactor this to support more binaries
 if [[ $VOLINITUPDATER == yes ]]; then
   log "Fetching volumio-init-updater"
-  wget -O ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater \
-    -nv "${VOLBINSREPO}/${VOLBINS[init_updater]}_${BUILD}" || log "Failed installing init-updater" "wrn"
+  {
+    wget -O ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater \
+      -nv "${VOLBINSREPO}/${VOLBINS[init_updater]}_${BUILD}"
+    chmod +x ${ROOTFSMNT}/usr/local/sbin/volumio-init-updater
+  } || log "Failed installing init-updater" "wrn"
 fi
 
 log "Getting device specific files for ${DEVICE} from platform-${DEVICEFAMILY}" "info"
@@ -172,7 +175,7 @@ sync
 log "Preparing to run chroot for more ${DEVICE} configuration" "info"
 start_chroot_final=$(date +%s)
 cp "${SRC}/scripts/initramfs/${INIT_TYPE}" ${ROOTFSMNT}/root/init
-cp "${SRC}"/scripts/initramfs/mkinitramfs-buster.sh ${ROOTFSMNT}/usr/local/sbin
+cp "${SRC}"/scripts/initramfs/mkinitramfs-custom.sh ${ROOTFSMNT}/usr/local/sbin
 cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
 
 if [[ "${KIOSKMODE}" == yes ]]; then

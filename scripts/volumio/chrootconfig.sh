@@ -59,7 +59,7 @@ apt-get install -y "${PACKAGES[@]}"
 # Custom packages for Volumio
 #TODO THIS SHALL RUN ONLY FOR SOME DEVICES WHERE WE WANT TO INSTALL KIOSK
 [ -f "/install-kiosk.sh" ] && log "Installing kiosk" "info" && bash install-kiosk.sh
-if [[ -d "/volumio/customPkgs" ]] && [[ $(ls /volumio/customPkgs/*.deb 2> /dev/null) ]]; then
+if [[ -d "/volumio/customPkgs" ]] && [[ $(ls /volumio/customPkgs/*.deb 2>/dev/null) ]]; then
   log "Installing Volumio customPkgs" "info"
   for deb in /volumio/customPkgs/*.deb; do
     log "Installing ${deb}"
@@ -124,7 +124,7 @@ fi
 cp -rp /sbin/mke2fs /sbin/mke2fsfull
 
 log "Creating initramfs 'volumio.initrd'" "info"
-mkinitramfs-buster.sh -o /tmp/initramfs-tmp
+mkinitramfs-custom.sh -o /tmp/initramfs-tmp
 log "Finished creating initramfs" "okay"
 
 log "Entering device_chroot_tweaks_post" "cfg"

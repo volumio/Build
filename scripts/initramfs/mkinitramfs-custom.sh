@@ -1,9 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env bash
+#set -eo pipefail Disabled for now
 
+function error() {
+  log "mkinitramfs failed" "$(basename "$0")" "err"
+}
+
+trap error INT ERR
 umask 0022
 export PATH='/usr/bin:/sbin:/bin'
 
 # Defaults
+# On Debian we can use either busybox or busybox-static, but on Ubuntu
+# and derivatives only busybox-initramfs will work.
+BUSYBOX_PACKAGES='busybox busybox-static'
+BUSYBOX_MIN_VERSION='1:1.22.0-17~'
+
 keep="n"
 CONFDIR="/etc/initramfs-tools"
 verbose="n"
@@ -85,7 +96,7 @@ done
 # For dependency ordered mkinitramfs hook scripts.
 . /usr/share/initramfs-tools/scripts/functions
 . /usr/share/initramfs-tools/hook-functions
-
+# shellcheck source=/dev/null
 . "${CONFDIR}/initramfs.conf"
 
 EXTRA_CONF=''
@@ -98,6 +109,7 @@ maybe_add_conf() {
       echo "W: $1 is a directory instead of file" >&2
     else
       EXTRA_CONF="${EXTRA_CONF} $1"
+      # shellcheck source=/dev/null
       . "$1"
     fi
   fi
@@ -117,13 +129,14 @@ for i in /usr/share/initramfs-tools/conf-hooks.d/*; do
   if [ -d "${i}" ]; then
     echo "W: ${i} is a directory instead of file." >&2
   elif [ -e "${i}" ]; then
+    # shellcheck disable=SC1090
     . "${i}"
   fi
 done
 
 # Check busybox dependency
 if [ "${BUSYBOX}" = "y" ] && [ -z "${BUSYBOXDIR}" ]; then
-  echo >&2 "E: busybox or busybox-static, version 1:1.22.0-17~ or later, is required but not installed"
+  echo >&2 "E: ${BUSYBOX_PACKAGES}, version ${BUSYBOX_MIN_VERSION} or later, is required but not installed"
   exit 1
 fi
 
@@ -135,7 +148,19 @@ if [ -z "${outfile}" ]; then
   usage_error
 fi
 
+touch "$outfile"
+outfile="$(readlink -f "$outfile")"
+
+## Wrap original mkinitramfs -> build_initramfs
 build_initramfs() {
+  # And by "version" we really mean path to kernel modules
+  # This is braindead, and exists to preserve the interface with mkinitrd
+  if [ ${#} -ne 1 ]; then
+    echo "No version provided."
+    exit 2
+  else
+    version="${1}"
+  fi
 
   case "${version}" in
   /lib/modules/*/[!/]*) ;;
@@ -168,10 +193,11 @@ build_initramfs() {
   gzip) # If we're doing a reproducible build, use gzip -n
     if [ -n "${SOURCE_DATE_EPOCH}" ]; then
       compress="gzip -n"
-    # Otherwise, substitute pigz if it's available
+      # Otherwise, substitute pigz if it's available
     elif command -v pigz >/dev/null; then
       compress=pigz
     fi
+    compress="${compress} -9"
     ;;
   lz4) compress="lz4 -9 -l" ;;
   xz) compress="xz --check=crc32" ;;
@@ -195,6 +221,31 @@ build_initramfs() {
   if [ ! -e "${MODULESDIR}/modules.dep" ]; then
     depmod "${version}"
   fi
+
+  # Prepare to clean up temporary files on exit
+  DESTDIR=
+  __TMPCPIOGZ=
+  __TMPEARLYCPIO=
+  clean_on_exit() {
+    if [ "${keep}" = "y" ]; then
+      echo "Working files in ${DESTDIR:-<not yet created>}, early initramfs in ${__TMPEARLYCPIO:-<not yet created>} and overlay in ${__TMPCPIOGZ:-<not yet created>}"
+    else
+      for path in "${DESTDIR}" "${__TMPCPIOGZ}" "${__TMPEARLYCPIO}"; do
+        test -z "${path}" || rm -rf "${path}"
+      done
+    fi
+  }
+  trap clean_on_exit EXIT
+  trap "exit 1" INT TERM # makes the EXIT trap effective even when killed
+
+  # Create temporary directory and files for initramfs contents
+  [ -n "${TMPDIR}" ] && [ ! -w "${TMPDIR}" ] && unset TMPDIR
+  DESTDIR="$(mktemp -d "${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX")" || exit 1
+  chmod 755 "${DESTDIR}"
+  __TMPCPIOGZ="$(mktemp "${TMPDIR:-/var/tmp}/mkinitramfs-OL_XXXXXX")" || exit 1
+  __TMPEARLYCPIO="$(mktemp "${TMPDIR:-/var/tmp}/mkinitramfs-FW_XXXXXX")" || exit 1
+
+  DPKG_ARCH=$(dpkg --print-architecture)
 
   # Export environment for hook scripts.
   #
@@ -306,14 +357,12 @@ build_initramfs() {
   # module-init-tools
   copy_exec /sbin/modprobe /sbin
   copy_exec /sbin/rmmod /sbin
-  #mkdir -p "${DESTDIR}/etc/modprobe.d" "${DESTDIR}/lib/modprobe.d"
-  #for file in /etc/modprobe.d/*.conf /lib/modprobe.d/*.conf ; do
-  #	if test -e "$file" || test -L "$file" ; then
-  #		copy_file config "$file"
-  #	fi
-  #done
-  mkdir -p "${DESTDIR}/etc/modprobe.d"
-  cp -a /etc/modprobe.d/* "${DESTDIR}/etc/modprobe.d/"
+  mkdir -p "${DESTDIR}/etc/modprobe.d" "${DESTDIR}/lib/modprobe.d"
+  for file in /etc/modprobe.d/*.conf /lib/modprobe.d/*.conf; do
+    if test -e "$file" || test -L "$file"; then
+      copy_file config "$file"
+    fi
+  done
 
   # workaround: libgcc always needed on old-abi arm
   if [ "$DPKG_ARCH" = arm ] || [ "$DPKG_ARCH" = armeb ]; then
@@ -372,104 +421,138 @@ build_initramfs() {
   fi
 
   [ "${verbose}" = y ] && echo "Building cpio ${outfile} initramfs"
+
   if [ -s "${__TMPEARLYCPIO}" ]; then
     cat "${__TMPEARLYCPIO}" >"${outfile}" || exit 1
   else
-    #truncate
-    >"${outfile}"
+    # truncate
+    true >"${outfile}"
+  fi
+
+  (
+    # preserve permissions if root builds the image, see #633582
+    [ "$(id -ru)" != 0 ] && cpio_owner_root="-R 0:0"
+
+    # if SOURCE_DATE_EPOCH is set, try and create a reproducible image
+    if [ -n "${SOURCE_DATE_EPOCH}" ]; then
+      # ensure that no timestamps are newer than $SOURCE_DATE_EPOCH
+      find "${DESTDIR}" -newermt "@${SOURCE_DATE_EPOCH}" -print0 |
+        xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
+
+      # --reproducible requires cpio >= 2.12
+      cpio_reproducible="--reproducible"
+    fi
+
+    # work around lack of "set -o pipefail" for the following pipe:
+    # cd "${DESTDIR}" && find . | LC_ALL=C sort | cpio --quiet $cpio_owner_root $cpio_reproducible -o -H newc | gzip >>"${outfile}" || exit 1
+    ec1=1
+    ec2=1
+    ec3=1
+    exec 3>&1
+    eval "$(
+      # http://cfaj.freeshell.org/shell/cus-faq-2.html
+      exec 4>&1 >&3 3>&-
+      cd "${DESTDIR}"
+      {
+        find . 4>&-
+        echo "ec1=$?;" >&4
+      } | {
+        LC_ALL=C sort
+      } | {
+        # shellcheck disable=SC2086
+        cpio --quiet $cpio_owner_root $cpio_reproducible -o -H newc 4>&-
+        echo "ec2=$?;" >&4
+      } | ${compress} >>"${outfile}"
+      echo "ec3=$?;" >&4
+    )"
+    if [ "$ec1" -ne 0 ]; then
+      echo "E: mkinitramfs failure find $ec1 cpio $ec2 $compress $ec3" >&2
+      exit "$ec1"
+    fi
+    if [ "$ec2" -ne 0 ]; then
+      echo "E: mkinitramfs failure cpio $ec2 $compress $ec3" >&2
+      exit "$ec2"
+    fi
+    if [ "$ec3" -ne 0 ]; then
+      echo "E: mkinitramfs failure $compress $ec3" >&2
+      exit "$ec3"
+    fi
+  ) || exit 1
+
+  if [ -s "${__TMPCPIOGZ}" ]; then
+    cat "${__TMPCPIOGZ}" >>"${outfile}" || exit 1
   fi
 
 }
 
-# ===================== Start build process
+## Prepare a initramfs for Volumio.initrd
+build_volumio_initramfs() {
+  log "Creating Volumio intramsfs" "info"
+  #shellcheck disable=SC2012 #We know it's going to be alphanumeric only!
+  mapfile -t versions < <(ls -t /lib/modules | sort)
+  # Pick how many kernels we want to add
+  # (Future proofing for Rpi 5,6,7 etc..) ¯\_(ツ)_/¯
 
-touch "$outfile"
-outfile="$(readlink -f "$outfile")"
-versions="$(ls -t /lib/modules | sort | cat | head -n3)"
+  num_ker_max=3
 
-v_version=$(echo ${versions} | awk '{print $1}')
-o_version=$(echo ${versions} | awk '{print $2}')
-l_version=$(echo ${versions} | awk '{print $3}')
+  log "Found ${#versions[@]} kernel version(s)" "${versions[@]}"
+  for ver in "${!versions[@]}"; do
+    log "Building intramsfs for Kernel[${ver}]: ${versions[ver]}" "info"
+    build_initramfs "${versions[ver]}"
+    log "initramfs built for Kernel[${ver}]: ${versions[ver]} at ${DESTDIR}" "okay"
+    if [[ $ver -eq 0 ]]; then
+      # The first initramfs location
+      DESTDIR_VOL=${DESTDIR}
+    elif [[ $ver -ge 0 ]]; then
+      log "Copying modules from ${DESTDIR} to ${DESTDIR_VOL}"
+      cp -rf "${DESTDIR}/lib/modules/${versions[ver]}" \
+        "${DESTDIR_VOL}/lib/modules/${versions[ver]}"
+    fi
+    if [[ $ver -gt $num_ker_max-1 ]]; then
+      log "Using only ${num_ker_max} kernels" "wrn"
+      break
+    fi
+  done
+  # Set correct final tmp/mkinitramfs_XXXXXX
+  DESTDIR=${DESTDIR_VOL}
 
-#Create DESTDIR
-[ -n "${TMPDIR}" ] && [ ! -w "${TMPDIR}" ] && unset TMPDIR
-DESTDIR_REAL="$(mktemp -d ${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX)" || exit 1
-chmod 755 "${DESTDIR_REAL}"
-DESTDIR_OTHER="$(mktemp -d ${TMPDIR:-/var/tmp}/mkinitramfs_XXXXXX)" || exit 1
-chmod 755 "${DESTDIR_OTHER}"
+  # Add in VolumioOS customisation
+  log "Addig Volumio specific binaries" "info"
+  # Add VolumioOS binaries
+  volbins=('/usr/local/sbin/volumio-init-updater')
+  volbins+=('/sbin/parted' '/sbin/findfs' '/sbin/mke2fs'
+    '/sbin/e2fsck' '/sbin/resize2fs' '/sbin/mke2fsfull')
+  if [[ ${DPKG_ARCH} = 'i386' ]] || [[ ${DPKG_ARCH} = 'amd64' ]]; then
+    log "Adding x86/x64 specific binaries (sgdisk/lsblk/dmidecode..etc)"
+    volbins+=('/sbin/fdisk' '/sbin/sgdisk' '/bin/lsblk' '/usr/sbin/dmidecode')
+  fi
 
-# __TMPCPIOGZ="$(mktemp ${TMPDIR:-/var/tmp}/mkinitramfs-OL_XXXXXX)" || exit 1
-# __TMPEARLYCPIO="$(mktemp ${TMPDIR:-/var/tmp}/mkinitramfs-FW_XXXXXX)" || exit 1
+  for bin in "${volbins[@]}"; do
+    if [[ -f ${bin} ]]; then
+      log "Adding $bin to /sbin"
+      copy_exec "$bin" /sbin
+    else
+      log "$bin not found!" "wrn"
+    fi
+  done
 
-DPKG_ARCH=$(dpkg --print-architecture)
+}
 
-if [ ${DPKG_ARCH} = "armhf" ]; then
-  LIB_GNUE="/lib/arm-linux-gnueabihf"
-elif [ ${DPKG_ARCH} = "i386" ]; then
-  LIB_GNUE="/lib/i386-linux-gnu"
-fi
+## Create initrd image from initramsfs
+build_initrd() {
+  log "Creating volumio.initrd Image from ${DESTDIR}" "info"
+  # Remove auto-generated scripts
+  rm -rf "${DESTDIR}/scripts"
+  cp /root/init "${DESTDIR}"
+  cd "${DESTDIR}"
+  OPTS=("-o")
+  [ "${verbose}" = y ] && OPTS+=("-v") || OPTS+=("--quiet")
+  log "Compressing volumio.initrd with ${compress}" "dbg"
+  find . -print0 | cpio "${OPTS[@]}" -0 --format=newc | ${compress} >/boot/volumio.initrd
+  # Check size
+  log "Created: /boot/volumio.initrd" "okay"
+  log "Boot partition info:" "dbg" "$(du -sh /boot)"
+}
 
-DESTDIR=${DESTDIR_REAL}
-version=${v_version}
-echo "Version: ${v_version}"
-build_initramfs
-
-if [ ! ${o_version} = "" ]; then
-  DESTDIR=${DESTDIR_OTHER}
-  version=${o_version}
-  echo "Version: ${o_version}"
-  build_initramfs
-  cp -rf "${DESTDIR_OTHER}/lib/modules/${o_version}" "${DESTDIR_REAL}/lib/modules/${o_version}"
-fi
-
-if [ ! ${l_version} = "" ]; then
-  DESTDIR=${DESTDIR_OTHER}
-  version=${l_version}
-  echo "Version: ${l_version}"
-  build_initramfs
-  cp -rf "${DESTDIR_OTHER}/lib/modules/${l_version}" "${DESTDIR_REAL}/lib/modules/${l_version}"
-fi
-
-DESTDIR=${DESTDIR_REAL}
-
-# ===================== Finishing with Volumio-specific additions to the initramfs file structure
-
-echo "Volumio custom: adding findfs/ parted/ mkfs.ext4/ e2fsck to initramfs..."
-copy_exec /sbin/parted /sbin
-copy_exec /sbin/findfs /sbin
-copy_exec /sbin/mkfs.ext4 /sbin
-copy_exec /sbin/e2fsck /sbin
-copy_exec /sbin/resize2fs /sbin
-if [ -f /usr/bin/i2crw1 ]; then
-  echo "Adding i2crw1..."
-  copy_exec /usr/bin/i2crw1 /sbin
-fi
-
-if [ ${DPKG_ARCH} = "i386" ]; then
-  echo "Volumio custom: adding gdisk/ lsblk to initramfs..."
-  copy_exec /sbin/fdisk /sbin
-  copy_exec /sbin/gdisk /sbin
-  copy_exec /bin/lsblk /sbin
-  echo "Volumio custom: adding x86-specific dmidecode to initramfs..."
-  copy_exec /usr/sbin/dmidecode /sbin
-fi
-
-echo "Volumio custom: adding volumio-init-updater to initramfs..."
-chmod +x /usr/local/sbin/volumio-init-updater
-copy_exec /usr/local/sbin/volumio-init-updater /sbin
-
-# ===================== Building an initrd image from the initramfs file structure
-
-#Manage the destdir folder, removing the auto-generated scripts
-rm -rf "${DESTDIR}/scripts"
-cp /root/init "${DESTDIR}"
-
-#Creation of the initrd image
-echo "Creating initrd image"
-cd ${DESTDIR}
-OPTS="-o"
-[ "${verbose}" = y ] && OPTS="-v ${OPTS}"
-#TODO: verbose option overridden, remove when finished with mkinitramfs-custom.sh
-OPTS="-vo"
-find . -print0 | cpio --quiet ${OPTS} -0 --format=newc | gzip -9 >/boot/volumio.initrd
-exit 0
+build_volumio_initramfs
+build_initrd
