@@ -52,6 +52,8 @@ where switches are :
 
    Example supported device names:
        **mp1**, **nanopineo2**, **odroidn2**, **orangepilite**, **pi**, **rockpis**, **tinkerboard**, **x86_amd64**, **x86_i386**
+
+   Run ```./build.sh -h``` for a definitive list; new devices are being added as time allows.
  * -v `<vers>` Version
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
