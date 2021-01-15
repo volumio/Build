@@ -50,8 +50,8 @@ where switches are :
        **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit) or **x64** (Debian 64bit).
  * -d `<dev>`  Create Image for Specific Devices.
 
-   Supported device names:
-       **mp1** **nanopineo2** **odroidn2** **orangepilite** **pi** **rockpis** **tinkerboard** **x86_amd64** **x86_i386**
+   Example supported device names:
+       **mp1**, **nanopineo2**, **odroidn2**, **orangepilite**, **pi**, **rockpis**, **tinkerboard**, **x86_amd64**, **x86_i386**
  * -v `<vers>` Version
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
