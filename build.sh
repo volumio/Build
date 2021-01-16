@@ -26,6 +26,7 @@ mapfile -t DEVICE_LIST < <(basename -s .sh "${SRC}"/recipes/devices/*.sh | sort)
 log "Running Volumio Image Builder -" "info"
 
 ARCH=""
+# This isn't being used currently..
 SUITE="buster"
 #Help function
 function HELP() {
@@ -330,12 +331,7 @@ if [ -n "${BUILD}" ]; then
     BUILD="x64"
   fi
 
-  # For easier debugging we add config flag
-  if [[ ${USE_MULTISTRAP_CASCADE:-yes} == yes ]]; then
-    CONF="${SRC}/recipes/base/${MULTISTRAPCONF}.conf"
-  else
-    CONF="${SRC}/recipes/base/${MULTISTRAPCONF}-$SUITE.conf"
-  fi
+  CONF="${SRC}/recipes/base/${MULTISTRAPCONF}.conf"
 
   if [[ ! -f $CONF ]]; then
     log "No base system configuration file found" "wrn" "$(basename "$CONF")"
