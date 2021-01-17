@@ -192,6 +192,8 @@ device_chroot_tweaks_pre() {
     "logo.nologo"
     # Disable cursor
     "vt.global_cursor_default=0"
+    # backlight control (notebooks)
+    "acpi_backlight=vendor"
   )
 
   if [[ $DEBUG_IMAGE == yes ]]; then

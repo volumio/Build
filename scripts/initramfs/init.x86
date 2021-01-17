@@ -267,11 +267,11 @@ fi
 [ -d /mnt/imgpart ] || mkdir /mnt/imgpart
 mount -t ext4 "${IMGPART}" /mnt/imgpart
 
-if [ ! -e "/mnt/imgpart/kernel_current.tar" ] || [ -e "/mnt/imgpart/curret_kernel_creation" ]; then
+if [ ! -e "/mnt/imgpart/kernel_current.tar" ] || [ -e "/mnt/imgpart/current_kernel_creation" ]; then
   print_msg "Creating archive for current kernel..."
-  touch /mnt/imgpart/curret_kernel_creation
+  touch /mnt/imgpart/current_kernel_creation
   mkdir /mnt/factory
-  mount -t vfat /dev/${BOOTDEV}p1 /mnt/factory
+  mount -t vfat ${BOOTPART} /mnt/factory
   # exclude ldlinux.sys from kernel tar's to avoid a relocation during kernel-update or factory-reset
   # (little workaround, as this tar version does not support the --exclude= option)
   mkdir /mnt/imgpart/boot
@@ -281,7 +281,7 @@ if [ ! -e "/mnt/imgpart/kernel_current.tar" ] || [ -e "/mnt/imgpart/curret_kerne
   rm -r /mnt/imgpart/boot
   umount /mnt/factory
   rm -r /mnt/factory
-  rm /mnt/imgpart/curret_kernel_creation
+  rm /mnt/imgpart/current_kernel_creation
   sync
 fi
 
