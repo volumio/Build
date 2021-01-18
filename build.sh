@@ -119,6 +119,12 @@ function fetch_volumio_from_repo() {
     log "Setting BE_REPO to commit" "${VOL_BE_REPO_SHA}"
     git -C "${ROOTFS}/volumio/" reset --hard "${VOL_BE_REPO_SHA}"
   fi
+  log "Adding precommit hooks"
+  cat <<-EOF >"${ROOTFS}/volumio/.git/hooks/pre-commit"
+	#!/bin/bash
+	# Pre-commit hook, uncomment when finished linting all codebase
+	#npm run lint-staged
+	EOF
 
   log "Adding wireless.js"
   cp "${SRC}/volumio/bin/wireless.js" "${ROOTFS}/volumio/app/plugins/system_controller/network/wireless.js"
