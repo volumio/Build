@@ -114,4 +114,7 @@ chmod a+x "${ROOTFS}/bin/volumio_cpu_tweak"
 #LAN HOTPLUG
 cp "${SRC}/volumio/etc/default/ifplugd" "${ROOTFS}/etc/default/ifplugd"
 
+#TRIGGERHAPPY
+cp "${SRC}/volumio/etc/triggerhappy/triggers.d/audio.conf" "${ROOTFS}/etc/triggerhappy/triggers.d/audio.conf"
+
 log 'Done Copying Custom Volumio System Files' "okay"
