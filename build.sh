@@ -177,6 +177,12 @@ function setup_multistrap() {
   echo -e 'Dpkg::Progress-Fancy "1";\nAPT::Color "1";' > \
     "${DirEtcparts}"/01progress
 
+  if [[ -n ${APT_CACHE} ]] && ! curl -sSf "${APT_PROXY}" >/dev/null; then
+    cat <<-EOF >"${DirEtcparts}/02cache"
+		Acquire::http { Proxy "${APT_CACHE}"; };
+		EOF
+  fi
+
   log "Adding SecureApt keys to rootfs"
   for key in "${!SecureApt[@]}"; do
     apt-key --keyring "${DirEtctrustedparts}/${key}" \
@@ -199,8 +205,8 @@ function patch_multistrap_conf() {
     log "Patching multistrap config to point to Raspbian sources" "info"
     BASECONF=recipes/base/VolumioBase.conf
     export RASPBIANCONF=recipes/base/arm-raspbian.conf
-    debian_source=https://deb.debian.org/debian
-    rapsbian_source=https://archive.raspbian.org/raspbian
+    debian_source=http://deb.debian.org/debian
+    rapsbian_source=http://archive.raspbian.org/raspbian
     upmpdcli_source=http://www.lesbonscomptes.com/upmpdcli/downloads
 
     cat <<-EOF >"${SRC}/${RASPBIANCONF}"
@@ -362,6 +368,7 @@ if [ -n "${BUILD}" ]; then
   else
     end_multistrap=$(date +%s)
     time_it "$end_multistrap" "$start"
+    # Clean up multistrap
     # Incase multistrap's list are left over
     if compgen -G "${ROOTFS}/etc/apt/sources.list.d/multistrap-*.list" >/dev/null; then
       log "Removing multistrap-*.list" "wrn"
