@@ -48,17 +48,16 @@ update_config_UUIDs() {
   # So we don't need to update the grub/syslinux with kernel versions?
   KRNL=$(ls -l ${root_dir} | grep vmlinuz | awk '{print $9}')
   KVER=$(echo "${KRNL}" | awk -F '-' '{print $2}')
-
   mv "${root_dir}"/syslinux.cfg "${root_dir}"/syslinux.cfg.old
-  mv "${root_dir}"/syslinux.tmpl "${root_dir}"/syslinux.cfg
+  cp "${root_dir}"/syslinux.tmpl "${root_dir}"/syslinux.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" "${root_dir}"/syslinux.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" "${root_dir}"/syslinux.cfg
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" "${root_dir}"/syslinux.cfg
   # Replace the whole line
-  sed -i "/LINUX/c LINUX ${KRNL}" syslinux.tmpl
+  sed -i "/LINUX/c LINUX ${KRNL}" "${root_dir}"/syslinux.cfg
 
   mv "${root_dir}"/efi/BOOT/grub.cfg "${root_dir}"/efi/BOOT/grub.cfg.old
-  mv "${root_dir}"/efi/BOOT/grub.tmpl "${root_dir}"/efi/BOOT/grub.cfg
+  cp "${root_dir}"/efi/BOOT/grub.tmpl "${root_dir}"/efi/BOOT/grub.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" "${root_dir}"/efi/BOOT/grub.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" "${root_dir}"/efi/BOOT/grub.cfg
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" "${root_dir}"/efi/BOOT/grub.cfg
@@ -300,7 +299,7 @@ GPTSIZEMISMATCH="$(/usr/sbin/fdisk -l "${BOOT_DEVICE}" 2>&1 | grep 'GPT PMBR siz
 print_msg "GPTSIZEMISMATCH: ${GPTSIZEMISMATCH}"
 if [ ! "x${GPTSIZEMISMATCH}" == "x" ]; then
   print_msg "Alternate (backup) GPT header not at the end of the disk, moving it..."
-  sgdisk -e "${BOOT_DEVICE}"
+  sgdisk -e "${BOOT_DEVICE}" >/dev/null 2>&1
   [ -e /mnt/imgpart/move-gpt ] && rm -rf /mnt/imgpart/move-gpt
   print_msg "Succesfully moved the alternate GPT header"
 fi
@@ -375,7 +374,7 @@ mount -t vfat "${BOOTPART}" /mnt/factory
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data..."
   #mke2fsfull is used since busybox mke2fs does not include ext4 support
-  /sbin/mke2fsfull -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 "${DATAPART}" -L volumio_data
+  /sbin/mke2fsfull -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 "${DATAPART}" -L volumio_data >/dev/null 2>&1
   update_config_UUIDs
   rm /mnt/factory/user_data
   print_msg "User Data successfully deleted "
@@ -428,11 +427,11 @@ FREESIZE="$(parted -s "${DATADEV}" unit MB print free | tail -n 2 | grep Free | 
 if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   print_msg "Re-sizing Volumio data partition..."
   END="$(parted -s "${DATADEV}" unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
-  parted -s "${DATADEV}" resizepart 3 "${END}"
-  e2fsck -f "${DATAPART}" -y
-  resize2fs -p "${DATAPART}"
+  parted -s "${DATADEV}" resizepart 3 "${END}" >/dev/null 2>&1
+  e2fsck -f "${DATAPART}" -y >/dev/null 2>&1
+  resize2fs -p "${DATAPART}" >/dev/null 2>&1
   print_msg "Volumio data partition succesfully resized"
-  parted -s "${DATADEV}" unit MB print
+  parted -s "${DATADEV}" unit MB print >/dev/null 2>&1
 fi
 umount /boot
 rm -r /boot
