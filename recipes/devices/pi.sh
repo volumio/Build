@@ -140,8 +140,24 @@ device_chroot_tweaks_pre() {
 		[5.10.3]="da59cb1161dc7c75727ec5c7636f632c52170961"
 	)
 	# Version we want
-	KERNEL_VERSION="4.19.118"
-	KERNEL_VERSION="5.10.3"
+	# For bleeding edge, check what is the latest on offer
+	# Things *might* break, so you are warned!
+	if [[ ${RPI_USE_LATEST_KERNEL:-no} == yes ]]; then
+		log "Using bleeding edge Rpi kernel" "info"
+		RpiRepo="https://github.com/Hexxeh/rpi-firmware"
+		RpiRepoApi=${RpiRepo/github.com/api.github.com\/repos}
+		RpiRepoRaw=${RpiRepo/github.com/raw.githubusercontent.com}
+		log "Fetching latest kernel details from ${RpiRepo}"
+		RpiGitSHA=$(curl --silent "${RpiRepoApi}/branches/master")
+		readarray -t RpiCommitDetails <<<"$(jq -r '.commit.sha, .commit.commit.message' <<<"${RpiGitSHA}")"
+		log "Rpi latest kernel -- ${RpiCommitDetails[*]}"
+		KVER=$(curl --silent "${RpiRepoRaw}/${RpiCommitDetails[0]}/uname_string" | awk '{print $3}')
+		KERNEL_VERSION=${KVER/+/}
+		log "Using rpi-update SHA ${RpiCommitDetails[0]}" "${KERNEL_VERSION}"
+		PI_KERNELS[${KERNEL_VERSION}]+="${RpiCommitDetails[0]}"
+	else
+		KERNEL_VERSION="5.10.3"
+	fi
 
 	IFS=\. read -ra KERNEL_SEMVER <<<"$KERNEL_VERSION"
 	# List of custom firmware -
