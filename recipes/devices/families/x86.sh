@@ -146,7 +146,6 @@ device_chroot_tweaks_pre() {
   # Exact kernel version not known
   # Not brilliant, but safe enough as platform repo *should* have only a single kernel package
   # Confirm anyway
-  ls -la /
   dpkg -i linux-image-*_"${ARCH}".deb
   rm linux-image-*_"${ARCH}".deb
   log "Getting the current kernel filename and version"
@@ -216,7 +215,7 @@ device_chroot_tweaks_pre() {
   cat <<-EOF >/boot/syslinux.tmpl
 	DEFAULT volumio
 	LABEL volumio
-	SAY Legacy Boot Volumio Audiophile Music Player (default)
+	SAY Booting Volumio Audiophile Music Player, please wait...
 	LINUX ${KRNL}
 	APPEND ${kernel_params[@]}
 	INITRD volumio.initrd
@@ -262,7 +261,6 @@ device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   log "Cleaning up /boot"
-  ls -la /boot
   log "Removing original initrd" "$(ls -lh --block-size=M /boot/initrd.img*)"
   rm /boot/initrd.img-*
   log "Removing System.map" "$(ls -lh --block-size=M /boot/System.map-*)"
