@@ -79,10 +79,14 @@ exec >/var/log/volumiokiosk.log 2>&1
 
 echo "Starting Kiosk"
 start=\$(date +%s)
-res=\$(xdpyinfo | awk '/dimensions:/ { print \$2; exit }')
-#res=\${res/x/,}
-echo "Current probed resolution: \${res}"
+
 export DISPLAY=:0
+#TODO xpdyinfo does not work on a fresh install (freezes), skipping it just now
+#Perhaps xrandr can be parsed instead? (Needs DISPLAY:=0 to be exported first)
+#res=\$(xdpyinfo | awk '/dimensions:/ { print \$2; exit }')
+#res=\${res/x/,}
+#echo "Current probed resolution: \${res}"
+
 xset -dpms
 xset s off
 [[ -e /data/volumiokiosk/Default/Preferences ]] && {
