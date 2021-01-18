@@ -99,11 +99,9 @@ while true; do timeout 3 bash -c "</dev/tcp/127.0.0.1/3000" >/dev/null 2>&1 && b
 echo "Waited \$((\$(date +%s) - start)) sec for Volumio UI"
 
 openbox-session &
-while true; do
   /usr/bin/chromium \\
 	$(printf '    %s \\\n' "${CHROMIUM_FLAGS[@]}")
     http://localhost:3000
-done
 EOF
 chmod +x /opt/volumiokiosk.sh
 
