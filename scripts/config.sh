@@ -34,11 +34,10 @@ declare -A CUSTOM_PKGS=(
 )
 
 ## Backend and Frontend Repository details
-# VOL_BE_REPO="https://github.com/ashthespy/Volumio2.git"
-# VOL_BE_REPO_BRANCH="buster_upstream"
 VOL_BE_REPO="https://github.com/volumio/Volumio2.git"
 VOL_BE_REPO_BRANCH="buster/master"
-VOL_BE_REPO_SHA="d7a5678" # Workaround for BE repo having incompatible package.json for Node v8
+# VOL_BE_REPO_SHA="d7a5678" # Workaround for BE repo having incompatible package.json for Node v8
+
 ## NodeJS Controls
 # Semver is only used w.t.r modules fetched from repo,
 # actual node version installs only respects the current major versions (Major.x)

@@ -115,7 +115,7 @@ function fetch_volumio_from_repo() {
 
   log "Cloning Volumio from ${VOL_BE_REPO} - ${VOL_BE_REPO_BRANCH}"
   git clone --depth 10 -b "${VOL_BE_REPO_BRANCH}" --single-branch "${VOL_BE_REPO}" "${ROOTFS}/volumio"
-  if [[ ${VOL_BE_REPO_SHA} ]]; then
+  if [[ -n ${VOL_BE_REPO_SHA} ]]; then
     log "Setting BE_REPO to commit" "${VOL_BE_REPO_SHA}"
     git -C "${ROOTFS}/volumio/" reset --hard "${VOL_BE_REPO_SHA}"
   fi
