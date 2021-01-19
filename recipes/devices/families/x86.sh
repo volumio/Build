@@ -117,17 +117,17 @@ device_image_tweaks() {
   log "Add script to set sane defaults for baytrail/cherrytrail soundcards"
   #TODO: add this to the Intel HD Audio tweak script see below
   cat <<-EOF >"${ROOTFSMNT}/etc/rc.local"
-	#!/bin/sh -e
-  /usr/local/bin/bytcr_init.sh
-  /usr/local/bin/volumio_hda_intel_tweak.sh
-  exit 0
-	EOF
+#!/bin/sh -e
+/usr/local/bin/bytcr_init.sh
+/usr/local/bin/volumio_hda_intel_tweak.sh
+exit 0
+EOF
 
   log "Blacklisting PC speaker"
   cat <<-EOF >>"${ROOTFSMNT}/etc/modprobe.d/blacklist.conf"
-	blacklist snd_pcsp
-	blacklist pcspkr
-	EOF
+blacklist snd_pcsp
+blacklist pcspkr
+EOF
 }
 
 # Will be run in chroot (before other things)
@@ -159,13 +159,6 @@ device_chroot_tweaks_pre() {
   log "Finished Kernel ${KVER[1]} installation" "okay" "${KRNL}"
 
   log "Preparing BIOS" "info"
-
-  log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
-  syslinux -v
-  syslinux "${BOOT_PART}"
-
-  log "Preparing BIOS" "info"
-
   log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
   syslinux -v
   syslinux "${BOOT_PART}"
@@ -213,15 +206,13 @@ device_chroot_tweaks_pre() {
   log "Creating run-time template for syslinux config"
   # Create a template for init to use later in `update_config_UUIDs`
   cat <<-EOF >/boot/syslinux.tmpl
-	DEFAULT volumio
-	LABEL volumio
+DEFAULT volumio
+LABEL volumio
 	SAY Booting Volumio Audiophile Music Player, please wait...
-	LINUX ${KRNL}
-	APPEND ${kernel_params[@]}
-	INITRD volumio.initrd
-	EOF
-  #TODO remove the following line
-  cat /boot/syslinux.tmpl
+  LINUX ${KRNL}
+  APPEND ${kernel_params[@]}
+  INITRD volumio.initrd
+EOF
 
   log "Creating syslinux.cfg from syslinux template"
   sed "s/%%IMGPART%%/${UUID_IMG}/g; s/%%BOOTPART%%/${UUID_BOOT}/g; s/%%DATAPART%%/${UUID_DATA}/g" /boot/syslinux.tmpl >/boot/syslinux.cfg
