@@ -514,7 +514,7 @@ if [[ -n "${DEVICE}" ]]; then
     # TODO: Consolidate the naming scheme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz
     log "Attempting to fetch node_modules for ${NODE_VERSION} -- ${NODE_SEMVER[*]}"
     # Workaround for x64 modules being built for a differnt version
-    [[ ${BUILD} == x64 ]] && {
+    [[ ${BUILD} == x64 ]] && [[ ${NODE_SEMVER[0]} == 0 ]] && {
       log "Overiding NODE_VERSION from ${NODE_VERSION} to 8.17.0" "wrn"
       NODE_VERSION=8.17.0
     }
