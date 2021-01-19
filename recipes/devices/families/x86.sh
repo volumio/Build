@@ -220,6 +220,8 @@ device_chroot_tweaks_pre() {
 	APPEND ${kernel_params[@]}
 	INITRD volumio.initrd
 	EOF
+  #TODO remove the following line
+  cat /boot/syslinux.tmpl
 
   log "Creating syslinux.cfg from syslinux template"
   sed "s/%%IMGPART%%/${UUID_IMG}/g; s/%%BOOTPART%%/${UUID_BOOT}/g; s/%%DATAPART%%/${UUID_DATA}/g" /boot/syslinux.tmpl >/boot/syslinux.cfg
