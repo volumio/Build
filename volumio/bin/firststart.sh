@@ -15,6 +15,9 @@ rm -v /etc/ssh/ssh_host_*
 echo "Generating SSH host keys"
 dpkg-reconfigure openssh-server
 
+echo "Enabling SSH for first boot"
+systemctl start ssh.service
+
 echo "Disabling firststart service"
 systemctl disable firststart.service
 

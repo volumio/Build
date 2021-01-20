@@ -74,13 +74,23 @@ log "Adding ${#CHROMIUM_FLAGS[@]} Chromium flags"
 #TODO: Instead of all this careful escaping, make a simple template and add in CHROMIUM_FLAGS?
 cat <<-EOF >/opt/volumiokiosk.sh
 #!/usr/bin/env bash
-set -eo pipefail
+#set -eo pipefail
 exec >/var/log/volumiokiosk.log 2>&1
 
 echo "Starting Kiosk"
 start=\$(date +%s)
 
 export DISPLAY=:0
+# in case we want to cap hires monitors (e.g. 4K) to HD (1920x1080)
+#CAPPEDRES="1920x1080"
+#SUPPORTEDRES="$(xrandr | grep $CAPPEDRES)"
+#if [ -z "$SUPPORTEDRES" ]; then
+#  echo "Resolution $CAPPEDRES not found, skipping"
+#else
+#  echo "Capping resolution to $CAPPEDRES"
+#  xrandr -s "$CAPPEDRES"
+#fi
+
 #TODO xpdyinfo does not work on a fresh install (freezes), skipping it just now
 #Perhaps xrandr can be parsed instead? (Needs DISPLAY:=0 to be exported first)
 #res=\$(xdpyinfo | awk '/dimensions:/ { print \$2; exit }')

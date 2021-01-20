@@ -19,8 +19,10 @@ if ! grep "VOLUMIO_HARDWARE" ${ROOTFSMNT}/etc/os-release; then
   cat ${ROOTFSMNT}/etc/os-release
   exit 10 # Bail!
 fi
+log "Cleaning up rootfs" "info"
+# Remove our apt cache proxy
+[[ -e "${ROOTFSMNT}/etc/apt/apt.conf.d/02cache" ]] && rm "${ROOTFSMNT}/etc/apt/apt.conf.d/02cache"
 
-log "Cleaning stuff to save space" "info"
 log "Cleaning docs"
 find ${ROOTFSMNT}/usr/share/doc -depth -type f ! -name copyright -delete #| xargs rm
 find ${ROOTFSMNT}/usr/share/doc -empty -delete                           #|xargs rmdir || true

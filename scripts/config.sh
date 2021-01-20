@@ -42,7 +42,7 @@ VOL_BE_REPO_BRANCH="buster/master"
 # Semver is only used w.t.r modules fetched from repo,
 # actual node version installs only respects the current major versions (Major.x)
 # NODE_VERSION=14
-NODE_VERSION=14.15.3
+NODE_VERSION=14.15.4
 # Used to pull the right version of modules
 # expected format node_modules_{arm/x86}-v${NODE_VERSION}.tar.gz
 NODE_MODULES_REPO="http://repo.volumio.org/Volumio2/"
