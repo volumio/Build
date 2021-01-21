@@ -137,8 +137,8 @@ device_chroot_tweaks_pre() {
 		[5.4.51]="8382ece2b30be0beb87cac7f3b36824f194d01e9"
 		[5.4.59]="caf7070cd6cece7e810e6f2661fc65899c58e297"
 		[5.4.79]="0642816ed05d31fb37fc8fbbba9e1774b475113f"
-                [5.4.81]="453e49bdd87325369b462b40e809d5f3187df21d"
-                [5.4.83]="b7c8ef64ea24435519f05c38a2238658908c038e"
+		[5.4.81]="453e49bdd87325369b462b40e809d5f3187df21d"
+		[5.4.83]="b7c8ef64ea24435519f05c38a2238658908c038e"
 		[5.10.3]="da59cb1161dc7c75727ec5c7636f632c52170961"
 	)
 	# Version we want
@@ -173,8 +173,8 @@ device_chroot_tweaks_pre() {
 	### Kernel installation
 	KERNEL_COMMIT=${PI_KERNELS[$KERNEL_VERSION]}
 	FIRMWARE_COMMIT=$KERNEL_COMMIT
-        #TODO PARAMETRIZE THIS CORRECTLY, IN THE KERNEL SHA DECLARE FUNCTION
-        BRANCH=stable
+	#TODO PARAMETRIZE THIS CORRECTLY, IN THE KERNEL SHA DECLARE FUNCTION
+	BRANCH=stable
 	# using rpi-update relevant to defined kernel version
 	log "Adding kernel ${KERNEL_VERSION} using rpi-update" "info"
 
@@ -209,6 +209,7 @@ device_chroot_tweaks_pre() {
 			[8]="https://repo.volumio.org/Volumio2/nodejs_8.17.0-1unofficial_armv6l.deb"
 		)
 		# TODO: Warn and proceed or exit the build?
+		local arch=armv6l
 		wget -nv "${NodeVersion[${NODE_VERSION%%.*}]}" -P /volumio/customNode || log "Failed fetching Nodejs for armv6!!" "wrn"
 		# Proceed only if there is a deb to install
 		if compgen -G "/volumio/customNode/nodejs_*-1unofficial_${arch}.deb" >/dev/null; then
@@ -218,7 +219,6 @@ device_chroot_tweaks_pre() {
 				log "Removing Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
 				apt-get -y purge nodejs
 			fi
-			local arch=armv6l
 			log "Installing Node for ${arch}"
 			dpkg -i /volumio/customNode/nodejs_*-1unofficial_${arch}.deb
 			log "Installed Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
