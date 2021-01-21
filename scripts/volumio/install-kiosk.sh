@@ -44,6 +44,7 @@ CHROMIUM_FLAGS=(
   "--window-position=0,0"
   "--disable-session-crashed-bubble"
   "--disable-infobars"
+  "--disable-sync"
   "--no-first-run"
   "--no-sandbox"
   "--user-data-dir='/data/volumiokiosk'"
