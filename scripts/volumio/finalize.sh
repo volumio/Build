@@ -52,6 +52,10 @@ else
   log "${BUILD} environment detected, not cleaning/stripping libs"
 fi
 
+log "Cleaning APT Cache"
+rm -rf ${ROOTFSMNT}/var/lib/apt/lists/*
+rm -rf ${ROOTFSMNT}/var/cache/apt/*
+
 # Got to do this here to make it stick
 log "Updating MOTD"
 rm -f ${ROOTFSMNT}/etc/motd ${ROOTFSMNT}/etc/update-motd.d/*
