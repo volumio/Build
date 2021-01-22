@@ -33,14 +33,6 @@ fi
 cp "${SRC}/volumio/splash/volumio.png" "${ROOTFS}/boot"
 
 log "Copying misc config/tweaks to rootfs" "info"
-
-if [[ $SUITE == "buster" ]]; then
-  log "Enabling buster specific tweaks" "info"
-  log "Updating Backend .env"
-  sed -i 's/^NODE_MOUNT_HANDLER=false/NODE_MOUNT_HANDLER=true/' "${ROOTFS}/volumio/.env"
-  log "Confirm if following tweaks are still required for Debian - $SUITE" "wrn"
-fi
-
 # TODO: Streamline this!!
 # map files from ${SRC}/volumio => ${ROOTFS}?
 #
