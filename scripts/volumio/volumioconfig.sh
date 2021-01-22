@@ -38,8 +38,7 @@ log "Preparing to run Debconf in chroot" "info"
 # chmod +x /usr/sbin/policy-rc.d
 
 log "Configuring dpkg to not include Manual pages and docs"
-cat <<-EOF >/etc/bash.bashrc
-path-exclude /usr/share/doc/*
+echo "path-exclude /usr/share/doc/*
 # we need to keep copyright files for legal reasons
 path-include /usr/share/doc/*/copyright
 path-exclude /usr/share/man/*
@@ -47,8 +46,7 @@ path-exclude /usr/share/groff/*
 path-exclude /usr/share/info/*
 # lintian stuff is small, but really unnecessary
 path-exclude /usr/share/lintian/*
-path-exclude /usr/share/linda/*"
-EOF
+path-exclude /usr/share/linda/*" > /etc/dpkg/dpkg.cfg.d/01_nodoc
 
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
@@ -78,13 +76,22 @@ fi
 #Reduce locales to just one beyond C.UTF-8
 log "Prepare Volumio Debian customization" "info"
 log "Existing locales: " "" "$(locale -a | tr '\n' ' ')"
-
-# Enable LANG_def='en_US.UTF-8'
-[[ -e /etc/locale.gen ]] &&
-  sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
+log "Generating required locales:"
+[ -f /etc/locale.gen ] || touch -m /etc/locale.gen
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
-update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 LANGUAGE=en_US.UTF-8
-log "Final locale list: " "" "$(locale -a | tr '\n' ' ')"
+log "Removing unused locales"
+echo "en_US.UTF-8" >> /etc/locale.nopurge
+# To remove existing locale data we must turn off the dpkg hook
+sed -i -e 's/^USE_DPKG/#USE_DPKG/' /etc/locale.nopurge
+# Ensure that the package knows it has been configured
+sed -i -e 's/^NEEDSCONFIGFIRST/#NEEDSCONFIGFIRST/' /etc/locale.nopurge
+dpkg-reconfigure localepurge -f noninteractive
+localepurge
+# Turn dpkg feature back on, it will handle further locale-cleaning
+sed -i -e 's/^#USE_DPKG/USE_DPKG/' /etc/locale.nopurge
+dpkg-reconfigure localepurge -f noninteractive
+
 
 #Adding Main user Volumio
 log "Adding Volumio User"
