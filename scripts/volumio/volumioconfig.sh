@@ -213,19 +213,6 @@ chmod -R 777 /data/INTERNAL
 # shellcheck source=/dev/null
 source /etc/os-release
 
-#TODO: Refactor this!
-# Binaries
-# MPD,Upmpdcli
-# Shairport-Sync, Shairport-Sync Metadata Reader
-# hostapd-edimax
-# Node modules!
-
-# Current Volumio repo knows only {arm|x86} which is conveniently the same length
-log "Installing Zsync"
-wget http://repo.volumio.org/Volumio2/Binaries/${BUILD:0:3}/zsync -P /usr/bin/ -c
-chmod a+x /usr/bin/zsync
-
-
 # TODO: Think about restructuring this, copy all bits into rootfs first?
 log "Setting up nameserver for apt resolution" "dbg"
 echo "nameserver 208.67.220.220" >/etc/resolv.conf
@@ -246,6 +233,21 @@ apt-get -y install $packages
 
 log "Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
 log "nodejs installed at $(command -v node)" "info"
+
+#TODO: Refactor this!
+# Binaries
+# MPD,Upmpdcli
+# Shairport-Sync, Shairport-Sync Metadata Reader
+# hostapd-edimax
+# Node modules!
+log "Installing Zsync"
+if [ ${VOLUMIO_ARCH:0:3} == "arm" ]; then
+  ZSYNC_ARCH=arm
+else
+  ZSYNC_ARCH=x86
+fi
+wget http://repo.volumio.org/Volumio2/Binaries/${ZSYNC_ARCH}/zsync -P /usr/bin/ -c
+chmod a+x /usr/bin/zsync
 
 log "Cleaning up after package(s) installation"
 apt-get clean
