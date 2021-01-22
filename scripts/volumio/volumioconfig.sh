@@ -217,11 +217,14 @@ source /etc/os-release
 # Binaries
 # MPD,Upmpdcli
 # Shairport-Sync, Shairport-Sync Metadata Reader
-# volumio-remote-updater, Volumio Init Updater
-# Snapcast, Zsync
 # hostapd-edimax
-# LINN Songcast - sc2mpd
 # Node modules!
+
+# Current Volumio repo knows only {arm|x86} which is conveniently the same length
+log "Installing Zsync"
+wget http://repo.volumio.org/Volumio2/Binaries/${BUILD:0:3}/zsync -P /usr/bin/ -c
+chmod a+x /usr/bin/zsync
+
 
 # TODO: Think about restructuring this, copy all bits into rootfs first?
 log "Setting up nameserver for apt resolution" "dbg"

@@ -54,7 +54,7 @@ EOF
 ## Adding board specific packages
 log "Installing ${#PACKAGES[@]} custom packages:" "" "${PACKAGES[*]}"
 apt-get update
-apt-get install -y "${PACKAGES[@]}"
+apt-get install -y "${PACKAGES[@]}" --no-install-recommends
 
 # Custom packages for Volumio
 #TODO THIS SHALL RUN ONLY FOR SOME DEVICES WHERE WE WANT TO INSTALL KIOSK
