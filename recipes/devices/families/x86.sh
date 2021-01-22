@@ -77,7 +77,7 @@ write_device_files() {
   cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
 
   log "Copying Alsa Use Case Manager files"
-  cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
+  cp -R "${pkg_root}"/UCM2/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
 
   mkdir -p "${ROOTFSMNT}"/usr/local/bin/
   declare -A CustomScripts=(
