@@ -46,6 +46,9 @@ if [[ ${BUILD:0:3} == arm ]]; then
     log "$DIR Post strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
   done
 else
+  log "Cleaning man and caches"
+  rm -rf ${ROOTFSMNT}/usr/share/man/* ${ROOTFSMNT}/usr/share/groff/* ${ROOTFSMNT}/usr/share/info/*
+  rm -rf ${ROOTFSMNT}/usr/share/lintian/* ${ROOTFSMNT}/usr/share/linda/* ${ROOTFSMNT}/var/cache/man/*
   log "${BUILD} environment detected, not cleaning/stripping libs"
 fi
 
