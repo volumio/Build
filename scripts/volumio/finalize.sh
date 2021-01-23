@@ -19,42 +19,54 @@ if ! grep "VOLUMIO_HARDWARE" ${ROOTFSMNT}/etc/os-release; then
   cat ${ROOTFSMNT}/etc/os-release
   exit 10 # Bail!
 fi
-log "Cleaning up rootfs" "info"
+log "Cleaning rootfs to save space" "info"
 # Remove our apt cache proxy
 [[ -e "${ROOTFSMNT}/etc/apt/apt.conf.d/02cache" ]] && rm "${ROOTFSMNT}/etc/apt/apt.conf.d/02cache"
 
 log "Cleaning docs"
-find ${ROOTFSMNT}/usr/share/doc -depth -type f ! -name copyright -delete #| xargs rm
-find ${ROOTFSMNT}/usr/share/doc -empty -delete                           #|xargs rmdir || true
+log "Pre /usr/share/" "$(du -sh0 /usr/share | cut -f1)"
+share_dirs=("doc" "locale" "man")
+declare -A pre_size
+for path in "${share_dirs[@]}"; do
+  pre_size["${path}"]="$(du -sh0 "/usr/share/${path}" | cut -f1)"
+done
 
-if [[ ${BUILD:0:3} == arm ]]; then
-  log "Cleaning man and caches"
-  rm -rf ${ROOTFSMNT}/usr/share/man/* ${ROOTFSMNT}/usr/share/groff/* ${ROOTFSMNT}/usr/share/info/*
-  rm -rf ${ROOTFSMNT}/usr/share/lintian/* ${ROOTFSMNT}/usr/share/linda/* ${ROOTFSMNT}/var/cache/man/*
+find ${ROOTFSMNT}/usr/share/doc -depth -type f ! -name copyright -delete # Remove docs that aren't copyrights
+find ${ROOTFSMNT}/usr/share/doc -empty -delete                           # Empty files
+find ${ROOTFSMNT}/usr/share/doc -type l -delete                          # Remove missing symlinks
 
-  #TODO: This doesn't seem to be doing much atm
-  log "Stripping binaries"
-  STRP_DIRECTORIES=("${ROOTFSMNT}/lib/"
-    "${ROOTFSMNT}/bin/"
-    "${ROOTFSMNT}/usr/sbin"
-    "${ROOTFSMNT}/usr/local/bin/"
-    "${ROOTFSMNT}/lib/modules/")
+# if [[ ${BUILD:0:3} == arm ]]; then
+log "Cleaning man and caches"
+rm -rf ${ROOTFSMNT}/usr/share/man/* ${ROOTFSMNT}/usr/share/groff/* ${ROOTFSMNT}/usr/share/info/*
+rm -rf ${ROOTFSMNT}/usr/share/lintian/* ${ROOTFSMNT}/usr/share/linda/* ${ROOTFSMNT}/var/cache/man/*
 
-  for DIR in "${STRP_DIRECTORIES[@]}"; do
-    log "$DIR Pre strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
-    find "$DIR" -type f -exec strip --strip-unneeded {} ';' >/dev/null 2>&1
-    log "$DIR Post strip size " "$(du -sh0 "$DIR" | awk '{print $1}')"
-  done
-else
-  log "Cleaning man and caches"
-  rm -rf ${ROOTFSMNT}/usr/share/man/* ${ROOTFSMNT}/usr/share/groff/* ${ROOTFSMNT}/usr/share/info/*
-  rm -rf ${ROOTFSMNT}/usr/share/lintian/* ${ROOTFSMNT}/usr/share/linda/* ${ROOTFSMNT}/var/cache/man/*
-  log "${BUILD} environment detected, not cleaning/stripping libs"
-fi
+log "Final /usr/share/" "$(du -sh /usr/share | cut -f1)"
+for path in "${share_dirs[@]}"; do
+  log "${path}:" "Pre: ${pre_size[$path]} Post: $(du -sh "/usr/share/${path}" | cut -f1)"
+done
 
-log "Cleaning APT Cache"
-rm -rf ${ROOTFSMNT}/var/lib/apt/lists/*
-rm -rf ${ROOTFSMNT}/var/cache/apt/*
+#TODO: This doesn't seem to be doing much atm
+log "Stripping binaries"
+STRP_DIRECTORIES=("${ROOTFSMNT}/lib/"
+  "${ROOTFSMNT}/bin/"
+  "${ROOTFSMNT}/usr/sbin"
+  "${ROOTFSMNT}/usr/local/bin/"
+  "${ROOTFSMNT}/lib/modules/")
+
+for DIR in "${STRP_DIRECTORIES[@]}"; do
+  log "$DIR Pre  size" "$(du -sh0 "$DIR" | cut -f1)"
+  find "$DIR" -type f -exec strip --strip-unneeded {} ';' >/dev/null 2>&1
+  log "$DIR Post size" "$(du -sh0 "$DIR" | cut -f1)"
+done
+# else
+#   log "${BUILD} environment detected, not cleaning/stripping libs"
+# fi
+
+log "Checking rootfs size"
+rootfs_size=$(du -hsx --exclude=/{proc,sys,dev} "${ROOTFSMNT}")
+volumio_size=$(du -hsx ${ROOTFSMNT}/{volumio,myvolumio})
+log "Complete rootfs: " "${rootfs_size}"
+log "Volumio  parts: " "${volumio_size}"
 
 # Got to do this here to make it stick
 log "Updating MOTD"
