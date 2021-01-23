@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 
-## Setup for Odroid C1 device
+## Setup for Odroid C1 device  (Community Portings)
+
 # shellcheck source=./recipes/devices/families/odroids-earlygen.sh
 source "${SRC}"/recipes/devices/families/odroids-earlygen.sh
 

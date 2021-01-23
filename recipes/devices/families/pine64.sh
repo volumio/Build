@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 
-## Setup for Pine64 family of devices
+## Setup for Pine64 family of devices  (Community Portings)
 
 ## WIP, this should be refactored out to a higher level.
 # Base system
@@ -42,7 +42,7 @@ write_device_files() {
 
   cp ${PLTDIR}/${DEVICEBASE}/boot/Image ${ROOTFSMNT}/boot
   cp -dR ${PLTDIR}/${DEVICEBASE}/boot/dtb ${ROOTFSMNT}/boot
-  
+
   log "Copying kernel configuration file"
   cp ${PLTDIR}/${DEVICEBASE}/boot/config* ${ROOTFSMNT}/boot
 
@@ -71,7 +71,7 @@ write_device_bootloader() {
   log "Copying specific (u)boot files"
   dd if=${PLTDIR}/${DEVICEBASE}/u-boot/${UBOOT_VARIANT}/sunxi-spl.bin of=${LOOP_DEV} conv=fsync bs=8k seek=1
   dd if=${PLTDIR}/${DEVICEBASE}/u-boot/${UBOOT_VARIANT}/u-boot.itb of=${LOOP_DEV} conv=fsync bs=8k seek=5
-  
+
 }
 
 # Will be called by the image builder for any customisation

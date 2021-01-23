@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
-## Setup for Solidrun Cuboxi
+
+## Setup for Polyvection Voltastream Zero  (Community Portings)
+## Images will not be pusblished
 
 ## WIP, this should be refactored out to a higher level.
 # Base system
@@ -9,18 +11,18 @@ ARCH="armhf"
 BUILD="armv7"
 
 ### Device information
-DEVICENAME="Cuboxi"
-DEVICE="cuboxi"
+DEVICENAME="Voltastream Zero"
+DEVICE="vszero"
 # This is useful for multiple devices sharing the same/similar kernel
-DEVICEFAMILY="cubox"
+DEVICEFAMILY="pv"
 # tarball from DEVICEFAMILY repo to use
 #DEVICEBASE=${DEVICE} # Defaults to ${DEVICE} if unset
-DEVICEREPO="https://github.com/gkkpch/platform-${DEVICEFAMILY}.git"
+DEVICEREPO="https://github.com/volumio/platform-${DEVICEFAMILY}.git"
 
 ### What features do we want to target
 # TODO: Not fully implement
 VOLVARIANT=no # Custom Volumio (Motivo/Primo etc)
-MYVOLUMIO=no
+MYVOLUMIO=yes
 VOLINITUPDATER=yes
 
 ## Partition info
@@ -33,7 +35,7 @@ INIT_TYPE="init" # init.{x86/nextarm/nextarm_tvbox}
 # Modules that will be added to intramsfs
 MODULES=("overlay" "squashfs" "nls_cp437")
 # Packages that will be installed
-PACKAGES=("u-boot-tools" "device-tree-compiler")
+PACKAGES=("u-boot-tools")
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -42,24 +44,17 @@ write_device_files() {
 
   cp -dR "${PLTDIR}/${DEVICEBASE}/boot" "${ROOTFSMNT}"
   cp -pdR "${PLTDIR}/${DEVICEBASE}/lib/modules" "${ROOTFSMNT}/lib"
-  cp -dR "${PLTDIR}/${DEVICEBASE}/usr/src" "${ROOTFSMNT}/usr"
-  cp "${PLTDIR}/${DEVICEBASE}/nvram-fw/brcmfmac4329-sdio.txt" "${ROOTFSMNT}/lib/firmware/brcm/"
-  cp "${PLTDIR}/${DEVICEBASE}/nvram-fw/brcmfmac4330-sdio.txt" "${ROOTFSMNT}/lib/firmware/brcm/"
+  cp -dR "${PLTDIR}/${DEVICEBASE}/lib/firmware" "${ROOTFSMNT}/lib/"
 
-  log "Add alsa config"
-  cp "${PLTDIR}/${DEVICEBASE}/usr/share/alsa/cards/imx-hdmi-soc.conf" "${ROOTFSMNT}/usr/share/alsa/cards"
-  cp "${PLTDIR}/${DEVICEBASE}/usr/share/alsa/cards/imx-spdif.conf" "${ROOTFSMNT}/usr/share/alsa/cards"
-  cp "${PLTDIR}/${DEVICEBASE}/usr/share/alsa/cards/aliases.conf" "${ROOTFSMNT}/usr/share/alsa/cards"
-  chown root:root "${ROOTFSMNT}/usr/share/alsa/cards/imx-hdmi-soc.conf"
-  chown root:root "${ROOTFSMNT}/usr/share/alsa/cards/imx-spdif.conf"
-  chown root:root "${ROOTFSMNT}/usr/share/alsa/cards/aliases.conf"
+
+  log "Add hotspot"
+  cp "${PLTDIR}/${DEVICEBASE}/bin/hotspot.sh" "${ROOTFSMNT}/bin"
 
 }
 
 write_device_bootloader() {
   log "Running write_device_bootloader" "ext"
-  dd if="${PLTDIR}/${DEVICEBASE}/uboot/SPL" of=${LOOP_DEV} bs=1K seek=1
-  dd if="${PLTDIR}/${DEVICEBASE}/uboot/u-boot.img" of=${LOOP_DEV} bs=1K seek=42
+  dd if=${PLTDIR}/${DEVICEBASE}/u-boot/u-boot-dtb.imx-512Mb of=${LOOP_DEV} seek=1 bs=1k conv=notrunc
 }
 
 # Will be called by the image builder for any customisation
@@ -77,10 +72,10 @@ device_chroot_tweaks() {
 device_chroot_tweaks_pre() {
   log "Performing device_chroot_tweaks_pre" "ext"
 
-  log "Modifying uEnv.txt template"
-  sed -i "s/%%BOOT-SD%%/bootdev=mmcblk1 bootpart=\/dev\/mmcblk1p1 imgpart=\/dev\/mmcblk1p2 datapart=\/dev\/mmcblk1p3/g" /boot/uEnv.txt
-  sed -i "s/%%BOOT-EMMC%%/imgpart=\/dev\/mmcblk0p2 bootdev=mmcblk0/g" /boot/uEnv.txt
-  sed -i "s/%%BOOT-EMMC%%/bootdev=mmcblk0 bootpart=\/dev\/mmcblk0p1 imgpart=\/dev\/mmcblk0p2 datapart=\/dev\/mmcblk0p3/g" /boot/uEnv.txt
+  sed -i "s/mmcblk0p1/mmcblk1p1/g" /etc/fstab
+  log "Enable getty on ttyGS0"
+  systemctl enable serial-getty@ttyGS0.service
+  cat /etc/fstab
 
 }
 
@@ -89,9 +84,6 @@ device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   log "Creating uInitrd from 'volumio.initrd'" "info"
-  #TODO This can be done outside chroot,
-  # removing the need of each image needing u-boot-tools
-  # saving some time!
   mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
   log "Removing unnecessary /boot files"
   rm /boot/volumio.initrd

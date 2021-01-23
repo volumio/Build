@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 
-## Setup for Pine64+ devices
+## Setup for Pine64+ devices  (Community Portings)
+
 # shellcheck source=./recipes/devices/families/pine64.sh
 source "${SRC}"/recipes/devices/families/pine64.sh
 

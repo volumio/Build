@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 
-## Setup for Odroid C4 device
+## Setup for Odroid C4 device  (Community Portings)
 
 ## WIP, this should be refactored out to a higher level.
 # Base system

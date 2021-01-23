@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
-## Setup for FriendlyElec Nanopi Neo3
+
+## Setup for FriendlyElec Nanopi Neo3  (Community Portings)
 
 ## WIP, this should be refactored out to a higher level.
 # Base system
