@@ -2,7 +2,14 @@
 
 set -eo pipefail
 
-# HARDWARE=`/bin/cat /mnt/volumio/rootfs/etc/os-release | grep "VOLUMIO_HARDWARE" | cut -d \\" -f2 | tr -d "\n"`
+function check_size() {
+  local path=$1
+  if [[ -e "${path}" ]]; then
+    du -sh0 "${path}" 2>/dev/null | cut -f1
+  else
+    echo ""
+  fi
+}
 
 [ -z "${ROOTFSMNT}" ] && ROOTFSMNT=/mnt/volumio/rootfs
 log "Computing Volumio folder Hash Checksum" "info"
@@ -24,11 +31,11 @@ log "Cleaning rootfs to save space" "info"
 [[ -e "${ROOTFSMNT}/etc/apt/apt.conf.d/02cache" ]] && rm "${ROOTFSMNT}/etc/apt/apt.conf.d/02cache"
 
 log "Cleaning docs"
-log "Pre /usr/share/" "$(du -sh0 /usr/share | cut -f1)"
+log "Pre /usr/share/" "$(check_size /usr/share)"
 share_dirs=("doc" "locale" "man")
 declare -A pre_size
 for path in "${share_dirs[@]}"; do
-  pre_size["${path}"]="$(du -sh0 "/usr/share/${path}" | cut -f1)"
+  pre_size["${path}"]=$(check_size "/usr/share/${path}")
 done
 
 find ${ROOTFSMNT}/usr/share/doc -depth -type f ! -name copyright -delete # Remove docs that aren't copyrights
@@ -40,9 +47,12 @@ log "Cleaning man and caches"
 rm -rf ${ROOTFSMNT}/usr/share/man/* ${ROOTFSMNT}/usr/share/groff/* ${ROOTFSMNT}/usr/share/info/*
 rm -rf ${ROOTFSMNT}/usr/share/lintian/* ${ROOTFSMNT}/usr/share/linda/* ${ROOTFSMNT}/var/cache/man/*
 
-log "Final /usr/share/" "$(du -sh /usr/share | cut -f1)"
+rm -rf ${ROOTFSMNT}/var/lib/apt/lists/*
+rm -rf ${ROOTFSMNT}/var/cache/apt/*
+
+log "Final /usr/share/" "$(check_size /usr/share)"
 for path in "${share_dirs[@]}"; do
-  log "${path}:" "Pre: ${pre_size[$path]} Post: $(du -sh "/usr/share/${path}" | cut -f1)"
+  log "${path}:" "Pre: ${pre_size[$path]} Post: $(check_size "/usr/share/${path}")"
 done
 
 #TODO: This doesn't seem to be doing much atm
@@ -54,19 +64,17 @@ STRP_DIRECTORIES=("${ROOTFSMNT}/lib/"
   "${ROOTFSMNT}/lib/modules/")
 
 for DIR in "${STRP_DIRECTORIES[@]}"; do
-  log "$DIR Pre  size" "$(du -sh0 "$DIR" | cut -f1)"
+  log "$DIR Pre  size" "$(check_size "$DIR")"
   find "$DIR" -type f -exec strip --strip-unneeded {} ';' >/dev/null 2>&1
-  log "$DIR Post size" "$(du -sh0 "$DIR" | cut -f1)"
+  log "$DIR Post size" "$(check_size "$DIR")"
 done
 # else
 #   log "${BUILD} environment detected, not cleaning/stripping libs"
 # fi
 
 log "Checking rootfs size"
-rootfs_size=$(du -hsx --exclude=/{proc,sys,dev} "${ROOTFSMNT}")
-volumio_size=$(du -hsx ${ROOTFSMNT}/{volumio,myvolumio})
-log "Complete rootfs: " "${rootfs_size}"
-log "Volumio  parts: " "${volumio_size}"
+log "Rootfs:" "$(check_size ${ROOTFSMNT})"
+log "Volumio parts:" "$(check_size ${ROOTFSMNT}/volumio) $(check_size ${ROOTFSMNT}/myvolumio)"
 
 # Got to do this here to make it stick
 log "Updating MOTD"
