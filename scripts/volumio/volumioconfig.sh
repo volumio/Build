@@ -38,7 +38,10 @@ log "Preparing to run Debconf in chroot" "info"
 # chmod +x /usr/sbin/policy-rc.d
 
 log "Configuring dpkg to not include Manual pages and docs"
-echo "path-exclude /usr/share/doc/*
+# This won't effect packages already extracted by multistrap,
+# Unfortunately, I've not figured out yet how to pass these options to multistrap so we don't have to remove these files again in finalize.sh
+cat <<-EOF >/etc/dpkg/dpkg.cfg.d/01_nodoc
+path-exclude /usr/share/doc/*
 # we need to keep copyright files for legal reasons
 path-include /usr/share/doc/*/copyright
 path-exclude /usr/share/man/*
@@ -46,7 +49,8 @@ path-exclude /usr/share/groff/*
 path-exclude /usr/share/info/*
 # lintian stuff is small, but really unnecessary
 path-exclude /usr/share/lintian/*
-path-exclude /usr/share/linda/*" > /etc/dpkg/dpkg.cfg.d/01_nodoc
+path-exclude /usr/share/linda/*"
+EOF
 
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 export LC_ALL=C LANGUAGE=C LANG=C
@@ -77,21 +81,33 @@ fi
 log "Prepare Volumio Debian customization" "info"
 log "Existing locales: " "" "$(locale -a | tr '\n' ' ')"
 log "Generating required locales:"
-[ -f /etc/locale.gen ] || touch -m /etc/locale.gen
-echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+# TODO: Consider not installing locales via multistrap, so that we don't need to do this dance
+# Installing it later might make this easier?
+# Enable LANG_def='en_US.UTF-8'
+[[ -e /etc/locale.gen ]] &&
+  sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 locale-gen
-log "Removing unused locales"
-echo "en_US.UTF-8" >> /etc/locale.nopurge
+log "Final locale list: " "" "$(locale -a | tr '\n' ' ')"
+
+log "Removing unused locales from /usr/share/locales"
+cat <<-EOF >>/etc/locale.nopurge
+#####################################################
+# Following locales won't be deleted from this system
+# after package installations done with apt-get(8):
+
+C.UTF-8
+en_US.UTF-8
+EOF
 # To remove existing locale data we must turn off the dpkg hook
-sed -i -e 's/^USE_DPKG/#USE_DPKG/' /etc/locale.nopurge
-# Ensure that the package knows it has been configured
-sed -i -e 's/^NEEDSCONFIGFIRST/#NEEDSCONFIGFIRST/' /etc/locale.nopurge
+# and ensure that the package knows it has been configured
+sed -i -e 's|^\(USE_DPKG\)|#\1|' \
+  -e 's|^\(NEEDSCONFIGFIRST\)|#\1|' /etc/locale.nopurge
 dpkg-reconfigure localepurge -f noninteractive
+# Delete unused locales
 localepurge
 # Turn dpkg feature back on, it will handle further locale-cleaning
-sed -i -e 's/^#USE_DPKG/USE_DPKG/' /etc/locale.nopurge
+sed -i -e 's|^#\(USE_DPKG\)|\1|' /etc/locale.nopurge
 dpkg-reconfigure localepurge -f noninteractive
-
 
 #Adding Main user Volumio
 log "Adding Volumio User"
@@ -240,13 +256,12 @@ log "nodejs installed at $(command -v node)" "info"
 # Shairport-Sync, Shairport-Sync Metadata Reader
 # hostapd-edimax
 # Node modules!
-log "Installing Zsync"
-if [ ${VOLUMIO_ARCH:0:3} == "arm" ]; then
-  ZSYNC_ARCH=arm
-else
-  ZSYNC_ARCH=x86
-fi
-wget http://repo.volumio.org/Volumio2/Binaries/${ZSYNC_ARCH}/zsync -P /usr/bin/ -c
+log "Installing Custom Zsync"
+
+ZSYNC_ARCH=${VOLUMIO_ARCH:0:3}   # Volumio repo knows only {arm|x86} which are conveniently the same length
+ZSYNC_ARCH=${ZSYNC_ARCH/x64/x86} # Workaround for x64 binaries not existing
+wget -O /usr/bin/zsync \
+  -nv "http://repo.volumio.org/Volumio2/Binaries/${ZSYNC_ARCH}/zsync"
 chmod a+x /usr/bin/zsync
 
 log "Cleaning up after package(s) installation"

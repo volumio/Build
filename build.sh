@@ -310,7 +310,7 @@ if [ -n "${BUILD}" ]; then
   log "Creating ${BUILD} rootfs" "info"
   #TODO Check naming conventions!
   BASE="Debian"
-  if [[ ! -f "$SUITE" ]]; then
+  if [[ -z "$SUITE" ]]; then
     log "Defaulting to release" "" "Buster"
     SUITE="buster"
   fi
