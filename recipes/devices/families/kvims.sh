@@ -68,16 +68,6 @@ write_device_files() {
   log "Adding Wifi & Bluetooth firmware and helpers"
   cp "${PLTDIR}/${DEVICEBASE}/hwpacks/bluez/hciattach-armhf" "${ROOTFSMNT}/usr/local/bin/hciattach"
   cp "${PLTDIR}/${DEVICEBASE}/hwpacks/bluez/brcm_patchram_plus-armhf" "${ROOTFSMNT}/usr/local/bin/brcm_patchram_plus"
-  if [ "${DEVICE}" = kvim3 ] || [ "${DEVICE}" = mp1 ]; then
-    log "   For VIM3/MP1: fix issue with AP6359SA and AP6398S using the same chipid and rev"
-    mv "${ROOTFSMNT}/lib/firmware/brcm/fw_bcm4359c0_ag_apsta_ap6398s.bin" "${ROOTFSMNT}/lib/firmware/brcm/fw_bcm4359c0_ag_apsta.bin"
-    mv "${ROOTFSMNT}/lib/firmware/brcm/fw_bcm4359c0_ag_ap6398s.bin" "${ROOTFSMNT}/lib/firmware/brcm/fw_bcm4359c0_ag.bin"
-    mv "${ROOTFSMNT}/lib/firmware/brcm/nvram_ap6398s.txt" "${ROOTFSMNT}/lib/firmware/brcm/nvram_ap6359sa.txt"
-    mv "${ROOTFSMNT}/lib/firmware/brcm/BCM4359C0_ap6398s.hcd" "${ROOTFSMNT}/lib/firmware/brcm/BCM4359C0.hcd"
-  #	cp "${PLTDIR}/${DEVICEBASE}/var/lib/alsa/asound.state.vim3-3l" "${ROOTFSMNT}/var/lib/alsa/asound.state"
-  # else
-  #	cp "${PLTDIR}/${DEVICEBASE}/var/lib/alsa/asound.state.vim1-2" "${ROOTFSMNT}/var/lib/alsa/asound.state"
-  fi
 
   log "Adding services"
   mkdir -p "${ROOTFSMNT}/lib/systemd/system"
@@ -95,21 +85,11 @@ write_device_files() {
   log "Copying triggerhappy configuration"
   cp -pR "${PLTDIR}/${DEVICEBASE}/etc/triggerhappy" "${ROOTFSMNT}/etc"
 
-  #TODO: remove the mp1 restriction when reboot works
-  if [[ "${DEVICE}" != mp1 ]]; then
-    echo "Copying khadas system halt service"
-    cp -pR "${PLTDIR}/${DEVICEBASE}"/etc/systemd "${ROOTFSMNT}/etc"
-    cp "${PLTDIR}/${DEVICEBASE}"/opt/poweroff "${ROOTFSMNT}/opt/poweroff"
-  else
-    #do not use the system-halt.service for mp1 yet
-    cp "${PLTDIR}/${DEVICEBASE}/etc/rc.local.mp1" "${ROOTFSMNT}/etc/rc.local"
-  fi
-
 }
 
 write_device_bootloader() {
 
-  log "Running write_device_bootloader u-boot.$BOARD.sd.bin" "ext"
+  log "Running write_device_bootloader u-boot.${KHADASBOARDNAME}.sd.bin" "ext"
 
   dd if="${PLTDIR}/${DEVICEBASE}/uboot/u-boot.${KHADASBOARDNAME}.sd.bin" of="${LOOP_DEV}" bs=444 count=1 conv=fsync >/dev/null 2>&1
   dd if="${PLTDIR}/${DEVICEBASE}/uboot/u-boot.${KHADASBOARDNAME}.sd.bin" of="${LOOP_DEV}" bs=512 skip=1 seek=1 conv=fsync >/dev/null 2>&1
@@ -132,9 +112,11 @@ device_chroot_tweaks_pre() {
 
   log "Fixing armv8 deprecated instruction emulation, allow dmesg"
   cat <<-EOF >>/etc/sysctl.conf
-	abi.cp15_barrier=2
-	kernel.dmesg_restrict=0
-	EOF
+#Fixing armv8 deprecated instruction emulation with armv7 rootfs
+abi.cp15_barrier=2
+#Allow dmesg for non.sudo users
+kernel.dmesg_restrict=0
+EOF
 
   log "Adding default wifi"
   echo "dhd" >>"/etc/modules"
