@@ -256,13 +256,15 @@ log "nodejs installed at $(command -v node)" "info"
 # Shairport-Sync, Shairport-Sync Metadata Reader
 # hostapd-edimax
 # Node modules!
-log "Installing Custom Zsync"
 
-ZSYNC_ARCH=${VOLUMIO_ARCH:0:3}   # Volumio repo knows only {arm|x86} which are conveniently the same length
-ZSYNC_ARCH=${ZSYNC_ARCH/x64/x86} # Workaround for x64 binaries not existing
-wget -O /usr/bin/zsync \
-  -nv "http://repo.volumio.org/Volumio2/Binaries/${ZSYNC_ARCH}/zsync"
-chmod a+x /usr/bin/zsync
+#Custom zsync does not work on x64
+#log "Installing Custom Zsync"
+
+#ZSYNC_ARCH=${VOLUMIO_ARCH:0:3}   # Volumio repo knows only {arm|x86} which are conveniently the same length
+#ZSYNC_ARCH=${ZSYNC_ARCH/x64/x86} # Workaround for x64 binaries not existing
+#wget -O /usr/bin/zsync \
+#  -nv "http://repo.volumio.org/Volumio2/Binaries/${ZSYNC_ARCH}/zsync"
+#chmod a+x /usr/bin/zsync
 
 log "Cleaning up after package(s) installation"
 apt-get clean
