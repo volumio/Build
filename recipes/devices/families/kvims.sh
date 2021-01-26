@@ -3,7 +3,6 @@
 
 ## Setup for Khadas devices
 
-## WIP, this should be refactored out to a higher level.
 # Base system
 BASE="Debian"
 ARCH="armhf"

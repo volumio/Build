@@ -2,14 +2,13 @@
 # shellcheck disable=SC2034
 
 ## Setup for Khadas VIM3 board
-DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
-DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+DEVICE_SUPPORT_TYPE="C" # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 
 # Import the Khadas vims configuration
 # shellcheck source=./recipes/devices/families/kvims.sh
 source "${SRC}"/recipes/devices/families/kvims.sh
 
-## WIP, this should be refactored out to a higher level.
 # Base system
 DEVICENAME="Khadas VIM3"
 DEVICE="kvim3"

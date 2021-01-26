@@ -3,14 +3,12 @@
 
 ## Setup for Pine64 family of devices  (Community Portings)
 
-## WIP, this should be refactored out to a higher level.
 # Base system
 BASE="Debian"
 ARCH="armhf"
 BUILD="armv7"
 
 ### Device information
-
 DEVICEBASE="pine64-all"
 DEVICEFAMILY="pine64"
 # This is useful for multiple devices sharing the same/similar kernel
