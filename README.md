@@ -59,7 +59,7 @@ where switches are :
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
 ```
-./build.sh -b arm -d raspberry -v 2.0
+./build.sh -b arm -d pi -v 2.0
 ```
 
 You do not have to build the architecture and the image at the same time.
