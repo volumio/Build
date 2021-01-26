@@ -2,12 +2,9 @@
 # shellcheck disable=SC2034
 
 ## Setup for Asus Tinerboard device
-DEVICE_SUPPORT_TYPE="S"   # First letter (Community Porting|Supported Officially|OEM)
-DEVICE_STATUS="T"         # First letter (Planned|Test|Maintenance)
+DEVICE_SUPPORT_TYPE="S" # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="T"       # First letter (Planned|Test|Maintenance)
 
-#TODO handle single base with multiple devices
-
-## WIP, this should be refactored out to a higher level.
 # Base system
 BASE="Debian"
 ARCH="armhf"

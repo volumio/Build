@@ -2,12 +2,11 @@
 # shellcheck disable=SC2034
 
 ## Setup for Solidrun Cubox Pulse  (Community Portings)
-DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
-DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+DEVICE_SUPPORT_TYPE="C" # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 
 ## Images will not be published
 
-## WIP, this should be refactored out to a higher level.
 # Base system
 BASE="Debian"
 ARCH="armhf"
@@ -32,7 +31,7 @@ VOLINITUPDATER=yes
 BOOT_START=21
 BOOT_END=84
 BOOT_TYPE=msdos          # msdos or gpt
-BOOT_USE_UUID=yes         # Add UUID to fstab
+BOOT_USE_UUID=yes        # Add UUID to fstab
 INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs

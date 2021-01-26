@@ -2,8 +2,6 @@
 # shellcheck disable=SC2034
 ## Setup for x86 devices
 
-## WIP: this should be refactored out to a higher level
-# Aka base config for arm,armv7,armv8 and x86
 # Base system
 BASE="Debian"
 ARCH="i386"
@@ -66,9 +64,9 @@ write_device_files() {
   pkg_root="${PLTDIR}/packages-buster"
   # Copy in the kernel version we are interested in
   # This will be expanded as a glob, you can be as specific or vague as required
-  # KERNEL_VER=4.19
-  KERNEL_VER=5.10
-  cp "${pkg_root}"/linux-image-${KERNEL_VER}*_${ARCH}.deb "${ROOTFSMNT}"
+  # KERNEL_VERSION=4.19
+  KERNEL_VERSION=5.10
+  cp "${pkg_root}"/linux-image-${KERNEL_VERSION}*_${ARCH}.deb "${ROOTFSMNT}"
   log "Copying the latest firmware into /lib/firmware"
   tar xfJ "${pkg_root}"/linux-firmware-buster.tar.xz -C "${ROOTFSMNT}"
 

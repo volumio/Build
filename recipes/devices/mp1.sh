@@ -2,14 +2,13 @@
 # shellcheck disable=SC2034
 
 ## Setup for Khadas VIM3L boards (not to be published because it is OEM configured)
-DEVICE_SUPPORT_TYPE="O"   # First letter (Community Porting|Supported Officially|OEM)
-DEVICE_STATUS="T"         # First letter (Planned|Test|Maintenance)
+DEVICE_SUPPORT_TYPE="O" # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="T"       # First letter (Planned|Test|Maintenance)
 
 # Import the Khadas vims configuration
 # shellcheck source=./recipes/devices/families/kvims.sh
 source "${SRC}"/recipes/devices/families/kvims.sh
 
-## WIP, this should be refactored out to a higher level.
 # Base system
 DEVICENAME="Volumio MP1"
 DEVICE="mp1"
@@ -35,9 +34,8 @@ device_image_tweaks() {
   log "With VIM2/ VIM3/ MP1(VIM3L): adding fan services"
   cp "${PLTDIR}/${DEVICEBASE}/lib/systemd/system/fan.service" "${ROOTFSMNT}/lib/systemd/system"
 
-#TODO: remove the mp1 restriction when reboot works
-#do not use the system-halt.service for mp1 yet
+  #TODO: remove the mp1 restriction when reboot works
+  #do not use the system-halt.service for mp1 yet
   cp "${PLTDIR}/${DEVICEBASE}/etc/rc.local.mp1" "${ROOTFSMNT}/etc/rc.local"
 
 }
-

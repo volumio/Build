@@ -2,10 +2,9 @@
 # shellcheck disable=SC2034
 
 ## Setup for Odroid XU4 device (Community Portings)
-DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
-DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+DEVICE_SUPPORT_TYPE="C" # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 
-## WIP, this should be refactored out to a higher level.
 # Base system
 BASE="Debian"
 ARCH="armhf"
@@ -99,10 +98,10 @@ echo \$TRIP_POINT_2 > /sys/devices/virtual/thermal/thermal_zone2/trip_point_2_te
 echo \$TRIP_POINT_2 > /sys/devices/virtual/thermal/thermal_zone3/trip_point_2_temp
 exit 0
 EOF
-cat /etc/rc.local
+  cat /etc/rc.local
   log "Creating boot.ini from template"
   sed -i "s/%%VOLUMIO-PARAMS%%/imgpart=UUID=${UUID_IMG} bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA}/g" /boot/boot.ini
-cat /boot/boot.ini
+  cat /boot/boot.ini
   log "Tweaking: disable energy sensor error message"
   cat <<-EOF >>/etc/modprobe.d/blacklist-odroid.conf
 blacklist ina231_sensor

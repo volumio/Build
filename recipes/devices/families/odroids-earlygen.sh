@@ -3,7 +3,6 @@
 
 ## Setup for Odroid C1/C2 device (Community Portings)
 
-## WIP, this should be refactored out to a higher level.
 # Base system
 BASE="Debian"
 ARCH="armhf"
@@ -24,9 +23,9 @@ KIOSKMODE=no
 ## Partition info
 BOOT_START=1
 BOOT_END=64
-BOOT_TYPE=msdos          # msdos or gpt
-BOOT_USE_UUID=no        # Add UUID to fstab
-INIT_TYPE="init" # init.{x86/nextarm/nextarm_tvbox}
+BOOT_TYPE=msdos                           # msdos or gpt
+BOOT_USE_UUID=no                          # Add UUID to fstab
+INIT_TYPE="init"                          # init.{x86/nextarm/nextarm_tvbox}
 FLAGS_EXT4=("-O" "^metadata_csum,^64bit") # Disable ext4 metadata checksums
 
 # Modules that will be added to intramsfs
@@ -58,7 +57,7 @@ write_device_files() {
   log "Copying ${DEVICENAME} inittab"
   cp ${PLTDIR}/${DEVICEBASE}/etc/inittab ${ROOTFSMNT}/etc/
 
-#Temp Solution until init refactoring
+  #Temp Solution until init refactoring
   log "Copy early odroid init script, bypassing overlayfs syntax issues"
   cp "${PLTDIR}/${DEVICEBASE}/etc/init.odroid-earlygen" "${ROOTFSMNT}"
 
