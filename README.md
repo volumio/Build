@@ -35,22 +35,25 @@ zip
 
 #### How to
 
-- clone the build repo to your local disk  : ```git clone https://github.com/volumio/Build build```
-- cd to ./build and type
-
+- Ensure you have installed all dependencies listed above.
+- Clone the build repo, and launch the build script (requires root permissions).
+  
 ```
+git clone https://github.com/volumio/Build build
+cd ./build
 ./build.sh -b <architecture> -d <device> -v <version>
 ```
 
-where switches are :
+where flags are :
 
- * -b `<arch>` Build a full system image with Multistrap.
+ * -b `<arch>` Build a base rootfs with Multistrap.
 
-   Options for the target architecture are:
-       **arm** (Raspbian), **armv7** (Debian 32bit), **armv8** (Debian 64bit) or **x86** (Debian 32bit) or **x64** (Debian 64bit).
+   Options for the target architecture are:<br>
+       **arm** (Raspbian armhf 32bit), **armv7** (Debian armhf 32bit), **armv8** (Debian arm64 64bit) <br>
+       **x86** (Debian i386 32bit) or **x64** (Debian amd64 64bit).
  * -d `<dev>`  Create Image for Specific Devices.
 
-   Example supported device names:
+   Example supported device names:<br>
        **mp1**, **nanopineo2**, **odroidn2**, **orangepilite**, **pi**, **rockpis**, **tinkerboard**, **x86_amd64**, **x86_i386**
 
    Run ```./build.sh -h``` for a definitive list; new devices are being added as time allows.
@@ -61,13 +64,13 @@ Example: Build a Raspberry PI image from scratch, version 2.0 :
 ./build.sh -b arm -d pi -v 2.0
 ```
 
-You do not have to build the architecture and the image at the same time.
+You do not have to build the base and the image at the same time.
 
-Example: Build the architecture for x86 first and the image version MyVersion in a second step:
+Example: Build the base for x86 first and the image version `2.123` in a second step:
+
 ```
 ./build.sh -b x86
-
-./build.sh -d x86_i386 -v MyVersion
+./build.sh -d x86_i386 -v 2.123
 ```
 
 #### Sources
