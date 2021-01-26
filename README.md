@@ -28,6 +28,7 @@ qemu
 squashfs-tools
 sudo
 u-boot-tools
+wget
 xz-utils
 zip
 ```
