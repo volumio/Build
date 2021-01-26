@@ -36,7 +36,6 @@ zip
 #### How to
 
 - clone the build repo to your local disk  : ```git clone https://github.com/volumio/Build build```
-- if on Ubuntu, you may need to remove `$forceyes` from line 989 of /usr/sbin/multistrap
 - cd to ./build and type
 
 ```
