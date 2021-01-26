@@ -35,14 +35,14 @@ Most devices rely on the community to test, debug and maintain :-)
 
 #### Device Support Type `[C|S|O]`
 
-C = Community porting
-S = Officially Supported device
-O = OEM or Volumio internal use
+C = Community porting<br>
+S = Officially Supported device<br>
+O = OEM or Volumio internal use<br>
 
 #### Device Status `[P|T|M]`
 
-P = Planned
-T = Testing
-M = Maintained
+P = Planned<br>
+T = Testing<br>
+M = Maintained<br>
 
 
