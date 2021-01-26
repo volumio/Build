@@ -397,8 +397,6 @@ if [ -n "${BUILD}" ]; then
 
   # Copy the dpkg log
   mv "${ROOTFS}/dpkg.log" "${LOG_DIR}/dpkg.log"
-  ###Dirty fix for mpd.conf TODO use volumio repo
-  cp "${SRC}/volumio/etc/mpd.conf" "${ROOTFS}/etc/mpd.conf"
 
   CUR_DATE=$(date)
   #Write some Version information
