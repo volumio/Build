@@ -28,15 +28,15 @@ qemu
 squashfs-tools
 sudo
 u-boot-tools
+wget
 xz-utils
 zip
 ```
 
 #### How to
 
-- clone the build repo on your local folder  : git clone https://github.com/volumio/Build build
-- if on Ubuntu, you may need to remove `$forceyes` from line 989 of /usr/sbin/multistrap
-- cd to /build and type
+- clone the build repo to your local disk  : ```git clone https://github.com/volumio/Build build```
+- cd to ./build and type
 
 ```
 ./build.sh -b <architecture> -d <device> -v <version>
@@ -58,7 +58,7 @@ where switches are :
 
 Example: Build a Raspberry PI image from scratch, version 2.0 :
 ```
-./build.sh -b arm -d raspberry -v 2.0
+./build.sh -b arm -d pi -v 2.0
 ```
 
 You do not have to build the architecture and the image at the same time.
