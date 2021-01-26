@@ -61,10 +61,6 @@ cp "${SRC}/volumio/etc/inittab" "${ROOTFS}/etc/inittab"
 #SSH
 cp "${SRC}/volumio/etc/ssh/sshd_config" "${ROOTFS}/etc/ssh/sshd_config"
 
-#Mpd
-cp "${SRC}/volumio/etc/mpd.conf" "${ROOTFS}/etc/mpd.conf"
-chmod 777 "${ROOTFS}/etc/mpd.conf"
-
 #Log via JournalD in RAM
 cp "${SRC}/volumio/etc/systemd/journald.conf" "${ROOTFS}/etc/systemd/journald.conf"
 
