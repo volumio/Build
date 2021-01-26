@@ -177,7 +177,7 @@ function setup_multistrap() {
   echo -e 'Dpkg::Progress-Fancy "1";\nAPT::Color "1";' > \
     "${DirEtcparts}"/01progress
 
-  if [[ -n ${APT_CACHE} ]] && ! curl -sSf "${APT_PROXY}" >/dev/null; then
+  if [[ -n "${APT_CACHE}" ]] && ! curl -sSf "${APT_CACHE}" >/dev/null; then
     cat <<-EOF >"${DirEtcparts}/02cache"
 		Acquire::http { Proxy "${APT_CACHE}"; };
 		EOF

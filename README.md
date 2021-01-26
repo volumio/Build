@@ -101,3 +101,33 @@ All Raspbian-retrieved packages sources can be found at the [raspbian-sources Re
 
 If any information, source package or license is missing, please report it to info at volumio dot org
 
+
+#### Caching packages
+
+If you are doing a lot of volumio builds you may wish to save some bandwidth
+by installing a package cache program, such as ```apt-cacher-ng```.
+For a Debian-based system, these are the steps:
+
+ * install, and configure so https package sources are not cached
+   ```
+   # apt-get install apt-cacher-ng
+   # cat >> /etc/apt-cacher-ng/local.conf
+   # do not cache https package sources
+   PassThroughPattern: ^(.*):443$
+   ^D
+   # systemctl restart apt-cacher-ng
+   ```
+ * Set this environment variable; ```build.sh``` will do the rest.
+   ```
+   $ export APT_CACHE='http://localhost:3142'    # or similar
+   $ sudo -E ./build.sh -b arm -d pi             # -E preserves the environment
+   ```
+ * To confirm operation, watch the log file during a build
+   ```
+   # tail -f /var/log/apt-cacher-ng/apt-cacher-ng.log
+   ```
+
+Some packages cannot easily be cached, because they are downloaded over https
+(the cache is detected by the SSL certificate checks made by the https protocol).
+Also some packages are downloaded via ```wget``` or similar, which do not make
+use of the cache.
