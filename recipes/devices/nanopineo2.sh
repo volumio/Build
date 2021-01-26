@@ -2,6 +2,10 @@
 # shellcheck disable=SC2034
 
 ## Setup for NanoPi Neo2 H5 based devices
+DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+
+
 #TODO handle single base with multiple devices
 
 ## WIP, this should be refactored out to a higher level.

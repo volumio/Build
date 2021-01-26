@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 ## Setup for Radxa Rock Pi S
+DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
 
 ## WIP, this should be refactored out to a higher level.
 # Base system

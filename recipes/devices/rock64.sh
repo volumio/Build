@@ -2,6 +2,8 @@
 # shellcheck disable=SC2034
 
 ## Setup for Rock64 (pine64.org) devices (Community Portings)
+DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
 
 ## WIP, this should be refactored out to a higher level.
 # Base system
@@ -91,7 +93,7 @@ EOF
   sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
 
   log "Fixing armv8 deprecated instruction emulation with armv7 rootfs"
-  cat <<-EOF >/etc/sysctl.conf
+  cat <<-EOF >>/etc/sysctl.conf
 abi.cp15_barrier=2
 EOF
   chmod +x /usr/local/sbin/enable_dtoverlay

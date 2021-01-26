@@ -2,6 +2,9 @@
 # shellcheck disable=SC2034
 
 ## Setup for Orange Pi H3 based devices
+DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+
 #TODO handle single base with multiple devices
 #orangepione|orangepilite|orangepipc
 

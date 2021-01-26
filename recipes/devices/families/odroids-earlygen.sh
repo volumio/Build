@@ -27,6 +27,7 @@ BOOT_END=64
 BOOT_TYPE=msdos          # msdos or gpt
 BOOT_USE_UUID=no        # Add UUID to fstab
 INIT_TYPE="init" # init.{x86/nextarm/nextarm_tvbox}
+FLAGS_EXT4=("-O" "^metadata_csum,^64bit") # Disable ext4 metadata checksums
 
 # Modules that will be added to intramsfs
 MODULES=("overlayfs" "overlay" "squashfs" "nls_cp437")
@@ -43,11 +44,11 @@ write_device_files() {
   cp ${PLTDIR}/${DEVICEBASE}/boot/${DTBFILENAME} ${ROOTFSMNT}/boot
   cp ${PLTDIR}/${DEVICEBASE}/boot/${KERNELFILENAME} ${ROOTFSMNT}/boot
 
-  log "Copying ${DEVICENAME}  modules and firmware"
+  log "Copying ${DEVICENAME} modules and firmware"
   cp -pdR ${PLTDIR}/${DEVICEBASE}/lib/modules ${ROOTFSMNT}/lib/
   cp -pdR ${PLTDIR}/${DEVICEBASE}/lib/firmware ${ROOTFSMNT}/lib/
 
-  log "Copying ${DEVICENAME}  DAC detection service"
+  log "Copying ${DEVICENAME} DAC detection service"
   cp ${PLTDIR}/${DEVICEBASE}/etc/odroiddac.service ${ROOTFSMNT}/lib/systemd/system/
   cp ${PLTDIR}/${DEVICEBASE}/etc/odroiddac.sh ${ROOTFSMNT}/opt/
 
@@ -56,6 +57,10 @@ write_device_files() {
 
   log "Copying ${DEVICENAME} inittab"
   cp ${PLTDIR}/${DEVICEBASE}/etc/inittab ${ROOTFSMNT}/etc/
+
+#Temp Solution until init refactoring
+  log "Copy early odroid init script, bypassing overlayfs syntax issues"
+  cp "${PLTDIR}/${DEVICEBASE}/etc/init.odroid-earlygen" "${ROOTFSMNT}"
 
   log "Copying LIRC configuration files for HK stock remote"
   cp "${PLTDIR}/${DEVICEBASE}/etc/lirc/lircd.conf" "${ROOTFSMNT}"
@@ -96,8 +101,11 @@ EOF
 exit 0
 EOF
 
-log "Changing initramfs module config to 'modules=list' to limit uInitrd size" "cfg"
-sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
+  log "Changing initramfs module config to 'modules=list' to limit uInitrd size" "cfg"
+  sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
+
+  log "Copy initramfs init script into place"
+  mv init.odroid-earlygen /root/init
 
 }
 

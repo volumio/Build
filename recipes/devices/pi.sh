@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 ## Setup for Raspberry Pi
+DEVICE_SUPPORT_TYPE="S"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="T"         # First letter (Planned|Test|Maintenance)
 
 ## WIP: this should be refactored out to a higher level
 # Aka base config for arm,armv7,armv8 and x86

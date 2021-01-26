@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
 
-## Setup for Khadas VIM boards
+## Setup for Khadas VIM3L boards (not to be published because it is OEM configured)
+DEVICE_SUPPORT_TYPE="O"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="T"         # First letter (Planned|Test|Maintenance)
+
 # Import the Khadas vims configuration
 # shellcheck source=./recipes/devices/families/kvims.sh
 source "${SRC}"/recipes/devices/families/kvims.sh

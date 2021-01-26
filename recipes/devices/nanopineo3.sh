@@ -2,6 +2,8 @@
 # shellcheck disable=SC2034
 
 ## Setup for FriendlyElec Nanopi Neo3  (Community Portings)
+DEVICE_SUPPORT_TYPE="C,O"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
 
 ## WIP, this should be refactored out to a higher level.
 # Base system

@@ -2,6 +2,9 @@
 # shellcheck disable=SC2034
 
 ## Setup for Solidrun Cubox Pulse  (Community Portings)
+DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+
 ## Images will not be published
 
 ## WIP, this should be refactored out to a higher level.
