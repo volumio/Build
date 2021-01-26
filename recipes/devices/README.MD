@@ -8,7 +8,10 @@ Most devices rely on the community to test, debug and maintain :-)
 | Device       | Base  | Arch  | `VOLUMIO_DEVICENAME` | `VOLUMIO_DEVICENAME` | Kernel                                                     | Type | Status |
 | ------------ | ----- | ----- | -------------------- | -------------------- | ---------------------------------------------------------- | ---- | ------ |
 | cuboxp       | armv7 | armhf | cuboxp               | Cubox Pulse          | [4.14.y](https://github.com/gkkpch/platform-cubox.git)     | C    |    P   |
-| motivo       | armv7 | armhf | motivo               | Volumio Motivo       | [4.9.y](https://github.com/volumio/platform-khadas.git)    | O    |    T   |
+| kvim1        | armv7 | armhf | kvim1                | Khadas VIM1          | [4.9.y](https://github.com/volumio/platform-khadas.git)    | C    |    P   |
+| kvim2        | armv7 | armhf | kvim2                | Khadas VIM2          | [4.9.y](https://github.com/volumio/platform-khadas.git)    | C    |    P   |
+| kvim3        | armv7 | armhf | kvim3                | Khadas VIM3          | [4.9.y](https://github.com/volumio/platform-khadas.git)    | C    |    P   |
+| motivo       | armv7 | armhf | motivo               | Volumio Motivo       | [5.7.y](https://github.com/volumio/platform-motivo.git)    | O    |    T   |
 | mp1          | armv7 | armhf | mp1                  | Volumio Rivo         | [4.9.y](https://github.com/volumio/platform-khadas.git)    | O    |    T   |
 | nanopineo2   | armv8 | arm64 | nanopineo2           | NanoPi Neo2          | [5.4.y](https://github.com/ashthespy/platform-nanopi)      | C    |    P   |
 | nanopineo2   | armv7 | arm64 | nanopineo2           | NanoPi Neo2          | [4.11.y](https://github.com/volumio/platform-nanopi)       | C, O |    P   |
