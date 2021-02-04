@@ -44,26 +44,18 @@ update_config_UUIDs() {
   UUID_BOOT=$(blkid -s UUID -o value "${BOOTPART}")
   UUID_IMG=$(blkid -s UUID -o value "${IMGPART}")
   UUID_DATA=$(blkid -s UUID -o value "${DATAPART}")
-  #TODO: Why not just symlink to /boot/vmlinuz
-  # So we don't need to update the grub/syslinux with kernel versions?
-  KRNL=$(ls -l ${root_dir} | grep vmlinuz | awk '{print $9}')
-  KVER=$(echo "${KRNL}" | awk -F '-' '{print $2}')
+
   mv "${root_dir}"/syslinux.cfg "${root_dir}"/syslinux.cfg.old
   cp "${root_dir}"/syslinux.tmpl "${root_dir}"/syslinux.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" "${root_dir}"/syslinux.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" "${root_dir}"/syslinux.cfg
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" "${root_dir}"/syslinux.cfg
-  # Replace the whole line
-  sed -i "/LINUX/c LINUX ${KRNL}" "${root_dir}"/syslinux.cfg
 
   mv "${root_dir}"/efi/BOOT/grub.cfg "${root_dir}"/efi/BOOT/grub.cfg.old
   cp "${root_dir}"/efi/BOOT/grub.tmpl "${root_dir}"/efi/BOOT/grub.cfg
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" "${root_dir}"/efi/BOOT/grub.cfg
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" "${root_dir}"/efi/BOOT/grub.cfg
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" "${root_dir}"/efi/BOOT/grub.cfg
-
-  sed -i "s/%%KRNL%%/${KRNL}/g" "${root_dir}"/efi/BOOT/grub.cfg
-  sed -i "s/%%KVER%%/${KVER}/g" "${root_dir}"/efi/BOOT/grub.cfg
 
   sync
   umount /mnt/configs

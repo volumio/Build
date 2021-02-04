@@ -112,14 +112,28 @@ write_device_bootloader() {
 device_image_tweaks() {
   log "Running device_image_tweaks" "ext"
 
-  log "Add script to set sane defaults for baytrail/cherrytrail soundcards"
-  #TODO: add this to the Intel HD Audio tweak script see below
-  cat <<-EOF >"${ROOTFSMNT}/etc/rc.local"
+  log "Add service to set sane defaults for baytrail/cherrytrail and HDA soundcards"
+  cat <<-EOF >"${ROOTFSMNT}/usr/local/bin/soundcard-init.sh"
 #!/bin/sh -e
 /usr/local/bin/bytcr_init.sh
 /usr/local/bin/volumio_hda_intel_tweak.sh
 exit 0
 EOF
+  chmod +x "${ROOTFSMNT}/usr/local/bin/soundcard-init.sh"
+
+  cat <<-EOF >"${ROOTFSMNT}/lib/systemd/system/soundcard-init.service"
+[Unit]
+Description = Intel SST and HDA soundcard init service
+After=volumio.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/soundcard-init.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  ln -s "${ROOTFSMNT}/lib/systemd/system/soundcard-init.service" "${ROOTFSMNT}/etc/systemd/system/multi-user.target.wants/soundcard-init.service"
 
   log "Blacklisting PC speaker"
   cat <<-EOF >>"${ROOTFSMNT}/etc/modprobe.d/blacklist.conf"
@@ -152,9 +166,11 @@ device_chroot_tweaks_pre() {
   #shellcheck disable=SC2012 # We know it's going to be alphanumeric only!
   mapfile -t KRNL_VERS < <(ls -t /boot/vmlinuz* | sort)
   log "Found ${#KRNL_VERS[@]} kernel(s)" "${KRNL_VERS[@]}"
-  KRNL=${KRNL_VERS[0]##*/}
-  IFS=- read -ra KVER <<<"$KRNL"
-  log "Finished Kernel ${KVER[1]} installation" "okay" "${KRNL}"
+  KRNL=$(echo ${KRNL_VERS[0]##*/} | awk -F "-" '{print $1}')
+  log "Finished Kernel ${KRNL_VERS[0]} installation" "okay" "${KRNL}"
+  mv ${KRNL_VERS[@]} /boot/${KRNL}
+
+  ls -l /boot
 
   log "Preparing BIOS" "info"
   log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
@@ -231,7 +247,6 @@ EOF
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" ${grub_cfg}
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" ${grub_cfg}
   sed -i "s/%%KRNL%%/${KRNL}/g" ${grub_cfg}
-  sed -i "s/%%KVER%%/${KVER[1]}/g" ${grub_cfg}
 
   log "Finished setting up boot config" "okay"
 
@@ -243,7 +258,6 @@ EOF
   log "Notebook-specific: ignore 'cover closed' event"
   sed -i "s/#HandleLidSwitch=suspend/HandleLidSwitch=ignore/g" /etc/systemd/logind.conf
   sed -i "s/#HandleLidSwitchExternalPower=suspend/HandleLidSwitchExternalPower=ignore/g" /etc/systemd/logind.conf
-  cat /etc/systemd/logind.conf
 
 }
 
