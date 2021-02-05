@@ -78,11 +78,6 @@ cp -r "${SRC}"/volumio/etc/network/* "${ROOTFS}"/etc/network
 echo " " >"${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
 chmod 777 "${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
 
-#Shairport
-# Is not used - tmpl is created by BE
-# cp "${SRC}/volumio/etc/shairport-sync.conf" "${ROOTFS}/etc/shairport-sync.conf"
-# chmod 777 "${ROOTFS}/etc/shairport-sync.conf"
-
 #nsswitch
 cp "${SRC}/volumio/etc/nsswitch.conf" "${ROOTFS}/etc/nsswitch.conf"
 
