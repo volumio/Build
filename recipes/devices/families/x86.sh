@@ -165,11 +165,10 @@ device_chroot_tweaks_pre() {
   # Since our boot partition is FAT, it doesn't support sylminks.
   #shellcheck disable=SC2012 # We know it's going to be alphanumeric only!
   mapfile -t KRNL_VERS < <(ls -t /boot/vmlinuz* | sort)
-  log "Found ${#KRNL_VERS[@]} kernel(s)" "${KRNL_VERS[@]}"
-  KRNL=$(echo ${KRNL_VERS[0]##*/} | awk -F "-" '{print $1}')
-  log "Finished Kernel ${KRNL_VERS[0]} installation" "okay" "${KRNL}"
-  mv ${KRNL_VERS[@]} /boot/${KRNL}
-
+  log "Found ${#KRNL_VERS[@]} kernel(s)" "${KRNL_VERS[*]}"
+  KRNL="vmlinuz" # As we can't symlink, we rename our current kerenl to `vmlinuz`
+  mv "${KRNL_VERS[0]}" /boot/${KRNL}
+  log "Finished Kernel ${KRNL_VERS[0]} installation to:" "okay" "/boot/${KRNL}"
   ls -l /boot
 
   log "Preparing BIOS" "info"
