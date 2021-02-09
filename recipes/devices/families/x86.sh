@@ -158,16 +158,18 @@ device_chroot_tweaks_pre() {
   # Exact kernel version not known
   # Not brilliant, but safe enough as platform repo *should* have only a single kernel package
   # Confirm anyway
-  dpkg -i linux-image-*_"${ARCH}".deb
+  dpkg-deb -R linux-image-*_"${ARCH}".deb ./
+  rm -r /DEBIAN
+  rm -r /etc/kernel
+  rm -r /usr/share/doc/linux-image*
   rm linux-image-*_"${ARCH}".deb
-  log "Chanege linux kernel image name to 'vmlinuz'"
 
+  log "Change linux kernel image name to 'vmlinuz'"
   # Rename linux kernel to a fixed name, like we do for any other platform.
   # We only have one and we should not start multiple versions.
   # - our OTA update can't currently handle that and it blows up size of /boot and /lib.
-
   # This rename is safe, because we have only one vmlinuz in /boot
-  mv $(ls /boot/vmlinuz*) /boot/vmlinuz
+  mv /boot/vmlinuz* /boot/vmlinuz
 
   log "Preparing BIOS" "info"
   log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
@@ -263,8 +265,6 @@ device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   log "Cleaning up /boot"
-  log "Removing original initrd" "$(ls -lh --block-size=M /boot/initrd.img*)"
-  rm /boot/initrd.img-*
   log "Removing System.map" "$(ls -lh --block-size=M /boot/System.map-*)"
   rm /boot/System.map-*
 }
