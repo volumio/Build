@@ -114,8 +114,10 @@ echo "INFO Copying Volumio RootFs"
 cp -pdR build/$ARCH/root/* /mnt/volumio/rootfs
 echo "INFO Copying odroidc4 boot files"
 cp platform-odroid/odroidc4/boot/*boot.ini /mnt/volumio/rootfs/boot
-cp platform-odroid/odroidc4/boot/meson64_odroidc4.dtb /mnt/volumio/rootfs/boot
+cp -dR platform-odroid/odroidc4/boot/amlogic /mnt/volumio/rootfs/boot
+cp platform-odroid/odroidc4/boot/config-* /mnt/volumio/rootfs/boot
 cp platform-odroid/odroidc4/boot/Image* /mnt/volumio/rootfs/boot
+cp -pdR platform-odroid/odroidc4/lib/firmware /mnt/volumio/rootfs/boot/lib
 
 echo "INFO Copying odroidc4 performance tweaking"
 cp platform-odroid/odroidc4/etc/rc.local /mnt/volumio/rootfs/etc
