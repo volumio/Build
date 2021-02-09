@@ -158,19 +158,18 @@ device_chroot_tweaks_pre() {
   # Exact kernel version not known
   # Not brilliant, but safe enough as platform repo *should* have only a single kernel package
   # Confirm anyway
-  dpkg -i linux-image-*_"${ARCH}".deb
+  dpkg-deb -R linux-image-*_"${ARCH}".deb ./
+  rm -r /DEBIAN
+  rm -r /etc/kernel
+  rm -r /usr/share/doc/linux-image*
   rm linux-image-*_"${ARCH}".deb
-  log "Getting the current kernel filename and version"
-  #TODO: Why not just symlink to /boot/vmlinuz
-  # Since our boot partition is FAT, it doesn't support sylminks.
-  #shellcheck disable=SC2012 # We know it's going to be alphanumeric only!
-  mapfile -t KRNL_VERS < <(ls -t /boot/vmlinuz* | sort)
-  log "Found ${#KRNL_VERS[@]} kernel(s)" "${KRNL_VERS[@]}"
-  KRNL=$(echo ${KRNL_VERS[0]##*/} | awk -F "-" '{print $1}')
-  log "Finished Kernel ${KRNL_VERS[0]} installation" "okay" "${KRNL}"
-  mv ${KRNL_VERS[@]} /boot/${KRNL}
 
-  ls -l /boot
+  log "Change linux kernel image name to 'vmlinuz'"
+  # Rename linux kernel to a fixed name, like we do for any other platform.
+  # We only have one and we should not start multiple versions.
+  # - our OTA update can't currently handle that and it blows up size of /boot and /lib.
+  # This rename is safe, because we have only one vmlinuz in /boot
+  mv /boot/vmlinuz* /boot/vmlinuz
 
   log "Preparing BIOS" "info"
   log "Installing Syslinux Legacy BIOS at ${BOOT_PART-?BOOT_PART is not known}"
@@ -223,7 +222,7 @@ device_chroot_tweaks_pre() {
 DEFAULT volumio
 LABEL volumio
 	SAY Booting Volumio Audiophile Music Player, please wait...
-  LINUX ${KRNL}
+  LINUX vmlinuz
   APPEND ${kernel_params[@]}
   INITRD volumio.initrd
 EOF
@@ -246,7 +245,7 @@ EOF
   sed -i "s/%%IMGPART%%/${UUID_IMG}/g" ${grub_cfg}
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" ${grub_cfg}
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" ${grub_cfg}
-  sed -i "s/%%KRNL%%/${KRNL}/g" ${grub_cfg}
+
 
   log "Finished setting up boot config" "okay"
 
@@ -266,8 +265,6 @@ device_chroot_tweaks_post() {
   log "Running device_chroot_tweaks_post" "ext"
 
   log "Cleaning up /boot"
-  log "Removing original initrd" "$(ls -lh --block-size=M /boot/initrd.img*)"
-  rm /boot/initrd.img-*
   log "Removing System.map" "$(ls -lh --block-size=M /boot/System.map-*)"
   rm /boot/System.map-*
 }
