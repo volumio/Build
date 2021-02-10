@@ -210,7 +210,6 @@ function patch_multistrap_conf() {
     export RASPBIANCONF=recipes/base/arm-raspbian.conf
     debian_source=http://deb.debian.org/debian
     rapsbian_source=http://archive.raspbian.org/raspbian
-    upmpdcli_source=http://www.lesbonscomptes.com/upmpdcli/downloads
 
     cat <<-EOF >"${SRC}/${RASPBIANCONF}"
 		# Auto generated multistrap configuration for Raspberry Pi

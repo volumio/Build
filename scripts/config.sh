@@ -27,10 +27,13 @@ declare -A VOLBINS=(
 
 ## Array of custom packages
 # The expected naming scheme is
-# name_version-${BUILD}.deb
+# name_version_${BUILD}.deb
 # Note the use of $BUILD (arm/armv7/armv8/x86/x64) and not $ARCH(armel/armhf/arm64/i386/amd64) thanks to raspberrypi compatibility naming quirks
 declare -A CUSTOM_PKGS=(
   [volumio_remote_updater]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/volumio-remote-updater_1.6"
+  [libnpupnp1]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/libnpupnp1_4.0.14-1"
+  [libupnpp6]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/libupnpp6_0.20.2-1"
+  [upmpdcli]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/upmpdcli_1.5.8-1"
 )
 
 ## Backend and Frontend Repository details
