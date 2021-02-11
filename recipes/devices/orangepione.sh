@@ -9,4 +9,4 @@ DEVICE_STATUS="T"       # First letter (Planned|Test|Maintenance)
 source "${SRC}"/recipes/devices/families/orangepi_h3.sh
 
 ### Device information
-DEVICENAME="Orange Pi Lite" # Pretty name
+DEVICENAME="Orange Pi One" # Pretty name
