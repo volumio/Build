@@ -7,7 +7,7 @@
 BASE="Debian"
 ARCH="armhf"
 BUILD="armv7"
-UINITRD_ARCH="arm" # TODO: Confirm with Gé, think it should be arm64
+UINITRD_ARCH="arm64"
 
 ### Device information
 DEVICEFAMILY="odroid"
