@@ -93,7 +93,7 @@ device_chroot_tweaks_post() {
   # saving some time!
   if [[ -f /boot/volumio.initrd ]]; then
     log "Creating uInitrd from 'volumio.initrd'" "info"
-    mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+    mkimage -v -A arm64 -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
     rm /boot/volumio.initrd
   fi
 }
