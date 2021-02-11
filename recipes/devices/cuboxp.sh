@@ -98,6 +98,6 @@ device_image_tweaks_post() {
   fi
   if [[ -f "${ROOTFSMNT}"/boot/boot.cmd ]]; then
     log "Creating boot.scr"
-    mkimage -A "${UINITRD_ARCH}" -T script -C none -d "${ROOTFSMNT}"/boot/boot.cmd "${ROOTFSMNT}"/boot/boot.scr
+    mkimage -A arm -T script -C none -d "${ROOTFSMNT}"/boot/boot.cmd "${ROOTFSMNT}"/boot/boot.scr
   fi
 }
