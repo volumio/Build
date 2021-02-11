@@ -9,7 +9,7 @@ BASE="Raspbian"
 ARCH="armhf"
 BUILD="arm"
 
-DEBUG_BUILD=no
+DEBUG_IMAGE=yes
 ### Device information
 # Used to identify devices (VOLUMIO_HARDWARE) and keep backward compatibility
 #VOL_DEVICE_ID="pi"
@@ -316,7 +316,7 @@ device_chroot_tweaks_pre() {
 		"dwc_otg.fiq_enable=1" "dwc_otg.fiq_fsm_enable=1"
 		"dwc_otg.fiq_fsm_mask=0xF" "dwc_otg.nak_holdoff=1"
 		# Output console device and options.
-		"quiet" "console=serial0,115200" "kgdboc=serial0,115200" "console=tty1"
+		"quiet" "console=serial0,115200" "console=tty1"
 		# Image params
 		"imgpart=/dev/mmcblk0p2" "imgfile=/volumio_current.sqsh"
 		# Wait for root device
