@@ -34,7 +34,7 @@ INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 # Modules that will be added to intramsfs
 MODULES=("overlay" "squashfs" "nls_cp437")
 # Packages that will be installed
-PACKAGES=("u-boot-tools" "lirc" "fbset" "mc" "abootimg" "bluez-firmware"
+PACKAGES=("lirc" "fbset" "mc" "abootimg" "bluez-firmware"
   "bluetooth" "bluez" "bluez-tools" "linux-base" "triggerhappy"
 )
 

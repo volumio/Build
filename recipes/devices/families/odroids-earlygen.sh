@@ -31,7 +31,7 @@ FLAGS_EXT4=("-O" "^metadata_csum,^64bit") # Disable ext4 metadata checksums
 # Modules that will be added to intramsfs
 MODULES=("overlayfs" "overlay" "squashfs" "nls_cp437")
 # Packages that will be installed
-PACKAGES=("u-boot-tools" "liblircclient0" "lirc" "fbset")
+PACKAGES=("liblircclient0" "lirc" "fbset")
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)

@@ -31,7 +31,7 @@ INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 # Modules that will be added to intramsfs
 MODULES=("overlay" "squashfs" "nls_cp437")
 # Packages that will be installed
-PACKAGES=("u-boot-tools" "lirc" "fbset")
+PACKAGES=("lirc" "fbset")
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
