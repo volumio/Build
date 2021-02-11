@@ -247,7 +247,6 @@ EOF
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" ${grub_cfg}
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" ${grub_cfg}
 
-
   log "Finished setting up boot config" "okay"
 
   log "Creating fstab template to be used in initrd"
@@ -268,4 +267,10 @@ device_chroot_tweaks_post() {
   log "Cleaning up /boot"
   log "Removing System.map" "$(ls -lh --block-size=M /boot/System.map-*)"
   rm /boot/System.map-*
+}
+
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  # log "Running device_image_tweaks_post" "ext"
+  :
 }

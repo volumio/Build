@@ -9,6 +9,7 @@ DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 BASE="Debian"
 ARCH="arm64"
 BUILD="armv8"
+UINITRD_ARCH="arm64"
 
 ### Device information
 DEVICENAME="NanoPi Neo2"
@@ -33,7 +34,7 @@ INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 # Modules that will be added to intramsfs
 MODULES=("overlay" "overlayfs" "squashfs" "nls_cp437" "fuse")
 # Packages that will be installed
-PACKAGES=("u-boot-tools")
+# PACKAGES=("u-boot-tools")
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -78,17 +79,19 @@ device_chroot_tweaks_pre() {
 
 # Will be run in chroot - Post initramfs
 device_chroot_tweaks_post() {
-  log "Running device_chroot_tweaks_post" "ext"
+  :
+}
 
-  #TODO This can be done outside chroot,
-  # removing the need of each image needing u-boot-tools
-  # saving some time!
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  log "Running device_image_tweaks_post" "ext"
   log "Creating uInitrd from 'volumio.initrd'" "info"
-  if [[ -f /boot/volumio.initrd ]]; then
-    mkimage -v -A $ARCH -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
+  if [[ -f "${ROOTFSMNT}"/boot/volumio.initrd ]]; then
+    mkimage -v -A "${UINITRD_ARCH}" -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d "${ROOTFSMNT}"/boot/volumio.initrd "${ROOTFSMNT}"/boot/uInitrd
+    rm "${ROOTFSMNT}"/boot/volumio.initrd
   fi
-  if [[ -f /boot/boot.cmd ]]; then
+  if [[ -f "${ROOTFSMNT}"/boot/boot.cmd ]]; then
     log "Creating boot.scr"
-    mkimage -A $ARCH -T script -C none -d /boot/boot.cmd /boot/boot.scr
+    mkimage -A arm -T script -C none -d "${ROOTFSMNT}"/boot/boot.cmd "${ROOTFSMNT}"/boot/boot.scr
   fi
 }

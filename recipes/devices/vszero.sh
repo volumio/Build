@@ -2,8 +2,8 @@
 # shellcheck disable=SC2034
 
 ## Setup for Polyvection Voltastream Zero  (Community Portings)
-DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
-DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+DEVICE_SUPPORT_TYPE="C" # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 
 ## Images will not be pusblished
 
@@ -12,6 +12,7 @@ DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
 BASE="Debian"
 ARCH="armhf"
 BUILD="armv7"
+UINITRD_ARCH="arm"
 
 ### Device information
 DEVICENAME="Voltastream Zero"
@@ -31,14 +32,14 @@ VOLINITUPDATER=yes
 ## Partition info
 BOOT_START=1
 BOOT_END=64
-BOOT_TYPE=msdos          # msdos or gpt
-BOOT_USE_UUID=no         # Add UUID to fstab
+BOOT_TYPE=msdos  # msdos or gpt
+BOOT_USE_UUID=no # Add UUID to fstab
 INIT_TYPE="init" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
 MODULES=("overlay" "squashfs" "nls_cp437")
 # Packages that will be installed
-PACKAGES=("u-boot-tools")
+# PACKAGES=("u-boot-tools")
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -48,7 +49,6 @@ write_device_files() {
   cp -dR "${PLTDIR}/${DEVICEBASE}/boot" "${ROOTFSMNT}"
   cp -pdR "${PLTDIR}/${DEVICEBASE}/lib/modules" "${ROOTFSMNT}/lib"
   cp -dR "${PLTDIR}/${DEVICEBASE}/lib/firmware" "${ROOTFSMNT}/lib/"
-
 
   log "Add hotspot"
   cp "${PLTDIR}/${DEVICEBASE}/bin/hotspot.sh" "${ROOTFSMNT}/bin"
@@ -84,10 +84,16 @@ device_chroot_tweaks_pre() {
 
 # Will be run in chroot - Post initramfs
 device_chroot_tweaks_post() {
-  log "Running device_chroot_tweaks_post" "ext"
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
+}
 
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  log "Running device_image_tweaks_post" "ext"
   log "Creating uInitrd from 'volumio.initrd'" "info"
-  mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-  log "Removing unnecessary /boot files"
-  rm /boot/volumio.initrd
+  if [[ -f "${ROOTFSMNT}"/boot/volumio.initrd ]]; then
+    mkimage -v -A "${UINITRD_ARCH}" -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d "${ROOTFSMNT}"/boot/volumio.initrd "${ROOTFSMNT}"/boot/uInitrd
+    rm "${ROOTFSMNT}"/boot/volumio.initrd
+  fi
 }

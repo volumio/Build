@@ -9,6 +9,7 @@ DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 BASE="Debian"
 ARCH="armhf"
 BUILD="armv7"
+UINITRD_ARCH="arm"
 
 ### Device information
 DEVICENAME="Odroid-XU4"
@@ -34,7 +35,7 @@ INIT_TYPE="init.nextarm" # init.{x86/nextarm/nextarm_tvbox}
 # Modules that will be added to intramsfs
 MODULES=("overlay" "squashfs" "nls_cp437")
 # Packages that will be installed
-PACKAGES=("u-boot-tools")
+# PACKAGES=("u-boot-tools")
 
 ### Device customisation
 # Copy the device specific files (Image/DTS/etc..)
@@ -114,14 +115,16 @@ EOF
 
 # Will be run in chroot - Post initramfs
 device_chroot_tweaks_post() {
-  log "Running device_chroot_tweaks_post" "ext"
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
+}
 
-  #TODO This can be done outside chroot,
-  # removing the need of each image needing u-boot-tools
-  # saving some time!
-  if [[ -f /boot/volumio.initrd ]]; then
-    log "Creating uInitrd from 'volumio.initrd'" "info"
-    mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-    rm /boot/volumio.initrd
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  log "Running device_image_tweaks_post" "ext"
+  log "Creating uInitrd from 'volumio.initrd'" "info"
+  if [[ -f "${ROOTFSMNT}"/boot/volumio.initrd ]]; then
+    mkimage -v -A "${UINITRD_ARCH}" -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d "${ROOTFSMNT}"/boot/volumio.initrd "${ROOTFSMNT}"/boot/uInitrd
+    rm "${ROOTFSMNT}"/boot/volumio.initrd
   fi
 }
