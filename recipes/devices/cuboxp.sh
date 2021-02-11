@@ -95,3 +95,9 @@ device_chroot_tweaks_post() {
   log "Compiling u-boot boot script"
   mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr
 }
+
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
+}

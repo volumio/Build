@@ -236,6 +236,9 @@ end_chroot_final=$(date +%s)
 time_it "$end_chroot_final" "$start_chroot_final"
 log "Finished chroot image configuration" "okay" "$TIME_STR"
 
+log "Entering device_image_tweaks_post" "cfg"
+device_image_tweaks_post
+
 log "Finalizing Rootfs (Cleaning, Stripping, Hashing)" "info"
 # shellcheck source=./scripts/volumio/finalize.sh
 source "${SRC}/scripts/volumio/finalize.sh"

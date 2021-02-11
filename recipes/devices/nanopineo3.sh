@@ -102,3 +102,9 @@ device_chroot_tweaks_post() {
   log "Removing unnecessary /boot files"
   rm /boot/volumio.initrd
 }
+
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
+}

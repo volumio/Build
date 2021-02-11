@@ -2,8 +2,8 @@
 # shellcheck disable=SC2034
 
 ## Setup for Polyvection Voltastream Zero  (Community Portings)
-DEVICE_SUPPORT_TYPE="C"   # First letter (Community Porting|Supported Officially|OEM)
-DEVICE_STATUS="P"         # First letter (Planned|Test|Maintenance)
+DEVICE_SUPPORT_TYPE="C" # First letter (Community Porting|Supported Officially|OEM)
+DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 
 ## Images will not be pusblished
 
@@ -31,8 +31,8 @@ VOLINITUPDATER=yes
 ## Partition info
 BOOT_START=1
 BOOT_END=64
-BOOT_TYPE=msdos          # msdos or gpt
-BOOT_USE_UUID=no         # Add UUID to fstab
+BOOT_TYPE=msdos  # msdos or gpt
+BOOT_USE_UUID=no # Add UUID to fstab
 INIT_TYPE="init" # init.{x86/nextarm/nextarm_tvbox}
 
 # Modules that will be added to intramsfs
@@ -48,7 +48,6 @@ write_device_files() {
   cp -dR "${PLTDIR}/${DEVICEBASE}/boot" "${ROOTFSMNT}"
   cp -pdR "${PLTDIR}/${DEVICEBASE}/lib/modules" "${ROOTFSMNT}/lib"
   cp -dR "${PLTDIR}/${DEVICEBASE}/lib/firmware" "${ROOTFSMNT}/lib/"
-
 
   log "Add hotspot"
   cp "${PLTDIR}/${DEVICEBASE}/bin/hotspot.sh" "${ROOTFSMNT}/bin"
@@ -90,4 +89,10 @@ device_chroot_tweaks_post() {
   mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
   log "Removing unnecessary /boot files"
   rm /boot/volumio.initrd
+}
+
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
 }

@@ -114,3 +114,9 @@ device_chroot_tweaks_post() {
     rm /boot/volumio.initrd
   fi
 }
+
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
+}

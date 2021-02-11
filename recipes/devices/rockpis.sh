@@ -97,3 +97,9 @@ device_chroot_tweaks_post() {
     mkimage -A $ARCH -T script -C none -d /boot/boot.cmd /boot/boot.scr
   fi
 }
+
+# Will be called by the image builder post the chroot, before finalisation
+device_image_tweaks_post() {
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
+}
