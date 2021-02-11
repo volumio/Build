@@ -7,7 +7,7 @@
 BASE="Debian"
 ARCH="armhf"
 BUILD="armv7"
-UINITRD_ARCH="arm"
+UINITRD_ARCH="arm64"
 
 ### Device information
 DEVICEBASE="pine64-all"
