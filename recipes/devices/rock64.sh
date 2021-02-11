@@ -9,6 +9,7 @@ DEVICE_STATUS="P"       # First letter (Planned|Test|Maintenance)
 BASE="Debian"
 ARCH="armhf"
 BUILD="armv7"
+UINITRD_ARCH="arm64"
 
 ### Device information
 DEVICENAME="Rock64"
@@ -100,16 +101,16 @@ EOF
 
 # Will be run in chroot - Post initramfs
 device_chroot_tweaks_post() {
-  log "Running device_chroot_tweaks_post" "ext"
-
-  log "Creating uInitrd from 'volumio.initrd'" "info"
-  mkimage -v -A arm64 -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-  log "Removing unnecessary /boot files"
-  rm /boot/volumio.initrd
+  # log "Running device_chroot_tweaks_post" "ext"
+  :
 }
 
 # Will be called by the image builder post the chroot, before finalisation
 device_image_tweaks_post() {
-  # log "Running device_chroot_tweaks_post" "ext"
-  :
+  log "Running device_image_tweaks_post" "ext"
+  log "Creating uInitrd from 'volumio.initrd'" "info"
+  if [[ -f "${ROOTFSMNT}"/boot/volumio.initrd ]]; then
+    mkimage -v -A "${UINITRD_ARCH}" -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d "${ROOTFSMNT}"/boot/volumio.initrd "${ROOTFSMNT}"/boot/uInitrd
+    rm "${ROOTFSMNT}"/boot/volumio.initrd
+  fi
 }

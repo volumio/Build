@@ -80,6 +80,7 @@ device_chroot_tweaks_pre() {
 
 # Will be run in chroot - Post initramfs
 device_chroot_tweaks_post() {
+  # log "Running device_chroot_tweaks_post" "ext"
   :
 }
 

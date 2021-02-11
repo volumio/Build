@@ -7,6 +7,7 @@
 BASE="Debian"
 ARCH="armhf"
 BUILD="armv7"
+UINITRD_ARCH="arm" # TODO: Confirm with Gé, think it should be arm64
 
 ### Device information
 DEVICEFAMILY="odroid"
@@ -88,18 +89,14 @@ device_chroot_tweaks_post() {
   cp lircrc /etc/lirc
   rm lircd.conf hardware.conf lircrc
 
-  #TODO This can be done outside chroot,
-  # removing the need of each image needing u-boot-tools
-  # saving some time!
-  if [[ -f /boot/volumio.initrd ]]; then
-    log "Creating uInitrd from 'volumio.initrd'" "info"
-    mkimage -v -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volumio.initrd /boot/uInitrd
-    rm /boot/volumio.initrd
-  fi
 }
 
 # Will be called by the image builder post the chroot, before finalisation
 device_image_tweaks_post() {
-  # log "Running device_chroot_tweaks_post" "ext"
-  :
+  log "Running device_image_tweaks_post" "ext"
+  log "Creating uInitrd from 'volumio.initrd'" "info"
+  if [[ -f "${ROOTFSMNT}"/boot/volumio.initrd ]]; then
+    mkimage -v -A "${UINITRD_ARCH}" -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d "${ROOTFSMNT}"/boot/volumio.initrd "${ROOTFSMNT}"/boot/uInitrd
+    rm "${ROOTFSMNT}"/boot/volumio.initrd
+  fi
 }
