@@ -308,7 +308,6 @@ print_msg "Checking for a volumio rootfs update on a USB device"
 mkdir /mnt/usb
 for devlink in /dev/sd[a-z]; do
   # do the first partition of a usb device, must be removable and not the boot device!
-  dev_current=$(echo ${devlink} | sed 's/[0-9]*//g')
   if [ $(lsblk ${dev_current} --list -no tran) == usb ] && \
      [ ${BOOT_DEVICE} != ${dev_current} ]; then
     mount -t vfat ${dev_current}1 /mnt/usb >/dev/null 2>&1
@@ -334,7 +333,6 @@ done
 print_msg "Checking for factory reset on a USB device"
 for devlink in /dev/sd[a-z]; do
   # do the first partition of a usb device, must be removable and not the boot device!
-  dev_current=$(echo ${devlink} | sed 's/[0-9]*//g')
   if [ $(lsblk ${dev_current} --list -no tran) == usb ] && \
      [ ${BOOT_DEVICE} != ${dev_current} ]; then
     mount -t vfat ${dev_current}1 /mnt/usb >/dev/null 2>&1
