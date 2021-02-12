@@ -225,10 +225,6 @@ device_chroot_tweaks_pre() {
 			Pin-Priority: -1
 		EOF
 	fi
-	#TODO: Is this still required?
-	log "Adding Shairport-Sync User"
-	getent group shairport-sync &>/dev/null || groupadd -r shairport-sync >/dev/null
-	getent passwd shairport-sync &>/dev/null || useradd -r -M -g shairport-sync -s /usr/bin/nologin -G audio shairport-sync >/dev/null
 
 	log "Adding Custom DAC firmware from github" "info"
 	for key in "${!CustomFirmware[@]}"; do
