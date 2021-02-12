@@ -57,7 +57,6 @@ update_config_UUIDs() {
   sed -i "s/%%BOOTPART%%/${UUID_BOOT}/g" "${root_dir}"/efi/BOOT/grub.cfg
   sed -i "s/%%DATAPART%%/${UUID_DATA}/g" "${root_dir}"/efi/BOOT/grub.cfg
 
-  sync
   umount /mnt/configs
   rm -r /mnt/configs
 }
@@ -273,7 +272,6 @@ if [ ! -e "/mnt/imgpart/kernel_current.tar" ] || [ -e "/mnt/imgpart/current_kern
   umount /mnt/factory
   rm -r /mnt/factory
   rm /mnt/imgpart/current_kernel_creation
-  sync
 fi
 
 #
@@ -306,38 +304,41 @@ if [ ! -z "${BOOTDELAY}" ]; then
   sleep ${BOOTDELAY}
 fi
 
-print_msg "Detecting additional removable devices"
+print_msg "Checking for a volumio rootfs update on a USB device"
 mkdir /mnt/usb
-usb_done=/dev/
-for devlink in /dev/sd*; do
-  # only checking the first partition of an additional device!
-  usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g')
-  if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
-    mount -t auto $(echo ${usb_dev}1) /mnt/usb >/dev/null 2>&1
-    print_msg "Checking " $usb_dev"1 for a volumio rootfs update"
+for devlink in /dev/sd[a-z]; do
+  # do the first partition of a usb device, must be removable and not the boot device!
+  dev_current=$(echo ${devlink} | sed 's/[0-9]*//g')
+  if [ $(lsblk ${dev_current} --list -no tran) == usb ] && \
+     [ ${BOOT_DEVICE} != ${dev_current} ]; then
+    mount -t vfat ${dev_current}1 /mnt/usb >/dev/null 2>&1
+    print_msg "Checking ${dev_current}1 for a volumio rootfs update"
     if [ -e /mnt/usb/*.fir ]; then
       print_msg "New rootfs firmware found"
-      print_msg "Updating will take several minutes, please wait...."
+      print_msg "Updating can take several minutes, please wait...."
+      mkdir /mnt/boot
+      mount -t vfat "${BOOTPART}" /mnt/boot
       volumio-init-updater
-      sync
       print_msg "USB Update applied"
       umount /mnt/usb >/dev/null 2>&1
       rm -r /mnt/boot
+      rm -r /mnt/usb
       print_msg "Restarting"
       echo b >/proc/sysrq-trigger
       break
     fi
     umount /mnt/usb >/dev/null 2>&1
   fi
-  usb_done=${usb_dev}
 done
-print_msg "Checking for factory reset on an additional device"
-for devlink in /dev/sd*; do
-  # only checking the first partition of an additional device!
-  usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g')
-  if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
-    mount -t auto $(echo ${usb_dev}1) /mnt/usb >/dev/null 2>&1
-    print_msg "Checking " $usb_dev"1 for a factory reset"
+
+print_msg "Checking for factory reset on a USB device"
+for devlink in /dev/sd[a-z]; do
+  # do the first partition of a usb device, must be removable and not the boot device!
+  dev_current=$(echo ${devlink} | sed 's/[0-9]*//g')
+  if [ $(lsblk ${dev_current} --list -no tran) == usb ] && \
+     [ ${BOOT_DEVICE} != ${dev_current} ]; then
+    mount -t vfat ${dev_current}1 /mnt/usb >/dev/null 2>&1
+    print_msg "Checking ${dev_current}1 for a factory reset"
     if [ -e /mnt/usb/factory_reset ]; then
       mkdir /mnt/factory
       mount -t vfat "${BOOTPART}" /mnt/factory
@@ -350,7 +351,6 @@ for devlink in /dev/sd*; do
     fi
     umount /mnt/usb >/dev/null 2>&1
   fi
-  usb_done=${usb_dev}
 done
 rmdir /mnt/usb
 
@@ -362,7 +362,6 @@ rmdir /mnt/usb
 print_msg "Checking for factory or user-data reset on boot device"
 mkdir /mnt/factory
 mount -t vfat "${BOOTPART}" /mnt/factory
-
 if [ -e "/mnt/factory/user_data" ]; then
   print_msg "Deleting User Data..."
   #mke2fsfull is used since busybox mke2fs does not include ext4 support
@@ -403,7 +402,6 @@ if [ -e "/boot/kernel_update" ]; then
   update_config_UUIDs
   rm /boot/resize-volumio-datapart
   rm /boot/kernel_update
-  sync
   umount /boot
   rm -rf /boot
   echo b >/proc/sysrq-trigger
