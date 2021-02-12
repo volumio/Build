@@ -10,5 +10,5 @@ source "${SRC}"/recipes/devices/families/pine64.sh
 
 ### Device information
 DEVICENAME="Pine64"
-DEVICE="pine64"
+DEVICE="pine64base"
 UBOOT_VARIANT="pine64plus"
