@@ -84,10 +84,11 @@ cp "${SRC}"/volumio/etc/update-motd.d/* ${ROOTFSMNT}/etc/update-motd.d/
 #TODO This shall be refactored as per https://github.com/volumio/Build/issues/479
 # Temporary workaround
 log "Copying over upmpdcli.service"
-cp "${SRC}"/volumio/lib/systemd/system/upmpdcli.service ${ROOTFSMNT}/lib/systemd/system/upmpdcli.service
+cp ${SRC}/volumio/lib/systemd/system/upmpdcli.service ${ROOTFSMNT}/lib/systemd/system/upmpdcli.service
 
 log "Copying over shairport-sync.service"
-cp "${SRC}"/volumio/lib/systemd/system/shairport-sync.service ${ROOTFSMNT}/lib/systemd/system/shairport-sync.service
+[ -e "${ROOTFSMNT}/lib/systemd/system/shairport-sync.service" ] && rm ${ROOTFSMNT}/lib/systemd/system/shairport-sync.service
+cp ${SRC}/volumio/lib/systemd/system/shairport-sync.service ${ROOTFSMNT}/lib/systemd/system/shairport-sync.service
 
 log "Add Volumio WebUI IP"
 cat <<-EOF >>${ROOTFSMNT}/etc/issue
