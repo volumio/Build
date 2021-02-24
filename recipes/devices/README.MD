@@ -20,7 +20,7 @@ Most devices rely on the community to test, debug and maintain :-)
 | odroidc4     | armv7 | armhf | odroidc4             | Odroid-C4            | [4.9.y](https://github.com/volumio/platform-odroid.git)    | C    | P      |
 | odroidn2     | armv7 | armhf | odroidn2             | Odroid-N2            | [4.9.y](https://github.com/volumio/platform-odroid.git)    | C    | P      |
 | odroidxu4    | armv7 | armhf | odroidxu4            | Odroid-XU4           | [4.9.y](https://github.com/volumio/platform-odroid.git)    | C    | P      |
-| orangepilite | armv7 | armhf | orangepilite         | Orange Pi            | [5.4.y](https://github.com/ashthespy/platform-orangepi)    | C    | T      |
+| orangepilite | armv7 | armhf | orangepilite         | Orange Pi            | [5.4.y](https://github.com/volumio/platform-orangepi)      | C    | T      |
 | pine64base   | armv7 | armhf | pine64               | Pine64               | [5.7.y](https://github.com/volumio/platform-pine64.git)    | C    | P      |
 | pine64plus   | armv7 | armhf | pine64plus           | Pine64+              | [5.7.y](https://github.com/volumio/platform-pine64.git)    | C    | P      |
 | pine64solts  | armv7 | armhf | pine64solts          | soPine64-Pine64LTS   | [5.7.y](https://github.com/volumio/platform-pine64.git)    | C    | P      |
