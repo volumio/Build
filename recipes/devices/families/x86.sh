@@ -76,7 +76,11 @@ write_device_files() {
   cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
 
   log "Copying Alsa Use Case Manager files"
-  cp -R "${pkg_root}"/UCM2/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
+  #ToDo: our current ALSA UCM2 does not work with Buster, reversed to UCM
+  #ToDo: checkout Ubuntu's ucm2, it works
+  #Debian won't have one until bullseye
+  #cp -R "${pkg_root}"/UCM2/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
+  cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
 
   mkdir -p "${ROOTFSMNT}"/usr/local/bin/
   declare -A CustomScripts=(
