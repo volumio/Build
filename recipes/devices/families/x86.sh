@@ -75,12 +75,11 @@ write_device_files() {
   tar xf "${pkg_root}"/firmware-brcm-sdio-nvram/broadcom-nvram.tar.xz -C "${ROOTFSMNT}"
   cp "${pkg_root}"/firmware-cfg80211/* "${ROOTFSMNT}"/lib/firmware
 
-  log "Copying Alsa Use Case Manager files"
-  #ToDo: our current ALSA UCM2 does not work with Buster, reversed to UCM
-  #ToDo: checkout Ubuntu's ucm2, it works
-  #Debian won't have one until bullseye
+  #log "Copying Alsa Use Case Manager files"
+  #No need to copy our own, with Buster we seem to have a default
+  #UCM2 will be tsted with Debian "Bullseye"
   #cp -R "${pkg_root}"/UCM2/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
-  cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
+  #cp -R "${pkg_root}"/UCM/* "${ROOTFSMNT}"/usr/share/alsa/ucm/
 
   mkdir -p "${ROOTFSMNT}"/usr/local/bin/
   declare -A CustomScripts=(
