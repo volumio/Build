@@ -56,8 +56,8 @@ fi
 
 echo "Creating boot and rootfs filesystems"
 mkfs -t vfat -n BOOT "${BOOT_PART}"
-mkfs -F -t ext4 -L volumio "${SYS_PART}"
-mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio "${SYS_PART}" || mkfs -F -t ext4 -L volumio "${SYS_PART}"
+mkfs -F -t ext4 -O ^metadata_csum,^64bit -L volumio_data "${DATA_PART}" || mkfs -F -t ext4 -L volumio_data "${DATA_PART}"
 sync
 
 GETNEO2=yes
