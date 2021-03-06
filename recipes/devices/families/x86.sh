@@ -85,6 +85,7 @@ write_device_files() {
   declare -A CustomScripts=(
     [bytcr_init.sh]="bytcr-init/bytcr-init.sh"
     [volumio_hda_intel_tweak.sh]="hda-intel-tweaks/volumio_hda_intel_tweak.sh"
+    [x86Installer.sh]="x86Installer/x86Installer.sh"
   )
   #TODO: not checked with other Intel SST bytrt/cht audio boards yet, needs more input
   #      to be added to the snd_hda_audio tweaks (see below)
@@ -103,6 +104,18 @@ write_device_files() {
   cp "${pkg_root}"/efi/BOOT/grub.cfg "${ROOTFSMNT}"/boot/efi/BOOT/grub.tmpl
   cp "${pkg_root}"/efi/BOOT/BOOTIA32.EFI "${ROOTFSMNT}"/boot/efi/BOOT/BOOTIA32.EFI
   cp "${pkg_root}"/efi/BOOT/BOOTX64.EFI "${ROOTFSMNT}"/boot/efi/BOOT/BOOTX64.EFI
+
+  log "Copying current partition data for use in runtime fast 'installToDisk'"
+  cat <<-EOF >"${ROOTFSMNT}/boot/partconfig.json"
+{
+  "params":[
+  {"name":"boot_start","value":"$BOOT_START"},
+  {"name":"boot_end","value":"$BOOT_END"},
+  {"name":"volumio_end","value":"$IMAGE_END"},
+  {"name":"boot_type","value":"$BOOT_TYPE"}
+  ]
+}
+EOF
 
 }
 
