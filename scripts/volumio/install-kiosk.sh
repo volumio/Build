@@ -105,6 +105,10 @@ xset s off
   sed -i 's/"exit_type":"Crashed"/"exit_type":"None"/' /data/volumiokiosk/Default/Preferences
 }
 
+if [ -L /data/volumiokiosk/SingletonCookie ]; then
+  rm -rf /data/volumiokiosk/Singleton*
+fi
+
 # Wait for Volumio webUI to be available
 while true; do timeout 3 bash -c "</dev/tcp/127.0.0.1/3000" >/dev/null 2>&1 && break; done
 echo "Waited \$((\$(date +%s) - start)) sec for Volumio UI"
