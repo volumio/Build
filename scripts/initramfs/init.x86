@@ -9,6 +9,7 @@
 #
 #
 
+
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 parse_disk() {
@@ -306,6 +307,7 @@ fi
 
 print_msg "Checking for a volumio rootfs update on a USB device"
 mkdir /mnt/usb
+shopt -s nullglob     # only expand glob to valid device names, return null otherwise
 for devlink in /dev/sd[a-z]; do
   # do the first partition of a usb device, must be removable and not the boot device!
   if [ $(lsblk ${devlink} --list -no tran) == usb ] && \
@@ -351,6 +353,7 @@ for devlink in /dev/sd[a-z]; do
   fi
 done
 rmdir /mnt/usb
+shopt -u nullglob
 
 #
 # Step 4: If there is factory reset or a user-data reset on the boot partition
