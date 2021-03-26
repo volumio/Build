@@ -2,6 +2,7 @@
 
 HARDWARE=`/bin/cat /mnt/volumio/rootfs/etc/os-release | grep "VOLUMIO_HARDWARE" | cut -d \\" -f2 | tr -d "\n"`
 BASEDIR=/mnt/volumio/rootfs
+
 echo "Computing Volumio folder Hash Checksum"
 HASH=`/usr/bin/md5deep -r -l -s -q /mnt/volumio/rootfs/volumio | sort | md5sum | tr -d "-" | tr -d " \t\n\r"`
 echo "VOLUMIO_HASH=\"${HASH}\"" >> /mnt/volumio/rootfs/etc/os-release
@@ -11,6 +12,10 @@ echo "Cleanup to save space"
 echo "Cleaning docs"
 find /mnt/volumio/rootfs/usr/share/doc -depth -type f ! -name copyright|xargs rm || true
 find /mnt/volumio/rootfs/usr/share/doc -empty|xargs rmdir || true
+
+# We need to have a non-empty /etc/resolv.conf file otherwise we trigger a bug in overlayfs which blocks the system"
+echo "Writing resolv.conf"
+echo "###" > /mnt/volumio/rootfs/etc/resolv.conf
 
 if [ $HARDWARE != "x86" ]; then
 
@@ -39,6 +44,4 @@ else
   find $BASEDIR/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/usr/sbin -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
 find $BASEDIR/usr/local/bin/ -type f  -exec strip --strip-all > /dev/null 2>&1 {} ';'
-
-
 fi

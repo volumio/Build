@@ -243,6 +243,10 @@ case "$DEVICE" in
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/cuboxiimage.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
+  cuboxp) echo 'Writing Cubox Pulse Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/cuboxpimage.sh -v "$VERSION" -p "$PATCH" -a armv7
+    ;;
   odroidc1) echo 'Writing Odroid-C1/C1+ Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
     sh scripts/odroidc1image.sh -v "$VERSION" -p "$PATCH" -a armv7
