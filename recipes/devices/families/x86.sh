@@ -84,6 +84,7 @@ write_device_files() {
   mkdir -p "${ROOTFSMNT}"/usr/local/bin/
   declare -A CustomScripts=(
     [bytcr_init.sh]="bytcr-init/bytcr-init.sh"
+    [jackdetect-rt5640.sh]="bytcr-init/jackdetect-rt5640.sh"
     [volumio_hda_intel_tweak.sh]="hda-intel-tweaks/volumio_hda_intel_tweak.sh"
     [x86Installer.sh]="x86Installer/x86Installer.sh"
   )
@@ -116,7 +117,10 @@ write_device_files() {
   ]
 }
 EOF
-
+  # Headphone detect currently only for atom z8350 with rt5640 codec
+  # Evaluate additional requirements when they arrive
+  log "Copying acpi event handing for headphone jack detect (z8350 with rt5640 only)"
+  cp "${pkg_root}"/bytcr-init/jackdetect "${ROOTFSMNT}"/etc/acpi/events
 }
 
 write_device_bootloader() {
@@ -151,6 +155,9 @@ ExecStart=/usr/local/bin/soundcard-init.sh
 WantedBy=multi-user.target
 EOF
   ln -s "${ROOTFSMNT}/lib/systemd/system/soundcard-init.service" "${ROOTFSMNT}/etc/systemd/system/multi-user.target.wants/soundcard-init.service"
+
+  #log "Adding ACPID Service to Startup"
+  #ln -s "${ROOTFSMNT}/lib/systemd/system/acpid.service" "${ROOTFSMNT}/etc/systemd/system/multi-user.target.wants/acpid.service"
 
   log "Blacklisting PC speaker"
   cat <<-EOF >>"${ROOTFSMNT}/etc/modprobe.d/blacklist.conf"

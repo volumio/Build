@@ -307,6 +307,10 @@ fi
 print_msg "Checking for a volumio rootfs update on a USB device"
 mkdir /mnt/usb
 for devlink in /dev/sd[a-z]; do
+  if [ "${devlink}" == "/dev/sd[a-z]" ]; then
+  # no usb devices present
+    break
+  fi
   # do the first partition of a usb device, must be removable and not the boot device!
   if [ $(lsblk ${devlink} --list -no tran) == usb ] && \
      [ ${BOOT_DEVICE} != ${devlink} ]; then
@@ -332,6 +336,10 @@ done
 
 print_msg "Checking for factory reset on a USB device"
 for devlink in /dev/sd[a-z]; do
+  if [ "${devlink}" == "/dev/sd[a-z]" ]; then
+  # no usb devices present
+    break
+  fi
   # do the first partition of a usb device, must be removable and not the boot device!
   if [ $(lsblk ${devlink} --list -no tran) == usb ] && \
      [ ${BOOT_DEVICE} != ${devlink} ]; then
