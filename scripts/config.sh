@@ -35,6 +35,7 @@ declare -A CUSTOM_PKGS=(
   [libupnpp6]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/libupnpp6_0.20.2-1"
   [upmpdcli]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/upmpdcli_1.5.8-1"
   [shairport-sync]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/shairport-sync/shairport-sync_3.2.2-1"
+  [mpd]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/mpd/mpd_0.21.18"
 )
 
 ## Backend and Frontend Repository details
