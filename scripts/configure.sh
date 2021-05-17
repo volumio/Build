@@ -104,7 +104,7 @@ cp volumio/etc/default/ifplugd build/$BUILD/root/etc/default/ifplugd
 #TRIGGERHAPPY
 cp -r volumio/etc/triggerhappy build/$BUILD/root/etc
 #ORIGIN
-[ -f origin ] && cp origin build/$BUILD/etc/origin
+[ -f origin ] && cp origin build/$BUILD/root/etc/origin
 
 echo 'Done Copying Custom Volumio System Files'
 
