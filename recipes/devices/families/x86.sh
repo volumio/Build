@@ -26,7 +26,7 @@ KIOSKMODE=yes
 ## Partition info
 BOOT_START=1
 BOOT_END=180
-IMAGE_END=3150
+IMAGE_END=3800
 BOOT_TYPE=gpt        # msdos or gpt
 BOOT_USE_UUID=yes    # Add UUID to fstab
 INIT_TYPE="init.x86" # init.{x86/nextarm/nextarm_tvbox}
