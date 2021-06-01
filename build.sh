@@ -516,7 +516,7 @@ if [[ -n "${DEVICE}" ]]; then
     # Current Volumio repo knows only {arm|x86} which is conveniently the same length
     # TODO: Consolidate the naming scheme for node modules - %{BUILD}-v${NODE_VERSION}.tar.xz
     log "Attempting to fetch node_modules for ${NODE_VERSION} -- ${NODE_SEMVER[*]}"
-    # Workaround for x64 modules being built for a differnt version
+    # Workaround for x64 modules being built for a different version
     [[ ${BUILD} == x64 ]] && [[ ${NODE_SEMVER[0]} == 0 ]] && {
       log "Overiding NODE_VERSION from ${NODE_VERSION} to 8.17.0" "wrn"
       NODE_VERSION=8.17.0

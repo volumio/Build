@@ -257,7 +257,7 @@ EOF
   log "Setting up Grub configuration"
   grub_tmpl=/boot/efi/BOOT/grub.tmpl
   grub_cfg=/boot/efi/BOOT/grub.cfg
-  log "Inserting our kernel paramters to grub.tmpl"
+  log "Inserting our kernel parameters to grub.tmpl"
   # Use a different delimiter as we might have some `/` paths
   sed -i "s|%%CMDLINE_LINUX%%|""${kernel_params[*]}""|g" ${grub_tmpl}
 
