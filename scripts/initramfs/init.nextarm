@@ -433,7 +433,7 @@ if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   e2fsck -fy ${DATAPART}
   #force resize as we did just run e2fsck. Resize2fs seems ro not detect this occasionally
   resize2fs -f ${DATAPART}
-  print_msg "Volumio data partition succesfully resized"
+  print_msg "Volumio data partition successfully resized"
   parted -s /dev/${DATADEV} unit MB print
   rm /boot/resize-volumio-datapart
 fi
