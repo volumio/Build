@@ -16,6 +16,7 @@ PubkeyAuthentication yes
 IgnoreRhosts yes
 RhostsRSAAuthentication no
 HostbasedAuthentication no
+PasswordAuthentication yes
 PermitEmptyPasswords no
 ChallengeResponseAuthentication no
 X11Forwarding yes
