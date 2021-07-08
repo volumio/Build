@@ -63,7 +63,8 @@ cp "${SRC}/volumio/etc/ssh/sshd_config" "${ROOTFS}/etc/ssh/sshd_config"
 
 #Mpd
 cp "${SRC}/volumio/etc/mpd.conf" "${ROOTFS}/etc/mpd.conf"
-chmod 777 "${ROOTFS}/etc/mpd.conf"
+chown mpd:audio "${ROOTFS}/etc/mpd.conf"
+chmod 660 "${ROOTFS}/etc/mpd.conf"
 
 #Log via JournalD in RAM
 cp "${SRC}/volumio/etc/systemd/journald.conf" "${ROOTFS}/etc/systemd/journald.conf"
@@ -76,7 +77,8 @@ cp -r "${SRC}"/volumio/etc/network/* "${ROOTFS}"/etc/network
 
 # Wpa Supplicant
 echo " " >"${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
-chmod 777 "${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
+chown root:adm "${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
+chmod 660 "${ROOTFS}"/etc/wpa_supplicant/wpa_supplicant.conf
 
 #nsswitch
 cp "${SRC}/volumio/etc/nsswitch.conf" "${ROOTFS}/etc/nsswitch.conf"
