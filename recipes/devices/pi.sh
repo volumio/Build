@@ -369,7 +369,21 @@ device_chroot_tweaks_pre() {
 # Will be run in chroot - Post initramfs
 device_chroot_tweaks_post() {
 	# log "Running device_chroot_tweaks_post" "ext"
-	:
+	log "Download Kernel Sources"
+	volumio kernelsource
+	log "Install WM8960-Audio-HAT Kernel Module & Overlay"
+	git clone https://github.com/waveshare/WM8960-Audio-HAT.git /opt/WM8960
+	pushd /opt/WM8960
+	# hack system environment
+	sed -i 's/is_Raspberry=.*/is_Raspberry=Raspberry/g' install.sh
+	sed -i 's/uname_r=.*/uname_r="5.4.83+"/g' install.sh
+	# revert API to kernel version before 5.10.y
+	sed -i 's/snd_soc_component_read/snd_soc_component_read32/g' wm8960.c
+	sed -i '/\.no_capture_mute/d' wm8960.c
+	./install.sh
+	popd
+	rm -rf /opt/WM8960
+	chmod -x /lib/systemd/system/wm8960-soundcard.service
 }
 
 # Will be called by the image builder post the chroot, before finalisation
