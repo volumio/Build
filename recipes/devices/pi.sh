@@ -167,6 +167,7 @@ device_chroot_tweaks_pre() {
 		[AlloPiano]="https://github.com/allocom/piano-firmware/archive/master.tar.gz"
 		[TauDAC]="https://github.com/taudac/modules/archive/rpi-volumio-${KERNEL_VERSION}-taudac-modules.tar.gz"
 		[Bassowl]="https://raw.githubusercontent.com/Darmur/bassowl-hat/master/driver/archives/modules-rpi-${KERNEL_VERSION}-bassowl.tar.gz"
+		[wm8960]="https://raw.githubusercontent.com/hftsai256/wm8960-rpi-modules/main/wm8960-modules-rpi-${KERNEL_VERSION}.tar.gz"
 	)
 
 	### Kernel installation
