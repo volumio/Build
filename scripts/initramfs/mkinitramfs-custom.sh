@@ -318,7 +318,7 @@ build_initramfs() {
   # First file executed by linux
   cp -p /usr/share/initramfs-tools/init "${DESTDIR}/init"
 
-  # add existant boot scripts
+  # add existent boot scripts
   for b in $(cd /usr/share/initramfs-tools/scripts/ && find . \
     -regextype posix-extended -regex '.*/[[:alnum:]\._-]+$' -type f); do
     [ -d "${DESTDIR}/scripts/$(dirname "${b}")" ] ||

@@ -293,7 +293,7 @@ if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   parted -s /dev/${BOOTDEV} resizepart 3 ${END}
   e2fsck -fy /dev/${BOOTDEV}p3
   resize2fs /dev/${BOOTDEV}p3
-  print_msg "Volumio data partition succesfully resized"
+  print_msg "Volumio data partition successfully resized"
   parted -s /dev/${BOOTDEV} unit MB print
   rm /boot/resize-volumio-datapart
 fi

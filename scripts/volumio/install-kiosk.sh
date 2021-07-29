@@ -29,7 +29,7 @@ log "${CMP_NAME} Dependencies installed!"
 log "Creating ${CMP_NAME} dirs and scripts"
 mkdir /data/volumiokiosk
 
-#TOOD: Document these!
+#TODO: Document these!
 # A lot of these flags are wrong/deprecated/not required
 # eg. https://chromium.googlesource.com/chromium/src/+/4baa4206fac22a91b3c76a429143fc061017f318
 # Translate: remove --disable-translate flag

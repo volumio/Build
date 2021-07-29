@@ -174,7 +174,7 @@ if [ -z "$BOOTDELAY" ]; then
   BOOTDELAY=5
 fi
 
-# Mount a tempfs to such that it's accessable later on
+# Mount a tempfs to such that it's accessible later on
 mount -t tmpfs -o "noexec,nosuid,size=${RUNSIZE:-10%},mode=0755" tmpfs /run
 
 if [ "${USE_KMSG}" == yes ]; then
@@ -291,7 +291,7 @@ if [ ! "x${GPTSIZEMISMATCH}" == "x" ]; then
   print_msg "Alternate (backup) GPT header not at the end of the disk, moving it..."
   sgdisk -e "${BOOT_DEVICE}" >/dev/null 2>&1
   [ -e /mnt/imgpart/move-gpt ] && rm -rf /mnt/imgpart/move-gpt
-  print_msg "Succesfully moved the alternate GPT header"
+  print_msg "Successfully moved the alternate GPT header"
 fi
 
 #
@@ -426,7 +426,7 @@ if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
   parted -s "${DATADEV}" resizepart 3 "${END}" >/dev/null 2>&1
   e2fsck -f "${DATAPART}" -y >/dev/null 2>&1
   resize2fs -p "${DATAPART}" >/dev/null 2>&1
-  print_msg "Volumio data partition succesfully resized"
+  print_msg "Volumio data partition successfully resized"
   parted -s "${DATADEV}" unit MB print >/dev/null 2>&1
 fi
 umount /boot
