@@ -87,3 +87,12 @@ time_it() {
 	fi
 	export TIME_STR
 }
+
+check_size() {
+	local path=$1
+	if [[ -e "${path}" ]]; then
+		du -sh0 "${path}" 2>/dev/null | cut -f1
+	else
+		echo ""
+	fi
+}

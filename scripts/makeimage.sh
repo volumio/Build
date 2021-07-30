@@ -167,7 +167,7 @@ UUID_IMG="$(blkid -s UUID -o value "${IMG_PART}")"
 UUID_DATA="$(blkid -s UUID -o value "${DATA_PART}")"
 
 log "Adding board pretty name to os-release"
-echo "VOLUMIO_DEVICENAME=\"${DEVICENAME}\"" >>${ROOTFSMNT}/etc/os-release
+echo "VOLUMIO_DEVICENAME=\"${DEVICENAME:?No DEVICENAME set in device recipe}\"" >>${ROOTFSMNT}/etc/os-release
 # Ensure all file systems operations are completed before entering chroot again
 sync
 
@@ -176,11 +176,11 @@ log "Preparing to run chroot for more ${DEVICE} configuration" "info"
 start_chroot_final=$(date +%s)
 cp "${SRC}/scripts/initramfs/${INIT_TYPE}" ${ROOTFSMNT}/root/init
 cp "${SRC}"/scripts/initramfs/mkinitramfs-custom.sh ${ROOTFSMNT}/usr/local/sbin
-cp "${SRC}"/scripts/volumio/chrootconfig.sh ${ROOTFSMNT}
+cp "${SRC}"/scripts/image/chrootconfig.sh ${ROOTFSMNT}
 
 if [[ "${KIOSKMODE}" == yes ]]; then
   log "Copying kiosk scripts to rootfs"
-  cp "${SRC}/scripts/volumio/install-kiosk.sh" ${ROOTFSMNT}/install-kiosk.sh
+  cp "${SRC}/scripts/components/install-kiosk.sh" ${ROOTFSMNT}/install-kiosk.sh
 fi
 
 echo "$PATCH" >${ROOTFSMNT}/patch
@@ -240,8 +240,8 @@ log "Entering device_image_tweaks_post" "cfg"
 device_image_tweaks_post
 
 log "Finalizing Rootfs (Cleaning, Stripping, Hashing)" "info"
-# shellcheck source=./scripts/volumio/finalize.sh
-source "${SRC}/scripts/volumio/finalize.sh"
+# shellcheck source=./scripts/image/finalize.sh
+source "${SRC}/scripts/image/finalize.sh"
 
 log "Rootfs created" "okay"
 

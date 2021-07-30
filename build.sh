@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Volumio Image Builder
 # Copyright Michelangelo Guarise - Volumio.org
 #
@@ -25,17 +25,11 @@ mapfile -t DEVICE_LIST < <(basename -s .sh "${SRC}"/recipes/devices/*.sh | sort)
 
 log "Running Volumio Image Builder -" "info"
 
-ARCH=""
-# This isn't being used currently..
-SUITE="buster"
 #Help function
 function HELP() {
   cat <<-EOF
-
 Help documentation for Volumio Image Builder
-
 Basic usage: ./build.sh -b arm -d pi -v 2.0
-
 Switches:
   -b <arch>     Build a base rootfs with Multistrap.
                 Options for the target architecture are 
@@ -48,7 +42,6 @@ $(printf "\t\t%s\n" "${DEVICE_LIST[@]}")
   -t <variant>  Volumio Variant type.
   -p <dir>      Optionally patch the builder. <dir> should contain a tree of
                 files you want to replace within the build tree. Experts only.
-
 Example: Build a Raspberry PI image from scratch, version 2.0 :
          ./build.sh -b arm -d pi -v 2.0
 EOF
@@ -380,11 +373,15 @@ if [ -n "${BUILD}" ]; then
     log "Finished setting up Multistrap rootfs" "okay" "$TIME_STR"
   fi
 
+  log "Preparing rootfs before chroot" "info"
+  # shellcheck source=./scripts/rootfs/prepare.sh
+  source "${SRC}/scripts/rootfs/prepare.sh"
+
   log "Preparing for Volumio chroot configuration" "info"
   start_chroot=$(date +%s)
 
-  cp scripts/volumio/volumioconfig.sh "${ROOTFS}"
   cp scripts/helpers.sh "${ROOTFS}"
+  cp scripts/rootfs/volumioconfig.sh "${ROOTFS}"
 
   mount_chroot "${ROOTFS}"
 
@@ -415,8 +412,8 @@ if [ -n "${BUILD}" ]; then
   rm -f "${ROOTFS}/volumioconfig.sh"
 
   log "Running Volumio configuration script on rootfs" "info"
-  # shellcheck source=./scripts/volumio/configure.sh
-  source "${SRC}/scripts/volumio/configure.sh"
+  # shellcheck source=./scripts/rootfs/configure.sh
+  source "${SRC}/scripts/rootfs/configure.sh"
 
   log "Volumio rootfs created" "okay"
   # Bundle up the base rootfs

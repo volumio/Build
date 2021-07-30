@@ -1,5 +1,5 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
+# This script runs in chroot, to configure the freshly created rootfs from multistrap
 # This script will be run in chroot under qemu.
 
 set -eo pipefail
@@ -169,7 +169,11 @@ log 'Adding Safe Sudoers NoPassw permissions'
 cat <<-EOF >${SUDOERS_FILE}
 # Add permissions for volumio user
 volumio ALL=(ALL) ALL
-volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid,/bin/ln,/usr/bin/unlink,/bin/dd,/usr/bin/dcfldd,/opt/vc/bin/vcgencmd,/opt/vc/bin/tvservice,/usr/bin/renice,/bin/rm,/bin/kill,/usr/sbin/i2cset,/usr/local/bin/x86Installer.sh
+volumio ALL=(ALL) NOPASSWD: /bin/chmod, /bin/dd, /bin/hostname, /bin/ip, /bin/journalctl, /bin/kill, /bin/ln, /bin/mount, /bin/mv, /bin/rm, /bin/systemctl
+volumio ALL=(ALL) NOPASSWD: /bin/tar, /bin/umount, /opt/vc/bin/tvservice, /opt/vc/bin/vcgencmd, /sbin/dhclient, /sbin/dhcpcd, /sbin/ethtool, /sbin/halt
+volumio ALL=(ALL) NOPASSWD: /sbin/ifconfig, /sbin/iw, /sbin/iwconfig, /sbin/iwgetid, /sbin/iwlist, /sbin/modprobe, /sbin/poweroff, /sbin/reboot, /sbin/shutdown
+volumio ALL=(ALL) NOPASSWD: /usr/bin/alsactl, /usr/bin/apt-get, /usr/bin/dcfldd, /usr/bin/dtoverlay, /usr/bin/gpio, /usr/bin/killall, /usr/bin/renice, /usr/bin/timedateclt, /usr/bin/unlink
+volumio ALL=(ALL) NOPASSWD: /usr/local/bin/x86Installer.sh, /usr/sbin/alsactl, /usr/sbin/i2cdetect, /usr/sbin/i2cset, /usr/sbin/service, /usr/sbin/update-rc.d
 volumio ALL=(ALL) NOPASSWD: /bin/sh /volumio/app/plugins/system_controller/volumio_command_line_client/commands/kernelsource.sh, /bin/sh /volumio/app/plugins/system_controller/volumio_command_line_client/commands/pull.sh
 EOF
 chmod 0440 ${SUDOERS_FILE}
