@@ -285,10 +285,16 @@ start=$(date +%s)
 
 ## Setup logging and dirs
 #TODO make this smarter.
+BUILD_OUTPUT_DIR=${BUILD_OUTPUT_DIR:-${SRC}/build}
 OUTPUT_DIR=${OUTPUT_DIR:-.}
 LOG_DIR="${OUTPUT_DIR}/debug_$(date +%Y-%m-%d_%H-%M-%S)"
 LOCAL_PKG_DIR=${LOCAL_PKG_DIR:-customPkgs}
 LOCAL_MODULES_DIR=${LOCAL_MODULES_DIR:-modules}
+
+if [[ -z "$SUITE" ]]; then
+  log "Defaulting to release" "" "Buster"
+  SUITE="buster"
+fi
 
 if [[ -n ${BUILD} ]]; then
   log "Creating log directory"
@@ -305,10 +311,6 @@ if [ -n "${BUILD}" ]; then
   log "Creating ${BUILD} rootfs" "info"
   #TODO Check naming conventions!
   BASE="Debian"
-  if [[ -z "$SUITE" ]]; then
-    log "Defaulting to release" "" "Buster"
-    SUITE="buster"
-  fi
 
   MULTISTRAPCONF=${BUILD}
   if [ "${BUILD}" = arm ] || [ "${BUILD}" = arm-dev ]; then
@@ -339,19 +341,21 @@ if [ -n "${BUILD}" ]; then
     exit 1
   fi
 
-  # Setup output directory
+  # Setup build directory
+  BUILD_DIR=${BUILD_OUTPUT_DIR}/${SUITE}/${BUILD}
+  rootfs_tarball=${BUILD_DIR}_rootfs
 
-  if [ -d "${SRC}/build/${BUILD}" ]; then
-    log "${BUILD} rootfs exists, cleaning it"
-    rm -rf "${SRC}/build/${BUILD}"
+  if [[ -d "${BUILD_DIR}" ]]; then
+    log "${BUILD} rootfs exists, cleaning it" "wrn" "${BUILD_DIR}"
+    rm -rf "${BUILD_DIR}"
   fi
-  ROOTFS="${SRC}/build/${BUILD}/root"
+  ROOTFS="${BUILD_DIR}/root"
   mkdir -p "${ROOTFS}"
 
   setup_multistrap
 
   log "Building ${BASE} System for ${BUILD} ($ARCH)" "info"
-  log "Creating rootfs in <./build/${BUILD}/root>"
+  log "Creating rootfs in <${BUILD_DIR}>"
 
   #### Build stage 0 - Multistrap
   log "Running multistrap for ${BUILD} (${ARCH})" "" "${CONF##*/}"
@@ -419,12 +423,11 @@ if [ -n "${BUILD}" ]; then
   # Bundle up the base rootfs
   log "Creating base system rootfs tarball"
   # https://superuser.com/questions/168749/is-there-a-way-to-see-any-tar-progress-per-file/665181#665181
-  rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
-  tar cp --xattrs --directory=build/${BUILD}/root/ \
+  tar cp --xattrs --directory="${ROOTFS}" \
     --exclude='./dev/*' --exclude='./proc/*' \
     --exclude='./run/*' --exclude='./tmp/*' \
     --exclude='./sys/*' . |
-    pv -p -b -r -s "$(du -sb build/${BUILD}/ | cut -f1)" -N "$rootfs_tarball" | lz4 -c >"${rootfs_tarball}.lz4"
+    pv -p -b -r -s "$(du -sb "${BUILD_DIR}" | cut -f1)" -N "$rootfs_tarball" | lz4 -c >"${rootfs_tarball}.lz4"
   log "Created ${BUILD}_rootfs.lz4" "okay"
 else
   use_rootfs_tarball=yes
@@ -436,22 +439,24 @@ if [[ -n "${DEVICE}" ]]; then
   # shellcheck source=/dev/null
   source "$DEV_CONFIG"
   log "Preparing an image for ${DEVICE} using $BASE - ${BUILD}"
+  # Parse build directory
+  BUILD_DIR=${BUILD_OUTPUT_DIR}/${SUITE}/${BUILD}
+  rootfs_tarball=${BUILD_DIR}_rootfs
   if [[ $use_rootfs_tarball == yes ]]; then
     log "Trying to use prior base system" "info"
-    if [[ -d ${SRC}/build/${BUILD} ]]; then
-      log "Prior ${BUILD} rootfs dir found!" "dbg" "$(date -r "${SRC}/build/${BUILD}" "+%m-%d-%Y %H:%M:%S")"
+    if [[ -d ${BUILD_DIR} ]]; then
+      log "Prior ${BUILD} rootfs dir found!" "dbg" "$(date -r "${BUILD_DIR}" "+%m-%d-%Y %H:%M:%S")"
       [[ ${CLEAN_ROOTFS:-yes} == yes ]] &&
-        log "Cleaning prior rootfs directory" "wrn" && rm -rf "${SRC}/build/${BUILD}"
+        log "Cleaning prior rootfs directory" "wrn" && rm -rf "${BUILD_DIR}"
     fi
-    rootfs_tarball="${SRC}/build/${BUILD}"_rootfs
     [[ ! -f ${rootfs_tarball}.lz4 ]] && log "Couldn't find prior base system!" "err" && exit 1
     log "Using prior Base tarball" "$(date -r "${rootfs_tarball}.lz4" "+%m-%d-%Y %H:%M:%S")"
-    mkdir -p ./build/${BUILD}/root
+    mkdir -p "${BUILD_DIR}/root"
     pv -p -b -r -c -N "[ .... ] $rootfs_tarball" "${rootfs_tarball}.lz4" |
       lz4 -dc |
-      tar xp --xattrs -C ./build/${BUILD}/root
+      tar xp --xattrs -C "${BUILD_DIR}/root"
   fi
-  ROOTFS="${SRC}/build/${BUILD}/root"
+  ROOTFS="${BUILD_DIR}/root"
 
   ## Add in our version details
   check_os_release
@@ -574,8 +579,8 @@ fi
 end_build=$(date +%s)
 time_it "$end_build" "$start"
 
-log "Cleaning up rootfs.." "info" "build/${BUILD}/"
-rm -r build/${BUILD:?}/ || log "Couldn't clean rootfs" "wrn"
+log "Cleaning up rootfs.." "info" "${BUILD_DIR}"
+rm -r "${BUILD_DIR:?}" || log "Couldn't clean rootfs" "wrn"
 
 log "Volumio Builder finished: \
 $([[ -n ${BUILD} ]] && echo "${yellow}BUILD=${standout}${BUILD}${normal} ")\
