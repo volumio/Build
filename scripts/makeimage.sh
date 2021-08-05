@@ -215,8 +215,8 @@ UUID_IMG=${UUID_IMG}
 UUID_DATA=${UUID_DATA}
 BOOT_PART=${BOOT_PART}
 LOOP_DEV=${LOOP_DEV}
-MODULES=($(printf '\"%s\" ' "${MODULES[@]}"))
-PACKAGES=($(printf '\"%s\" ' "${PACKAGES[@]}"))
+MODULES=($([[ -n ${MODULES} ]] && printf '\"%s\" ' "${MODULES[@]}"))
+PACKAGES=($([[ -n ${PACKAGES} ]] && printf '\"%s\" ' "${PACKAGES[@]}"))
 $(declare -f device_chroot_tweaks || true)      # Don't trigger our trap when function is empty
 $(declare -f device_chroot_tweaks_pre || true)
 $(declare -f device_chroot_tweaks_post || true)

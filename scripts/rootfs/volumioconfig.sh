@@ -23,9 +23,6 @@ check_dependency() {
   fi
 }
 
-DISTRO_VER="$(lsb_release -s -r)"
-DISTRO_NAME="$(lsb_release -s -c)"
-
 # Packages to install that are not in multistrap for some reason.
 packages=nodejs
 

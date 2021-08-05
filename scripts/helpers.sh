@@ -96,3 +96,8 @@ check_size() {
 		echo ""
 	fi
 }
+
+DISTRO_VER="$(lsb_release -s -r)"
+DISTRO_NAME="$(lsb_release -s -c)"
+
+export DISTRO_VER DISTRO_NAME
