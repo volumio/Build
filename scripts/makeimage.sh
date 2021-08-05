@@ -64,8 +64,8 @@ LOOP_DEV=$(losetup -f --show "${IMG_FILE}")
 # Note: leave the first 20Mb free for the firmware
 parted -s "${LOOP_DEV}" mklabel "${BOOT_TYPE}"
 parted -s "${LOOP_DEV}" mkpart primary fat32 "${BOOT_START:-0}" "${BOOT_END}"
-parted -s "${LOOP_DEV}" mkpart primary ext3 "${BOOT_END}" "${IMAGE_END}"
-parted -s "${LOOP_DEV}" mkpart primary ext3 "${IMAGE_END}" 100%
+parted -s "${LOOP_DEV}" mkpart primary ext4 "${BOOT_END}" "${IMAGE_END}"
+parted -s "${LOOP_DEV}" mkpart primary ext4 "${IMAGE_END}" 100%
 parted -s "${LOOP_DEV}" set 1 boot on
 [[ "${BOOT_TYPE}" == gpt ]] && parted -s "${LOOP_DEV}" set 1 legacy_boot on # for non UEFI systems
 parted -s "${LOOP_DEV}" print
@@ -82,7 +82,7 @@ if [[ ! -b "$BOOT_PART" ]]; then
 fi
 
 log "Creating filesystem" "info"
-mkfs -t vfat -n boot "${BOOT_PART}"
+mkfs -t vfat -F 32 -n boot "${BOOT_PART}"
 # Older kernels may not support metadata checksums (available since Linux 3.6) for Ext4 file systems
 # so we let devices pass in extra flags (such as -O ^metadata_csum,^64bit) to disable these features
 # that are now default since `e2fsprogs` 1.44 or later
