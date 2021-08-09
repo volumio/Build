@@ -4,12 +4,12 @@
 # Some general helpers for the Volumio Build system
 
 # Terminal colors if supported
-if [[ $TERM == dumb ]]; then
+if [[ ${TERM} == dumb ]]; then
 	export TERM=ansi
 fi
 if test -t; then                                      # if terminal
 	ncolors=$(command -v tput >/dev/null && tput colors) # supports colour
-	if [[ $ncolors -ge 8 ]]; then
+	if [[ ${ncolors} -ge 8 ]]; then
 		export termcols=$(tput cols)
 		export bold="$(tput bold)"
 		export underline="$(tput smul)"
@@ -30,7 +30,7 @@ fi
 log() {
 	local tmp=""
 	local char=".."
-	if [[ $CHROOT == yes ]]; then
+	if [[ ${CHROOT} == yes ]]; then
 		char="--"
 	fi
 
@@ -38,36 +38,36 @@ log() {
 
 	case $2 in
 	err)
-		echo -e "[${red} ${bold}error ${normal}]${red} $1 ${normal}$tmp"
+		echo -e "[${red} ${bold}error ${normal}]${red} $1 ${normal}${tmp}"
 		;;
 
 	cfg)
-		echo -e "[${cyan} ${bold}cfg ${normal}]${yellow} $1 ${normal}$tmp"
+		echo -e "[${cyan} ${bold}cfg ${normal}]${yellow} $1 ${normal}${tmp}"
 		;;
 
 	wrn)
-		echo -e "[${magenta}${bold} warn ${normal}] $1 $tmp"
+		echo -e "[${magenta}${bold} warn ${normal}] $1 ${tmp}"
 		;;
 
 	dbg)
-		echo -e "[${standout} dbg ${normal}] ${blue} $1 ${normal} $tmp"
+		echo -e "[${standout} dbg ${normal}] ${blue} $1 ${normal} ${tmp}"
 		;;
 
 	info)
-		echo -e "[${green} $char$char ${normal}]${cyan} $1 $tmp ${normal}"
+		echo -e "[${green} ${char}${char} ${normal}]${cyan} $1 ${tmp} ${normal}"
 		;;
 
 	okay)
-		echo -e "[${green} o.k. ${normal}]${green} $1 ${normal} $tmp"
+		echo -e "[${green} o.k. ${normal}]${green} $1 ${normal} ${tmp}"
 		;;
 
 	"")
-		echo -e "[${green} $char ${normal}] $1 $tmp"
+		echo -e "[${green} ${char} ${normal}] $1 ${tmp}"
 		;;
 
 	*)
 		[[ -n $2 ]] && tmp="[${yellow} $2 ${normal}]"
-		echo -e "[${green} $char ${normal}] $1 $tmp"
+		echo -e "[${green} ${char} ${normal}] $1 ${tmp}"
 		;;
 
 	esac
@@ -80,8 +80,8 @@ isMounted() { findmnt -rno SOURCE,TARGET "$1" >/dev/null; }
 
 time_it() {
 	time=$(($1 - $2))
-	if [[ $time -lt 60 ]]; then
-		TIME_STR="$time sec"
+	if [[ ${time} -lt 60 ]]; then
+		TIME_STR="${time} sec"
 	else
 		TIME_STR="$((time / 60)):$((time % 60)) min"
 	fi

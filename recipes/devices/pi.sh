@@ -178,7 +178,7 @@ device_chroot_tweaks_pre() {
 	log "Fetching SHA: ${KERNEL_COMMIT} from branch: ${BRANCH}"
 	echo y | SKIP_BACKUP=1 WANT_PI4=1 SKIP_CHECK_PARTITION=1 UPDATE_SELF=0 BRANCH=$BRANCH /usr/bin/rpi-update "$KERNEL_COMMIT"
 
-	if [ -d "/lib/modules/${KERNEL_VERSION}-v8+" ]; then
+	if [[ -d "/lib/modules/${KERNEL_VERSION}-v8+" ]]; then
 		log "Removing v8+ (pi4) Kernels" "info"
 		rm /boot/kernel8.img
 		rm -rf "/lib/modules/${KERNEL_VERSION}-v8+"

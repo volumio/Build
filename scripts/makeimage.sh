@@ -18,7 +18,7 @@ unmount_image_tmp_devices() {
 }
 
 clean_loop_devices() {
-  log "Cleaning loop device $LOOP_DEV" "$(losetup -j "${IMG_FILE}")"
+  log "Cleaning loop device ${LOOP_DEV}" "$(losetup -j "${IMG_FILE}")"
   dmsetup remove_all
   losetup -d "${LOOP_DEV}" || {
     log "Checking loop devices associations" "dbg"
@@ -36,7 +36,7 @@ exit_error() {
     unmount_image_tmp_devices
   fi
   # If dev is mounted, the rest should also be mounted (right?)
-  if isMounted "$ROOTFSMNT/dev"; then
+  if isMounted "${ROOTFSMNT}/dev"; then
     unmount_chroot "${ROOTFSMNT}"
   fi
   # Overkill, INT will call exit_error twice
@@ -50,7 +50,7 @@ exit_error() {
   fi
 }
 
-trap 'exit_error $LINENO' INT ERR
+trap 'exit_error ${LINENO}' INT ERR
 
 IMG_FILE="${OUTPUT_DIR}/${IMG_FILE}"
 log "Stage [2]: Creating Image" "info"
@@ -73,11 +73,11 @@ partprobe "${LOOP_DEV}"
 kpartx -a "${LOOP_DEV}" -s
 
 BOOT_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"${LOOP_DEV}")"p1
-IMG_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"$LOOP_DEV")"p2
-DATA_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"$LOOP_DEV")"p3
+IMG_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"${LOOP_DEV}")"p2
+DATA_PART=/dev/mapper/"$(awk -F'/' '{print $NF}' <<<"${LOOP_DEV}")"p3
 
-if [[ ! -b "$BOOT_PART" ]]; then
-  log "$BOOT_PART doesn't exist" "err"
+if [[ ! -b "${BOOT_PART}" ]]; then
+  log "${BOOT_PART} doesn't exist" "err"
   exit 1
 fi
 
@@ -117,7 +117,7 @@ log "Copying Volumio RootFs" "info"
 cp -pdR "${ROOTFS}"/* "${ROOTFSMNT}"
 
 # Refactor this to support more binaries
-if [[ $VOLINITUPDATER == yes ]]; then
+if [[ ${VOLINITUPDATER} == yes ]]; then
   log "Fetching volumio-init-updater"
   {
     wget -O "${ROOTFSMNT}"/usr/local/sbin/volumio-init-updater \
@@ -143,7 +143,7 @@ fi
 # Check if we need to unpack our tarball
 # If DEVICEBASE was provided, use it, else default to DEVICE
 if [[ "${HAS_PLTDIR}" == yes ]] && [[ ! -d ${PLTDIR}/${DEVICEBASE:=${DEVICE}} ]]; then
-  log "Unpacking $DEVICEBASE files"
+  log "Unpacking ${DEVICEBASE} files"
   tar xfJ "platform-${DEVICEFAMILY}/${DEVICEBASE}.tar.xz" -C "${PLTDIR}" || {
     log "This isn't really consistent across platforms right now!" "dbg"
     log "No archive found, assuming you know what you are doing!" "wrn"
@@ -186,7 +186,7 @@ if [[ "${KIOSKMODE}" == yes ]]; then
   cp "${SRC}/scripts/components/install-kiosk.sh" "${ROOTFSMNT}"/install-kiosk.sh
 fi
 
-echo "$PATCH" >"${ROOTFSMNT}"/patch
+echo "${PATCH}" >"${ROOTFSMNT}"/patch
 if [[ -f "${ROOTFSMNT}/${PATCH}/patch.sh" ]] && [[ -f "${SDK_PATH}"/config.js ]]; then
   log "Starting ${SDK_PATH}/config.js" "ext" "${PATCH}"
   ROOTFSMNT="${ROOTFSMNT}" node "${SDK_PATH}"/config.js "${PATCH}"
@@ -228,7 +228,7 @@ EOF
 mount_chroot "${ROOTFSMNT}"
 
 log "Calling final chroot config script"
-chroot "$ROOTFSMNT" /chrootconfig.sh
+chroot "${ROOTFSMNT}" /chrootconfig.sh
 
 log "Finished chroot config for ${DEVICE}" "okay"
 # Clean up chroot stuff
@@ -236,8 +236,8 @@ rm "${ROOTFSMNT:?}"/*.sh "${ROOTFSMNT}"/root/init
 
 unmount_chroot "${ROOTFSMNT}"
 end_chroot_final=$(date +%s)
-time_it "$end_chroot_final" "$start_chroot_final"
-log "Finished chroot image configuration" "okay" "$TIME_STR"
+time_it "${end_chroot_final}" "${start_chroot_final}"
+log "Finished chroot image configuration" "okay" "${TIME_STR}"
 
 log "Entering device_image_tweaks_post" "cfg"
 device_image_tweaks_post
@@ -251,7 +251,7 @@ log "Rootfs created" "okay"
 #### Build stage 3 - Prepare squashfs
 log "Preparing rootfs base for SquashFS" "info"
 
-SQSHMNT="$VOLMNT/squash"
+SQSHMNT="${VOLMNT}/squash"
 if [[ -d "${SQSHMNT}" ]]; then
   log "Volumio SquashFS Temp Dir Exists - Cleaning it"
   rm -rf "${SQSHMNT:?}"/*
@@ -260,10 +260,10 @@ else
   mkdir "${SQSHMNT}"
 fi
 log "Copying Volumio rootfs to SquashFS Dir"
-cp -rp $ROOTFSMNT/* "${SQSHMNT}"
+cp -rp "${ROOTFSMNT}"/* "${SQSHMNT}"
 
 log "Creating Kernel Partition Archive" "info"
-if [ -e "${VOLMNT}/kernel_current.tar" ]; then
+if [[ -e "${VOLMNT}/kernel_current.tar" ]]; then
   log "Volumio Kernel Partition Archive exists - Cleaning it"
   rm -rf "${VOLMNT}/kernel_current.tar"
 fi
@@ -297,8 +297,8 @@ clean_loop_devices
 sync
 
 log "Clearning up Volumio.sqsh"
-[[ "${CLEAN_IMAGE_FILE:-yes}" != yes ]] && mv "${SRC}"/Volumio.sqsh "${OUTPUT_DIR}/"
+[[ "${CLEAN_IMAGE_FILE}" != yes ]] && mv "${SRC}"/Volumio.sqsh "${OUTPUT_DIR}/"
 [[ -f "${SRC}"/Volumio.sqsh ]] && rm "${SRC}"/Volumio.sqsh
 
 log "Hashing image" "info"
-md5sum "$IMG_FILE" >"${IMG_FILE}.md5"
+md5sum "${IMG_FILE}" >"${IMG_FILE}.md5"

@@ -3,7 +3,7 @@ set -eo pipefail
 
 CMP_NAME=$(basename "$(dirname "${BASH_SOURCE[0]}")")
 CMP_NAME=volumio-kiosk
-log "Installing $CMP_NAME" "ext"
+log "Installing ${CMP_NAME}" "ext"
 
 #shellcheck source=/dev/null
 source /etc/os-release
@@ -84,12 +84,12 @@ start=\$(date +%s)
 export DISPLAY=:0
 # in case we want to cap hires monitors (e.g. 4K) to HD (1920x1080)
 #CAPPEDRES="1920x1080"
-#SUPPORTEDRES="$(xrandr | grep $CAPPEDRES)"
-#if [ -z "$SUPPORTEDRES" ]; then
-#  echo "Resolution $CAPPEDRES not found, skipping"
+#SUPPORTEDRES="$(xrandr | grep "${CAPPEDRES}")"
+#if [[ -z "${SUPPORTEDRES}" ]]; then
+#  echo "Resolution ${CAPPEDRES} not found, skipping"
 #else
-#  echo "Capping resolution to $CAPPEDRES"
-#  xrandr -s "$CAPPEDRES"
+#  echo "Capping resolution to ${CAPPEDRES}"
+#  xrandr -s "${CAPPEDRES}"
 #fi
 
 #TODO xpdyinfo does not work on a fresh install (freezes), skipping it just now
@@ -105,7 +105,7 @@ xset s off
   sed -i 's/"exit_type":"Crashed"/"exit_type":"None"/' /data/volumiokiosk/Default/Preferences
 }
 
-if [ -L /data/volumiokiosk/SingletonCookie ]; then
+if [[ -L /data/volumiokiosk/SingletonCookie ]]; then
   rm -rf /data/volumiokiosk/Singleton*
 fi
 
@@ -140,7 +140,7 @@ ln -s /lib/systemd/system/volumio-kiosk.service /etc/systemd/system/multi-user.t
 
 log "Setting localhost"
 echo '{"localhost": "http://127.0.0.1:3000"}' >/volumio/http/www/app/local-config.json
-if [ -d "/volumio/http/www3" ]; then
+if [[ -d "/volumio/http/www3" ]]; then
   echo '{"localhost": "http://127.0.0.1:3000"}' >/volumio/http/www3/app/local-config.json
 fi
 

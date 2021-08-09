@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Central location for Build System configuration(s)
+# Location for configuration(s) for rootfs and image creation
 
 declare -A SecureApt=(
   [debian_10.gpg]="https://ftp-master.debian.org/keys/archive-key-10.asc"
@@ -17,7 +17,7 @@ declare -A APTSOURCE=(
 )
 
 ## Path to the volumio repo
-VOLBINSREPO="https://repo.volumio.org/Volumio2/Buster/CustomPackages/"
+VOLBINSREPO="https://repo.volumio.org/Volumio2/Buster/CustomPackages"
 
 ## Array of volumio binaries
 #TODO: Fix naming scheme and repo location
@@ -34,7 +34,7 @@ declare -A CUSTOM_PKGS=(
   [libnpupnp1]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/libnpupnp1_4.0.14-1"
   [libupnpp6]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/libupnpp6_0.20.2-1"
   [upmpdcli]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/upmpdcli/upmpdcli_1.5.8-1"
-  [shairport-sync]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/shairport-sync/shairport-sync_3.2.2-1"
+  [shairport - sync]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/shairport-sync/shairport-sync_3.2.2-1"
   [mpd]="https://repo.volumio.org/Volumio2/Buster/CustomPackages/mpd/mpd_0.21.18"
 )
 

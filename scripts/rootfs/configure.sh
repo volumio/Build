@@ -6,7 +6,7 @@ function exit_error() {
   log "Volumio config failed" "err" "echo ""${1}" "$(basename "$0")"""
 }
 
-trap 'exit_error $LINENO' INT ERR
+trap 'exit_error ${LINENO}' INT ERR
 
 log "Copying Custom Volumio System Files" "info"
 

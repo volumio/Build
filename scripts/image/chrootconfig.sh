@@ -90,7 +90,7 @@ sed -i '/^ExecStart=.*/i ExecStartPre=mkdir -m 700 -p /var/log/samba/cores' /lib
 log "Checking for ${DISTRO_NAME} sepecific tweaks" "info"
 case "${DISTRO_NAME}" in
 buster)
-  log "Applying {n,s}mpd.service PID tweaks"
+  log "Applying {n,s}mbd.service PID tweaks"
   # Fix for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=934540
   # that will not make it into buster
   sed -i 's|^PIDFile=/var/run/samba/smbd.pid|PIDFile=/run/samba/smbd.pid|' /lib/systemd/system/smbd.service
@@ -108,7 +108,7 @@ touch /boot/resize-volumio-datapart
 #On The Fly Patch
 #TODO Where should this be called?
 PATCH=$(cat /patch)
-if [ "$PATCH" = "volumio" ]; then
+if [[ "${PATCH}" = "volumio" ]]; then
   log "No Patch To Apply" "wrn"
   rm /patch
 else
