@@ -517,7 +517,7 @@ build_volumio_initramfs() {
   DESTDIR=${DESTDIR_VOL}
 
   # Add in VolumioOS customisation
-  log "Addig Volumio specific binaries" "info"
+  log "Adding Volumio specific binaries" "info"
   # Add VolumioOS binaries
   volbins=('/usr/local/sbin/volumio-init-updater')
   volbins+=('/sbin/parted' '/sbin/findfs' '/bin/lsblk' '/sbin/mke2fs'
@@ -541,8 +541,9 @@ build_volumio_initramfs() {
 ## Create initrd image from initramsfs
 build_initrd() {
   log "Creating volumio.initrd Image from ${DESTDIR}" "info"
-  # Remove auto-generated scripts
-  rm -rf "${DESTDIR}/scripts"
+  # Remove auto-generated scripts, keeping only ours
+  find "${DESTDIR}"/scripts/ -mindepth 1 -maxdepth 1 | grep -v "/vol" | xargs rm -r
+
   cp /root/init "${DESTDIR}"
   cd "${DESTDIR}"
   OPTS=("-o")

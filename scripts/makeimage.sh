@@ -177,7 +177,22 @@ sync
 #### Build stage 2 - Device specific chroot config
 log "Preparing to run chroot for more ${DEVICE} configuration" "info"
 start_chroot_final=$(date +%s)
+
+log "Copying custom intrd bits into rootfs" "dbg"
 cp "${SRC}/scripts/initramfs/${INIT_TYPE}" "${ROOTFSMNT}"/root/init
+
+init_config="${ROOTFSMNT}/etc/initramfs-tools/conf.d/"
+init_scripts="${ROOTFSMNT}/etc/initramfs-tools/scripts/vol"
+[[ ! -d "${init_config}" ]] && mkdir -p "${init_config}"
+[[ ! -d "${init_scripts}" ]] && mkdir -p "${init_scripts}"
+cat <<-EOF >"${init_config}/vol.conf"
+# initrd Volumio config values
+DEVICE="${VOL_DEVICE_ID-${DEVICE}}"
+DEVICENAME="${DEVICENAME}"
+DEBUG="${DEBUG_IMAGE:-no}"
+EOF
+cp "${SRC}"/scripts/initramfs/vol/* "${init_scripts}"
+
 cp "${SRC}"/scripts/initramfs/mkinitramfs-custom.sh "${ROOTFSMNT}"/usr/local/sbin
 cp "${SRC}"/scripts/image/chrootconfig.sh "${ROOTFSMNT}"
 

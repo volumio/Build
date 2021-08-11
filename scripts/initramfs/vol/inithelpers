@@ -1,0 +1,96 @@
+#!/bin/busybox sh
+# shellcheck shell=dash
+# shellcheck disable=SC3010 # BASH_TEST2: [[ EXPR ]]
+# shellcheck disable=SC3010 # BASH_TEST2: [[ EXPR ]]
+
+# init functions for Volumio's custom intit
+## Quite a few are copied verbatim from intramfs-tools!
+
+_uptime() { # initramfs-tools
+  local uptime
+  uptime="$(cat /proc/uptime)"
+  uptime="${uptime%%[. ]*}"
+  echo "$uptime"
+}
+
+time_elapsed() { # initramfs-tools
+  # shellcheck disable=SC2154
+  if [ -z "$starttime" ]; then
+    print_msg "time_elapsed() called before \$starttime initialized"
+    echo 0
+  fi
+  local delta
+  delta="$(_uptime)"
+  delta=$((delta - starttime))
+  echo "$delta"
+}
+
+# Display a message or print directly to /dev/kmsg
+print_msg() {
+  msgbuf=$1
+  if [[ "${USE_KMSG}" == yes ]]; then
+    printf "[k] initramfs: %s\n%s" "${msgbuf}" "$2" >/dev/kmsg
+  else
+    printf "[i] initramfs: %s\n%s" "${msgbuf}" "$2"
+  fi
+}
+
+# Resolve device node from a name. This expands any LABEL or UUID.
+# $1=name #Resolved name is echoed.
+resolve_device() { # initramfs-tools
+  DEV="$1"
+
+  case "$DEV" in
+  LABEL=* | UUID=* | PARTLABEL=* | PARTUUID=*)
+    DEV="$(blkid -l -t "$DEV" -o device)" || return 1
+    ;;
+  esac
+  [ -e "$DEV" ] && echo "$DEV"
+}
+
+parse_disk() {
+  disc="$1"
+  if [[ "${disc%%=*}" == 'UUID' ]] || [[ "${disc%%=*}" == 'LABEL' ]]; then
+    # Is UUID=xxx || Label=xxx
+    findfs "${disc}"
+  elif [[ "${disc%/*}" == '/dev' ]]; then
+    # is a device name
+    echo "${disc}"
+  else
+    print_msg "unknown-disk ${disc}"
+    exit_error "$1"
+  fi
+}
+
+# Load custom modules first
+load_modules() { # initramfs-tools
+  if [ -e /conf/modules ]; then
+    while read -r m; do
+      # Skip empty lines
+      if [ -z "$m" ]; then
+        continue
+      fi
+      # Skip comments - d?ash removes whitespace prefix
+      com=$(printf "%.1s" "${m}")
+      if [ "$com" = "#" ]; then
+        continue
+      fi
+      print_msg "Loading module: ${m}"
+      [[ ${m} == "overlayfs" ]] && OVERLAY_TYPE="${m}"
+      # shellcheck disable=SC2086
+      modprobe $m
+    done </conf/modules
+  fi
+}
+
+warn_missing_part() {
+  print_msg "Missing $1"
+  print_msg "Current command: ${CMDLINE}"
+  print_msg "Specify the boot, data and squash image partition on the kernel command"
+  print_msg "example: kernel... imgpart=/dev/sda2 bootpart=/dev/sda1 datapart=/dev/sda3 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=UUID=b99ad11b-ec63-4a8b-8010-816893807ad6 bootpart=UUID=4A8B-8010 datapart=b44ac11b-eabb-5add-8211-816893807ad6 imgfile=/volumio_current.sqs or"
+  print_msg "         kernel... imgpart=LABEL=volumioimg bootpart=LABEL=volumioboot datapart=LABEL=volumiodata imgfile=/volumio_current.sqs"
+
+  exit_error "$1"
+
+}
