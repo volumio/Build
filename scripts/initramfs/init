@@ -22,11 +22,11 @@ BOOTDEV="mmcblk0"
 
 # Display a message or print directly to /dev/kmsg
 print_msg() {
-if [ $USE_KMSG == yes ]; then
-  echo "initramfs:" $1 >> /dev/kmsg
-else
-  echo "initramfs:" $1
-fi
+  if [ $USE_KMSG == yes ]; then
+    echo "initramfs:" $1 >>/dev/kmsg
+  else
+    echo "initramfs:" $1
+  fi
 }
 
 # Parse the kernel command line
@@ -34,13 +34,13 @@ fi
 CMDLINE="$(cat /proc/cmdline)"
 
 parse_disk() {
-  if [ "$(echo $1|cut -c -5)" = "UUID=" ]; then
+  if [ "$(echo $1 | cut -c -5)" = "UUID=" ]; then
     # $1 is a UUID
     echo $(findfs $1)
-  elif [ "$(echo $1|cut -c -6)" = "LABEL=" ]; then
+  elif [ "$(echo $1 | cut -c -6)" = "LABEL=" ]; then
     # $1 is a LABEL
     echo $(findfs $1)
-  elif [ "$(echo $1|cut -c -5)" = "/dev/" ]; then
+  elif [ "$(echo $1 | cut -c -5)" = "/dev/" ]; then
     # $1 is a device name
     echo $1
   else
@@ -49,13 +49,12 @@ parse_disk() {
   fi
 }
 
-for p in ${CMDLINE};
-do
+for p in ${CMDLINE}; do
   key=${p%%=*}
   value=${p#*=}
   case $key in
   imgpart)
-    IMGPART=`parse_disk $value`
+    IMGPART=$(parse_disk $value)
     ;;
   imgfile)
     IMGFILE=$value
@@ -84,29 +83,29 @@ fi
 
 #When we did not already get the device name from the cmdline, try getting it from cpuinfo
 if [ $HWDEVICE == empty ]; then
-  HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
+  HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}')"
 fi
 
 if [ $HWDEVICE == ODROID-C2 ]; then
-   exec >/dev/kmsg 2>&1 </dev/console
+  exec >/dev/kmsg 2>&1 </dev/console
 fi
 
 # Odroid C1, SparkySBC, Banana PI, Pine64 and Cubox have overlayfs version < V22
 if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ] || [ $HWDEVICE == Freescale ]; then
-   OVERLAY=NOWRKDIR
-   exec >/dev/kmsg 2>&1 </dev/console
+  OVERLAY=NOWRKDIR
+  exec >/dev/kmsg 2>&1 </dev/console
 else
-   OVERLAY=WITHWRKDIR
+  OVERLAY=WITHWRKDIR
 fi
 
 print_msg "Booting Volumio for ${HWDEVICE}"
 print_msg "	This script mounts rootfs RO with an overlay RW layer."
 if [ $OVERLAY == WITHWRKDIR ]; then
-   # For overlayfs version V22 or higher (modulename 'overlay')
-   modprobe overlay
+  # For overlayfs version V22 or higher (modulename 'overlay')
+  modprobe overlay
 else
-   # For overlayfs version V20/V21 (modulename ='overlayfs')
-   modprobe overlayfs
+  # For overlayfs version V20/V21 (modulename ='overlayfs')
+  modprobe overlayfs
 fi
 modprobe squashfs
 modprobe nls_cp437
@@ -132,17 +131,16 @@ if [ ! -z "${BOOTDELAY}" ]; then
 fi
 
 # Retry mdev -s 3 times before throwing the towel
-for i in 1 2 3 4 5 6
-  do
-    if [ ! -b "${IMGPART}" ]; then
-      print_msg  "${IMGPART} not detected,retrying mdev in 5 seconds"
-	  sleep 0.5
-      mdev -s
-    else
-	  print_msg `blkid ${IMGPART}`
-      break
-    fi
-  done
+for i in 1 2 3 4 5 6; do
+  if [ ! -b "${IMGPART}" ]; then
+    print_msg "${IMGPART} not detected,retrying mdev in 5 seconds"
+    sleep 0.5
+    mdev -s
+  else
+    print_msg $(blkid ${IMGPART})
+    break
+  fi
+done
 
 if [ ! -b "${IMGPART}" ]; then
   print_msg "No partition with ${IMGPART} has been found"
@@ -197,13 +195,13 @@ if [ -e /dev/sda1 ]; then
     umount /mnt/boot
     rm -r /mnt/boot
     print_msg "Restarting"
-    echo b > /proc/sysrq-trigger
+    echo b >/proc/sysrq-trigger
   fi
   if [ -e /mnt/usb/factory_reset ]; then
     print_msg "Factory Reset on USB"
     mkdir /mnt/factory
     mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
-    echo " " > /mnt/factory/user_data
+    echo " " >/mnt/factory/user_data
     umount /mnt/factory
     rm -r /mnt/factory
     rm /mnt/usb/factory_reset
@@ -213,7 +211,6 @@ if [ -e /dev/sda1 ]; then
 else
   print_msg "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
 fi
-
 
 # 2) init a loop pointing to the image file
 loop_free=$(losetup -f | sed s#p/#p#)
@@ -238,7 +235,7 @@ mount -t auto /dev/${BOOTDEV}p1 /mnt/factory
 
 if [ $HWDEVICE == motivo ]; then
   print_msg "Showing boot logo"
-  /bin/busybox lzop -d -c /mnt/factory/motivosplash > /dev/fb0
+  /bin/busybox lzop -d -c /mnt/factory/motivosplash >/dev/fb0
 fi
 
 if [ -e "/mnt/factory/user_data" ]; then
@@ -251,12 +248,11 @@ fi
 umount /mnt/factory
 rm -r /mnt/factory
 
-
 # if the update failed before completion
 mkdir boot
 mount -t vfat /dev/${BOOTDEV}p1 /boot
 if [ -e "/boot/update_process" ]; then
-print_msg "Previous update attempt failed, restoring fallbacks"
+  print_msg "Previous update attempt failed, restoring fallbacks"
   cp /mnt/imgpart/kernel_fallback.tar /mnt/imgpart/kernel_current.tar
   cp /mnt/imgpart/volumio_fallback.tar /mnt/imgpart/volumio_current.tar
   if [-e "/boot/kernel_update" ]; then
@@ -267,20 +263,20 @@ fi
 
 # if the kernel has been updated, and no error has occurred before completition
 if [ -e "/boot/kernel_update" ]; then
-print_msg "unpacking kernel"
+  print_msg "unpacking kernel"
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
   if [ -e "/mnt/imgpart/config.txt.bak" ]; then
     print_msg "Restoring custom config.txt content"
-    I2S=`sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' /mnt/imgpart/config.txt.bak`
-    echo "" >> /boot/config.txt
-    echo "$I2S" >> /boot/config.txt
+    I2S=$(sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' /mnt/imgpart/config.txt.bak)
+    echo "" >>/boot/config.txt
+    echo "$I2S" >>/boot/config.txt
     rm /mnt/imgpart/config.txt.bak
   fi
   rm /boot/kernel_update
   sync
   umount /boot
   rm -rf /boot
-  echo b > /proc/sysrq-trigger
+  echo b >/proc/sysrq-trigger
 fi
 
 # if data partition needs to be resized

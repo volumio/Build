@@ -29,11 +29,11 @@ BOOTPART="/dev/${BOOTDEV}${DPS}1"
 
 # Display a message or print directly to /dev/kmsg
 print_msg() {
-if [ $USE_KMSG == yes ]; then
-  echo "initramfs:" $1 >> /dev/kmsg
-else
-  echo "initramfs:" $1
-fi
+  if [ $USE_KMSG == yes ]; then
+    echo "initramfs:" $1 >>/dev/kmsg
+  else
+    echo "initramfs:" $1
+  fi
 }
 
 # Parse the kernel command line
@@ -41,13 +41,13 @@ fi
 CMDLINE="$(cat /proc/cmdline)"
 
 parse_disk() {
-  if [ "$(echo $1|cut -c -5)" = "UUID=" ]; then
+  if [ "$(echo $1 | cut -c -5)" = "UUID=" ]; then
     # $1 is a UUID
     echo $(findfs $1)
-  elif [ "$(echo $1|cut -c -6)" = "LABEL=" ]; then
+  elif [ "$(echo $1 | cut -c -6)" = "LABEL=" ]; then
     # $1 is a LABEL
     echo $(findfs $1)
-  elif [ "$(echo $1|cut -c -5)" = "/dev/" ]; then
+  elif [ "$(echo $1 | cut -c -5)" = "/dev/" ]; then
     # $1 is a device name
     echo $1
   else
@@ -58,8 +58,7 @@ parse_disk() {
 
 DO_GEN=no
 
-for p in ${CMDLINE};
-do
+for p in ${CMDLINE}; do
   key=${p%%=*}
   value=${p#*=}
   case $key in
@@ -74,13 +73,12 @@ if [ ! -z "${BOOTDELAY}" ]; then
   sleep ${BOOTDELAY}
 fi
 
-for p in ${CMDLINE};
-do
+for p in ${CMDLINE}; do
   key=${p%%=*}
   value=${p#*=}
   case $key in
   imgpart)
-    IMGPART=`parse_disk $value`
+    IMGPART=$(parse_disk $value)
     ;;
   imgfile)
     IMGFILE=$value
@@ -98,10 +96,10 @@ do
     DO_GEN=yes
     ;;
   bootpart)
-    BOOTPART=`parse_disk $value`
+    BOOTPART=$(parse_disk $value)
     ;;
   datapart)
-    DATAPART=`parse_disk $value`
+    DATAPART=$(parse_disk $value)
     ;;
   bootconfig)
     #prepend with "/boot/" (add an ending slash to avoid mistakes)
@@ -114,16 +112,16 @@ do
 done
 echo
 if [ $DO_GEN == yes ]; then
-    print_msg "re-generating partition names..."
-    IMGPART="/dev/${BOOTDEV}${DPS}2"
-    DATAPART="/dev/${BOOTDEV}${DPS}3"
-    BOOTPART="/dev/${BOOTDEV}${DPS}1"
+  print_msg "re-generating partition names..."
+  IMGPART="/dev/${BOOTDEV}${DPS}2"
+  DATAPART="/dev/${BOOTDEV}${DPS}3"
+  BOOTPART="/dev/${BOOTDEV}${DPS}1"
 fi
 #Hardware specific adaptions
 
 #When we did not already get the device name from the cmdline, try getting it from cpuinfo
 if [ $HWDEVICE == empty ]; then
-  HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}' )"
+  HWDEVICE="$(cat /proc/cpuinfo | grep Hardware | awk '{print $3}')"
 fi
 
 if [ $HWDEVICE == ODROID-C2 ]; then
@@ -132,20 +130,20 @@ fi
 
 # Odroid C1, SparkySBC, Banana PI, Pine64 and Cubox have overlayfs version < V22
 if [ $HWDEVICE == ODROIDC ] || [ $HWDEVICE == gs705a ] || [ $HWDEVICE == sun50iw1p1 ] || [ $HWDEVICE == sun8iw11p1 ] || [ $HWDEVICE == Freescale ]; then
-   OVERLAY=NOWRKDIR
-   exec >/dev/kmsg 2>&1 </dev/console
+  OVERLAY=NOWRKDIR
+  exec >/dev/kmsg 2>&1 </dev/console
 else
-   OVERLAY=WITHWRKDIR
+  OVERLAY=WITHWRKDIR
 fi
 
 print_msg "Booting Volumio for ${HWDEVICE}"
 print_msg "	This script mounts rootfs RO with an overlay RW layer."
 if [ $OVERLAY == WITHWRKDIR ]; then
-   # For overlayfs version V22 or higher (modulename 'overlay')
-   modprobe overlay
+  # For overlayfs version V22 or higher (modulename 'overlay')
+  modprobe overlay
 else
-   # For overlayfs version V20/V21 (modulename ='overlayfs')
-   modprobe overlayfs
+  # For overlayfs version V20/V21 (modulename ='overlayfs')
+  modprobe overlayfs
 fi
 modprobe squashfs
 modprobe nls_cp437
@@ -170,26 +168,25 @@ if [ -z "${IMGFILE}" ]; then
   exit 0
 fi
 
-UUIDFMT=`cat /proc/cmdline | grep "UUID=" -o`
+UUIDFMT=$(cat /proc/cmdline | grep "UUID=" -o)
 if [ ! -z "${UUIDFMT}" ]; then
   if [ $BOOTCONFIG == empty ]; then
     print_msg "Error: when using UUIDs for disk parsing, you MUST also add the bootconfig parameter (eg. bootconfig=/extlinux/extlinux.conf)"
-#    exec sh
-#    exit 0
+    #    exec sh
+    #    exit 0
   fi
 fi
 
 # Retry mdev -s 3 times before throwing the towel
-for i in 1 2 3 4 5 6
-  do
-    if [ ! -b "${IMGPART}" ]; then
-      print_msg  "${IMGPART} not detected,retrying mdev in 5 seconds"
-	  sleep 0.5
-      mdev -s
-    else
-      break
-    fi
-  done
+for i in 1 2 3 4 5 6; do
+  if [ ! -b "${IMGPART}" ]; then
+    print_msg "${IMGPART} not detected,retrying mdev in 5 seconds"
+    sleep 0.5
+    mdev -s
+  else
+    break
+  fi
+done
 
 if [ ! -b "${IMGPART}" ]; then
   print_msg "No partition with ${IMGPART} has been found"
@@ -218,7 +215,7 @@ fi
 
 print_msg "Checking for USB updates if you did not boot from USB..."
 [ -e /dev/sda1 ] || mdev -s
-if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
+if [ -e /dev/sda1 ] && [ ! "/dev/sda1" == "${BOOTPART}" ]; then
   [ -d /mnt/usb ] || mkdir /mnt/usb
   mount -t auto /dev/sda1 /mnt/usb
   #If there is a firmware file inside the usb
@@ -233,13 +230,13 @@ if [ -e /dev/sda1 ] && [ ! "/dev/sda1" ==  "${BOOTPART}" ]; then
     umount /mnt/boot
     rm -r /mnt/boot
     print_msg "Restarting"
-    echo b > /proc/sysrq-trigger
+    echo b >/proc/sysrq-trigger
   fi
   if [ -e /mnt/usb/factory_reset ]; then
     print_msg "Factory Reset on USB"
     mkdir /mnt/factory
     mount -t auto ${BOOTPART} /mnt/factory
-    echo " " > /mnt/factory/user_data
+    echo " " >/mnt/factory/user_data
     umount /mnt/factory
     rm -r /mnt/factory
     rm /mnt/usb/factory_reset
@@ -253,7 +250,6 @@ else
     print_msg "No USB device detected (when incorrect, try adding 'bootdelay=5' to your boot cmdline)"
   fi
 fi
-
 
 # 2) init a loop pointing to the image file
 loop_free=$(losetup -f | sed s#p/#p#)
@@ -285,7 +281,6 @@ fi
 umount /mnt/factory
 rm -r /mnt/factory
 
-
 # if the update failed before completion
 mkdir boot
 mount -t vfat ${BOOTPART} /boot
@@ -305,14 +300,14 @@ if [ -e "/boot/kernel_update" ]; then
   tar xf /mnt/imgpart/kernel_current.tar -C /boot
   if [ -e "/mnt/imgpart/config.txt.bak" ]; then
     print_msg "Restoring custom config.txt content"
-    I2S=`sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' /mnt/imgpart/config.txt.bak`
-    echo "" >> /boot/config.txt
-    echo "$I2S" >> /boot/config.txt
+    I2S=$(sed -n -e '/#### Volumio i2s setting below: do not alter ####/,$p' /mnt/imgpart/config.txt.bak)
+    echo "" >>/boot/config.txt
+    echo "$I2S" >>/boot/config.txt
     rm /mnt/imgpart/config.txt.bak
   fi
 
-# When a new volumio version is loaded, partition UUIDs will have changed.
-# So if the boot cmdline uses "UUID=" format for disk parsing, there will be a mismatch.
+  # When a new volumio version is loaded, partition UUIDs will have changed.
+  # So if the boot cmdline uses "UUID=" format for disk parsing, there will be a mismatch.
   if [ ! -z "${UUIDFMT}" ]; then
     print_msg "The boot configuration holds new UUIDs, replace them with ones from the current device partitions."
     UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
@@ -328,7 +323,7 @@ if [ -e "/boot/kernel_update" ]; then
   sync
   umount /boot
   rm -rf /boot
-  echo b > /proc/sysrq-trigger
+  echo b >/proc/sysrq-trigger
 fi
 
 # if data partition needs to be resized
@@ -379,7 +374,7 @@ chmod -R 777 /mnt/ext/union/imgpart
 # The value in fstab could differ after updating to a new image version in case someone
 # manually edited the bootdevice in cmdline before OR when a UUID is used to find the boot partition.
 UUID_BOOT=$(blkid -s UUID -o value ${BOOTPART})
-DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "[0-9A-F]{4}-[0-9A-F]{4}" -o`
+DEVFSTAB=$(cat /mnt/ext/union/etc/fstab | grep -E "[0-9A-F]{4}-[0-9A-F]{4}" -o)
 if [ ! -z "${DEVFSTAB}" ]; then
   print_msg "found fstab entry with UUID=${DEVFSTAB} for /boot"
   if [ ! $UUID_BOOT == $DEVFSTAB ]; then
@@ -387,12 +382,12 @@ if [ ! -z "${DEVFSTAB}" ]; then
     print_msg "fstab entry updated to UUID=${DEVFSTAB}"
   fi
 else
-  DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "^/dev/[a-z]{3,6}[0-9]{1,2}[a-z]{0,1}[0-9]{0,2}" -o`
+  DEVFSTAB=$(cat /mnt/ext/union/etc/fstab | grep -E "^/dev/[a-z]{3,6}[0-9]{1,2}[a-z]{0,1}[0-9]{0,2}" -o)
   if [ -z "${DEVFSTAB}" ]; then
-#   normally never gets here ;)
+    #   normally never gets here ;)
     print_msg "Incompatible fstab, no entry found for /boot"
-#    exec sh
-#    exit 0
+    #    exec sh
+    #    exit 0
   fi
   print_msg "found fstab entry with device ${DEVFSTAB} for /boot"
   if [ ! $BOOTPART == $DEVFSTAB ]; then
