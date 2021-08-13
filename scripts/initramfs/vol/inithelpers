@@ -1,11 +1,9 @@
 #!/bin/busybox sh
 # shellcheck shell=dash
 # shellcheck disable=SC3010 # BASH_TEST2: [[ EXPR ]]
-# shellcheck disable=SC3010 # BASH_TEST2: [[ EXPR ]]
 
 # init functions for Volumio's custom intit
-## Quite a few are copied verbatim from intramfs-tools!
-
+## Some copied verbatim from intramfs-tools
 _uptime() { # initramfs-tools
   local uptime
   uptime="$(cat /proc/uptime)"
@@ -48,6 +46,7 @@ resolve_device() { # initramfs-tools
   [ -e "$DEV" ] && echo "$DEV"
 }
 
+#TODO: This can be removed, (and related findfs binary)
 parse_disk() {
   disc="$1"
   if [[ "${disc%%=*}" == 'UUID' ]] || [[ "${disc%%=*}" == 'LABEL' ]]; then

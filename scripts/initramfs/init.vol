@@ -155,7 +155,7 @@ for p in ${CMDLINE}; do
   value=${p#*=}
   case $key in
   imgpart)
-
+    # Is this still required?
     for i in 1 2 3 4 5; do
       IMGPART=$(parse_disk "${value}")
       IMGDEVV=$(resolve_device "${value}")
@@ -430,18 +430,25 @@ fi
 DATADEV=/dev/$(lsblk -no PKNAME "${DATAPART}")
 print_msg "Checking if data partition on ${DATAPART} requires resizing..."
 # Re-sizing is not necessary when we already reached maximum (shows with decimals less than 1MB).
-#TODO: simplify!!
 free="$(parted -s "${DATADEV}" unit MB print free)"
-print_msg "Free size: ${free}"
-FREESIZE="$(parted -s "${DATADEV}" unit MB print free | tail -n 2 | grep Free | awk '{print $3}' | awk -F 'MB' '{print $1}')"
-if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
+# Ignore any free space that might be added at the start, so use last two lines
+# read -r free_start free_end free_size f_type < <(echo "${free}" | tail -n 2) # Won't work in d?ash
+# shellcheck disable=SC2034
+read -r free_start free_end free_size f_type <<EOF
+$(echo "${free}" | tail -n 2) 
+EOF
+
+print_msg "Free size: ${free_size}"
+# work around for floating math
+if [[ ${free_size%%.*} != "0" ]] && [[ ${free_size%%MB} -gt 1 ]]; then
   print_msg "Re-sizing Volumio data partition..."
-  END="$(parted -s "${DATADEV}" unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
-  parted -s "${DATADEV}" resizepart 3 "${END}" >/dev/null 2>&1
+  parted -s "${DATADEV}" resizepart 3 "${free_end%%MB}" >/dev/null 2>&1
   e2fsck -f "${DATAPART}" -y >/dev/null 2>&1
   resize2fs -p "${DATAPART}" >/dev/null 2>&1
   print_msg "Volumio data partition successfully resized"
   parted -s "${DATADEV}" unit MB print >/dev/null 2>&1
+  #TODO: This shouldn't be required any more..
+  rm /boot/resize-volumio-datapart
 fi
 
 # clear the mountpoint
