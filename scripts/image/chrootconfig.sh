@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eo pipefail
 set -o errtrace
@@ -52,12 +52,15 @@ ${mod_list}
 EOF
 
 ## Adding board specific packages
-log "Installing ${#PACKAGES[@]} custom packages:" "" "${PACKAGES[*]}"
-apt-get update
-apt-get install -y "${PACKAGES[@]}" --no-install-recommends
+if [[ -n "${PACKAGES[*]}" ]]; then
+  log "Installing ${#PACKAGES[@]} board packages:" "" "${PACKAGES[*]}"
+  apt-get update
+  apt-get install -y "${PACKAGES[@]}" --no-install-recommends
+else
+  log "No board packages specified for install" "wrn"
+fi
 
 # Custom packages for Volumio
-#TODO THIS SHALL RUN ONLY FOR SOME DEVICES WHERE WE WANT TO INSTALL KIOSK
 [ -f "/install-kiosk.sh" ] && log "Installing kiosk" "info" && bash install-kiosk.sh
 if [[ -d "/volumio/customPkgs" ]] && [[ $(ls /volumio/customPkgs/*.deb 2>/dev/null) ]]; then
   log "Installing Volumio customPkgs" "info"
@@ -84,11 +87,19 @@ sed -i '/^ExecStart=.*/i ExecStartPre=chown volumio /var/log/mpd.log' /lib/syste
 sed -i '/^ExecStart=.*/i ExecStartPre=mkdir -m 700 -p /var/log/samba/cores' /lib/systemd/system/nmbd.service
 # sed -i '/^ExecStart=.*/i ExecStartPre=chmod 700 /var/log/samba/cores' /lib/systemd/system/nmbd.service
 
-# Fix for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=934540
-# that will not make it into buster
-log "Applying buster specific {n,s}mpd.service PID tweaks"
-sed -i 's|^PIDFile=/var/run/samba/smbd.pid|PIDFile=/run/samba/smbd.pid|' /lib/systemd/system/smbd.service
-sed -i 's|^PIDFile=/var/run/samba/nmbd.pid|PIDFile=/run/samba/nmbd.pid|' /lib/systemd/system/nmbd.service
+log "Checking for ${DISTRO_NAME} sepecific tweaks" "info"
+case "${DISTRO_NAME}" in
+buster)
+  log "Applying {n,s}mbd.service PID tweaks"
+  # Fix for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=934540
+  # that will not make it into buster
+  sed -i 's|^PIDFile=/var/run/samba/smbd.pid|PIDFile=/run/samba/smbd.pid|' /lib/systemd/system/smbd.service
+  sed -i 's|^PIDFile=/var/run/samba/nmbd.pid|PIDFile=/run/samba/nmbd.pid|' /lib/systemd/system/nmbd.service
+  ;;
+*)
+  log "No ${DISTRO_NAME} specific tweaks to apply!" "wrn"
+  ;;
+esac
 
 #First Boot operations
 log "Signalling the init script to re-size the Volumio data partition"
@@ -97,7 +108,7 @@ touch /boot/resize-volumio-datapart
 #On The Fly Patch
 #TODO Where should this be called?
 PATCH=$(cat /patch)
-if [ "$PATCH" = "volumio" ]; then
+if [[ "${PATCH}" = "volumio" ]]; then
   log "No Patch To Apply" "wrn"
   rm /patch
 else

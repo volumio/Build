@@ -1,5 +1,5 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
+# This script runs in chroot, to configure the freshly created rootfs from multistrap
 # This script will be run in chroot under qemu.
 
 set -eo pipefail
@@ -22,9 +22,6 @@ check_dependency() {
     log "${1} not installed"
   fi
 }
-
-DISTRO_VER="$(lsb_release -s -r)"
-DISTRO_NAME="$(lsb_release -s -c)"
 
 # Packages to install that are not in multistrap for some reason.
 packages=nodejs
@@ -73,8 +70,8 @@ if ! dpkg --configure --pending 2>&1 >/dpkg.log; then # if ! { dpkg --configure 
   log "Failed configuring packages!" "err"
 else
   end_dpkg_configure=$(date +%s)
-  time_it "$end_dpkg_configure" "$start_dpkg_configure"
-  log "Finished configuring packages" "okay" "$TIME_STR"
+  time_it "${end_dpkg_configure}" "${start_dpkg_configure}"
+  log "Finished configuring packages" "okay" "${TIME_STR}"
 fi
 
 #Reduce locales to just one beyond C.UTF-8
@@ -169,7 +166,11 @@ log 'Adding Safe Sudoers NoPassw permissions'
 cat <<-EOF >${SUDOERS_FILE}
 # Add permissions for volumio user
 volumio ALL=(ALL) ALL
-volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid,/bin/ln,/usr/bin/unlink,/bin/dd,/usr/bin/dcfldd,/opt/vc/bin/vcgencmd,/opt/vc/bin/tvservice,/usr/bin/renice,/bin/rm,/bin/kill,/usr/sbin/i2cset,/usr/local/bin/x86Installer.sh
+volumio ALL=(ALL) NOPASSWD: /bin/chmod, /bin/dd, /bin/hostname, /bin/ip, /bin/journalctl, /bin/kill, /bin/ln, /bin/mount, /bin/mv, /bin/rm, /bin/systemctl
+volumio ALL=(ALL) NOPASSWD: /bin/tar, /bin/umount, /opt/vc/bin/tvservice, /opt/vc/bin/vcgencmd, /sbin/dhclient, /sbin/dhcpcd, /sbin/ethtool, /sbin/halt
+volumio ALL=(ALL) NOPASSWD: /sbin/ifconfig, /sbin/iw, /sbin/iwconfig, /sbin/iwgetid, /sbin/iwlist, /sbin/modprobe, /sbin/poweroff, /sbin/reboot, /sbin/shutdown
+volumio ALL=(ALL) NOPASSWD: /usr/bin/alsactl, /usr/bin/apt-get, /usr/bin/dcfldd, /usr/bin/dtoverlay, /usr/bin/gpio, /usr/bin/killall, /usr/bin/renice, /usr/bin/timedateclt, /usr/bin/unlink
+volumio ALL=(ALL) NOPASSWD: /usr/local/bin/x86Installer.sh, /usr/sbin/alsactl, /usr/sbin/i2cdetect, /usr/sbin/i2cset, /usr/sbin/service, /usr/sbin/update-rc.d
 volumio ALL=(ALL) NOPASSWD: /bin/sh /volumio/app/plugins/system_controller/volumio_command_line_client/commands/kernelsource.sh, /bin/sh /volumio/app/plugins/system_controller/volumio_command_line_client/commands/pull.sh
 EOF
 chmod 0440 ${SUDOERS_FILE}
@@ -180,7 +181,7 @@ chmod 0440 ${SUDOERS_FILE}
 log "Testing for SSL issues" "dbg"
 curl -LS 'https://github.com/' -o /dev/null || CURLFAIL=yes
 log " SSL Issues: ${CURLFAIL:-no}"
-[[ $CURLFAIL == yes ]] && log "Fixing ca-certificates" "wrn" && c_rehash
+[[ ${CURLFAIL} == yes ]] && log "Fixing ca-certificates" "wrn" && c_rehash
 
 ################
 #Volumio System#---------------------------------------------------
@@ -236,16 +237,16 @@ echo "nameserver 208.67.220.220" >/etc/resolv.conf
 log "Installing custom packages for ${VOLUMIO_ARCH} and ${DISTRO_VER}" "info"
 log "Prepare external source lists"
 log "Attempting to install Node version: ${NODE_VERSION}"
-IFS=\. read -ra NODE_SEMVER <<<"$NODE_VERSION"
+IFS=\. read -ra NODE_SEMVER <<<"${NODE_VERSION}"
 NODE_APT=node_${NODE_SEMVER[0]}.x
 log "Adding NodeJs lists - ${NODE_APT}"
 cat <<-EOF >/etc/apt/sources.list.d/nodesource.list
-deb https://deb.nodesource.com/$NODE_APT $DISTRO_NAME main
-deb-src https://deb.nodesource.com/$NODE_APT $DISTRO_NAME main
+deb https://deb.nodesource.com/${NODE_APT} ${DISTRO_NAME} main
+deb-src https://deb.nodesource.com/${NODE_APT} ${DISTRO_NAME} main
 EOF
 
 apt-get update
-apt-get -y install $packages
+apt-get -y install ${packages}
 
 log "Node $(node --version) arm_version: $(node <<<'console.log(process.config.variables.arm_version)')" "info"
 log "nodejs installed at $(command -v node)" "info"
@@ -403,7 +404,7 @@ chmod 777 /etc/hosts
 
 log "Creating an empty dhcpd.leases if required"
 lease_file="/var/lib/dhcp/dhcpd.leases"
-[[ ! -f $lease_file ]] && mkdir -p "$(dirname $lease_file)" && touch $lease_file
+[[ ! -f ${lease_file} ]] && mkdir -p "$(dirname ${lease_file})" && touch ${lease_file}
 
 log "Disabling IPV6, increasing inotify watchers"
 cat <<-EOF >>/etc/sysctl.conf
