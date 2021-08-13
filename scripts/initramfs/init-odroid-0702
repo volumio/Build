@@ -5,7 +5,7 @@
 	export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 # Set modprobe env
-  export MODPROBE_OPTIONS="-qb"
+	export MODPROBE_OPTIONS="-qb"
 
 # Export relevant Volumio variables for dropping into a shell (breaks, debugging, panics)
 	export BOOT_DELAY=
@@ -22,13 +22,10 @@
 	export SPLASH="false"
 	export USEKMSG="no"
   export DATADEV=
-  export UUIDFMT=
 	export debug=
   export panic=
-  export log_output=
-	export break=
-  #export log_output=/run/initramfs/initramfs.debug
 
+  export break="cmdline,modules,backup-gpt,search-firmw-upd,search-fact-reset,krnl-rollbck,krnl-upd,resize-data,mnt-overlayfs,modfstab,switch-root"
 
 	source scripts/functions
 	source scripts/custom-functions
@@ -67,9 +64,10 @@
 	export DPKG_ARCH=
 	. /conf/arch.conf
 
-	maybe_break start $LINENO
 
-# Parse the kernel command
+	maybe_break cmdline
+
+# Parse the kernel command line from grub.cfg / syslinux.cfg
 #
 	for p in $(cat /proc/cmdline); do
 		key=${p%%=*}
@@ -117,7 +115,7 @@
 		esac
 	done
 
-	# Handle known overlay fs syntax differences (pre-3.18 kernels)
+	# Handle known overlay fs syntax differencers (pre-3.18 kernels)
 	#
 	case $HW_DEVICE in
 		ODROIDC|gs705a)
@@ -137,7 +135,7 @@
 		debug)
 			debug=y
 			quiet=n
-			if [ USEKMSG == yes ]; then
+			if [ USEKMSG ]; then
 				log_output=/dev/kmsg
 			else
 				log_output=/run/initramfs/initramfs.debug
@@ -152,13 +150,13 @@
 				;;
 			esac
 			;;
-		break)
-		  break=$value
-# for testing only, use "export break="" otherwise read from kernel cmdline
-      break="cmdline,modules,validate-params,progress,backup-gpt,create-krnl-bak, search-firmw,search-fact-reset,krnl-rollbck,krnl-upd,resize-data,mnt-overlayfs,modfstab,switch-root"
-
 		esac
 	done
+
+# Ensure consistent partition parameter naming
+	set_part_params
+
+	maybe_break modules
 
 	mount -t tmpfs -o "noexec,nosuid,size=${RUNSIZE:-10%},mode=0755" tmpfs /run
 	mkdir -m 0755 /run/initramfs
@@ -168,43 +166,20 @@
 		unset log_output
 	fi
 
-# Load driver modules from conf/modules
+# Load driver modules
 #
-	maybe_break modules $LINENO
-
 	[ "$quiet" != "y" ] && log_begin_msg "Loading essential drivers"
 	load_modules
+	[ "$quiet" != "y" ] && log_end_msg
+
+	sleep 5
 	mdev -s
-  [ "$quiet" != "y" ] && log_end_msg
 
-#
-# Initialise squashfile parameter and partition devices
-# - imgfile (squashfile) must always be supplied
-# - partition names can be generated with supplied bootdevice and separator (seldomly used)
-# - only imgpart may be supplied as /dev/mmcblk<n>p2 only (or nvme device partition equivalent)
-# - only imgpart may be supplied as /dev/sd<x>
-# in the above two cases, bootpart and datapart will be derived from imgpart's base device name
-#
-# - imgpart may be supplied as UUID= or LABEL=, in that case bootpart and datapart must also be supplied
-# - in case UUID= is used, bootconfig must also be supplied.
-#
-# As a result, bootdev ($BOOT_DEVICE), bootpart (äBOOT_PARTITION, imgpart (IMAGE_PARTITION
-# and datapart ($DATA_PARTITION) will be parsed and validated.
+	IMAGE_PARTITION=$(parse_disk "${IMAGE_PARTITION}")
+	BOOT_PARTITION=$(parse_disk "${BOOT_PARTITION}")
+	DATA_PARTITION=$(parse_disk "${DATA_PARTITION}")
 
-  maybe_break init-part-pars $LINENO
-
-	init_partition_params
-
-# Wait until partition devices are ready
-# (Some devices can be slow, increase bootdelay when necessary)
-#
-  wait_for_partitions_ready
-
-do_break $LINENO
-maybe_break progress $LINENO
-log_simple_msg "============================================== so far OK"
-
-# initialisation finished
+# ok, all parsing done
 
 	IMAGEMNT="/mnt/imgpart"
 	BOOTMNT="/mnt/boot"
@@ -219,18 +194,14 @@ log_simple_msg "============================================== so far OK"
 	mount -t vfat "${BOOT_PARTITION}" "${BOOTMNT}"
 	mount -t ext4 "${IMAGE_PARTITION}" "${IMAGEMNT}"
 
+	maybe_break backup_gpt
+
 # In case of a gpt boot partition: move the backup table when not done yet
 # This function is also safe for non-gpt boot partitions (it will not trigger a mismatch).
 #
-	maybe_break backup_gpt $LINENO
-
 	move_backup_gpt_table
 
-#
-#
-  maybe_break krnl-archive $LINENO
-
-	create_kernel_archive
+	maybe_break search-firmw-upd
 
 	if [ ! -z "${BOOT_DELAY}" ]; then
 		log_begin_msg "Doing a ${BOOT_DELAY} second delay here to give kernel load a headstart"
@@ -240,44 +211,46 @@ log_simple_msg "============================================== so far OK"
 
 # ROOTFS update on usb disk?
 #
-	maybe_break search-for-firmw $LINENO
-
 	search_for_firmware_update_rootfs
 
-# Factory reset file on usb or in boot partition?
-# ===============================================
-	maybe_break search-fact-reset $LINENO
+	maybe_break search-fact-reset
 
-	search_for_factory_reset
+# Factory reset file on usb ?
+#
+	search_for_factory_reset_on_additional_dev
+
+# Factory reset file in boot partition?
+#
+	search_for_factory_reset_on_bootpart
+
+	maybe_break krnl-rollbck
 
 # Kernel update rollback ?
-# ========================
-	maybe_break krnl-rollbck $LINENO
-
+#
 	search_for_kernel_rollback
+
+	maybe_break krnl-upd
 
 # Kernel update?
 #
-	maybe_break krnl-upd $LINENO
-
 	process_kernel_update
+
+	maybe_break resize-data
 
 # Resize data partition?
 #
-	maybe_break resize-data $LINENO
-
 	resize_datapartition
 
-	maybe_break mnt-overlayfs $LINENO
+	maybe_break mnt-overlaysfs
 
 # Create writable overlay from squashfs and a data partition folder
 #
 	mount_overlay_fs
 
+	maybe_break modfstab
+
 # Process fstab
 #
-	maybe_break modfstab $LINENO
-
 	modify_fstab
 
 # Move /run to the root so our logs are there when we boot
@@ -295,7 +268,7 @@ log_simple_msg "============================================== so far OK"
   umount ${BOOTMNT}
   rm -r ${BOOTMNT}
 
-	maybe_break switch-root $LINENO
+	maybe_break switch-root
 
 	log_success_msg "Finish initramfs, continue booting Volumio"
 	exec switch_root ${NEWROOT} ${NEWINIT}

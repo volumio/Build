@@ -1,0 +1,402 @@
+#!/bin/sh
+
+log_simple_msg()
+{
+	_log_msg "%s\\n" "$*"
+}
+
+maybe_break()
+{
+
+	case ",${break?}," in
+	*,$1,*)
+		if [ "$1" = "cmdline" ] || [ "$1" = "modules" ]; then
+      log_simple_msg "Modules not loaded yet, loading enough drivers for keyboards"
+			# modules not yet loaded, so get keyboard drivers
+			load_keyboard_drivers
+		fi
+    log_simple_msg ""
+    log_simple_msg "Breakpoint reached: '$1'"
+		panic "Spawning shell within the initramfs"
+		;;
+	esac
+}
+
+do_break()
+{
+	  log_simple_msg ""
+    log_simple_msg "Breakpoint created"
+		panic "Spawning shell within the initramfs"
+}
+
+load_keyboard_drivers() {
+  #TODO: validate this.....
+  if [ "${quiet}" = "y" ]; then
+		opts="-q"
+  else
+    opts="-v"
+  fi
+  modprobe ${opts} -a i8042 atkbd ehci-pci ehci-orion \
+      ehci-hcd ohci-hcd ohci-pci uhci-hcd usbhid xhci \
+      xhci-pci xhci-hcd
+  sleep 2
+  for modalias in /sys/bus/hid/devices/*/modalias; do
+    if [ -f "${modalias}" ]; then
+      modprobe ${opts} -b "$(cat "${modalias}")"
+    fi
+  done
+  mdev -s
+}
+
+parse_disk() {
+  disc="$1"
+  if [ "${disc%%=*}" = 'UUID' ] || [ "${disc%%=*}" = 'LABEL' ]; then
+    # Is UUID=xxx || Label=xxx
+    findfs "$disc"
+  elif [ "${disc%/*}" = '/dev' ]; then
+    # is a device name
+    echo "$disc"
+  else
+    log_failure_msg "unknown-disk ${disc}"
+    exec sh
+    exit 0
+  fi
+}
+
+set_part_params() {
+  log_begin_msg "(Re-)Generating partition devices"
+  if [ "${DO_GEN}" == "yes" ]; then
+# seldom used, force fixed naming
+    IMAGE_PARTITION="/dev/${BOOT_DEVICE}${DPS}2"
+    BOOT_PARTITION="/dev/${BOOT_DEVICE}${DPS}1"
+    DATA_PARTITION="/dev/${BOOT_DEVICE}${DPS}3"
+  elif [ -z ${DATA_PARTITION} ] && [ -z ${BOOT_PARTITION} ]; then
+    BOOT_PARTITION="/dev/${BOOT_DEVICE}p1"
+    DATA_PARTITION="/dev/${BOOT_DEVICE}p2"
+  fi
+
+# Check whether UUID's were used for partition parsing ()
+  UUIDFMT=`cat /proc/cmdline | grep "UUID=" -o`
+  if [ ! -z "${UUIDFMT}" ]; then
+    if [ "${BOOT_CONFIG}" == "empty" ]; then
+      log_failure_msg "When using UUIDs for disk parsing, you MUST also supply the BOOT_CONFIG parameter (eg. BOOT_CONFIG=boot.ini)"
+      exec sh
+    fi
+  fi
+  log_end_msg
+}
+
+do_reboot() {
+
+  umount ${IMAGEMNT}
+  umount ${BOOTMNT}
+  rm -r ${IMAGEMNT}
+  rm -r ${BOOTMNT}
+  sync
+
+  case $REBOOT_MODE in
+    normal)
+      echo b > /proc/sysrq-trigger
+      ;;
+    file)
+      echo "Rebooting via mcu control at next system start..."
+      mkdir ${BOOTMNT}
+      mount -t vfat ${BOOT_PARTITION} ${BOOTMNT}
+      echo "" > ${BOOTMNT}/executereboot
+      sync
+      ;;
+    mcu)
+      echo "Immediately rebooting via mcu control..."
+      /bin/i2crw1 w 33 25 1
+      ;;
+    manual)
+      echo "Manual reboot, dropping to a shell..."
+      sh
+      exit 0
+      ;;
+    *)
+      echo "Invalid reboot mode option in kernel cmd parameters, using normal reboot..."
+      echo b > /proc/sysrq-trigger
+      ;;
+  esac
+}
+
+load_plymouth() {
+
+  for ARGUMENT in $(cat /proc/cmdline)
+  do
+    case "${ARGUMENT}" in
+      splash*)
+        SPLASH="true"
+        ;;
+      nosplash*|plymouth.enable=0)
+        SPLASH="false"
+        ;;
+    esac
+  done
+
+  if [ "${SPLASH}" = "true" ]
+  then
+    mkdir -m 0755 /run/plymouth
+    /sbin/plymouthd --mode=boot --attach-to-session --pid-file=/run/plymouth/pid
+    /bin/plymouth --show-splash
+  fi
+
+}
+
+move_backup_gpt_table() {
+
+# GPT partitions: as the Volumio image likely has been dd'ed to a bigger disk,
+#     the backup GPT table is not at the end of the disk.
+# 		Fix this before doing anything else (only at first boot)
+
+  BOOT_DEVICE=/dev/$(lsblk -no PKNAME "${BOOT_PARTITION}")
+  GPTSIZEMISMATCH="$(/usr/sbin/fdisk -l "${BOOT_DEVICE}" 2>&1 | grep 'GPT PMBR size mismatch')"
+  if [ ! "x${GPTSIZEMISMATCH}" == "x" ]; then
+    log_begin_msg "Alternate (backup) GPT header not at the end of the disk, moving it..."
+    sgdisk -e "${BOOT_DEVICE}" >/dev/null 2>&1
+    log_end_msg "Moved the alternate GPT header"
+  fi
+}
+
+search_for_firmware_update_rootfs() {
+
+  log_begin_msg "Searching for firmwware on additional removable devices"
+  mkdir ${USBMNT}
+  usb_done=/dev/
+  for devlink in /dev/sd*; do
+    # only checking the first partition of an additional device!
+    usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g')
+    if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
+      mount -t auto $(echo ${usb_dev}1) ${USBMNT} >/dev/null 2>&1
+      if [ -e ${USBMNT}/*.fir ]; then
+        log_end_msg
+        log_begin_msg "New rootfs firmware found"
+        log_begin_msg "Updating will take several minutes, please wait...."
+        volumio-init-updater
+        sync
+        log_success_msg "USB Update applied"
+        umount ${USBMNT} >/dev/null 2>&1
+        rm -r ${BOOTMNT}
+        echo b >/proc/sysrq-trigger
+        break
+      fi
+      umount ${USBMNT} >/dev/null 2>&1
+    fi
+    usb_done=${usb_dev}
+  done
+  rmdir ${USBMNT}
+  log_end_msg
+}
+
+search_for_factory_reset_on_additional_dev() {
+  log_begin_msg "Searching for factory reset on an additional device"
+  mkdir ${USBMNT}
+  for devlink in /dev/sd*; do
+    # only checking the first partition of an additional device!
+    usb_dev=$(echo ${devlink} | sed 's/[0-9]*//g')
+    if [ ${usb_done} != ${usb_dev} ] && [ ${BOOT_DEVICE} != ${usb_dev} ]; then
+      mount -t auto $(echo ${usb_dev}1) ${USBMNT} >/dev/null 2>&1
+      if [ -e ${USBMNT}/factory_reset ]; then
+        echo " " >${BOOTMNT}/user_data
+        log_success_msg "Factory reset initiated"
+        umount ${USBMNT} >/dev/null 2>&1
+        break
+      fi
+      umount ${USBMNT} >/dev/null 2>&1
+    fi
+    usb_done=${usb_dev}
+  done
+  rmdir ${USBMNT}
+  log_end_msg
+}
+
+search_for_factory_reset_on_bootpart() {
+
+  log_begin_msg "Searching for factory reset on boot device"
+
+  if [ -e "${BOOTMNT}/user_data" ]; then
+    log_begin_msg "Deleting User Data..."
+    #mke2fsfull is used since busybox mke2fs does not include ext4 support
+    /sbin/mke2fsfull -t ext4 -F -E stride=2,stripe-width=1024 -b 4096 "${DATA_PARTITION}" -L volumio_data >/dev/null 2>&1
+    if [ ! -z ${UUIDFMT} ]; then
+      update_UUID "datapart" ${DATA_PARTITION} ${BOOT_CONFIG}
+    fi
+    rm ${BOOTMNT}/user_data
+    log_end_msg
+  fi
+  log_end_msg
+}
+
+search_for_kernel_rollback() {
+
+  log_begin_msg "Searching for previous update attempt, restoring fallbacks"
+  if [ -e "${BOOTMNT}/update_process" ]; then
+    log_begin_msg "Previous update attempt failed, restoring fallbacks"
+    cp ${IMAGEMNT}/kernel_fallback.tar ${IMAGEMNT}/kernel_current.tar
+    cp ${IMAGEMNT}/volumio_fallback.tar ${IMAGEMNT}/volumio_current.tar
+    if [ -e "/boot/kernel_update" ]; then
+      rm ${BOOTMNT}/kernel_update
+    fi
+    rm ${BOOTMNT}/update_process
+  fi
+  log_end_msg
+}
+
+process_kernel_update() {
+# When the kernel has been updated, and no error has occurred before completion
+#   - unpack the new tarball
+#   - fix UUIDs
+#   - reboot
+#
+  if [ -e "${BOOTMNT}/kernel_update" ]; then
+    log_begin_msg "Processing a kernel update, unpack kernel archive"
+    tar xf /mnt/IMAGE_PARTITION/kernel_current.tar -C ${BOOTMNT}
+    log_end_msg
+    if [ ! -z ${UUIDFMT} ]; then
+      log_begin_msg "Updating UUIDs"
+      update_UUID "bootpart" ${BOOT_PARTITION} ${BOOT_CONFIG}
+      update_UUID "imgpart" ${IMAGE_PARTITION} ${BOOT_CONFIG}
+      update_UUID "datapart" ${DATA_PARTITION} ${BOOT_CONFIG}
+    fi
+    rm ${BOOTMNT}/kernel_update
+    do_reboot
+  fi
+}
+
+resize_datapartition() {
+  log_begin_msg "Checking free space on the data partition"
+  DATADEV=/dev/$(lsblk -no PKNAME "${DATA_PARTITION}")
+  # Re-sizing is not necessary when we already reached maximum (shows with decimals less than 1MB).
+  FREESIZE="$(parted -s "${DATADEV}" unit MB print free | tail -n 2 | grep Free | awk '{print $3}' | awk -F 'MB' '{print $1}')"
+  if [ "$(awk 'BEGIN {print ("'$FREESIZE'" >= "'1'")}')" -eq "1" ]; then
+    log_end_msg
+    log_begin_msg "Re-sizing Volumio data partition..."
+    END="$(parted -s "${DATADEV}" unit MB print free | grep Free | tail -1 | awk '{print $2}' | grep -o '[0-9]\+')"
+    parted -s "${DATADEV}" resizepart 3 "${END}" >/dev/null 2>&1
+    e2fsck -f "${DATA_PARTITION}" -y >/dev/null 2>&1
+    resize2fs -p "${DATA_PARTITION}" >/dev/null 2>&1
+    log_end_msg
+    log_begin_msg "Volumio data partition succesfully resized"
+    parted -s "${DATADEV}" unit MB print >/dev/null 2>&1
+  fi
+  log_end_msg
+}
+
+mount_overlay_fs() {
+
+  log_begin_msg "Starting mount overlay filesystem, setup loop device"
+  loop_free=$(losetup -f | sed "s#p/#p#")
+  sleep 2
+  mdev -s
+  losetup $loop_free "${IMAGEMNT}/${SQUASH_FILE}"
+  log_end_msg
+
+  log_begin_msg "Using free loop device ${loop_free}, mounting squashfs ${SQUASH_FILE}"
+  mkdir /mnt/static
+  mount -t squashfs $loop_free /mnt/static
+  log_end_msg
+
+  VOLUMIO_VERSION="$(cat /mnt/static/etc/os-release | grep VOLUMIO_VERSION)"
+
+  log_begin_msg "Starting mount data partition"
+  # mount a filesystem for write access to the static image
+  [ -d /mnt/ext ] || mkdir -m 777 /mnt/ext
+  mount -t ext4 -o noatime ${DATA_PARTITION} /mnt/ext
+  [ -d /mnt/ext/dyn ] || mkdir -m 777 /mnt/ext/dyn
+  [ -d /mnt/ext/union ] || mkdir -m 777 /mnt/ext/union
+  log_end_msg
+
+  log_begin_msg "Starting mount overlay (${OVERLAY_VERSION})"
+  case $OVERLAY_VERSION in
+    V20)
+      mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn
+      ;;
+    V21)
+      [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
+      mount -t overlayfs overlayfs /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work
+      ;;
+    *)
+      [ -d /mnt/ext/work ] || mkdir -m 777 /mnt/ext/work
+      mount -t overlay overlay /mnt/ext/union -olowerdir=/mnt/static,upperdir=/mnt/ext/dyn,workdir=/mnt/ext/work
+      ;;
+  esac
+  log_end_msg
+  log_success_msg "Squashfs mounted and overlay created"
+  [ -d /mnt/ext/union/static ] || mkdir -m 777 /mnt/ext/union/static
+  [ -d /mnt/ext/union/imgpart ] || mkdir -m 777 /mnt/ext/union/imgpart
+
+  # Move mountpoints
+  log_begin_msg "Moving static and data mount points"
+  mount --move /mnt/static /mnt/ext/union/static
+  mount --move ${IMAGEMNT} /mnt/ext/union/imgpart
+  chmod -R 777 /mnt/ext/union/imgpart
+
+  NEWROOT=/mnt/ext/union
+  log_end_msg
+}
+
+modify_fstab() {
+# Update fstab after a volumio update
+
+# This should normally only affect configurations using "disk/by-UUID" for locating /boot
+# OR when BOOT_PARTITION device argument was changed with a new release (seldom)
+  log_begin_msg "Searching for a boot partiton's UUID in fstab"
+  UUID_BOOT=$(blkid -s UUID -o value ${BOOT_PARTITION})
+  DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "[0-9A-F]{4}-[0-9A-F]{4}" -o`
+  log_end_msg
+  if [ ! -z "${DEVFSTAB}" ]; then
+    log_success_msg "found fstab entry with UUID=${DEVFSTAB} for /boot"
+    if [ ! $UUID_BOOT == $DEVFSTAB ]; then
+      sed -i "s/${DEVFSTAB}/${UUID_BOOT}/g" /mnt/ext/union/etc/fstab
+      log_success_msg "fstab entry updated to UUID=${DEVFSTAB}"
+      log_end_msg
+    fi
+  else
+    log_begin_msg "Searching for a plain device device descriptor in fstab"
+    DEVFSTAB=`cat /mnt/ext/union/etc/fstab | grep -E "^/dev/[a-z]{3,6}[0-9]{1,2}[a-z]{0,1}[0-9]{0,2}" -o`
+    log _end_msg
+    if [ -z "${DEVFSTAB}" ]; then
+  #   normally never gets here ;)
+      log_failure_msg "Incompatible fstab, no entry found for /boot"
+      exec sh
+      exit 0
+    fi
+    Log_success_msg "Found fstab entry with device ${DEVFSTAB} for /boot"
+    if [ ! $BOOT_PARTITION == $DEVFSTAB ]; then
+      sed -i "s/${DEVFSTAB}/${BOOT_PARTITION}/g" /mnt/ext/union/etc/fstab
+      log_success_msg "fstab entry updated to ${DEVFSTAB}"
+      log_end_msg
+    fi
+  fi
+}
+
+update_UUID() {
+# After a volumio update, when UUIDs are used:
+#   $1 = partition key
+#   $2 = partition
+#   $2 = config file
+#   $3 = second config in case of x86
+
+  log_begin_msg "Updating $1 UUID in $3 $4"
+# Retrieve current UUID for the given partition
+  uuid=$(blkid -s UUID -o value "$2")
+  uuidkey=$1
+
+# Update
+  case uuidkey in
+    imgpart|datapart)
+      sed -i "s/${uuidkey}=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/${uuidkey}=UUID=${uuid}/g" ${BOOTMNT}/$3
+      if [ ! -z $4 ]; then
+        sed -i "s/${uuidkey}=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/${uuidkey}=UUID=${uuid}/g" ${BOOTMNT}/$4
+      fi
+      ;;
+    *)
+      sed -i "s/${uuidkey}=UUID=[a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/${uuidkey}=UUID=${uuid}/g" ${BOOTMNT}/$3
+      if [ ! -z $4 ]; then
+        sed -i "s/${uuidkey}=UUID=[a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/${uuidkey}=UUID=${uuid}/g" ${BOOTMNT}/$4
+      fi
+      ;;
+  esac
+  log_end_msg
+}

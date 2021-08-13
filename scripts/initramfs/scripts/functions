@@ -1,0 +1,479 @@
+# -*- shell-script -*-
+
+
+# NOTE: These functions are taken unmodified from /usr/share/initramfs-tools/scripts.
+# There are no modifications for Volumio and only a part of the functions are used.
+# Volumio-specific functions and/ or overrides are placed in script file volumio-functions
+
+_log_msg()
+{
+	if [ "${quiet?}" = "y" ]; then return; fi
+	# shellcheck disable=SC2059
+	printf "$@"
+}
+
+log_success_msg()
+{
+	_log_msg "Success: %s\\n" "$*"
+}
+
+log_failure_msg()
+{
+	_log_msg "Failure: %s\\n" "$*"
+}
+
+log_warning_msg()
+{
+	_log_msg "Warning: %s\\n" "$*"
+}
+
+log_begin_msg()
+{
+	_log_msg "Begin: %s ... " "$*"
+}
+
+log_end_msg()
+{
+	_log_msg "done.\\n"
+}
+
+panic()
+{
+	local console rest IFS
+
+	if command -v chvt >/dev/null 2>&1; then
+		chvt 1
+	fi
+
+	printf "$@"
+	# Disallow console access
+	if [ -n "${panic?}" ]; then
+		echo "Rebooting automatically due to panic= boot argument"
+		sleep "${panic}"
+		reboot
+		exit  # in case reboot fails, force kernel panic
+	fi
+
+	run_scripts /scripts/panic
+
+	# Try to use setsid, which will enable job control in the shell
+	# and paging in more
+	if command -v setsid >/dev/null 2>&1; then
+		unset IFS
+		read -r console rest </proc/consoles
+		if [ "${console}" = "tty0" ]; then
+			# Need to choose a specific VT
+			console="tty1"
+		fi
+		# We don't have 'setsid -c' so we need to setsid, open
+		# the tty, and finally exec an interactive shell
+		REASON="$*" PS1='(initramfs) ' setsid sh -c "exec sh -i <>/dev/${console} 1>&0 2>&1"
+	else
+		REASON="$*" PS1='(initramfs) ' sh -i </dev/console >/dev/console 2>&1
+	fi
+}
+
+maybe_break()
+{
+	case ",${break?}," in
+	*,$1,*)
+		if [ "$1" = "top" ]; then
+			# udev is not yet running, so load keyboard drivers
+			if [ "${quiet}" = "y" ]; then
+				opts="-q"
+			else
+				opts="-v"
+			fi
+			modprobe ${opts} -a i8042 atkbd ehci-pci ehci-orion \
+				 ehci-hcd ohci-hcd ohci-pci uhci-hcd usbhid xhci \
+				 xhci-pci xhci-hcd
+			sleep 2
+			for modalias in /sys/bus/hid/devices/*/modalias; do
+				if [ -f "${modalias}" ]; then
+					modprobe ${opts} -b "$(cat "${modalias}")"
+				fi
+			done
+		fi
+		panic "Spawning shell within the initramfs"
+		;;
+	esac
+}
+
+# For boot time only; this is overridden at build time in hook-functions
+run_scripts()
+{
+	initdir=${1}
+	[ ! -d "${initdir}" ] && return
+
+	shift
+	. "${initdir}/ORDER"
+}
+
+# Load custom modules first
+load_modules()
+{
+	if [ -e /conf/modules ]; then
+		while read -r m; do
+			# Skip empty lines
+			if [ -z "$m" ];  then
+				continue
+			fi
+			# Skip comments - d?ash removes whitespace prefix
+			com=$(printf "%.1s" "${m}")
+			if [ "$com" = "#" ]; then
+				continue
+			fi
+			# shellcheck disable=SC2086
+			modprobe $m
+		done < /conf/modules
+	fi
+}
+
+# lilo compatibility
+parse_numeric() {
+	case $1 in
+	*:*)
+		# Does it match /[0-9]*:[0-9]*/?
+		minor=${1#*:}
+		major=${1%:*}
+		case $major$minor in
+		*[!0-9]*)
+			# No.
+			return
+			;;
+		esac
+		;;
+	"" | *[!A-Fa-f0-9]*)
+		# "", "/*", etc.
+		return
+		;;
+	*)
+		# [A-Fa-f0-9]*
+		value=$(( 0x${1} ))
+		minor=$(( (value & 0xff) | (value >> 12) & 0xfff00 ))
+		major=$(( (value >> 8) & 0xfff ))
+		;;
+	esac
+
+	# shellcheck disable=SC2034
+	ROOT="/dev/block/${major}:${minor}"
+}
+
+# Parameter: device node to check
+# Echos fstype to stdout
+# Return value: indicates if an fs could be recognized
+get_fstype ()
+{
+	local FS FSTYPE
+	FS="${1}"
+
+	# blkid has a more complete list of file systems,
+	# but fstype is more robust
+	FSTYPE="unknown"
+	eval "$(fstype "${FS}" 2> /dev/null)"
+	if [ "$FSTYPE" = "unknown" ]; then
+		FSTYPE=$(blkid -o value -s TYPE "${FS}") || return
+	fi
+	echo "${FSTYPE}"
+	return 0
+}
+
+_handle_device_vs_ip()
+{
+	# If the ip= parameter is present and is a colon-separated list,
+	# then:
+	# - If it specifies a device, use that in preference to any
+	#   device name we already have
+	# - Otherwise, substitute in any device name we already have
+	local IFS=:
+	set -f
+	# shellcheck disable=SC2086
+	set -- ${IP}
+	set +f
+	if [ -n "$6" ]; then
+		DEVICE="$6"
+	elif [ $# -ge 2 ] && [ -n "${DEVICE}" ]; then
+		IP="$1:$2:$3:$4:$5:${DEVICE}"
+		shift 6 || shift $#
+		IP="${IP}:$*"
+	fi
+}
+
+configure_networking()
+{
+	if [ -n "${BOOTIF}" ]; then
+		# pxelinux sets BOOTIF to a value based on the mac address of the
+		# network card used to PXE boot, so use this value for DEVICE rather
+		# than a hard-coded device name from initramfs.conf. this facilitates
+		# network booting when machines may have multiple network cards.
+		# pxelinux sets BOOTIF to 01-$mac_address
+
+		# strip off the leading "01-", which isn't part of the mac
+		# address
+		temp_mac=${BOOTIF#*-}
+
+		# convert to typical mac address format by replacing "-" with ":"
+		bootif_mac=""
+		IFS='-'
+		for x in $temp_mac ; do
+			if [ -z "$bootif_mac" ]; then
+				bootif_mac="$x"
+			else
+				bootif_mac="$bootif_mac:$x"
+			fi
+		done
+		unset IFS
+
+		# look for devices with matching mac address, and set DEVICE to
+		# appropriate value if match is found.
+		for device in /sys/class/net/* ; do
+			if [ -f "$device/address" ]; then
+				current_mac=$(cat "$device/address")
+				if [ "$bootif_mac" = "$current_mac" ]; then
+					DEVICE=${device##*/}
+					break
+				fi
+			fi
+		done
+	fi
+
+	_handle_device_vs_ip
+
+	# networking already configured thus bail out
+	[ -n "${DEVICE}" ] && [ -e /run/net-"${DEVICE}".conf ] && return 0
+
+	wait_for_udev 10
+
+	# support ip options see linux sources
+	# Documentation/filesystems/nfs/nfsroot.txt
+	# Documentation/frv/booting.txt
+
+	for ROUNDTTT in 2 3 4 6 9 16 25 36 64 100; do
+
+		# The NIC is to be configured if this file does not exist.
+		# Ip-Config tries to create this file and when it succeds
+		# creating the file, ipconfig is not run again.
+		for x in /run/net-"${DEVICE}".conf /run/net-*.conf ; do
+			[ -e "$x" ] && break 2
+		done
+
+		case ${IP} in
+		none|off)
+			# Do nothing
+			;;
+		""|on|any)
+			# Bring up device
+			ipconfig -t ${ROUNDTTT} "${DEVICE}"
+			;;
+		dhcp|bootp|rarp|both)
+			ipconfig -t ${ROUNDTTT} -c "${IP}" -d "${DEVICE}"
+			;;
+		*)
+			ipconfig -t ${ROUNDTTT} -d "$IP"
+			;;
+		esac
+	done
+
+	# source ipconfig output
+	if [ -n "${DEVICE}" ]; then
+		# source specific bootdevice
+		. "/run/net-${DEVICE}.conf"
+	else
+		# source any interface...
+		# ipconfig should have quit after first response
+		. /run/net-*.conf
+	fi
+}
+
+# Wait for queued kernel/udev events
+wait_for_udev()
+{
+	command -v udevadm >/dev/null 2>&1 || return 0
+	udevadm settle ${1:+--timeout=$1}
+}
+
+# Find a specific fstab entry
+# $1=mountpoint
+# $2=fstype (optional)
+# returns 0 on success, 1 on failure (not found or no fstab)
+read_fstab_entry() {
+	# Not found by default.
+	found=1
+
+	for file in ${rootmnt?}/etc/fstab; do
+		if [ -f "$file" ]; then
+			# shellcheck disable=SC2034
+			while read -r MNT_FSNAME MNT_DIR MNT_TYPE MNT_OPTS MNT_FREQ MNT_PASS MNT_JUNK; do
+				case "$MNT_FSNAME" in
+				  ""|\#*)
+					continue;
+					;;
+				esac
+				if [ "$MNT_DIR" = "$1" ]; then
+					if [ -n "$2" ]; then
+						[ "$MNT_TYPE" = "$2" ] || continue;
+					fi
+					found=0
+					break 2
+				fi
+			done < "$file"
+		fi
+	done
+
+	return $found
+}
+
+# Resolve device node from a name.  This expands any LABEL or UUID.
+# $1=name
+# Resolved name is echoed.
+resolve_device() {
+	DEV="$1"
+
+	case "$DEV" in
+	LABEL=* | UUID=* | PARTLABEL=* | PARTUUID=*)
+		DEV="$(blkid -l -t "$DEV" -o device)" || return 1
+		;;
+	esac
+	[ -e "$DEV" ] && echo "$DEV"
+}
+
+# Check a file system.
+# $1=device
+# $2=mountpoint (for diagnostics only)
+# $3=type (may be "auto")
+_checkfs_once()
+{
+	DEV="$1"
+	NAME="$2"
+	TYPE="$3"
+	if [ "$NAME" = "/" ] ; then
+		NAME="root"
+	fi
+	FSCK_LOGFILE=/run/initramfs/fsck.log
+	FSCK_STAMPFILE=/run/initramfs/fsck-${NAME#/}
+
+	if [ "${TYPE}" = "auto" ]; then
+		TYPE="$(get_fstype "${DEV}")"
+	fi
+
+	FSCKCODE=0
+	if [ -z "${TYPE}" ]; then
+		log_warning_msg "Type of $NAME file system is unknown, so skipping check."
+		return
+	fi
+	if ! command -v fsck >/dev/null 2>&1; then
+		log_warning_msg "fsck not present, so skipping $NAME file system"
+		return
+	fi
+	if [ "${fastboot?}" = "y" ] ; then
+		log_warning_msg "Fast boot enabled, so skipping $NAME file system check."
+		return
+	fi
+
+	if [ "${forcefsck?}" = "y" ]
+	then
+		force="-f"
+	else
+		force=""
+	fi
+
+	if [ "${fsckfix?}" = "y" ]
+	then
+		fix="-y"
+	elif [ "${fsckfix?}" = "n" ]
+	then
+		fix="-n"
+	else
+		fix="-a"
+	fi
+
+	spinner=""
+	if [ -z "${debug?}" ]; then
+		spinner="-C"
+	fi
+
+	if [ "${quiet}" = n ]
+	then
+		log_begin_msg "Will now check $NAME file system"
+		logsave -a -s $FSCK_LOGFILE fsck $spinner $force $fix -V -t "$TYPE" "$DEV"
+		FSCKCODE=$?
+		log_end_msg
+	else
+		log_begin_msg "Checking $NAME file system"
+		logsave -a -s $FSCK_LOGFILE fsck $spinner $force $fix -T -t "$TYPE" "$DEV"
+		FSCKCODE=$?
+		log_end_msg
+	fi
+
+	# NOTE: "failure" is defined as exiting with a return code of
+	# 4, possibly or-ed with other flags. A return code of 1
+	# indicates that file system errors were corrected but that
+	# the boot may proceed.
+	#
+	if [ "$FSCKCODE" -eq 32 ]
+	then
+		log_warning_msg "File system check was interrupted by user"
+	elif [ $((FSCKCODE & 4)) -eq 4 ]
+	then
+		log_failure_msg "File system check of the $NAME filesystem failed"
+		return 1
+	elif [ "$FSCKCODE" -gt 1 ]
+	then
+		log_warning_msg "File system check failed but did not detect errors"
+		sleep 5
+	else
+		true > $FSCK_STAMPFILE
+	fi
+	return 0
+}
+
+checkfs()
+{
+	while ! _checkfs_once "$@"; do
+		panic "The $2 filesystem on $1 requires a manual fsck"
+	done
+}
+
+# Mount a file system.  We parse the information from the fstab.  This
+# should be overridden by any boot script which can mount arbitrary
+# filesystems such as /usr.  This default implementation delegates to
+# local or nfs based upon the filesystem type.
+# $1=mountpoint mount location
+mountfs()
+{
+	type=local
+	read_fstab_entry "$1"
+	if [ "${MNT_TYPE}" = "nfs" ] || [ "${MNT_TYPE}" = "nfs4" ]; then
+		type=nfs
+	fi
+
+	${type}_mount_fs "$1"
+}
+
+# Mount the root file system.  It should be overridden by all
+# boot scripts.
+mountroot()
+{
+	:
+}
+
+# Run /scripts/${boot}-top.  This should be overridden by all boot
+# scripts.
+mount_top()
+{
+	:
+}
+
+# Run /scripts/${boot}-premount.  This should be overridden by all boot
+# scripts.
+mount_premount()
+{
+	:
+}
+
+# Run /scripts/${boot}-bottom.  This should be overridden by all boot
+# scripts.
+mount_bottom()
+{
+	:
+}

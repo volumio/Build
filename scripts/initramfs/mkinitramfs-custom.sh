@@ -318,7 +318,7 @@ build_initramfs() {
   # First file executed by linux
   cp -p /usr/share/initramfs-tools/init "${DESTDIR}/init"
 
-  # add existent boot scripts
+  # add existant boot scripts
   for b in $(cd /usr/share/initramfs-tools/scripts/ && find . \
     -regextype posix-extended -regex '.*/[[:alnum:]\._-]+$' -type f); do
     [ -d "${DESTDIR}/scripts/$(dirname "${b}")" ] ||
@@ -520,8 +520,8 @@ build_volumio_initramfs() {
   log "Addig Volumio specific binaries" "info"
   # Add VolumioOS binaries
   volbins=('/usr/local/sbin/volumio-init-updater')
-  volbins+=('/sbin/parted' '/sbin/findfs' '/bin/lsblk' '/sbin/mke2fs'
-    '/sbin/e2fsck' '/sbin/resize2fs' '/sbin/mke2fsfull')
+  volbins+=('/sbin/parted' '/sbin/findfs' '/sbin/mke2fs'
+    '/sbin/e2fsck' '/sbin/resize2fs' '/sbin/mke2fsfull' '/bin/lsblk')
   if [[ ${DPKG_ARCH} = 'i386' ]] || [[ ${DPKG_ARCH} = 'amd64' ]]; then
     log "Adding x86/x64 specific binaries (sgdisk/lsblk/dmidecode..etc)"
     volbins+=('/sbin/fdisk' '/sbin/sgdisk' '/usr/sbin/dmidecode')
@@ -543,6 +543,9 @@ build_initrd() {
   log "Creating volumio.initrd Image from ${DESTDIR}" "info"
   # Remove auto-generated scripts
   rm -rf "${DESTDIR}/scripts"
+  # Replace with Volumio scripts
+  cp -dR /root/scripts "${DESTDIR}"
+  # Replace init by Volumio versions
   cp /root/init "${DESTDIR}"
   cd "${DESTDIR}"
   OPTS=("-o")
