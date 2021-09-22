@@ -9,7 +9,6 @@ BASE="Raspbian"
 ARCH="armhf"
 BUILD="arm"
 
-DEBUG_IMAGE=yes
 ### Device information
 # Used to identify devices (VOLUMIO_HARDWARE) and keep backward compatibility
 #VOL_DEVICE_ID="pi"
@@ -336,9 +335,11 @@ device_chroot_tweaks_pre() {
 	kernel_params+=("snd-bcm2835.enable_compat_alsa=${compat_alsa}" "snd_bcm2835.enable_hdmi=1")
 
 	if [[ $DEBUG_IMAGE == yes ]]; then
-		log "Creaing debug image" "wrn"
+		log "Creating debug image" "wrn"
 		log "Adding Serial Debug parameters"
-		cat <<-EOF >/boot/userconfig.txt
+		echo "include debug.txt" >>/boot/config.txt
+		cat <<-EOF >/boot/debug.txt
+			# Enable serial console for boot debugging
 			enable_uart=1
 			dtoverlay=pi3-miniuart-bt
 		EOF
