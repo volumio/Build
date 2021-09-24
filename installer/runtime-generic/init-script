@@ -5,13 +5,13 @@
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export BOOT=/mnt/boot
 export BOOTDELAY=
-export BOOTDEV= 
+export BOOTDEV=
 export BOOTCONFIG=
-export TARGETBOOT= 
-export TARGETDEV= 
-export TARGETDATA= 
-export TARGETIMAGE= 
-export HWDEVICE= 
+export TARGETBOOT=
+export TARGETDEV=
+export TARGETDATA=
+export TARGETIMAGE=
+export HWDEVICE=
 export USE_KMSG="yes"
 export UUIDFMT=
 
@@ -59,19 +59,19 @@ mount -t vfat ${BOOTPART} ${BOOT}
 
 clear_target_device
 create_volumio_partitions
-write_device_bootloader ${TARGETDEV} 
+write_device_bootloader ${TARGETDEV}
 mount_target_boot
 
 echo "[info] Copying current image partition files"
 cp $BOOT/data/image/* $BOOT/temp/image
- 
+
 echo "[info] Copying volumio boot partition files (image, dtb, boot files etc.)"
 tar xf $BOOT/data/image/kernel_current.tar -C $BOOT/temp/boot
 
 if [ ! -z ${FACTORYCOPY} ]; then
    echo "[info] Continue with creating factory copies"
-   cp $BOOT/data/image/kernel_current.tar $BOOT/data/image/kernel_factory.tar
-   cp $BOOT/data/image/volumio_current.sqsh $BOOT/data/image/volumio_factory.sqsh
+   cp $BOOT/data/image/kernel_current.tar $BOOT/temp/image/kernel_factory.tar
+   cp $BOOT/data/image/volumio_current.sqsh $BOOT/temp/image/volumio_factory.sqsh
 fi
 
 sync
