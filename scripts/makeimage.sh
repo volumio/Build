@@ -266,7 +266,12 @@ if [ -e "${VOLMNT}/kernel_current.tar" ]; then
 fi
 
 log "Creating Kernel archive"
-tar cf "${VOLMNT}/kernel_current.tar" --exclude='resize-volumio-datapart' \
+# With x86, also exclude ldlinux.sys from kernel_current.tar, it is part of the syslinux bootloader
+# Rewriting it would result in relocation and a broken legacy boot 
+EXCLUDE_LIST="--exclude=resize-volumio-datapart "
+[[ "${DEVICEFAMILY}" == x86 ]] && EXCLUDE_LIST="${EXCLUDE_LIST} --exclude=ldlinux.sys"
+
+tar cf "${VOLMNT}/kernel_current.tar" ${EXCLUDE_LIST}\
   -C $SQSHMNT/boot/ .
 
 [[ "${CLEAN_IMAGE_FILE:-yes}" != yes ]] && cp -rp "${VOLMNT}"/kernel_current.tar "${OUTPUT_DIR}"/kernel_current.tar
