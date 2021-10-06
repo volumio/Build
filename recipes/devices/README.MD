@@ -5,7 +5,7 @@ Do note that an inclusion of a device, doesn't necessarily mean it is tested wit
 
 Most devices rely on the community to test, debug and maintain :-)
 
-| Device       | Base  | Arch  | `VOLUMIO_DEVICENAME` | `VOLUMIO_DEVICENAME` | Kernel                                                     | Type | Status |
+| Device       | Base  | Arch  | `VOLUMIO_HARDWARE` | `VOLUMIO_DEVICENAME` | Kernel                                                     | Type | Status |
 | ------------ | ----- | ----- | -------------------- | -------------------- | ---------------------------------------------------------- | ---- | ------ |
 | cuboxp       | armv7 | armhf | cuboxp               | Cubox Pulse          | [4.14.y](https://github.com/gkkpch/platform-cubox.git)     | C    | P      |
 | kvim1        | armv7 | armhf | kvim1                | Khadas VIM1          | [4.9.y](https://github.com/volumio/platform-khadas.git)    | C    | P      |
