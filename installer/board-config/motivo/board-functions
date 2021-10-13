@@ -1,0 +1,26 @@
+
+#mandatory function
+write_device_bootloader()
+{
+	echo "[info] Flashing u-boot"
+	dd if=$BOOT/u-boot/sunxi-spl.bin of=$1 bs=8k seek=1 conv=fsync
+	dd if=$BOOT/u-boot/u-boot.itb of=$1 bs=8k seek=5 conv=fsync
+}
+
+led_show_init_signal()
+{
+   echo "Init"   
+}
+
+led_show_start_signal()
+{
+   /usr/bin/i2crw1 w 33 51 1 0 0
+   /usr/bin/i2crw1 w 33 20 4
+}
+
+led_show_finish_signal()
+{
+   /usr/bin/i2crw1 w 33 51 0 1 0
+   /usr/bin/i2crw1 w 33 21 1
+}
+

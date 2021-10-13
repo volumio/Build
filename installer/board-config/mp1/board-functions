@@ -1,0 +1,28 @@
+
+#mandatory function
+write_device_bootloader()
+{
+   echo "[info] Flashing u-boot"
+   dd if=$BOOT/u-boot/u-boot.VIM3L.sd.bin of=$1 bs=444 count=1 conv=fsync
+   dd if=$BOOT/u-boot/u-boot.VIM3L.sd.bin of=$1 bs=512 skip=1 seek=1 conv=fsync 
+}
+
+led_show_init_signal()
+{
+   echo heartbeat > /sys/class/leds/sys_led/trigger
+}
+
+led_show_start_signal()
+{
+   echo none > /sys/class/leds/sys_led/trigger
+   echo heartbeat > /sys/class/leds/sys_led/trigger
+   sleep 0.5
+   echo heartbeat  > /sys/class/leds/red_red/trigger
+}
+
+led_show_finish_signal()
+{
+   echo none  > /sys/class/leds/red_red/trigger
+   echo default-on  > /sys/class/leds/sys_led/trigger
+}
+

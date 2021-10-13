@@ -1,0 +1,187 @@
+#!/bin/sh
+
+# There are all mandatory, generic functions and form the center core of the autoflasher. 
+# (Board-specific functions belong in "board-functions".
+# Generic functions should normally not change as this will impact other autoflashers.
+# In case a modification of generic script is needed, the modified copy of the function
+# should be added "board-functions" instead.-
+# TODO: test it
+
+ 
+parse_disk()
+{
+	if [ "$(echo $1|cut -c -5)" = "UUID=" ]; then
+    	# $1 is a UUID
+    	echo $(findfs $1)
+  	elif [ "$(echo $1|cut -c -6)" = "LABEL=" ]; then
+    	# $1 is a LABEL
+    	echo $(findfs $1)
+  	elif [ "$(echo $1|cut -c -5)" = "/dev/" ]; then
+    	# $1 is a device name
+    	echo $1
+  	else
+    	# $1 is unrecognized.
+    	echo "unknown-disk"
+  	fi
+}
+
+parse_cmdline()
+{
+	export CMDLINE="$(cat /proc/cmdline)"
+	for p in ${CMDLINE};
+	do
+		key=${p%%=*}
+		value=${p#*=}
+		case $key in
+			bootdelay)
+				BOOTDELAY=$value
+				;;
+		  	hwdevice)
+				HWDEVICE=$value
+				;;
+		  	use_kmsg)
+				USEKMSG=$value
+				;;
+	  	esac
+	done
+	
+	echo "[info] Starting AutoFlasher for ${HWDEVICE}"
+	echo "[info] BOOTDEV=${BOOTDEV}"
+	echo "[info] BOOTPART=${BOOTPART}"
+	echo "[info] BOOTCONFIG=${BOOTCONFIG}"
+	echo "[info] BOOTDELAY=${BOOTDELAY}"
+	echo "[info] HWDEVICE=${HWDEVICE}"
+	echo "[info] TARGETDEV=${TARGETDEV}"
+	echo "[info] TARGETBOOT=${TARGETBOOT}"
+	echo "[info] TARGETIMAGE=${TARGETIMAGE}"
+	echo "[info] TARGETDATA=${TARGETDATA}"
+	echo "[info] USEKMSG=${USEKMSG}"
+}
+
+# Load custom modules 
+load_modules()
+{
+	echo "[info] Loading modules"
+	if [ -e /conf/modules ]; then
+		while read -r m; do
+			# Skip empty lines
+			if [ -z "$m" ];  then
+				continue
+			fi
+			# Skip comments 
+			com=$(printf "%.1s" "${m}")
+			if [ "$com" = "#" ]; then
+				continue
+			fi
+			# shellcheck disable=SC2086
+			modprobe $m
+		done < /conf/modules
+	fi
+}
+
+# check if UUIDs are used for disk parsing
+check_uuids()
+{
+	if [ ! -z ${UUIDFMT} ]; then
+		if [ $BOOTCONFIG == empty ]; then
+			echo "[error] when using UUIDs for disk parsing, you MUST also add the bootconfig parameter (eg. bootconfig=/extlinux/extlinux.conf)"
+			exec sh
+			exit 0
+		fi
+	fi
+}
+
+# make sure, uuids of boot, image and data partition match the boot script
+swap_uuids()
+{
+	echo "[info] Extracting target partition UUIDs"
+	export UUID_BOOT=$(blkid -s UUID -o value ${TARGETBOOT})
+	export UUID_IMAGE=$(blkid -s UUID -o value ${TARGETIMAGE})
+	export UUID_DATA=$(blkid -s UUID -o value ${TARGETDATA})
+	cp $BOOT/temp/boot/$BOOTCONFIG $BOOT/temp/boot/$BOOTCONFIG.old
+	sed -i "s/imgpart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/imgpart=UUID=${UUID_IMAGE}/g" $BOOT/temp/boot/${BOOTCONFIG}
+	sed -i "s/datapart=UUID=[a-fA-F0-9]\{8\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{4\}-[A-Fa-f0-9]\{12\}/datapart=UUID=${UUID_DATA}/g" $BOOT/temp/boot/${BOOTCONFIG}
+	sed -i "s/bootpart=UUID=[a-fA-F0-9]\{4\}-[a-fA-F0-9]\{4\}/bootpart=UUID=${UUID_BOOT}/g" $BOOT/temp/boot/${BOOTCONFIG}
+    sync
+}
+
+mount_target_boot()
+{
+	echo "[info] Mounting boot and image partition"
+	mkdir -p $BOOT/temp/boot
+	mkdir -p $BOOT/temp/image
+	mount -t vfat ${TARGETBOOT} $BOOT/temp/boot
+	mount -t ext4 ${TARGETIMAGE} $BOOT/temp/image
+}
+
+search_boot_device()
+{
+	echo "[info] Waiting for boot device"
+	for i in 1 2 3 4 5 6 7 8 9 10
+	do
+		BOOTPARTDEV=`parse_disk ${BOOTPART}`
+		if [ ! -b "${BOOTPARTDEV}" ]; then
+		  echo "[info] Boot partition not ready, retrying mdev in 0.5 seconds"
+		  sleep 0.5
+		  mdev -s
+		else
+		  break
+		fi
+  	done
+	if [ ! -b "${BOOTPARTDEV}" ]; then
+		print_msg "Boot device ${BOOTPART} failed"
+		exec sh
+	fi
+}
+
+
+search_target_device()
+{
+echo "[info] Checking if target device is up"
+# Retry mdev -s 6 times before throwing the towel
+for i in 1 2 3 4 5 6
+	do
+		if [ ! -b "${TARGETDEV}" ]; then
+		  echo "[info] ${TARGETDEV} not detected,retrying mdev in 0.5 seconds"
+		  sleep 0.5
+		  mdev -s
+		else
+		  break
+		fi
+  	done
+	if [ ! -b "${TARGETDEV}" ]; then
+		print_msg "Device ${TARGETDEV} failed"
+		exec sh
+	fi
+}
+
+clear_target_device()
+{
+	echo "[info] Removing existing partitions from target device"
+    partlist=$(parted -s ${TARGETDEV} print | awk 'f;/^Number/{f=1}' | awk '{print $1}' | grep -v '^$')
+    for partno in $partlist
+    do 
+        echo "[....] removing partition ${partno}"
+        parted -s ${TARGETDEV} rm $partno 
+    done
+    sync
+}
+
+create_volumio_partitions()
+{
+	parted -s ${TARGETDEV} mklabel msdos
+	parted -s ${TARGETDEV} mkpart primary fat16 ${BOOT_START} ${BOOT_END}
+	parted -s ${TARGETDEV} mkpart primary ext3 ${BOOT_END} ${IMAGE_END}
+	parted -s ${TARGETDEV} mkpart primary ext3 ${IMAGE_END} 100%
+	parted -s ${TARGETDEV} set 1 boot on
+	partprobe ${TARGETDEV}
+	sync
+	mdev -s
+	sleep 0.5
+
+	echo "[info] Creating partition filesystems"
+	mkfs.vfat -n $LBLBOOT ${TARGETBOOT}
+	mkfs.ext4 -F -L $LBLIMAGE ${TARGETIMAGE}
+	mkfs.ext4 -F -L $LBLDATA ${TARGETDATA}
+	sync
+}
